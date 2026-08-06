@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Heart, TrendingUp, MessageCircle, Shield, Settings, ChevronRight, ArrowLeft } from 'lucide-react';
 import { ParentSafeProfile, ParentPermissionManager } from '../../parent/permissions';
 import { invoke } from '@tauri-apps/api/core';
+import { ConversationGuides } from './ConversationGuides';
 
 interface ParentDashboardProps {
   teenId: string; // The teen being viewed
@@ -363,6 +364,8 @@ const ConversationsTab: React.FC<{ profile: ParentSafeProfile }> = ({ profile })
         </motion.div>
       ))}
     </div>
+    
+    <ConversationGuides profile={profile} />
 
     <div className="bg-amber-50 border border-amber-100 rounded-2xl p-6 shadow-sm mt-8">
       <h4 className="font-black text-amber-800 mb-2 flex items-center gap-2">

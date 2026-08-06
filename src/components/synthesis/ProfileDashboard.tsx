@@ -3,8 +3,9 @@ import { motion } from 'framer-motion';
 import { UnifiedProfile, ProfileFusionEngine } from '../../synthesis/fusionEngine';
 import { TraitProfile } from '../../assessment/engine';
 import { CognitiveProfile } from '../../assessment/skills/engine';
-import { Sparkles, Target, Brain, TrendingUp, AlertTriangle, BookOpen, Zap } from 'lucide-react';
+import { Sparkles, Target, Brain, TrendingUp, AlertTriangle, BookOpen, Zap, Info } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
+import { ExplainabilityPanel } from '../dashboard/ExplainabilityPanel';
 
 interface ProfileDashboardProps {
   userId: string;
@@ -217,7 +218,10 @@ const OverviewTab: React.FC<{
 const CareerTab: React.FC<{
   career: UnifiedProfile['topCareer'];
   matches: UnifiedProfile['careerMatches'];
-}> = ({ career, matches }) => (
+}> = ({ career, matches }) => {
+  const [explainPathway, setExplainPathway] = React.useState<any>(null);
+
+  return (
   <div className="space-y-6">
     {/* Top Match */}
     <motion.div
@@ -233,9 +237,22 @@ const CareerTab: React.FC<{
           <h2 className="text-4xl md:text-5xl font-black text-white mb-2">{career.role}</h2>
           <p className="text-emerald-400 text-xl font-bold">{career.field}</p>
         </div>
-        <div className="text-left md:text-right bg-black/20 p-6 rounded-2xl border border-white/5 backdrop-blur-md">
-          <div className="text-5xl font-black text-emerald-400 mb-1">{career.matchScore}<span className="text-2xl text-emerald-400/50">%</span></div>
-          <span className="text-white/50 text-xs font-bold uppercase tracking-widest">Match Score</span>
+        <div className="text-left md:text-right bg-black/20 p-6 rounded-2xl border border-white/5 backdrop-blur-md flex flex-col items-end">
+          <div className="flex items-center gap-4 mb-2">
+            <div className="text-5xl font-black text-emerald-400">{career.matchScore}<span className="text-2xl text-emerald-400/50">%</span></div>
+          </div>
+          <span className="text-white/50 text-xs font-bold uppercase tracking-widest mb-3">Match Score</span>
+          <button 
+            onClick={() => setExplainPathway({
+              category: 'startup', // Mapped dynamically in a real scenario
+              title: career.role,
+              description: career.whyFit[0],
+              matchScore: career.matchScore
+            })}
+            className="flex items-center gap-2 text-xs font-bold bg-white/10 hover:bg-white/20 transition-colors px-3 py-1.5 rounded-lg border border-white/10"
+          >
+            <Info size={14} /> Explain Why
+          </button>
         </div>
       </div>
 
@@ -312,8 +329,13 @@ const CareerTab: React.FC<{
         </motion.div>
       ))}
     </div>
+    
+    {explainPathway && (
+      <ExplainabilityPanel pathway={explainPathway} onClose={() => setExplainPathway(null)} />
+    )}
   </div>
-);
+  );
+};
 
 const LearningTab: React.FC<{ profile: UnifiedProfile['learningProfile'] }> = ({ profile }) => (
   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
