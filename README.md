@@ -174,6 +174,32 @@ PRERNA/
 
 ---
 
+## 📚 Project Documentation & References
+
+To ensure transparency, clinical safety, and legal compliance, PRERNA maintains several specialized documentation files. Each file serves a specific architectural or operational purpose:
+
+1. **[System Evaluation Metrics](./SYSTEM_EVALUATION_METRICS.md)**
+   - **Purpose:** Defines the Key Performance Indicators (KPIs) and Service Level Agreements (SLAs) for the platform.
+   - **Contents:** Covers technical performance (LLM inference times, local bundle sizes), clinical efficacy (assessment replayability), and safety (crisis routing times).
+
+2. **[Crisis Escalation Protocol](./docs/crisis-protocol.md)**
+   - **Purpose:** The formal clinical guidelines for handling user emergencies.
+   - **Contents:** Details the exact NLP triggers for suicidal ideation or self-harm, the required human-in-the-loop review process, and the strict invariants preventing algorithmic guardian notification without human authorization.
+
+3. **[DPDP Compliance Mapping](./docs/dpdp-compliance-mapping.md)**
+   - **Purpose:** The architectural proof of legal compliance.
+   - **Contents:** Maps specific sections of the Indian Digital Personal Data Protection (DPDP) Act to PRERNA's codebase, proving how the zero-knowledge encrypted database and explicit consent gates satisfy the law.
+
+4. **[Disclosure Language Review](./docs/disclosure-language-review.md)**
+   - **Purpose:** The plain-text, non-legalese disclosures shown to users.
+   - **Contents:** Contains the approved English and Hindi text explaining exactly what data is collected, why it is collected, and how the "Transparent Assessments" work, ensuring teenagers give informed consent.
+
+5. **[Project Context for Claude/AI](./project_context_for_claude.md)**
+   - **Purpose:** A specialized onboarding document for Large Language Models.
+   - **Contents:** Condenses the entire system architecture, tech stack, and routing logic into a dense format optimized for feeding into Claude or ChatGPT to quickly onboard AI coding assistants to the repository.
+
+---
+
 ## 🛠️ Frameworks & Tools
 
 - **Vite**: Ultra-fast frontend build tool. Used instead of Webpack/CRA for rapid Hot Module Replacement (HMR).
