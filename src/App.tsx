@@ -13,6 +13,7 @@ import { SocialCompass } from './components/activities/SocialCompass';
 import { AiMentorChat } from './components/mentor/AiMentorChat';
 import { TeenProfileView } from './components/dashboard/TeenProfileView';
 import { SharedDashboardView } from './components/dashboard/SharedDashboardView';
+import { Dashboard } from './components/dashboard/Dashboard';
 import { WelcomeScreen } from './components/welcome/WelcomeScreen';
 import { LoadingScreen } from './components/common/LoadingScreen';
 import { ParentDashboard } from './components/parent/ParentDashboard';
@@ -71,7 +72,7 @@ function App() {
                 <Link to="/mood" className="text-slate-600 hover:text-indigo-600 transition-colors">Mood Mirror</Link>
                 <Link to="/social" className="text-slate-600 hover:text-indigo-600 transition-colors">Social Compass</Link>
                 <Link to="/mentor" className="text-slate-600 hover:text-indigo-600 transition-colors">AI Mentor</Link>
-                <Link to="/dashboard" className="text-slate-600 hover:text-indigo-600 transition-colors">Teen Dash</Link>
+                <Link to="/profile" className="text-slate-600 hover:text-indigo-600 transition-colors">Teen Dash</Link>
                 <Link to="/parent-dash" className="text-slate-600 hover:text-indigo-600 transition-colors">Parent Dash</Link>
               </nav>
             </div>
@@ -87,16 +88,17 @@ function App() {
       </header>
 
       <main className="flex-grow p-6 flex flex-col">
-        <div className="flex-grow max-w-7xl w-full mx-auto animate-fade-in-up">
+        <div className="flex-grow w-full mx-auto animate-fade-in-up">
         <Routes>
-          <Route path="/" element={<div className="text-center mt-20"><h2 className="text-3xl font-bold text-gray-800">Welcome to PRERNA Demo</h2><p className="mt-4 text-gray-600">Select an activity from the top bar to test the compliance gates.</p></div>} />
+          <Route path="/" element={<Dashboard userId={mockUserId} />} />
           <Route path="/beta" element={<BetaOnboardingNotice onAccept={() => alert('Accepted Beta')} />} />
-          <Route path="/quests" element={<LifeQuests userId={mockUserId} />} />
-          <Route path="/arena" element={<SkillArena userId={mockUserId} />} />
-          <Route path="/mood" element={<MoodMirror userId={mockUserId} />} />
-          <Route path="/social" element={<SocialCompass userId={mockUserId} />} />
-          <Route path="/mentor" element={<AiMentorChat userId={mockUserId} userContext={mockContext as any} />} />
+          <Route path="/quests" element={<div className="max-w-7xl mx-auto"><LifeQuests userId={mockUserId} /></div>} />
+          <Route path="/arena" element={<div className="max-w-7xl mx-auto"><SkillArena userId={mockUserId} /></div>} />
+          <Route path="/mood" element={<div className="max-w-7xl mx-auto"><MoodMirror userId={mockUserId} /></div>} />
+          <Route path="/social" element={<div className="max-w-7xl mx-auto"><SocialCompass userId={mockUserId} /></div>} />
+          <Route path="/mentor" element={<div className="max-w-7xl mx-auto"><AiMentorChat userId={mockUserId} userContext={mockContext as any} /></div>} />
           <Route path="/dashboard" element={<TeenProfileView data={mockDashboardData as any} />} />
+          <Route path="/profile" element={<TeenProfileView data={mockDashboardData as any} />} />
           <Route path="/parent-dash" element={<ParentDashboard teenId={mockUserId} onExit={() => window.location.href='/'} />} />
         </Routes>
         </div>
