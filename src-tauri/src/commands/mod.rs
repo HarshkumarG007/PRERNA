@@ -4,6 +4,7 @@ pub mod ai;
 use tauri::State;
 use crate::db::{DbState};
 use crate::db::models::*;
+use crate::policy::PolicyEngine;
 
 // === USER COMMANDS ===
 
@@ -32,9 +33,7 @@ pub fn save_session(
     state: State<DbState>,
     session: NewAssessmentSession,
 ) -> Result<String, String> {
-    if session.disclosure_version.is_empty() {
-        return Err("Cannot save session: no disclosure was recorded".into());
-    }
+    PolicyEngine::enforce_disclosure_invariant(&session.disclosure_version)?;
     
     let db = state.0.lock().map_err(|e| e.to_string())?;
     
@@ -63,9 +62,7 @@ pub fn save_skill_session(
     disclosure_version: String,
     disclosure_shown_at: i64,
 ) -> Result<String, String> {
-    if disclosure_version.is_empty() {
-        return Err("Cannot save skill session: no disclosure was recorded".into());
-    }
+    PolicyEngine::enforce_disclosure_invariant(&disclosure_version)?;
     
     let db = state.0.lock().map_err(|e| e.to_string())?;
     
@@ -440,12 +437,11 @@ pub fn resolve_crisis_event(
     state: State<DbState>,
     event_id: String,
     reviewer_id: String,
+    reviewer_credentials_ref: String,
     decision: CrisisDecision,
     teen_informed_at: Option<i64>,
 ) -> Result<(), String> {
-    if decision == CrisisDecision::GuardianNotified && teen_informed_at.is_none() {
-        return Err("Cannot notify guardian: teen has not been informed yet".into());
-    }
+    PolicyEngine::enforce_guardian_notification_invariant(&decision, teen_informed_at)?;
     
     let decision_str = match decision {
         CrisisDecision::NoAction => "NoAction",
@@ -454,7 +450,7 @@ pub fn resolve_crisis_event(
     };
     
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    db.resolve_crisis_event(&event_id, &reviewer_id, decision_str, teen_informed_at).map_err(|e| e.to_string())
+    db.resolve_crisis_event(&event_id, &reviewer_id, &reviewer_credentials_ref, decision_str, teen_informed_at).map_err(|e| e.to_string())
 }
 
 // === DATA MANAGEMENT COMMANDS ===
@@ -508,12 +504,12 @@ mod tests {
         let decision = CrisisDecision::GuardianNotified;
         let teen_informed_at = None;
         
-        let is_valid = !(decision == CrisisDecision::GuardianNotified && teen_informed_at.is_none());
-        assert!(!is_valid, "FATAL: Guardian notification must be blocked if teen is not informed");
+        let result = PolicyEngine::enforce_guardian_notification_invariant(&decision, teen_informed_at);
+        assert!(result.is_err(), "FATAL: Guardian notification must be blocked if teen is not informed");
         
         let decision_valid = CrisisDecision::GuardianNotified;
         let teen_informed_at_valid = Some(1620000000);
-        let is_valid_2 = !(decision_valid == CrisisDecision::GuardianNotified && teen_informed_at_valid.is_none());
-        assert!(is_valid_2, "Guardian notification should pass if teen is informed");
+        let result_valid = PolicyEngine::enforce_guardian_notification_invariant(&decision_valid, teen_informed_at_valid);
+        assert!(result_valid.is_ok(), "Guardian notification should pass if teen is informed");
     }
 }

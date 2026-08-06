@@ -1,3 +1,9 @@
+-- =======================================================================
+-- [AUTO-GENERATED REFERENCE ONLY - DO NOT EDIT]
+-- The true source of truth is src-tauri/src/db/schema.rs
+-- This file exists solely for frontend reference of the database layout.
+-- =======================================================================
+
 -- Users
 CREATE TABLE users (
     id TEXT PRIMARY KEY,

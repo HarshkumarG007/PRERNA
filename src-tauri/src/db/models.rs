@@ -123,6 +123,7 @@ pub struct CrisisEvent {
     pub severity: String,
     pub human_review_status: String,
     pub reviewer_id: Option<String>,
+    pub reviewer_credentials_ref: Option<String>,
     pub decision: Option<String>,
     pub teen_informed_at: Option<i64>,
 }

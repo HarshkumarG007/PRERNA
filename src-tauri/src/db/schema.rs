@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS crisis_events (
     severity TEXT NOT NULL,
     human_review_status TEXT DEFAULT 'pending',
     reviewer_id TEXT,
+    reviewer_credentials_ref TEXT,
     decision TEXT,
     teen_informed_at INTEGER,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

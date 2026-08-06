@@ -1,5 +1,6 @@
 pub mod db;
 pub mod commands;
+pub mod policy;
 pub mod ai;
 pub mod school_api;
 

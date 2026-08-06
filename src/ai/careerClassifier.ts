@@ -55,6 +55,24 @@ export function classifyCareerPathways(
     matchScore: Math.round(Math.min(100, creativeScore))
   });
 
+  // 5. Healthcare / Medical (High Social, Investigative, Agreeableness)
+  let healthcareScore = (bigFive.agreeableness + riasec.social + riasec.investigative) / 3;
+  pathways.push({
+    category: 'government', // grouping under stable/service
+    title: 'Healthcare & Medicine (NEET, Allied Health)',
+    description: 'You have high empathy and an investigative mind. The medical and allied healthcare fields offer a direct way to help people while solving complex biological problems.',
+    matchScore: Math.round(healthcareScore)
+  });
+
+  // 6. Commerce & Finance (High Conventional, Enterprising, Conscientiousness)
+  let financeScore = (bigFive.conscientiousness + riasec.conventional + riasec.enterprising) / 3;
+  pathways.push({
+    category: 'corporate',
+    title: 'Finance, Accounting & Commerce (CA, Fintech)',
+    description: 'You are highly structured, detail-oriented, and driven. A career in Chartered Accountancy, banking, or the booming Fintech sector aligns perfectly with your traits.',
+    matchScore: Math.round(financeScore)
+  });
+
   // Sort by highest match score
   return pathways.sort((a, b) => b.matchScore - a.matchScore);
 }

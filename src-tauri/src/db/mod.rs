@@ -272,11 +272,24 @@ impl Database {
         Ok(event.id.clone())
     }
     
-    pub fn resolve_crisis_event(&self, event_id: &str, reviewer_id: &str, decision: &str, teen_informed_at: Option<i64>) -> AnyhowResult<()> {
-        self.conn.execute(
-            "UPDATE crisis_events SET human_review_status = 'resolved', reviewer_id = ?1, decision = ?2, teen_informed_at = ?3 WHERE id = ?4",
-            params![reviewer_id, decision, teen_informed_at, event_id],
-        )?;
+    pub fn resolve_crisis_event(
+        &self,
+        event_id: &str,
+        reviewer_id: &str,
+        reviewer_credentials_ref: &str,
+        decision: &str,
+        teen_informed_at: Option<i64>,
+    ) -> Result<()> {
+        let sql = "
+            UPDATE crisis_events
+            SET human_review_status = ?1,
+                reviewer_ref = ?2,
+                reviewer_credentials_ref = ?3,
+                teen_informed_at = ?4
+            WHERE id = ?5
+        ";
+        
+        self.conn.execute(sql, (decision, reviewer_id, reviewer_credentials_ref, teen_informed_at, event_id))?;
         Ok(())
     }
 
