@@ -1,98 +1,135 @@
-# PRERNA: Privacy-First Mental Health Platform for Teens
+# PRERNA - Local-First AI Guidance & Stealth Assessment Platform
 
-![PRERNA Logo](./public/vite.svg)
-
-**PRERNA** is a privacy-first, secure, and mathematically robust mental health architecture designed specifically for Indian youth. It provides psychological assessments, AI-driven mentorship, and clinical escalation tools, all while adhering strictly to the **DPDP (Digital Personal Data Protection) Act of 2023**.
+PRERNA is a zero-knowledge, offline-first desktop application designed to provide teenagers with a safe, engaging environment for emotional expression and cognitive assessment. By blending stealth assessments (mini-games) with an empathetic, locally-running AI mentor, PRERNA generates deep psychological insights (Big Five, RIASEC, Cognitive Strengths) without ever transmitting sensitive data to the cloud.
 
 ---
 
-## 🌟 Key Features
+## 🏛️ System Architecture (ASCII)
 
-1. **Age & Consent Gating (DPDP Compliant)**
-   - Automatically intercepts users under 18.
-   - Enforces verifiable parental consent via simulated Digilocker workflows before any data collection occurs.
-   - Categorically prohibits behavioral profiling and targeted advertising for minors.
+PRERNA relies on a secure, two-tier architecture running entirely on the user's local machine.
 
-2. **Informed Consent Architecture (Zero-Dark-Patterns)**
-   - Plain-language disclosures are mandatory before any new assessment or activity.
-   - The UI physically blocks session initiation until explicit, timestamped consent is recorded.
-
-3. **Secure Crisis Escalation Router**
-   - Analyzes user inputs for signs of severe distress.
-   - Flags cases for **Human-in-the-Loop Clinical Review**.
-   - Ensures strict notification invariants: A guardian cannot be notified until a human professional has reviewed the case AND the teen has been explicitly informed.
-
-4. **Tauri + Rust Secure Backend**
-   - Built on a **Tauri desktop architecture** to allow secure, local-first data processing.
-   - Critical data ingestion and safety invariants are enforced at the compiled Rust level via IPC, preventing client-side JavaScript tampering.
-   - Built-in SQLCipher encryption support for local data at rest.
-
-5. **Premium Glassmorphic UI**
-   - Designed with React, TailwindCSS, and Lucide Icons.
-   - Features a calming, modern, and engaging visual aesthetic using smooth gradients, glass panels, and micro-animations to put users at ease.
-
----
-
-## 🛠️ Tech Stack
-
-- **Frontend:** React 19, TypeScript, Vite, TailwindCSS
-- **Backend/Desktop:** Tauri v2, Rust
-- **Testing:** Vitest, React Testing Library (Full Unit & DOM Integration suites)
-- **State Management:** Zustand, React Query
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js (v18+)
-- Rust & Cargo ([Install Rust](https://rustup.rs/))
-- Tauri CLI prerequisites (C++ Build Tools, Edge WebView2 on Windows)
-
-### Installation
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/HarshkumarG007/PRERNA.git
-   cd PRERNA
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Run the Development Server:**
-   ```bash
-   # This will start the Vite server and the Tauri Rust backend simultaneously
-   npm run tauri dev
-   ```
-
-4. **Run the Test Suite:**
-   ```bash
-   # Executes the rigorous DPDP invariant tests and UI integration tests
-   npm test
-   ```
-
-5. **Build for Production (Desktop App):**
-   ```bash
-   # Compiles the standalone executable (.exe / .dmg / .AppImage)
-   npm run tauri build
-   ```
+```text
+┌──────────────────────────────────────────────────────────┐
+│                   FRONTEND (Webview)                     │
+│  React 19 + TypeScript + Vite + Tailwind CSS v4          │
+│                                                          │
+│  ┌────────────────┐ ┌────────────────┐ ┌───────────────┐ │
+│  │ UI Components  │ │ Zustand Store  │ │ i18n Engine   │ │
+│  └────────────────┘ └────────────────┘ └───────────────┘ │
+│          │                  │                  │         │
+└──────────┼──────────────────┼──────────────────┼─────────┘
+           │                  │ (tauri::invoke)  │
+           ▼                  ▼                  ▼
+┌──────────────────────────────────────────────────────────┐
+│                    BACKEND (Core)                        │
+│  Rust + Tauri Framework                                  │
+│                                                          │
+│  ┌────────────────┐ ┌────────────────┐ ┌───────────────┐ │
+│  │ Tauri Handlers │ │ Crisis Protocol│ │ School API    │ │
+│  └────────────────┘ └────────────────┘ └───────────────┘ │
+│          │                  │                  │         │
+│          ▼                  ▼                  ▼         │
+│  ┌─────────────────────────────────────────────────────┐ │
+│  │                  Data Access Layer                  │ │
+│  │ ┌───────────────┐               ┌─────────────────┐ │ │
+│  │ │ rusqlite DAO  │               │ llama_cpp_2 DAO │ │ │
+│  │ └───────────────┘               └─────────────────┘ │ │
+│  └───────┬──────────────────────────────────┬──────────┘ │
+└──────────┼──────────────────────────────────┼────────────┘
+           │                                  │
+           ▼                                  ▼
+┌──────────────────────┐            ┌──────────────────────┐
+│  SQLCipher Database  │            │  Local LLaMA Model   │
+│  (AES-256 Encrypted) │            │  (GGUF Binary)       │
+└──────────────────────┘            └──────────────────────┘
+```
 
 ---
 
-## 🔒 Security & Architecture Details
+## 🚀 Core Features & Implementation
 
-The system is designed with a **"Trust Nothing, Verify Everything"** approach.
-- **Frontend Layer:** Provides the beautiful UI, but assumes all data can be tampered with.
-- **IPC Bridge (Tauri):** Custom Rust commands (e.g., `insert_crisis_event`) validate all incoming JSON payloads.
-- **Database:** SQLite is used locally, abstracted behind Tauri's SQL plugin.
+1. **Zero-Knowledge Privacy (Offline-First)**
+   - **How:** The app does not rely on a cloud database. All data is saved to a local `.sqlite` file encrypted using `SQLCipher` with 256-bit AES encryption.
+   - **Why:** To ensure strict compliance with DPDP (Digital Personal Data Protection) and guarantee that deeply personal psychological profiles cannot be leaked or hacked from a central server.
 
-For detailed documentation on the crisis escalation protocols, please read the [Crisis Protocol Doc](./docs/crisis-protocol.md).
+2. **Stealth Cognitive Assessments (Skill Arena)**
+   - **How:** Gamified React components (Pattern Match, Word Bridge, Spatial Puzzle, Reaction Test). User performance (speed, accuracy, choices) is mapped to psychological traits using the `fusionEngine.ts`.
+   - **Why:** Teenagers often suffer from test anxiety or survey fatigue. Stealth assessment gathers authentic cognitive data while the user thinks they are just playing a game.
+
+3. **Offline AI Mentor**
+   - **How:** Uses the Rust crate `llama-cpp-2` to run quantized GGUF models directly on the user's CPU/GPU. The React frontend chats with the backend via `invoke('chat_with_mentor')`.
+   - **Why:** Provides empathetic, non-judgmental career and emotional guidance without sending chat logs to OpenAI or Anthropic.
+
+4. **Clinical Crisis Protocol**
+   - **How:** A passive monitoring engine (`crisisRouter.ts` and Rust equivalents) scans mood logs and AI chat transcripts for high-risk flags (e.g., PHQ-9 equivalents, suicidal ideation). Triggers immediate escalation to a guardian interface.
+   - **Why:** Ensures duty of care. If a teen is in immediate danger, privacy is temporarily overridden to provide life-saving intervention.
+
+5. **School Integration API (K-Anonymity)**
+   - **How:** A Rust module (`school_api.rs`) that aggregates local data and only permits export if `N >= 5` (K-Anonymity threshold).
+   - **Why:** Allows schools to measure cohort wellbeing and career trends without accidentally de-anonymizing individual students.
 
 ---
 
-## 📝 License
+## 📂 Detailed Folder Structure
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+### 1. `src/` (Frontend React / TypeScript)
+The presentation layer and UI business logic.
+
+*   **`ai/`**: Frontend interfaces for the AI Mentor. Contains `llmClient.ts` which manages the prompt formatting and Tauri IPC calls to the Rust AI backend.
+*   **`backup/`**: Logic for encrypted data export/import (`engine.ts`, `scheduler.ts`). Allows teens to backup their profile to a USB drive.
+*   **`components/`**: React UI components, modularized by feature.
+    *   `activities/`: The stealth assessment games (Skill Arena, Mood Mirror, Life Quests).
+    *   `consent/`: DPDP compliance modals and Beta agreements.
+    *   `crisis/`: UI for the clinical review queue and escalation alerts.
+    *   `dashboard/`: The main teen UI (glassmorphism cards, streak trackers, trait visualizations).
+    *   `mentor/`: The chat interface for the AI companion.
+    *   `parent/`: The read-only, privacy-respecting dashboard for guardians.
+    *   `synthesis/`: UI for the final psychological profile summary.
+*   **`engine/`**: Core frontend business logic that doesn't belong in UI components.
+    *   `assessment/`: Rules for how game actions map to traits (`disclosures.ts`).
+    *   `crisis/`: The `escalationRouter.ts` that detects distress signals.
+    *   `localization/`: `i18n.tsx` for English/Hindi toggling.
+*   **`hooks/`**: Custom React hooks (e.g., `useDatabase.ts` for abstracting Tauri DB calls).
+*   **`parent/`**: Granular permissions system defining exactly what a parent can and cannot see (`permissions.ts`).
+*   **`store/`**: Global state management using Zustand (`index.ts`). This is the bridge between the UI and Tauri; it calls the Rust backend to fetch/save profiles and caches it for React.
+*   **`synthesis/`**: The `fusionEngine.ts`, which takes raw game scores and standardizes them into Big Five and RIASEC percentages.
+*   **`tests/`**: Vitest unit and integration test suites validating the crisis router and consent gates.
+
+### 2. `src-tauri/` (Backend Rust)
+The secure execution environment, native OS bindings, and database.
+
+*   **`src/`**: Core Rust source code.
+    *   **`ai.rs`**: Manages the local LLaMA model inference lifecycle (loading the model, tokenizing, generating responses).
+    *   **`commands.rs`**: Tauri IPC command handlers. These are the functions annotated with `#[tauri::command]` that React can call (e.g., `get_unified_profile`, `save_mood_log`).
+    *   **`db/`**: The database access layer.
+        *   `mod.rs`: SQLite connection management, SQLCipher pragmas, and schema migrations.
+        *   `models.rs`: Rust Structs representing the database schema (User, Session, TraitSnapshot).
+    *   **`lib.rs`**: The main Tauri application builder. Registers all plugins and commands, initializes the DB state, and starts the window.
+    *   **`school_api.rs`**: Institutional deployment logic. Generates `SchoolAnalyticsReport` using strict K-anonymity checks to ensure privacy.
+*   **`tauri.conf.json`**: Tauri compiler configuration (window size, bundle identifier, build scripts).
+*   **`Cargo.toml`**: Rust dependency manager (similar to package.json).
+
+### 3. `.github/` (CI/CD Pipelines)
+Enterprise-grade GitHub Actions suite for DevOps.
+
+*   **`workflows/`**:
+    *   `lint.yml`: Enforces ESLint and `cargo clippy` code quality.
+    *   `test.yml`: Runs `npm test` and `cargo test` on every PR.
+    *   `security.yml`: Runs `npm audit` and `cargo audit` to catch vulnerabilities.
+    *   `release.yml`: Matrix builds the `.exe` (Windows), `.dmg` (macOS), and `.AppImage` (Linux) native binaries when a `v*` tag is pushed.
+*   **`dependabot.yml`**: Automated dependency updates.
+
+### 4. `docs/`
+*   **`crisis-protocol.md`**: Formal clinical guidelines detailing response SLAs and trigger conditions for the crisis escalation system.
+
+---
+
+## 🛠️ Frameworks & Tools
+
+- **Vite**: Ultra-fast frontend build tool. Used instead of Webpack/CRA for rapid Hot Module Replacement (HMR).
+- **React 19 + TypeScript**: Ensures type safety across the complex psychological state objects.
+- **Tailwind CSS v4**: Utility-first CSS framework (configured via `@tailwindcss/vite`) used to build the premium, glassmorphism UI.
+- **Zustand**: Lightweight global state manager (preferred over Redux for minimal boilerplate).
+- **Tauri 2.0**: The desktop application framework. Chosen over Electron because it uses the native OS webview (Edge WebView2 on Windows, WebKit on Mac), resulting in a tiny binary size (~10MB) and virtually zero memory bloat.
+- **rusqlite + SQLCipher**: C-bindings for SQLite with 256-bit encryption.
+- **llama-cpp-2**: Rust bindings for `llama.cpp` to run AI models on CPU without requiring a massive Python/PyTorch stack.
