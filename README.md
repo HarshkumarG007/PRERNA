@@ -196,7 +196,23 @@ To ensure transparency, clinical safety, and legal compliance, PRERNA maintains 
 
 5. **[Project Context for Claude/AI](./project_context_for_claude.md)**
    - **Purpose:** A specialized onboarding document for Large Language Models.
-   - **Contents:** Condenses the entire system architecture, tech stack, and routing logic into a dense format optimized for feeding into Claude or ChatGPT to quickly onboard AI coding assistants to the repository.
+   - **Contents:** Condenses the entire system architecture, tech stack, and routing logic into a dense format optimized for feeding into AI agents to quickly onboard them to the repository.
+
+6. **[Enterprise Review](./docs/prerna-enterprise-review.md)**
+   - **Purpose:** Foundational audit defining phase blocks and architectural goals.
+   - **Contents:** A comprehensive review of the PRERNA architecture with a focus on Zero-Knowledge data compliance, offline AI operations, and clinical safeguards required for a production-grade enterprise launch.
+
+7. **[Gap Analysis](./docs/prerna-gap-analysis.md)**
+   - **Purpose:** Identifies missing features, security holes, and structural gaps.
+   - **Contents:** A deep dive into the difference between the initial prototype and the enterprise vision, explicitly calling out missing cryptographic guarantees and missing AI safety layers.
+
+8. **[Critical Fixes & Build Guide](./docs/prerna-critical-fixes-and-build-guide.md)**
+   - **Purpose:** Step-by-step resolution of all major architectural flaws.
+   - **Contents:** Contains the exact build procedures for Tauri/Rust and documents the resolution of DPDP compliance blockers like the implementation of the centralized `PolicyEngine`.
+
+9. **[Agent Implementation Plan V2](./docs/prerna-agent-implementation-plan-v2.md)**
+   - **Purpose:** The master roadmap for Phase 2, 3, 4, and 5 features.
+   - **Contents:** A strict, sequential checklist that AI agents use to systematically build out remaining features (like Voice Journaling, Adaptive Pacing, and K-Anonymity School Dashboards) without violating global clinical and legal rules.
 
 ---
 
