@@ -1,21 +1,24 @@
 // src/engine/crisis/escalationRouter.ts
 
-import { CrisisEvent } from './patternDetection';
+import { invoke } from '@tauri-apps/api/core';
 
-/**
- * Ticket P4-6: Guardian Notification Logic.
- * Enforces Global Rule 0.1-3: No notification without human review AND teen being informed.
- */
-export async function executeGuardianNotification(event: CrisisEvent): Promise<void> {
-  // CRITICAL ENFORCEMENT:
-  if (event.humanReviewStatus !== 'reviewed_guardian_notified') {
-    throw new Error('FATAL SECURITY EXCEPTION: Cannot notify guardian without explicit human review status.');
+export interface MoodLogOrChatMessage {
+  userId: string;
+  content: string;
+  sentiment?: string;
+}
+
+export async function checkForCrisisIndicators(input: MoodLogOrChatMessage): Promise<void> {
+  const isConcerning = input.sentiment === 'severe_distress' || input.content.toLowerCase().includes('harm');
+  
+  if (isConcerning) {
+    // This is the ONLY thing this function is allowed to do on a match.
+    // No notification. No guardian contact. No autonomous action beyond this write.
+    await invoke('create_crisis_event', {
+      userId: input.userId,
+      detectedAt: Date.now(),
+      severity: 'high',
+      // human_review_status defaults to 'pending' in Rust/DB — never set here
+    });
   }
-
-  if (!event.teenInformedAt) {
-    throw new Error('FATAL SECURITY EXCEPTION: Cannot notify guardian if the teen has not been informed first.');
-  }
-
-  console.log(`[ESCALATION ROUTER] Security checks passed. Executing guardian notification for case ${event.id}...`);
-  // In production: send secure email / SMS to parent_consents.parent_verified_identity_ref
 }

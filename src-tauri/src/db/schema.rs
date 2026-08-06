@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS sessions (
     completed_at TEXT,
     raw_choices TEXT, -- encrypted JSON
     derived_traits TEXT, -- encrypted JSON
+    disclosure_version TEXT NOT NULL,
+    disclosure_shown_at INTEGER NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -51,7 +53,20 @@ CREATE TABLE IF NOT EXISTS recommendations (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Daily Check-ins (stealth data)
+-- Crisis Events (Pending Human Review)
+CREATE TABLE IF NOT EXISTS crisis_events (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    detected_at INTEGER NOT NULL,
+    severity TEXT NOT NULL,
+    human_review_status TEXT DEFAULT 'pending',
+    reviewer_id TEXT,
+    decision TEXT,
+    teen_informed_at INTEGER,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Daily Check-ins (gamified data)
 CREATE TABLE IF NOT EXISTS micro_interactions (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,

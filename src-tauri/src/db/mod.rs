@@ -136,8 +136,8 @@ impl Database {
         let encrypted_traits = self.encrypt_field(&session.derived_traits)?;
         
         self.conn.execute(
-            "INSERT INTO sessions (id, user_id, session_type, started_at, completed_at, raw_choices, derived_traits)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            "INSERT INTO sessions (id, user_id, session_type, started_at, completed_at, raw_choices, derived_traits, disclosure_version, disclosure_shown_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
             params![
                 &id,
                 &session.user_id,
@@ -145,7 +145,9 @@ impl Database {
                 session.started_at,
                 session.completed_at,
                 encrypted_choices,
-                encrypted_traits
+                encrypted_traits,
+                &session.disclosure_version,
+                session.disclosure_shown_at
             ],
         )?;
         
@@ -154,7 +156,7 @@ impl Database {
 
     pub fn get_user_sessions(&self, user_id: &str) -> AnyhowResult<Vec<AssessmentSession>> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, session_type, started_at, completed_at, raw_choices, derived_traits 
+            "SELECT id, session_type, started_at, completed_at, raw_choices, derived_traits, disclosure_version, disclosure_shown_at 
              FROM sessions WHERE user_id = ?1 ORDER BY started_at DESC"
         )?;
         
@@ -170,6 +172,8 @@ impl Database {
                 completed_at: row.get(3)?,
                 raw_choices: self.decrypt_field(&choices_enc).unwrap_or_default(),
                 derived_traits: self.decrypt_field(&traits_enc).unwrap_or_default(),
+                disclosure_version: row.get(6)?,
+                disclosure_shown_at: row.get(7)?,
             })
         })?
         .collect::<Result<Vec<_>, _>>()?;
@@ -246,6 +250,34 @@ impl Database {
         )?;
         
         Ok(id)
+    }
+
+    // === CRISIS OPERATIONS ===
+    
+    pub fn create_crisis_event(&self, event: &CrisisEvent) -> AnyhowResult<String> {
+        self.conn.execute(
+            "INSERT INTO crisis_events (id, user_id, detected_at, severity, human_review_status, reviewer_id, decision, teen_informed_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            params![
+                &event.id,
+                &event.user_id,
+                event.detected_at,
+                &event.severity,
+                &event.human_review_status,
+                &event.reviewer_id,
+                &event.decision,
+                &event.teen_informed_at
+            ],
+        )?;
+        Ok(event.id.clone())
+    }
+    
+    pub fn resolve_crisis_event(&self, event_id: &str, reviewer_id: &str, decision: &str, teen_informed_at: Option<i64>) -> AnyhowResult<()> {
+        self.conn.execute(
+            "UPDATE crisis_events SET human_review_status = 'resolved', reviewer_id = ?1, decision = ?2, teen_informed_at = ?3 WHERE id = ?4",
+            params![reviewer_id, decision, teen_informed_at, event_id],
+        )?;
+        Ok(())
     }
 
     // === UTILITY METHODS ===

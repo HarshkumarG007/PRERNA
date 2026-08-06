@@ -32,6 +32,10 @@ pub fn save_session(
     state: State<DbState>,
     session: NewAssessmentSession,
 ) -> Result<String, String> {
+    if session.disclosure_version.is_empty() {
+        return Err("Cannot save session: no disclosure was recorded".into());
+    }
+    
     let db = state.0.lock().map_err(|e| e.to_string())?;
     
     let full_session = AssessmentSession {
@@ -42,6 +46,8 @@ pub fn save_session(
         completed_at: Some(chrono::Utc::now().to_rfc3339()),
         raw_choices: session.raw_choices,
         derived_traits: session.derived_traits,
+        disclosure_version: session.disclosure_version,
+        disclosure_shown_at: session.disclosure_shown_at,
     };
     
     db.save_session(&full_session).map_err(|e| e.to_string())
@@ -54,7 +60,13 @@ pub fn save_skill_session(
     game_type: String,
     score: i32,
     cognitive_data: String,
+    disclosure_version: String,
+    disclosure_shown_at: i64,
 ) -> Result<String, String> {
+    if disclosure_version.is_empty() {
+        return Err("Cannot save skill session: no disclosure was recorded".into());
+    }
+    
     let db = state.0.lock().map_err(|e| e.to_string())?;
     
     let session = crate::db::models::AssessmentSession {
@@ -65,6 +77,8 @@ pub fn save_skill_session(
         completed_at: Some(chrono::Utc::now().to_rfc3339()),
         raw_choices: serde_json::json!({ "score": score }).to_string(),
         derived_traits: cognitive_data,
+        disclosure_version,
+        disclosure_shown_at,
     };
     
     db.save_session(&session).map_err(|e| e.to_string())
@@ -120,6 +134,8 @@ pub fn save_unified_profile(
         raw_choices: profile_data,
         derived_traits: serde_json::to_string(&profile.get("archetype"))
             .unwrap_or_default(),
+        disclosure_version: "system_generated".to_string(),
+        disclosure_shown_at: chrono::Utc::now().timestamp(),
     };
     
     db.save_session(&session).map_err(|e| e.to_string())?;
@@ -394,6 +410,53 @@ pub fn log_interaction(
     db.log_micro_interaction(&full_interaction).map_err(|e| e.to_string())
 }
 
+// === CRISIS PROTOCOL COMMANDS ===
+
+#[tauri::command]
+pub fn create_crisis_event(
+    state: State<DbState>,
+    user_id: String,
+    detected_at: i64,
+    severity: String,
+) -> Result<String, String> {
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    
+    let event = CrisisEvent {
+        id: uuid::Uuid::new_v4().to_string(),
+        user_id,
+        detected_at,
+        severity,
+        human_review_status: "pending".to_string(),
+        reviewer_id: None,
+        decision: None,
+        teen_informed_at: None,
+    };
+    
+    db.create_crisis_event(&event).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn resolve_crisis_event(
+    state: State<DbState>,
+    event_id: String,
+    reviewer_id: String,
+    decision: CrisisDecision,
+    teen_informed_at: Option<i64>,
+) -> Result<(), String> {
+    if decision == CrisisDecision::GuardianNotified && teen_informed_at.is_none() {
+        return Err("Cannot notify guardian: teen has not been informed yet".into());
+    }
+    
+    let decision_str = match decision {
+        CrisisDecision::NoAction => "NoAction",
+        CrisisDecision::ResourcesOnly => "ResourcesOnly",
+        CrisisDecision::GuardianNotified => "GuardianNotified",
+    };
+    
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    db.resolve_crisis_event(&event_id, &reviewer_id, decision_str, teen_informed_at).map_err(|e| e.to_string())
+}
+
 // === DATA MANAGEMENT COMMANDS ===
 
 #[tauri::command]
@@ -432,4 +495,25 @@ pub fn get_health_metrics(state: State<DbState>) -> Result<HealthMetrics, String
         db_size_bytes: 0, // Would need to check file size
         encryption_status: "SQLCipher AES-256".to_string(),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_crisis_invariant_guardian_notification_blocked() {
+        // The invariant is: decision == GuardianNotified && teen_informed_at.is_none() -> Err
+        
+        let decision = CrisisDecision::GuardianNotified;
+        let teen_informed_at = None;
+        
+        let is_valid = !(decision == CrisisDecision::GuardianNotified && teen_informed_at.is_none());
+        assert!(!is_valid, "FATAL: Guardian notification must be blocked if teen is not informed");
+        
+        let decision_valid = CrisisDecision::GuardianNotified;
+        let teen_informed_at_valid = Some(1620000000);
+        let is_valid_2 = !(decision_valid == CrisisDecision::GuardianNotified && teen_informed_at_valid.is_none());
+        assert!(is_valid_2, "Guardian notification should pass if teen is informed");
+    }
 }

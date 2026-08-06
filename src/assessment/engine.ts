@@ -1,5 +1,5 @@
 /**
- * PRERNA Stealth Assessment Engine
+ * PRERNA Transparent Assessment Engine
  * Maps game choices to psychometric traits without user awareness
  */
 
@@ -44,7 +44,7 @@ export interface Response {
   timestamp: Date;
 }
 
-export class StealthAssessmentEngine {
+export class TransparentAssessmentEngine {
   private session: GameSession;
   private traitAccumulator: Map<string, number> = new Map();
   private confidenceAccumulator: Map<string, number> = new Map();

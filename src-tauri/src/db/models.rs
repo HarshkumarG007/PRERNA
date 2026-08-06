@@ -26,6 +26,8 @@ pub struct AssessmentSession {
     pub completed_at: Option<String>,
     pub raw_choices: String, // JSON
     pub derived_traits: String, // JSON
+    pub disclosure_version: String,
+    pub disclosure_shown_at: i64,
 }
 
 #[derive(Debug, Deserialize)]
@@ -34,6 +36,8 @@ pub struct NewAssessmentSession {
     pub session_type: String,
     pub raw_choices: String,
     pub derived_traits: String,
+    pub disclosure_version: String,
+    pub disclosure_shown_at: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -109,4 +113,23 @@ pub struct HealthMetrics {
     pub total_sessions: i64,
     pub db_size_bytes: u64,
     pub encryption_status: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CrisisEvent {
+    pub id: String,
+    pub user_id: String,
+    pub detected_at: i64,
+    pub severity: String,
+    pub human_review_status: String,
+    pub reviewer_id: Option<String>,
+    pub decision: Option<String>,
+    pub teen_informed_at: Option<i64>,
+}
+
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
+pub enum CrisisDecision {
+    NoAction,
+    ResourcesOnly,
+    GuardianNotified,
 }

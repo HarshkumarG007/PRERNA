@@ -35,7 +35,7 @@ These metrics evaluate the reliability of the `escalationRouter.ts` and the priv
 
 ## 3. Cognitive Efficacy (The Fusion Engine)
 
-These metrics evaluate how successfully the Stealth Assessments (Mini-Games) map to clinical psychological models.
+These metrics evaluate how successfully the Transparent Assessments (Mini-Games) map to clinical psychological models.
 
 | Metric | Definition | Target SLA |
 | :--- | :--- | :--- |
@@ -54,7 +54,7 @@ These metrics define if the platform is actually engaging enough for a teenager 
 | :--- | :--- | :--- |
 | **AI Mentor Chat Depth** | The average number of conversational turns (user message + AI response) per mentor session. | `> 6 turns` |
 | **Mood Mirror MAU Retention** | Percentage of users who log their emotional state at least 4 times a week for a full month. | `> 40%` |
-| **Stealth Assessment Replayability** | Average number of times a user voluntarily plays a `SkillArena` module after they have already completed it once. | `> 2.5 times` |
+| **Gamified Assessment Replayability** | Average number of times a user voluntarily plays a `SkillArena` module after they have already completed it once. | `> 2.5 times` |
 
 ---
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  StealthAssessmentEngine, 
+  TransparentAssessmentEngine, 
   GameSession, 
   Scene, 
   TraitProfile 
@@ -23,7 +23,7 @@ export const LifeQuests: React.FC<LifeQuestsProps> = ({ userId }) => {
   
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [currentSceneIndex, setCurrentSceneIndex] = useState(0);
-  const [engine, setEngine] = useState<StealthAssessmentEngine | null>(null);
+  const [engine, setEngine] = useState<TransparentAssessmentEngine | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showResults, setShowResults] = useState(false);
   const [profile, setProfile] = useState<TraitProfile | null>(null);
@@ -50,7 +50,7 @@ export const LifeQuests: React.FC<LifeQuestsProps> = ({ userId }) => {
         startTime: new Date(),
       };
       
-      setEngine(new StealthAssessmentEngine(session));
+      setEngine(new TransparentAssessmentEngine(session));
       setIsLoading(false);
       startTimeRef.current = Date.now();
     }

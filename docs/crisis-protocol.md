@@ -1,7 +1,7 @@
 # Crisis Escalation Protocol (Clinical Specification)
 
-> **[REVIEWED & APPROVED]**
-> This document has been reviewed and standardized according to clinical best practices (adapted from Columbia-Suicide Severity Rating Scale and APA Guidelines) for digital mental health interventions.
+> **[DRAFT — PENDING CLINICAL REVIEW]**
+> *Provenance Note: Drafted on 2026-08-06 as a provisional specification. The thresholds and criteria outlined below are proposals awaiting formal review and sign-off by a licensed mental health professional (LCSW/LPC or equivalent).*
 
 ## 1. Imminent Risk Indicators
 *A case is flagged as `pending` in the `crisis_events` table if ANY of the following strict criteria are met.*
@@ -24,7 +24,7 @@
   - `reviewed_guardian_notified`: Confirmed imminent risk. The escalation protocol is triggered immediately.
 
 ## 3. Escalation Protocol (`reviewed_guardian_notified`)
-1. **Teen Notification**: An un-dismissible, compassionate modal appears in the teen's app informing them that a counselor is concerned for their safety and is contacting their guardian. Provides immediate crisis hotline numbers (e.g., 988 or local equivalent).
+1. **Teen Notification**: An un-dismissible, compassionate modal appears in the teen's app informing them that a counselor is concerned for their safety and is contacting their guardian. Provides immediate crisis hotline numbers (e.g., KIRAN: 1800-599-0019, Vandrevala Foundation, iCall).
 2. **Guardian Notification**: An automated, high-priority alert (SMS and Email) is sent to the verified parent/guardian containing the specific reason for escalation and recommended immediate steps.
 3. **School Notification (If applicable)**: If the teen is part of a school deployment and the threat involves the school environment, the designated school counselor is simultaneously alerted.
 

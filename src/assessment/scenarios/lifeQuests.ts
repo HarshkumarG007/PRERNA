@@ -1,6 +1,6 @@
 /**
  * Life Quest Scenarios
- * Narrative scenarios that stealthily assess Big Five, RIASEC, and Emotional traits
+ * Narrative scenarios that transparently assess Big Five, RIASEC, and Emotional traits
  */
 
 import { Scene } from '../engine';

@@ -24,7 +24,7 @@ All data flows through Tauri's Inter-Process Communication (IPC). The frontend n
 *   **Purpose**: Global Zustand store managing the `AuthState`, `ProfileState`, and `AppUIState`.
 *   **How it works**: It is the single source of truth. When a user logs in, `login(userId)` is called, which invokes the Rust command `get_unified_profile`. The Rust backend decrypts the SQLite database, fetches the user's `TraitSnapshot`, and returns it. Zustand caches this as `profile: UnifiedProfile`. React components (like the Dashboard) re-render reactively when this profile updates.
 
-#### `src/components/activities/` (Stealth Assessments)
+#### `src/components/activities/` (Gamified Assessments)
 *   **Purpose**: Gamified components that extract psychological data without standard survey fatigue.
 *   **`SkillArena.tsx`**: Contains mini-games (Reaction Test, Spatial Puzzle). Scores are passed to the `fusionEngine.ts` to calculate cognitive strengths.
 *   **`MoodMirror.tsx`**: A daily check-in that logs emotional valence (1-100). Passes data to `invoke('save_mood_log')`.

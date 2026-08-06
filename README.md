@@ -1,6 +1,6 @@
-# PRERNA - Local-First AI Guidance & Stealth Assessment Platform
+# PRERNA - Local-First AI Guidance & Gamified Assessment Platform
 
-PRERNA is a zero-knowledge, offline-first desktop application designed to provide teenagers with a safe, engaging environment for emotional expression and cognitive assessment. By blending stealth assessments (mini-games) with an empathetic, locally-running AI mentor, PRERNA generates deep psychological insights (Big Five, RIASEC, Cognitive Strengths) without ever transmitting sensitive data to the cloud.
+PRERNA is a zero-knowledge, offline-first desktop application designed to provide teenagers with a safe, engaging environment for emotional expression and cognitive assessment. By blending gamified assessments (mini-games) with an empathetic, locally-running AI mentor, PRERNA generates deep psychological insights (Big Five, RIASEC, Cognitive Strengths) without ever transmitting sensitive data to the cloud.
 
 ---
 
@@ -52,9 +52,9 @@ PRERNA relies on a secure, two-tier architecture running entirely on the user's 
    - **How:** The app does not rely on a cloud database. All data is saved to a local `.sqlite` file encrypted using `SQLCipher` with 256-bit AES encryption.
    - **Why:** To ensure strict compliance with DPDP (Digital Personal Data Protection) and guarantee that deeply personal psychological profiles cannot be leaked or hacked from a central server.
 
-2. **Stealth Cognitive Assessments (Skill Arena)**
+2. **Transparent Cognitive Assessments (Skill Arena)**
    - **How:** Gamified React components (Pattern Match, Word Bridge, Spatial Puzzle, Reaction Test). User performance (speed, accuracy, choices) is mapped to psychological traits using the `fusionEngine.ts`.
-   - **Why:** Teenagers often suffer from test anxiety or survey fatigue. Stealth assessment gathers authentic cognitive data while the user thinks they are just playing a game.
+   - **Why:** Teenagers often suffer from test anxiety or survey fatigue. Transparent gamified assessment gathers authentic cognitive data while the user plays a game, preceded by explicit disclosure.
 
 3. **Offline AI Mentor**
    - **How:** Uses the Rust crate `llama-cpp-2` to run quantized GGUF models directly on the user's CPU/GPU. The React frontend chats with the backend via `invoke('chat_with_mentor')`.
@@ -78,7 +78,7 @@ The presentation layer and UI business logic.
 *   **`ai/`**: Frontend interfaces for the AI Mentor. Contains `llmClient.ts` which manages the prompt formatting and Tauri IPC calls to the Rust AI backend.
 *   **`backup/`**: Logic for encrypted data export/import (`engine.ts`, `scheduler.ts`). Allows teens to backup their profile to a USB drive.
 *   **`components/`**: React UI components, modularized by feature.
-    *   `activities/`: The stealth assessment games (Skill Arena, Mood Mirror, Life Quests).
+    *   `activities/`: The gamified assessment games (Skill Arena, Mood Mirror, Life Quests).
     *   `consent/`: DPDP compliance modals and Beta agreements.
     *   `crisis/`: UI for the clinical review queue and escalation alerts.
     *   `dashboard/`: The main teen UI (glassmorphism cards, streak trackers, trait visualizations).
