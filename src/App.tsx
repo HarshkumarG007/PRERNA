@@ -1,0 +1,74 @@
+import React, { useState } from 'react';
+import { Routes, Route, Link } from 'react-router-dom';
+import { useI18n } from './engine/localization/i18n';
+
+// Import all components we built
+import { AgeDeclaration } from './components/consent/AgeDeclaration';
+import { ParentConsentFlow } from './components/consent/ParentConsentFlow';
+import { BetaOnboardingNotice } from './components/consent/BetaOnboardingNotice';
+import { LifeQuests } from './components/activities/LifeQuests';
+import { SkillArena } from './components/activities/SkillArena';
+import { MoodMirror } from './components/activities/MoodMirror';
+import { SocialCompass } from './components/activities/SocialCompass';
+import { AiMentorChat } from './components/mentor/AiMentorChat';
+import { TeenProfileView } from './components/dashboard/TeenProfileView';
+import { ParentDashboard } from './components/dashboard/ParentDashboard';
+
+// Dummy context for demo
+const mockUserId = 'user_123';
+const mockContext = { name: 'Demo User', bigFive: { openness: 60, conscientiousness: 70, extraversion: 50, agreeableness: 80, neuroticism: 40 } };
+const mockDashboardData = { userId: mockUserId, bigFive: mockContext.bigFive, riasec: { realistic: 30, investigative: 40, artistic: 80, social: 70, enterprising: 20, conventional: 10 }, lastMoodLog: new Date() };
+
+function App() {
+  const { language, setLanguage } = useI18n();
+
+  return (
+    <div className="min-h-screen flex flex-col font-sans">
+      <header className="sticky top-0 z-50 glass-panel !rounded-none !border-x-0 !border-t-0 shadow-sm transition-all duration-300">
+        <div className="max-w-7xl mx-auto flex justify-between items-center p-4">
+          <div className="flex items-center space-x-8">
+            <h1 className="text-2xl font-black tracking-tight text-indigo-700 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
+              PRERNA
+            </h1>
+            <nav className="hidden md:flex space-x-6 text-sm font-semibold">
+              <Link to="/beta" className="text-slate-600 hover:text-indigo-600 transition-colors">Beta Consent</Link>
+              <Link to="/quests" className="text-slate-600 hover:text-indigo-600 transition-colors">Life Quests</Link>
+              <Link to="/arena" className="text-slate-600 hover:text-indigo-600 transition-colors">Skill Arena</Link>
+              <Link to="/mood" className="text-slate-600 hover:text-indigo-600 transition-colors">Mood Mirror</Link>
+              <Link to="/social" className="text-slate-600 hover:text-indigo-600 transition-colors">Social Compass</Link>
+              <Link to="/mentor" className="text-slate-600 hover:text-indigo-600 transition-colors">AI Mentor</Link>
+              <Link to="/dashboard" className="text-slate-600 hover:text-indigo-600 transition-colors">Teen Dash</Link>
+              <Link to="/parent-dash" className="text-slate-600 hover:text-indigo-600 transition-colors">Parent Dash</Link>
+            </nav>
+          </div>
+          <div>
+            <button 
+              onClick={() => setLanguage(language === 'en' ? 'hi' : 'en')}
+              className="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold transition-colors border border-indigo-100"
+            >
+              Language: {language === 'en' ? 'EN' : 'HI'}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-grow p-6 flex flex-col">
+        <div className="flex-grow max-w-7xl w-full mx-auto animate-fade-in-up">
+        <Routes>
+          <Route path="/" element={<div className="text-center mt-20"><h2 className="text-3xl font-bold text-gray-800">Welcome to PRERNA Demo</h2><p className="mt-4 text-gray-600">Select an activity from the top bar to test the compliance gates.</p></div>} />
+          <Route path="/beta" element={<BetaOnboardingNotice onAccept={() => alert('Accepted Beta')} />} />
+          <Route path="/quests" element={<LifeQuests userId={mockUserId} />} />
+          <Route path="/arena" element={<SkillArena userId={mockUserId} />} />
+          <Route path="/mood" element={<MoodMirror userId={mockUserId} />} />
+          <Route path="/social" element={<SocialCompass userId={mockUserId} />} />
+          <Route path="/mentor" element={<AiMentorChat userId={mockUserId} userContext={mockContext as any} />} />
+          <Route path="/dashboard" element={<TeenProfileView data={mockDashboardData as any} />} />
+          <Route path="/parent-dash" element={<ParentDashboard data={mockDashboardData as any} teenName="Demo User" />} />
+        </Routes>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+export default App;
