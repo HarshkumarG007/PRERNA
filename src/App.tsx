@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
-import { useI18n } from './engine/localization/i18n';
+import { useI18n, LANGUAGE_NAMES, Language } from './engine/localization/i18n';
 
 import { BetaOnboardingNotice } from './components/consent/BetaOnboardingNotice';
 import { LifeQuests } from './components/activities/LifeQuests';
@@ -13,6 +13,7 @@ import { Dashboard } from './components/dashboard/Dashboard';
 import { WelcomeScreen } from './components/welcome/WelcomeScreen';
 import { LoadingScreen } from './components/common/LoadingScreen';
 import { ParentDashboard } from './components/parent/ParentDashboard';
+import { SchoolDashboard } from './components/school/SchoolDashboard';
 import { useAppStore } from './store';
 
 // Dummy context for demo for older components that haven't been migrated yet
@@ -69,15 +70,24 @@ function App() {
                 <Link to="/mentor" className="text-slate-600 hover:text-indigo-600 transition-colors">AI Mentor</Link>
                 <Link to="/profile" className="text-slate-600 hover:text-indigo-600 transition-colors">Teen Dash</Link>
                 <Link to="/parent-dash" className="text-slate-600 hover:text-indigo-600 transition-colors">Parent Dash</Link>
+                <Link to="/school-dash" className="text-slate-600 hover:text-indigo-600 transition-colors">School Dash</Link>
               </nav>
             </div>
-          <div>
-            <button 
-              onClick={() => setLanguage(language === 'en' ? 'hi' : 'en')}
-              className="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold transition-colors border border-indigo-100"
+          <div className="relative group">
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as Language)}
+              className="appearance-none pl-4 pr-10 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-full text-sm font-bold transition-colors border border-indigo-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
-              Language: {language === 'en' ? 'EN' : 'HI'}
-            </button>
+              {Object.entries(LANGUAGE_NAMES).map(([code, name]) => (
+                <option key={code} value={code}>
+                  {name}
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-indigo-700">
+              <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+            </div>
           </div>
         </div>
       </header>
@@ -95,6 +105,7 @@ function App() {
           <Route path="/dashboard" element={<TeenProfileView data={mockDashboardData as any} />} />
           <Route path="/profile" element={<TeenProfileView data={mockDashboardData as any} />} />
           <Route path="/parent-dash" element={<ParentDashboard teenId={user.id} onExit={() => window.location.href='/'} />} />
+          <Route path="/school-dash" element={<SchoolDashboard />} />
         </Routes>
         </div>
       </main>

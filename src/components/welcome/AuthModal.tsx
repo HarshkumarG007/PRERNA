@@ -263,25 +263,30 @@ const SignupFlow: React.FC<{
         {/* Language */}
         <div>
           <label className="block text-sm font-medium text-white/70 mb-3">Preferred language</label>
-          <div className="flex gap-3">
-            {[
-              { code: 'en' as const, label: 'English' },
-              { code: 'hi' as const, label: 'हिंदी' },
-              { code: 'ta' as const, label: 'தமிழ்' },
-            ].map((lang) => (
-              <button
-                key={lang.code}
-                onClick={() => setFormData({ ...formData, language: lang.code })}
-                className={`flex-1 py-3 rounded-xl border-2 transition-all ${
-                  formData.language === lang.code
-                    ? 'border-violet-500 bg-violet-500/20 text-white'
-                    : 'border-white/10 hover:border-white/30 text-white/70'
-                }`}
-              >
-                {lang.label}
-              </button>
-            ))}
-          </div>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { code: 'en', label: 'English', native: 'English' },
+                { code: 'hi', label: 'Hindi', native: 'हिंदी' },
+                { code: 'ta', label: 'Tamil', native: 'தமிழ்' },
+                { code: 'te', label: 'Telugu', native: 'తెలుగు' },
+                { code: 'mr', label: 'Marathi', native: 'मराठी' },
+                { code: 'bn', label: 'Bengali', native: 'বাংলা' }
+              ].map(lang => (
+                <button
+                  key={lang.code}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, language: lang.code })}
+                  className={`p-3 rounded-xl border flex flex-col items-center justify-center transition-all ${
+                    formData.language === lang.code
+                      ? 'bg-violet-500/20 border-violet-500 text-white'
+                      : 'bg-white/5 border-white/10 text-white/70 hover:border-white/30'
+                  }`}
+                >
+                  <span className="font-bold">{lang.native}</span>
+                  <span className="text-xs opacity-70">{lang.label}</span>
+                </button>
+              ))}
+            </div>
         </div>
       </div>
     );
