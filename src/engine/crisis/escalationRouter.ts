@@ -22,3 +22,13 @@ export async function checkForCrisisIndicators(input: MoodLogOrChatMessage): Pro
     });
   }
 }
+
+export async function executeGuardianNotification(event: any): Promise<void> {
+  if (event.humanReviewStatus !== 'reviewed_guardian_notified') {
+    throw new Error('FATAL SECURITY EXCEPTION: Cannot notify guardian without explicit human review status');
+  }
+  if (!event.teenInformedAt) {
+    throw new Error('FATAL SECURITY EXCEPTION: Cannot notify guardian if the teen has not been informed first');
+  }
+  console.log('Simulating Guardian Notification via verified API...');
+}

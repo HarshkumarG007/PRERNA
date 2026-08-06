@@ -1,5 +1,5 @@
 import React from 'react';
-import { ParentSafeProfile } from '../../synthesis/fusionEngine';
+import { ParentSafeProfile } from '../../parent/permissions';
 
 interface ConversationGuidesProps {
   profile: ParentSafeProfile;
@@ -24,7 +24,7 @@ export const ConversationGuides: React.FC<ConversationGuidesProps> = ({ profile 
     return guides;
   };
 
-  const guides = getGuidesForStrengths(profile.strengths);
+  const guides = getGuidesForStrengths(profile.strengths || []);
 
   return (
     <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden mt-6">

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CURRENT_DISCLOSURES } from '../../engine/assessment/disclosures';
 import { validateSessionCreation, SessionConfig } from '../../engine/consent/sessionGate';
-import { calculateRiasec, ArenaAction, RiasecProfile } from '../../engine/assessment/riasec';
+
 import { useI18n } from '../../engine/localization/i18n';
 import { useAppStore } from '../../store';
 import { calculateOptimalDifficulty } from '../../assessment/skills/engine';
@@ -16,8 +16,7 @@ export const SkillArena: React.FC<SkillArenaProps> = ({ userId }) => {
   const { user } = useAppStore();
   const [disclosureAccepted, setDisclosureAccepted] = useState(false);
   const [isSessionActive, setIsSessionActive] = useState(false);
-  const [actionsMade, setActionsMade] = useState<ArenaAction[]>([]);
-  const [results, setResults] = useState<RiasecProfile | null>(null);
+  const [results, setResults] = useState<any>(null);
 
   const disclosure = CURRENT_DISCLOSURES.skill_arena;
 
@@ -35,19 +34,6 @@ export const SkillArena: React.FC<SkillArenaProps> = ({ userId }) => {
       setIsSessionActive(true);
     } catch (err: any) {
       alert(err.message);
-    }
-  };
-
-  const handleAction = (action: ArenaAction) => {
-    const updatedActions = [...actionsMade, action];
-    setActionsMade(updatedActions);
-    
-    // Simulate finishing mini-game after 2 actions
-    if (updatedActions.length >= 2) {
-      const profile = calculateRiasec(updatedActions);
-      setResults(profile);
-      setIsSessionActive(false);
-      // In a real app: write to trait_snapshots table here
     }
   };
 
@@ -97,7 +83,7 @@ export const SkillArena: React.FC<SkillArenaProps> = ({ userId }) => {
     );
   }
 
-  const difficulty = calculateOptimalDifficulty(user?.bigFive);
+  const difficulty = calculateOptimalDifficulty((user as any)?.bigFive);
 
   return (
     <div className="max-w-4xl mx-auto mt-10 space-y-6">

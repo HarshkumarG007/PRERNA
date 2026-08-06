@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CURRENT_DISCLOSURES } from '../../engine/assessment/disclosures';
 import { validateSessionCreation } from '../../engine/consent/sessionGate';
-import { detectCrisisPattern } from '../../engine/crisis/patternDetection';
+import { checkForCrisisIndicators } from '../../engine/crisis/escalationRouter';
 import { ResourceSurface } from '../crisis/ResourceSurface';
 import { TrustedAdultConnector } from '../crisis/TrustedAdultConnector';
 import { useI18n } from '../../engine/localization/i18n';
@@ -31,7 +31,11 @@ export const MoodMirror: React.FC<MoodMirrorProps> = ({ userId }) => {
     setLogged(true);
     // 1. Simulate saving to DB
     // 2. Feed to crisis detection engine
-    await detectCrisisPattern(userId || 'guest', { sentiment });
+    await checkForCrisisIndicators({
+      userId: userId || 'guest',
+      content: `Logged sentiment: ${sentiment}`,
+      sentiment
+    });
   };
 
   if (logged) {

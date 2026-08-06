@@ -1,4 +1,3 @@
-import { invoke } from '@tauri-apps/api/core';
 
 export interface CrisisEvent {
   id: string;

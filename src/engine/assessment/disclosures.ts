@@ -6,10 +6,7 @@ export interface Disclosure {
   id: string; // E.g., 'v1.0'
   version: string;
   type: ActivityType;
-  text: {
-    en: string;
-    hi: string;
-  };
+  text: Record<string, string>;
   reviewedBy: string | null;
 }
 
