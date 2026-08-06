@@ -51,6 +51,8 @@ pub fn run() {
             commands::save_skill_session,
             commands::save_unified_profile,
             commands::get_parent_view,
+            commands::export_all_user_data,
+            commands::import_user_data,
             commands::get_user_sessions,
             
             // Trait commands

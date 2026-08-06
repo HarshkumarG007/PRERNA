@@ -218,6 +218,100 @@ fn extract_strengths(profile: &crate::db::models::TraitSnapshot) -> Vec<String> 
     strengths
 }
 
+#[derive(Debug, serde::Serialize)]
+pub struct ExportPackage {
+    pub user: serde_json::Value,
+    pub sessions: Vec<serde_json::Value>,
+    pub snapshots: Vec<serde_json::Value>,
+    pub preferences: serde_json::Value,
+}
+
+#[tauri::command]
+pub fn export_all_user_data(
+    state: State<DbState>,
+    user_id: String,
+) -> Result<ExportPackage, String> {
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    
+    // Export user profile
+    let user = db.get_user(&user_id)
+        .map_err(|e| e.to_string())?
+        .ok_or("User not found")?;
+    
+    // Export all sessions
+    let sessions = db.get_user_sessions(&user_id)
+        .map_err(|e| e.to_string())?;
+    
+    // Export trait snapshots
+    let snapshots = db.get_user_snapshots(&user_id)
+        .map_err(|e| e.to_string())?;
+    
+    Ok(ExportPackage {
+        user: serde_json::to_value(user).map_err(|e| e.to_string())?,
+        sessions: sessions.into_iter()
+            .map(|s| serde_json::to_value(s).unwrap())
+            .collect(),
+        snapshots: snapshots.into_iter()
+            .map(|s| serde_json::to_value(s).unwrap())
+            .collect(),
+        preferences: serde_json::json!({}), // Mock preferences
+    })
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct ImportPackage {
+    pub user: serde_json::Value,
+    pub sessions: Vec<serde_json::Value>,
+    pub snapshots: Vec<serde_json::Value>,
+    pub preferences: serde_json::Value,
+}
+
+#[tauri::command]
+pub fn import_user_data(
+    state: State<DbState>,
+    data: ImportPackage,
+) -> Result<String, String> {
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    
+    // Import user
+    let user: crate::db::models::User = serde_json::from_value(data.user)
+        .map_err(|e| format!("Invalid user data: {}", e))?;
+    
+    // Check if user exists
+    match db.get_user(&user.id).map_err(|e| e.to_string())? {
+        Some(_) => {
+            // Update existing (mocking with create_user for now)
+            // db.update_user(&user).map_err(|e| e.to_string())?;
+        }
+        None => {
+            // Create new
+            db.create_user(&crate::db::models::NewUser {
+                age_range: user.age_range,
+                region: user.region,
+                language: user.language,
+            }).map_err(|e| e.to_string())?;
+        }
+    }
+    
+    // Import sessions
+    for session_json in data.sessions {
+        let session: crate::db::models::AssessmentSession = 
+            serde_json::from_value(session_json)
+                .map_err(|e| format!("Invalid session: {}", e))?;
+        db.save_session(&session).map_err(|e| e.to_string())?;
+    }
+    
+    // Import snapshots
+    for snapshot_json in data.snapshots {
+        let snapshot: crate::db::models::TraitSnapshot = 
+            serde_json::from_value(snapshot_json)
+                .map_err(|e| format!("Invalid snapshot: {}", e))?;
+        db.save_trait_snapshot(&snapshot).map_err(|e| e.to_string())?;
+    }
+    
+    Ok(user.id)
+}
+
 #[tauri::command]
 pub fn get_user_sessions(
     state: State<DbState>,

@@ -7,7 +7,8 @@ import { MentorChat } from '../ai/MentorChat';
 import { SkillArena } from '../skills/SkillArena';
 import { ProfileDashboard } from '../synthesis/ProfileDashboard';
 import { TeenPrivacyControls } from '../parent/TeenPrivacyControls';
-import { Shield } from 'lucide-react';
+import { BackupManager } from '../backup/BackupManager';
+import { Shield, Settings } from 'lucide-react';
 import { useState } from 'react';
 
 export interface DashboardData {
@@ -25,6 +26,11 @@ export const SharedDashboardView: React.FC<SharedDashboardViewProps> = ({ data }
   const [showArena, setShowArena] = useState(false);
   const [showSynthesis, setShowSynthesis] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showBackup, setShowBackup] = useState(false);
+
+  if (showBackup) {
+    return <BackupManager userId={data.userId} onClose={() => setShowBackup(false)} />;
+  }
 
   if (showPrivacy) {
     return <TeenPrivacyControls userId={data.userId} onClose={() => setShowPrivacy(false)} />;
@@ -81,12 +87,21 @@ export const SharedDashboardView: React.FC<SharedDashboardViewProps> = ({ data }
               <h3 className="text-lg font-black text-slate-800 tracking-tight">Big Five</h3>
             </div>
             
-            <button 
-              onClick={() => setShowPrivacy(true)}
-              className="w-full mb-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
-            >
-              <Shield size={16} /> Privacy Settings
-            </button>
+            <div className="space-y-2 mb-6">
+              <button 
+                onClick={() => setShowPrivacy(true)}
+                className="w-full py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
+              >
+                <Shield size={16} /> Privacy Settings
+              </button>
+              
+              <button 
+                onClick={() => setShowBackup(true)}
+                className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
+              >
+                <Settings size={16} /> Backup & Sync
+              </button>
+            </div>
             
             {data.bigFive ? (
               <div className="space-y-4">
