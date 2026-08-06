@@ -48,6 +48,7 @@ pub fn run() {
             
             // Session commands
             commands::save_session,
+            commands::save_skill_session,
             commands::get_user_sessions,
             
             // Trait commands

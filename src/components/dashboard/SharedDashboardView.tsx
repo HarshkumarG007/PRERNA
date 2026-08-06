@@ -1,9 +1,11 @@
 import React from 'react';
 import { BigFiveProfile } from '../../engine/assessment/bigFive';
 import { RiasecProfile } from '../../engine/assessment/riasec';
-import { Brain, Compass, HeartPulse } from 'lucide-react';
+import { Brain, Compass, HeartPulse, Gamepad2 } from 'lucide-react';
 import { ModelManager } from '../ai/ModelManager';
 import { MentorChat } from '../ai/MentorChat';
+import { SkillArena } from '../skills/SkillArena';
+import { useState } from 'react';
 
 export interface DashboardData {
   userId: string;
@@ -17,6 +19,12 @@ interface SharedDashboardViewProps {
 }
 
 export const SharedDashboardView: React.FC<SharedDashboardViewProps> = ({ data }) => {
+  const [showArena, setShowArena] = useState(false);
+
+  if (showArena) {
+    return <SkillArena userId={data.userId} onExit={() => setShowArena(false)} />;
+  }
+
   return (
     <div className="space-y-8 animate-fade-in-up">
       {/* AI Mentor Section */}
@@ -80,7 +88,16 @@ export const SharedDashboardView: React.FC<SharedDashboardViewProps> = ({ data }
                 ))}
               </div>
             ) : (
-              <p className="text-sm font-medium text-slate-500 text-center py-4">No data yet.</p>
+              <div className="text-center py-4">
+                <p className="text-sm font-medium text-slate-500 mb-4">No cognitive data yet.</p>
+                <button 
+                  onClick={() => setShowArena(true)}
+                  className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                >
+                  <Gamepad2 size={18} />
+                  Enter Skill Arena
+                </button>
+              </div>
             )}
           </div>
 

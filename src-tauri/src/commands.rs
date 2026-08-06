@@ -48,6 +48,29 @@ pub fn save_session(
 }
 
 #[tauri::command]
+pub fn save_skill_session(
+    state: State<DbState>,
+    user_id: String,
+    game_type: String,
+    score: i32,
+    cognitive_data: String,
+) -> Result<String, String> {
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    
+    let session = crate::db::models::AssessmentSession {
+        id: String::new(),
+        user_id,
+        session_type: format!("skill_{}", game_type),
+        started_at: chrono::Utc::now().to_rfc3339(),
+        completed_at: Some(chrono::Utc::now().to_rfc3339()),
+        raw_choices: serde_json::json!({ "score": score }).to_string(),
+        derived_traits: cognitive_data,
+    };
+    
+    db.save_session(&session).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 pub fn get_user_sessions(
     state: State<DbState>,
     user_id: String,
