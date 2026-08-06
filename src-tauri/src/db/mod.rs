@@ -375,3 +375,65 @@ fn get_db_path(app_handle: &tauri::AppHandle) -> AnyhowResult<PathBuf> {
 }
 
 pub struct DbState(pub std::sync::Mutex<Database>);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rusqlite::Connection;
+
+    fn setup_test_db() -> Database {
+        let conn = Connection::open_in_memory().unwrap();
+        crate::db::schema::initialize_schema(&conn).unwrap();
+        Database { conn }
+    }
+
+    #[test]
+    fn test_data_retention_guarantee() {
+        let db = setup_test_db();
+        let user_id = "test_user_delete_audit";
+        
+        // 1. Insert a user
+        db.conn.execute(
+            "INSERT INTO users (id, created_at, last_active, role) VALUES (?1, '2023-01-01', '2023-01-01', 'teen')",
+            [user_id]
+        ).unwrap();
+
+        // 2. Insert mock data across sensitive tables
+        db.conn.execute(
+            "INSERT INTO sessions (id, user_id, start_time, disclosure_version) VALUES ('sess1', ?1, '2023-01-01', 'v1')",
+            [user_id]
+        ).unwrap();
+        
+        db.conn.execute(
+            "INSERT INTO trait_snapshots (id, user_id, timestamp) VALUES ('snap1', ?1, '2023-01-01')",
+            [user_id]
+        ).unwrap();
+        
+        db.conn.execute(
+            "INSERT INTO micro_interactions (id, user_id, interaction_type, timestamp) VALUES ('mic1', ?1, 'mood_log', '2023-01-01')",
+            [user_id]
+        ).unwrap();
+
+        // 3. Verify data exists
+        let count_users: i64 = db.conn.query_row("SELECT COUNT(*) FROM users WHERE id = ?1", [user_id], |row| row.get(0)).unwrap();
+        assert_eq!(count_users, 1);
+        let count_sessions: i64 = db.conn.query_row("SELECT COUNT(*) FROM sessions WHERE user_id = ?1", [user_id], |row| row.get(0)).unwrap();
+        assert_eq!(count_sessions, 1);
+        
+        // 4. Trigger deletion
+        db.delete_user_data(user_id).expect("Delete operation failed");
+
+        // 5. Hard Audit: Verify NO data remains for this user
+        let count_users_after: i64 = db.conn.query_row("SELECT COUNT(*) FROM users WHERE id = ?1", [user_id], |row| row.get(0)).unwrap();
+        assert_eq!(count_users_after, 0, "Zero-knowledge violation: User record remained");
+
+        let count_sessions_after: i64 = db.conn.query_row("SELECT COUNT(*) FROM sessions WHERE user_id = ?1", [user_id], |row| row.get(0)).unwrap();
+        assert_eq!(count_sessions_after, 0, "Zero-knowledge violation: Sessions remained");
+
+        let count_traits_after: i64 = db.conn.query_row("SELECT COUNT(*) FROM trait_snapshots WHERE user_id = ?1", [user_id], |row| row.get(0)).unwrap();
+        assert_eq!(count_traits_after, 0, "Zero-knowledge violation: Traits remained");
+
+        let count_interactions_after: i64 = db.conn.query_row("SELECT COUNT(*) FROM micro_interactions WHERE user_id = ?1", [user_id], |row| row.get(0)).unwrap();
+        assert_eq!(count_interactions_after, 0, "Zero-knowledge violation: Interactions remained");
+    }
+}

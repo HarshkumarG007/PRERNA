@@ -3,6 +3,9 @@ import { CURRENT_DISCLOSURES } from '../../engine/assessment/disclosures';
 import { validateSessionCreation, SessionConfig } from '../../engine/consent/sessionGate';
 import { calculateRiasec, ArenaAction, RiasecProfile } from '../../engine/assessment/riasec';
 import { useI18n } from '../../engine/localization/i18n';
+import { useAppStore } from '../../store';
+import { calculateOptimalDifficulty } from '../../assessment/skills/engine';
+import { WordBridge } from '../skills/WordBridge';
 
 export interface SkillArenaProps {
   userId?: string;
@@ -10,6 +13,7 @@ export interface SkillArenaProps {
 
 export const SkillArena: React.FC<SkillArenaProps> = ({ userId }) => {
   const { language } = useI18n();
+  const { user } = useAppStore();
   const [disclosureAccepted, setDisclosureAccepted] = useState(false);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [actionsMade, setActionsMade] = useState<ArenaAction[]>([]);
@@ -93,40 +97,24 @@ export const SkillArena: React.FC<SkillArenaProps> = ({ userId }) => {
     );
   }
 
+  const difficulty = calculateOptimalDifficulty(user?.bigFive);
+
   return (
-    <div className="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-lg border border-gray-100 space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Puzzle Sequence Alpha</h2>
-      <p className="text-gray-700 text-lg">A complex machine lies broken in front of you. How do you approach it?</p>
+    <div className="max-w-4xl mx-auto mt-10 space-y-6">
+      <div className="bg-emerald-50 text-emerald-800 p-4 rounded-xl border border-emerald-200 flex items-center justify-between">
+        <div>
+          <span className="font-bold">Adaptive Pacing Active:</span> Engine detected your profile traits and set the difficulty to <strong className="uppercase">{difficulty}</strong>.
+        </div>
+      </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-        <button
-          onClick={() => handleAction({ id: 'a1', traitImpacts: { investigative: 15, realistic: 5 } })}
-          className="p-4 rounded-lg border-2 border-blue-100 hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
-        >
-          <strong className="block text-blue-900 text-lg">Analyze the manual</strong>
-          <span className="text-sm text-gray-600">Figure out exactly how it works first.</span>
-        </button>
-        <button
-          onClick={() => handleAction({ id: 'a2', traitImpacts: { artistic: 15, enterprising: 5 } })}
-          className="p-4 rounded-lg border-2 border-orange-100 hover:border-orange-500 hover:bg-orange-50 transition-colors text-left"
-        >
-          <strong className="block text-orange-900 text-lg">Redesign a part</strong>
-          <span className="text-sm text-gray-600">Make it look and function better than before.</span>
-        </button>
-        <button
-          onClick={() => handleAction({ id: 'a3', traitImpacts: { realistic: 15, conventional: 5 } })}
-          className="p-4 rounded-lg border-2 border-teal-100 hover:border-teal-500 hover:bg-teal-50 transition-colors text-left"
-        >
-          <strong className="block text-teal-900 text-lg">Grab some tools</strong>
-          <span className="text-sm text-gray-600">Get your hands dirty and force it to work.</span>
-        </button>
-        <button
-          onClick={() => handleAction({ id: 'a4', traitImpacts: { social: 15, enterprising: 10 } })}
-          className="p-4 rounded-lg border-2 border-rose-100 hover:border-rose-500 hover:bg-rose-50 transition-colors text-left"
-        >
-          <strong className="block text-rose-900 text-lg">Call for help</strong>
-          <span className="text-sm text-gray-600">Organize a team to solve it together.</span>
-        </button>
+      <div className="bg-slate-900 rounded-3xl overflow-hidden shadow-2xl">
+        <WordBridge 
+          difficulty={difficulty} 
+          onComplete={(res) => {
+            setResults(res as any);
+            setIsSessionActive(false);
+          }} 
+        />
       </div>
     </div>
   );

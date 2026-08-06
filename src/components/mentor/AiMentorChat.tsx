@@ -3,6 +3,7 @@ import { CURRENT_DISCLOSURES } from '../../engine/assessment/disclosures';
 import { validateSessionCreation, SessionConfig } from '../../engine/consent/sessionGate';
 import { sendMessageToLLM, ChatMessage, UserContext } from '../../ai/llmClient';
 import { useI18n } from '../../engine/localization/i18n';
+import { Mic, Square } from 'lucide-react';
 
 interface AiMentorChatProps {
   userId: string;
@@ -16,6 +17,7 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId, userContext 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
 
   const disclosure = CURRENT_DISCLOSURES.ai_mentor;
 
@@ -58,6 +60,17 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId, userContext 
       setMessages([...newHistory, { role: 'assistant', content: 'Sorry, I am having trouble connecting to my brain right now.' }]);
     } finally {
       setIsTyping(false);
+    }
+  };
+
+  const toggleRecording = () => {
+    setIsRecording(!isRecording);
+    if (!isRecording) {
+      // Simulate stopping after a few seconds for scaffolding demo
+      setTimeout(() => {
+        setIsRecording(false);
+        setInput("I've been feeling a bit overwhelmed lately."); // Simulated transcript
+      }, 3000);
     }
   };
 
@@ -115,18 +128,41 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId, userContext 
         )}
       </div>
 
+      {isRecording && (
+        <div className="bg-indigo-600 p-4 text-white flex flex-col items-center justify-center animate-pulse shadow-inner">
+          <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-2">
+            <Mic size={24} className="text-white" />
+          </div>
+          <p className="font-bold text-lg mb-1">Listening...</p>
+          <p className="text-xs text-indigo-200">Local processing only (Whisper Model)</p>
+        </div>
+      )}
+
       <form onSubmit={handleSend} className="p-4 bg-white border-t border-gray-200 flex space-x-2">
+        <button
+          type="button"
+          onClick={toggleRecording}
+          className={`p-3 rounded-full flex items-center justify-center transition-colors ${
+            isRecording 
+              ? 'bg-red-100 text-red-600 hover:bg-red-200' 
+              : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
+          }`}
+          title={isRecording ? "Stop recording" : "Start voice input"}
+        >
+          {isRecording ? <Square size={20} className="fill-current" /> : <Mic size={20} />}
+        </button>
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask me anything..."
-          className="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 p-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          disabled={isRecording}
         />
         <button
           type="submit"
-          disabled={isTyping || !input.trim()}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 disabled:bg-blue-300"
+          disabled={isTyping || !input.trim() || isRecording}
+          className="px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 disabled:bg-indigo-300 transition-colors shadow-sm"
         >
           Send
         </button>

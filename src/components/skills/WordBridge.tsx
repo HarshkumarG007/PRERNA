@@ -11,6 +11,7 @@ interface WordBridgeProps {
     pattern: string;
     level: number;
   }) => void;
+  difficulty?: 'easy' | 'medium' | 'hard';
 }
 
 const WORD_PAIRS = [
@@ -29,7 +30,7 @@ const VALID_CONNECTIONS = new Set([
   'village-town', 'town-city', 'village-people', 'people-city'
 ]);
 
-export const WordBridge: React.FC<WordBridgeProps> = ({ onComplete }) => {
+export const WordBridge: React.FC<WordBridgeProps> = ({ onComplete, difficulty = 'medium' }) => {
   const [currentPair, setCurrentPair] = useState(0);
   const [chain, setChain] = useState<string[]>([]);
   const [input, setInput] = useState('');
@@ -39,7 +40,9 @@ export const WordBridge: React.FC<WordBridgeProps> = ({ onComplete }) => {
   const [feedback, setFeedback] = useState<'valid' | 'invalid' | null>(null);
   const [totalTime, setTotalTime] = useState(0);
   
-  const current = WORD_PAIRS[currentPair];
+  // Adjust word pairs based on difficulty
+  const activePairs = difficulty === 'hard' ? [...WORD_PAIRS].reverse() : WORD_PAIRS;
+  const current = activePairs[currentPair];
 
   const validateConnection = (from: string, to: string): boolean => {
     const key1 = `${from.toLowerCase()}-${to.toLowerCase()}`;

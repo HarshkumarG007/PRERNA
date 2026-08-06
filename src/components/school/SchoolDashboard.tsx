@@ -8,7 +8,7 @@ interface SchoolReport {
   average_wellbeing: number;
   top_career_clusters: string[];
   top_cognitive_strengths: string[];
-  k_anonymity_threshold_met: bool;
+  k_anonymity_threshold_met: boolean;
 }
 
 export const SchoolDashboard: React.FC = () => {

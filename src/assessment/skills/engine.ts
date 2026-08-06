@@ -23,6 +23,18 @@ export interface CognitiveProfile {
   learningStyle: 'visual' | 'auditory' | 'kinesthetic' | 'mixed';
 }
 
+export type GameDifficulty = 'easy' | 'medium' | 'hard';
+
+export function calculateOptimalDifficulty(profile: any): GameDifficulty {
+  if (!profile) return 'medium';
+  const openness = profile.openness || 50;
+  const conscientiousness = profile.conscientiousness || 50;
+  
+  if (openness > 70 && conscientiousness > 60) return 'hard';
+  if (openness < 40 && conscientiousness < 40) return 'easy';
+  return 'medium';
+}
+
 export class SkillArenaEngine {
   private results: Map<string, GameResult[]> = new Map();
   
