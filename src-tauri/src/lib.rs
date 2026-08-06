@@ -1,10 +1,13 @@
 pub mod db;
 pub mod commands;
+pub mod ai;
 
 use tauri::Manager;
-use log::info;
+use log::{info, warn};
 
 use db::{Database, DbState};
+use ai::{LocalLLM, LLMState};
+use std::sync::{Arc, Mutex};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -20,6 +23,20 @@ pub fn run() {
                 .expect("Failed to initialize database");
             
             app.manage(DbState(std::sync::Mutex::new(database)));
+
+            // Attempt to initialize local LLM
+            let llm_option = match LocalLLM::new(app.handle()) {
+                Ok(llm) => {
+                    info!("Local LLM initialized successfully.");
+                    Some(llm)
+                },
+                Err(e) => {
+                    warn!("Local LLM initialization skipped/failed (expected if model is missing): {}", e);
+                    None
+                }
+            };
+
+            app.manage(LLMState(Arc::new(Mutex::new(llm_option))));
             
             info!("PRERNA backend ready");
             Ok(())
@@ -44,6 +61,11 @@ pub fn run() {
             commands::export_user_data,
             commands::delete_user_data,
             commands::get_health_metrics,
+
+            // AI Commands
+            commands::ai::chat_with_mentor,
+            commands::ai::get_model_status,
+            commands::ai::generate_career_insight,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

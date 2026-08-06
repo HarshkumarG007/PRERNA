@@ -2,6 +2,8 @@ import React from 'react';
 import { BigFiveProfile } from '../../engine/assessment/bigFive';
 import { RiasecProfile } from '../../engine/assessment/riasec';
 import { Brain, Compass, HeartPulse } from 'lucide-react';
+import { ModelManager } from '../ai/ModelManager';
+import { MentorChat } from '../ai/MentorChat';
 
 export interface DashboardData {
   userId: string;
@@ -17,90 +19,83 @@ interface SharedDashboardViewProps {
 export const SharedDashboardView: React.FC<SharedDashboardViewProps> = ({ data }) => {
   return (
     <div className="space-y-8 animate-fade-in-up">
-      <div className="glass-panel p-8">
-        <div className="flex items-center space-x-3 mb-6 border-b border-slate-100 pb-4">
-          <Brain className="w-8 h-8 text-indigo-500" />
-          <h3 className="text-xl font-black text-slate-800 tracking-tight">Decision-Making Style (Big Five)</h3>
+      {/* AI Mentor Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          <ModelManager />
+          <div className="h-full min-h-[600px]">
+            <MentorChat userId={data.userId} />
+          </div>
         </div>
-        {data.bigFive ? (
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
-            <div className="p-4 bg-white rounded-2xl shadow-sm border border-indigo-50 hover:shadow-md transition-shadow group">
-              <div className="text-xs uppercase tracking-widest text-indigo-400 font-bold mb-1">Openness</div>
-              <div className="text-3xl font-black text-indigo-600 group-hover:scale-110 transition-transform">{data.bigFive.openness}</div>
-            </div>
-            <div className="p-4 bg-white rounded-2xl shadow-sm border border-blue-50 hover:shadow-md transition-shadow group">
-              <div className="text-xs uppercase tracking-widest text-blue-400 font-bold mb-1">Conscientious</div>
-              <div className="text-3xl font-black text-blue-600 group-hover:scale-110 transition-transform">{data.bigFive.conscientiousness}</div>
-            </div>
-            <div className="p-4 bg-white rounded-2xl shadow-sm border border-purple-50 hover:shadow-md transition-shadow group">
-              <div className="text-xs uppercase tracking-widest text-purple-400 font-bold mb-1">Extraversion</div>
-              <div className="text-3xl font-black text-purple-600 group-hover:scale-110 transition-transform">{data.bigFive.extraversion}</div>
-            </div>
-            <div className="p-4 bg-white rounded-2xl shadow-sm border border-teal-50 hover:shadow-md transition-shadow group">
-              <div className="text-xs uppercase tracking-widest text-teal-400 font-bold mb-1">Agreeableness</div>
-              <div className="text-3xl font-black text-teal-600 group-hover:scale-110 transition-transform">{data.bigFive.agreeableness}</div>
-            </div>
-            <div className="p-4 bg-white rounded-2xl shadow-sm border border-rose-50 hover:shadow-md transition-shadow group">
-              <div className="text-xs uppercase tracking-widest text-rose-400 font-bold mb-1">Neuroticism</div>
-              <div className="text-3xl font-black text-rose-600 group-hover:scale-110 transition-transform">{data.bigFive.neuroticism}</div>
-            </div>
-          </div>
-        ) : (
-          <div className="text-center p-8 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-            <p className="text-sm font-medium text-slate-500">Not enough Life Quests data yet.</p>
-          </div>
-        )}
-      </div>
 
-      <div className="glass-panel p-8">
-        <div className="flex items-center space-x-3 mb-6 border-b border-slate-100 pb-4">
-          <Compass className="w-8 h-8 text-emerald-500" />
-          <h3 className="text-xl font-black text-slate-800 tracking-tight">Skill Arena Profile (RIASEC)</h3>
-        </div>
-        {data.riasec ? (
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
-            <div className="p-4 bg-white rounded-2xl shadow-sm border border-emerald-50 hover:shadow-md transition-shadow group">
-              <div className="text-xs uppercase tracking-widest text-emerald-400 font-bold mb-1">Realistic</div>
-              <div className="text-2xl font-black text-emerald-600 group-hover:scale-110 transition-transform">{data.riasec.realistic}</div>
+        {/* Profile Sidebar */}
+        <div className="lg:col-span-1 space-y-6">
+          <div className="glass-panel p-6">
+            <div className="flex items-center space-x-3 mb-4 border-b border-slate-100 pb-4">
+              <Brain className="w-6 h-6 text-indigo-500" />
+              <h3 className="text-lg font-black text-slate-800 tracking-tight">Big Five</h3>
             </div>
-            <div className="p-4 bg-white rounded-2xl shadow-sm border border-emerald-50 hover:shadow-md transition-shadow group">
-              <div className="text-xs uppercase tracking-widest text-emerald-400 font-bold mb-1">Investigate</div>
-              <div className="text-2xl font-black text-emerald-600 group-hover:scale-110 transition-transform">{data.riasec.investigative}</div>
-            </div>
-            <div className="p-4 bg-white rounded-2xl shadow-sm border border-emerald-50 hover:shadow-md transition-shadow group">
-              <div className="text-xs uppercase tracking-widest text-emerald-400 font-bold mb-1">Artistic</div>
-              <div className="text-2xl font-black text-emerald-600 group-hover:scale-110 transition-transform">{data.riasec.artistic}</div>
-            </div>
-            <div className="p-4 bg-white rounded-2xl shadow-sm border border-emerald-50 hover:shadow-md transition-shadow group">
-              <div className="text-xs uppercase tracking-widest text-emerald-400 font-bold mb-1">Social</div>
-              <div className="text-2xl font-black text-emerald-600 group-hover:scale-110 transition-transform">{data.riasec.social}</div>
-            </div>
-            <div className="p-4 bg-white rounded-2xl shadow-sm border border-emerald-50 hover:shadow-md transition-shadow group">
-              <div className="text-xs uppercase tracking-widest text-emerald-400 font-bold mb-1">Enterprise</div>
-              <div className="text-2xl font-black text-emerald-600 group-hover:scale-110 transition-transform">{data.riasec.enterprising}</div>
-            </div>
-            <div className="p-4 bg-white rounded-2xl shadow-sm border border-emerald-50 hover:shadow-md transition-shadow group">
-              <div className="text-xs uppercase tracking-widest text-emerald-400 font-bold mb-1">Convention</div>
-              <div className="text-2xl font-black text-emerald-600 group-hover:scale-110 transition-transform">{data.riasec.conventional}</div>
-            </div>
+            {data.bigFive ? (
+              <div className="space-y-4">
+                {Object.entries(data.bigFive).map(([trait, score]) => (
+                  <div key={trait}>
+                    <div className="flex justify-between text-xs font-bold mb-1 uppercase tracking-wider">
+                      <span className="text-slate-500">{trait}</span>
+                      <span className="text-indigo-600">{score}%</span>
+                    </div>
+                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-indigo-500 to-purple-500"
+                        style={{ width: `${score}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm font-medium text-slate-500 text-center py-4">No data yet.</p>
+            )}
           </div>
-        ) : (
-          <div className="text-center p-8 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-            <p className="text-sm font-medium text-slate-500">Not enough Skill Arena data yet.</p>
-          </div>
-        )}
-      </div>
 
-      <div className="glass-panel p-8">
-        <div className="flex items-center space-x-3 mb-2">
-          <HeartPulse className="w-8 h-8 text-rose-500 animate-pulse-soft" />
-          <h3 className="text-xl font-black text-slate-800 tracking-tight">Mood Mirror Activity</h3>
+          <div className="glass-panel p-6">
+            <div className="flex items-center space-x-3 mb-4 border-b border-slate-100 pb-4">
+              <Compass className="w-6 h-6 text-emerald-500" />
+              <h3 className="text-lg font-black text-slate-800 tracking-tight">RIASEC</h3>
+            </div>
+            {data.riasec ? (
+              <div className="space-y-4">
+                {Object.entries(data.riasec).map(([trait, score]) => (
+                  <div key={trait}>
+                    <div className="flex justify-between text-xs font-bold mb-1 uppercase tracking-wider">
+                      <span className="text-slate-500">{trait}</span>
+                      <span className="text-emerald-600">{score}%</span>
+                    </div>
+                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-emerald-400 to-teal-500"
+                        style={{ width: `${score}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm font-medium text-slate-500 text-center py-4">No data yet.</p>
+            )}
+          </div>
+
+          <div className="glass-panel p-6">
+            <div className="flex items-center space-x-3 mb-2">
+              <HeartPulse className="w-6 h-6 text-rose-500 animate-pulse-soft" />
+              <h3 className="text-lg font-black text-slate-800 tracking-tight">Mood</h3>
+            </div>
+            <p className="text-xs text-slate-600 font-medium mt-2">
+              {data.lastMoodLog 
+                ? `Last check-in: ${data.lastMoodLog.toLocaleDateString()}` 
+                : 'No check-ins recorded yet.'}
+            </p>
+          </div>
         </div>
-        <p className="text-sm text-slate-600 font-medium pl-11">
-          {data.lastMoodLog 
-            ? `Last check-in was on ${data.lastMoodLog.toLocaleDateString()}` 
-            : 'No check-ins recorded yet.'}
-        </p>
       </div>
     </div>
   );

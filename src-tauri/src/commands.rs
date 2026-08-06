@@ -1,7 +1,8 @@
-use tauri::State;
-// use log::{info, error};
+// Re-export the inner modules
+pub mod ai;
 
-use crate::db::{Database, DbState};
+use tauri::State;
+use crate::db::{DbState};
 use crate::db::models::*;
 
 // === USER COMMANDS ===
