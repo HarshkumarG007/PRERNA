@@ -6,6 +6,8 @@ import { ModelManager } from '../ai/ModelManager';
 import { MentorChat } from '../ai/MentorChat';
 import { SkillArena } from '../skills/SkillArena';
 import { ProfileDashboard } from '../synthesis/ProfileDashboard';
+import { TeenPrivacyControls } from '../parent/TeenPrivacyControls';
+import { Shield } from 'lucide-react';
 import { useState } from 'react';
 
 export interface DashboardData {
@@ -22,6 +24,11 @@ interface SharedDashboardViewProps {
 export const SharedDashboardView: React.FC<SharedDashboardViewProps> = ({ data }) => {
   const [showArena, setShowArena] = useState(false);
   const [showSynthesis, setShowSynthesis] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+
+  if (showPrivacy) {
+    return <TeenPrivacyControls userId={data.userId} onClose={() => setShowPrivacy(false)} />;
+  }
 
   if (showArena) {
     return <SkillArena userId={data.userId} onExit={() => setShowArena(false)} />;
@@ -73,6 +80,14 @@ export const SharedDashboardView: React.FC<SharedDashboardViewProps> = ({ data }
               <Brain className="w-6 h-6 text-indigo-500" />
               <h3 className="text-lg font-black text-slate-800 tracking-tight">Big Five</h3>
             </div>
+            
+            <button 
+              onClick={() => setShowPrivacy(true)}
+              className="w-full mb-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
+            >
+              <Shield size={16} /> Privacy Settings
+            </button>
+            
             {data.bigFive ? (
               <div className="space-y-4">
                 {Object.entries(data.bigFive).map(([trait, score]) => (

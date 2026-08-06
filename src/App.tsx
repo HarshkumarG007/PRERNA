@@ -12,7 +12,7 @@ import { MoodMirror } from './components/activities/MoodMirror';
 import { SocialCompass } from './components/activities/SocialCompass';
 import { AiMentorChat } from './components/mentor/AiMentorChat';
 import { TeenProfileView } from './components/dashboard/TeenProfileView';
-import { ParentDashboard } from './components/dashboard/ParentDashboard';
+import { ParentDashboard } from './components/parent/ParentDashboard';
 
 // Dummy context for demo
 const mockUserId = 'user_123';
@@ -63,7 +63,7 @@ function App() {
           <Route path="/social" element={<SocialCompass userId={mockUserId} />} />
           <Route path="/mentor" element={<AiMentorChat userId={mockUserId} userContext={mockContext as any} />} />
           <Route path="/dashboard" element={<TeenProfileView data={mockDashboardData as any} />} />
-          <Route path="/parent-dash" element={<ParentDashboard data={mockDashboardData as any} teenName="Demo User" />} />
+          <Route path="/parent-dash" element={<ParentDashboard teenId={mockUserId} onExit={() => window.location.href='/'} />} />
         </Routes>
         </div>
       </main>

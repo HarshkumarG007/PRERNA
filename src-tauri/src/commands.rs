@@ -127,6 +127,97 @@ pub fn save_unified_profile(
     Ok(snapshot_id)
 }
 
+#[derive(Debug, serde::Deserialize)]
+pub struct ParentViewRequest {
+    pub teen_id: String,
+    pub parent_id: String,
+}
+
+#[derive(Debug, serde::Serialize)]
+pub struct ParentViewResponse {
+    pub has_access: bool,
+    pub profile: Option<serde_json::Value>,
+    pub pending_requests: Vec<String>,
+}
+
+#[tauri::command]
+pub fn get_parent_view(
+    state: State<DbState>,
+    request: ParentViewRequest,
+) -> Result<ParentViewResponse, String> {
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    
+    // In production: Verify parent-teen relationship
+    let is_authorized = true;
+    
+    if !is_authorized {
+        return Ok(ParentViewResponse {
+            has_access: false,
+            profile: None,
+            pending_requests: vec![],
+        });
+    }
+    
+    let profile = db.get_latest_snapshot(&request.teen_id)
+        .map_err(|e| e.to_string())?;
+    
+    let parent_safe = profile.map(|p| {
+        serde_json::json!({
+            "wellbeing_score": calculate_wellbeing_score(&p),
+            "career_interests": extract_career_interests(&p),
+            "strengths": extract_strengths(&p),
+            "last_active": p.snapshot_date,
+        })
+    });
+    
+    Ok(ParentViewResponse {
+        has_access: true,
+        profile: parent_safe,
+        pending_requests: vec![],
+    })
+}
+
+fn calculate_wellbeing_score(profile: &crate::db::models::TraitSnapshot) -> i32 {
+    let emotional = profile.emotional_profile
+        .get("resilience")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.5);
+    
+    ((emotional * 100.0) as i32).clamp(0, 100)
+}
+
+fn extract_career_interests(profile: &crate::db::models::TraitSnapshot) -> Vec<String> {
+    let mut interests = vec![];
+    
+    if profile.riasec.investigative > 60.0 {
+        interests.push("Technology/Research".to_string());
+    }
+    if profile.riasec.artistic > 60.0 {
+        interests.push("Design/Arts".to_string());
+    }
+    if profile.riasec.social > 60.0 {
+        interests.push("Helping Professions".to_string());
+    }
+    
+    interests
+}
+
+fn extract_strengths(profile: &crate::db::models::TraitSnapshot) -> Vec<String> {
+    let mut strengths = vec![];
+    
+    if profile.big_five.openness > 70.0 {
+        strengths.push("Creativity".to_string());
+    }
+    if profile.big_five.conscientiousness > 70.0 {
+        strengths.push("Reliability".to_string());
+    }
+    if profile.big_five.extraversion > 70.0 {
+        strengths.push("Leadership".to_string());
+    }
+    
+    strengths
+}
+
 #[tauri::command]
 pub fn get_user_sessions(
     state: State<DbState>,

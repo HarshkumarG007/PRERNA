@@ -50,6 +50,7 @@ pub fn run() {
             commands::save_session,
             commands::save_skill_session,
             commands::save_unified_profile,
+            commands::get_parent_view,
             commands::get_user_sessions,
             
             // Trait commands
