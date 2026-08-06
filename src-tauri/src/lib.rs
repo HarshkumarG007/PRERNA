@@ -1,58 +1,49 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-mod db;
+pub mod db;
+pub mod commands;
 
-use serde::{Deserialize, Serialize};
+use tauri::Manager;
+use log::info;
 
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
-#[derive(Serialize)]
-struct CrisisEventResponse {
-    success: bool,
-    message: String,
-}
-
-/// A custom Tauri IPC command that the frontend can call to securely insert a crisis event.
-/// This gives us strict control over the data layer, allowing us to enforce invariants
-/// (like forcing 'pending' status initially) in compiled Rust code rather than just JS.
-#[tauri::command]
-fn insert_crisis_event(user_id: &str) -> Result<CrisisEventResponse, String> {
-    let conn_guard = db::DB_CONN.lock().unwrap();
-    
-    if let Some(conn) = conn_guard.as_ref() {
-        let event_id = format!("crisis_{}", chrono::Utc::now().timestamp());
-        
-        // Enforce Global Rule 0.1-3 / Ticket P4-2: 
-        // Autonomous detection MUST ONLY set human_review_status to 'pending'.
-        // We enforce this at the Rust layer by hardcoding the insert.
-        match conn.execute(
-            "INSERT INTO crisis_events (id, user_id, human_review_status) VALUES (?1, ?2, 'pending')",
-            (&event_id, user_id),
-        ) {
-            Ok(_) => Ok(CrisisEventResponse {
-                success: true,
-                message: format!("Crisis event securely logged with PENDING status. ID: {}", event_id),
-            }),
-            Err(e) => Err(format!("Database insert failed: {}", e)),
-        }
-    } else {
-        Err("Database connection not initialized!".to_string())
-    }
-}
+use db::{Database, DbState};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    // Initialize the encrypted database on startup
-    // In a real app, this path would be retrieved from tauri::api::path::app_data_dir
-    let _ = db::init_db("prerna_local.sqlite", "mock_secure_key_123");
-
+    env_logger::init();
+    
     tauri::Builder::default()
-        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_shell::init())
+        .setup(|app| {
+            info!("PRERNA backend initializing...");
+            
+            // Initialize encrypted database
+            let database = Database::new(app.handle())
+                .expect("Failed to initialize database");
+            
+            app.manage(DbState(std::sync::Mutex::new(database)));
+            
+            info!("PRERNA backend ready");
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
-            greet,
-            insert_crisis_event
+            // User commands
+            commands::create_user,
+            commands::get_user,
+            
+            // Session commands
+            commands::save_session,
+            commands::get_user_sessions,
+            
+            // Trait commands
+            commands::save_trait_snapshot,
+            commands::get_latest_snapshot,
+            
+            // Interaction commands
+            commands::log_interaction,
+            
+            // Data management
+            commands::export_user_data,
+            commands::delete_user_data,
+            commands::get_health_metrics,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
