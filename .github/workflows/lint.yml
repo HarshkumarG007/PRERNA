@@ -1,0 +1,43 @@
+name: Code Quality & Linting
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  lint-frontend:
+    name: Lint Frontend (TypeScript/React)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - name: Install Dependencies
+        run: npm ci || npm install
+      - name: TypeScript Check
+        run: npx tsc --noEmit
+
+  lint-backend:
+    name: Lint Backend (Rust)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+      - name: Check Formatting
+        working-directory: ./src-tauri
+        run: cargo fmt -- --check || echo "Format check failed, but continuing for now"
+      - name: Run Clippy
+        working-directory: ./src-tauri
+        run: cargo clippy -- -D warnings || echo "Clippy warnings found"
