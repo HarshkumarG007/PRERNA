@@ -1,12 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Flame } from 'lucide-react';
+import { useStreak } from '../../store';
 
-interface StreakTrackerProps {
-  days: number;
-}
-
-export const StreakTracker: React.FC<StreakTrackerProps> = ({ days }) => {
+export const StreakTracker: React.FC = () => {
+  const streak = useStreak();
+  
   return (
     <motion.div
       whileHover={{ scale: 1.05 }}
@@ -19,7 +18,7 @@ export const StreakTracker: React.FC<StreakTrackerProps> = ({ days }) => {
         <Flame className="text-amber-400" size={20} />
       </motion.div>
       <div>
-        <span className="text-amber-400 font-bold">{days}</span>
+        <span className="text-amber-400 font-bold">{streak.currentStreak}</span>
         <span className="text-amber-400/70 text-sm ml-1">day streak</span>
       </div>
     </motion.div>

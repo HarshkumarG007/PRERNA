@@ -1,14 +1,19 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Target, Clock, ChevronRight } from 'lucide-react';
+import { useAppStore, useTodaySessions } from '../../store';
 
 interface DailyQuestCardProps {
   onClick: () => void;
 }
 
 export const DailyQuestCard: React.FC<DailyQuestCardProps> = ({ onClick }) => {
-  const isCompleted = false; // Would check from state
-  const streak = 5;
+  const todaySessions = useTodaySessions();
+  
+  // Check if user completed a life quest today
+  const todaysQuest = todaySessions.find(s => s.type === 'life_quest');
+  const isCompleted = !!todaysQuest;
+  const streak = useAppStore(state => state.streak.currentStreak);
 
   return (
     <motion.button
@@ -36,7 +41,7 @@ export const DailyQuestCard: React.FC<DailyQuestCardProps> = ({ onClick }) => {
         <h3 className="text-white font-black text-xl mb-1.5">Life Quest</h3>
         <p className="text-white/60 font-medium text-sm mb-5">
           {isCompleted 
-            ? "Completed today! Come back tomorrow." 
+            ? `Completed! Score: ${todaysQuest.score}` 
             : "Discover yourself through story"}
         </p>
 

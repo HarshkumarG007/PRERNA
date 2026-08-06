@@ -17,43 +17,43 @@ import { Dashboard } from './components/dashboard/Dashboard';
 import { WelcomeScreen } from './components/welcome/WelcomeScreen';
 import { LoadingScreen } from './components/common/LoadingScreen';
 import { ParentDashboard } from './components/parent/ParentDashboard';
+import { useAppStore } from './store';
 
-// Dummy context for demo
+// Dummy context for demo for older components that haven't been migrated yet
 const mockUserId = 'user_123';
 const mockContext = { name: 'Demo User', bigFive: { openness: 60, conscientiousness: 70, extraversion: 50, agreeableness: 80, neuroticism: 40 } };
 const mockDashboardData = { userId: mockUserId, bigFive: mockContext.bigFive, riasec: { realistic: 30, investigative: 40, artistic: 80, social: 70, enterprising: 20, conventional: 10 }, lastMoodLog: new Date() };
 
 function App() {
   const { language, setLanguage } = useI18n();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
+  const { isAuthenticated, isLoading, login, user } = useAppStore();
 
   useEffect(() => {
     // Check for existing session
-    const checkAuth = async () => {
+    const init = async () => {
       const lastUser = localStorage.getItem('prerna_last_user');
       if (lastUser) {
-        setUserId(lastUser);
+        try {
+          await login(lastUser);
+        } catch (error) {
+          // Invalid session, clear it
+          localStorage.removeItem('prerna_last_user');
+        }
       }
-      setIsLoading(false);
     };
 
-    checkAuth();
-  }, []);
+    init();
+  }, [login]);
 
-  const handleAuthenticated = (newUserId: string) => {
-    localStorage.setItem('prerna_last_user', newUserId);
-    setUserId(newUserId);
-    setIsAuthenticated(true);
-  };
+  // We don't use handleAuthenticated directly anymore, it's handled by AuthModal -> Zustand
 
   if (isLoading) {
     return <LoadingScreen />;
   }
 
-  if (!isAuthenticated || !userId) {
-    return <WelcomeScreen onAuthenticated={handleAuthenticated} />;
+  if (!isAuthenticated || !user) {
+    // We pass an empty function or let AuthModal handle the state completely via Zustand
+    return <WelcomeScreen onAuthenticated={() => {}} />;
   }
 
   return (
@@ -90,16 +90,16 @@ function App() {
       <main className="flex-grow p-6 flex flex-col">
         <div className="flex-grow w-full mx-auto animate-fade-in-up">
         <Routes>
-          <Route path="/" element={<Dashboard userId={mockUserId} />} />
+          <Route path="/" element={<Dashboard />} />
           <Route path="/beta" element={<BetaOnboardingNotice onAccept={() => alert('Accepted Beta')} />} />
-          <Route path="/quests" element={<div className="max-w-7xl mx-auto"><LifeQuests userId={mockUserId} /></div>} />
-          <Route path="/arena" element={<div className="max-w-7xl mx-auto"><SkillArena userId={mockUserId} /></div>} />
-          <Route path="/mood" element={<div className="max-w-7xl mx-auto"><MoodMirror userId={mockUserId} /></div>} />
-          <Route path="/social" element={<div className="max-w-7xl mx-auto"><SocialCompass userId={mockUserId} /></div>} />
-          <Route path="/mentor" element={<div className="max-w-7xl mx-auto"><AiMentorChat userId={mockUserId} userContext={mockContext as any} /></div>} />
+          <Route path="/quests" element={<div className="max-w-7xl mx-auto"><LifeQuests userId={user.id} /></div>} />
+          <Route path="/arena" element={<div className="max-w-7xl mx-auto"><SkillArena userId={user.id} /></div>} />
+          <Route path="/mood" element={<div className="max-w-7xl mx-auto"><MoodMirror userId={user.id} /></div>} />
+          <Route path="/social" element={<div className="max-w-7xl mx-auto"><SocialCompass userId={user.id} /></div>} />
+          <Route path="/mentor" element={<div className="max-w-7xl mx-auto"><AiMentorChat userId={user.id} userContext={mockContext as any} /></div>} />
           <Route path="/dashboard" element={<TeenProfileView data={mockDashboardData as any} />} />
           <Route path="/profile" element={<TeenProfileView data={mockDashboardData as any} />} />
-          <Route path="/parent-dash" element={<ParentDashboard teenId={mockUserId} onExit={() => window.location.href='/'} />} />
+          <Route path="/parent-dash" element={<ParentDashboard teenId={user.id} onExit={() => window.location.href='/'} />} />
         </Routes>
         </div>
       </main>

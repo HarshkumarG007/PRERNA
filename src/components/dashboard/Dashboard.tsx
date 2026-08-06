@@ -22,15 +22,13 @@ import { ProfileCard } from './ProfileCard';
 import { WellnessPulse } from './WellnessPulse';
 import { StreakTracker } from './StreakTracker';
 import { InsightsCard } from './InsightsCard';
+import { useAppStore, useUser, useProfile } from '../../store';
 
-interface DashboardProps {
-  userId: string;
-}
-
-export const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
-  const [profile, setProfile] = useState<UnifiedProfile | null>(null);
+export const Dashboard: React.FC = () => {
+  const user = useUser();
+  const profile = useProfile();
+  const { loadProfile } = useAppStore();
   const [greeting, setGreeting] = useState('');
-  const { getLatestSnapshot } = useDatabase();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,19 +41,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
     setGreeting(timeGreeting);
 
     // Load profile
-    loadProfile();
-  }, [userId]);
-
-  const loadProfile = async () => {
-    const snapshot = await getLatestSnapshot(userId);
-    if (snapshot) {
-      // In a real app we'd convert snapshot to UnifiedProfile, 
-      // but for UI layout we will just map what we can or mock
-      setProfile(snapshot as unknown as UnifiedProfile);
+    if (!profile) {
+      loadProfile();
     }
-  };
+  }, [profile, loadProfile]);
 
-  const getFirstName = () => 'Explorer'; // Would get from profile
+  const getFirstName = () => {
+    // In future: parse from profile or user settings
+    return user?.id ? 'Explorer' : 'Guest';
+  };
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-50 font-sans pb-20 md:pb-0">
@@ -79,7 +73,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
           </div>
 
           <div className="flex items-center gap-4">
-            <StreakTracker days={5} />
+            <StreakTracker />
             <button 
               onClick={() => navigate('/dashboard')}
               className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all shadow-sm"
