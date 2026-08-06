@@ -11,8 +11,6 @@ import {
   Zap,
   TrendingUp,
 } from 'lucide-react';
-import { useDatabase } from '../../hooks/useDatabase';
-import { UnifiedProfile } from '../../synthesis/fusionEngine';
 
 // Sub-components
 import { DailyQuestCard } from './DailyQuestCard';

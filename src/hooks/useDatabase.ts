@@ -54,8 +54,7 @@ export function useDatabase() {
     setLoading(true);
     setError(null);
     try {
-      const result = await invoke<T>(command, args);
-      return result;
+      return await invoke<T>(command, args as any);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       return null;

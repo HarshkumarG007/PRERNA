@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { UnifiedProfile, ProfileFusionEngine } from '../../synthesis/fusionEngine';
 import { TraitProfile } from '../../assessment/engine';
 import { CognitiveProfile } from '../../assessment/skills/engine';
-import { Sparkles, Target, Brain, TrendingUp, AlertTriangle, BookOpen } from 'lucide-react';
+import { Sparkles, Target, Brain, TrendingUp, AlertTriangle, BookOpen, Zap } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 
 interface ProfileDashboardProps {

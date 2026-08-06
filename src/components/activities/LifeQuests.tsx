@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   StealthAssessmentEngine, 
@@ -11,11 +12,12 @@ import { useDatabase } from '../../hooks/useDatabase';
 import { useI18n } from '../../engine/localization/i18n';
 import { CURRENT_DISCLOSURES } from '../../engine/assessment/disclosures';
 
-interface LifeQuestsProps {
-  onComplete: (data: unknown) => void;
+export interface LifeQuestsProps {
+  userId?: string;
 }
 
-export const LifeQuests: React.FC<LifeQuestsProps> = ({ onComplete }) => {
+export const LifeQuests: React.FC<LifeQuestsProps> = ({ userId }) => {
+  const navigate = useNavigate();
   const [disclosureAccepted, setDisclosureAccepted] = useState(false);
   const [isSessionActive, setIsSessionActive] = useState(false);
   
@@ -31,7 +33,6 @@ export const LifeQuests: React.FC<LifeQuestsProps> = ({ onComplete }) => {
   const { saveSession } = useDatabase();
   const { language } = useI18n();
 
-  const userId = "temp-user-123"; // In reality, this would come from an auth context
   const disclosure = CURRENT_DISCLOSURES.life_quests;
 
   // Initialize quest
@@ -42,7 +43,7 @@ export const LifeQuests: React.FC<LifeQuestsProps> = ({ onComplete }) => {
       
       const session: GameSession = {
         sessionId: crypto.randomUUID(),
-        userId,
+        userId: userId || 'guest',
         questType: 'life_quest',
         scenes: questScenes,
         responses: [],
@@ -88,7 +89,7 @@ export const LifeQuests: React.FC<LifeQuestsProps> = ({ onComplete }) => {
       
       // Save to database
       await saveSession({
-        user_id: userId,
+        user_id: userId || 'guest',
         session_type: 'life_quest',
         raw_choices: engine.exportData(),
         derived_traits: JSON.stringify(finalProfile),
@@ -98,7 +99,7 @@ export const LifeQuests: React.FC<LifeQuestsProps> = ({ onComplete }) => {
   }, [engine, scenes, currentSceneIndex, saveSession]);
 
   const onExit = () => {
-    onComplete(profile);
+    navigate('/dashboard');
   };
 
   if (!disclosureAccepted) {
@@ -108,7 +109,7 @@ export const LifeQuests: React.FC<LifeQuestsProps> = ({ onComplete }) => {
         <h2 className="text-3xl font-black text-indigo-900 relative z-10">Life Quests</h2>
         <div className="mt-4 bg-white/60 p-6 rounded-xl border border-indigo-50 shadow-sm relative z-10">
           <p className="text-xs uppercase tracking-widest font-bold text-indigo-500 mb-2">Before you play</p>
-          <p className="text-slate-700 leading-relaxed font-medium">{disclosure.text[language]}</p>
+          <p className="text-slate-700 leading-relaxed font-medium">{disclosure.text[language as keyof typeof disclosure.text]}</p>
         </div>
         <button
           onClick={() => setDisclosureAccepted(true)}

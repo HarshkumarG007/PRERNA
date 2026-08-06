@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { CURRENT_DISCLOSURES } from '../../engine/assessment/disclosures';
-import { validateSessionCreation, SessionConfig } from '../../engine/consent/sessionGate';
+import { validateSessionCreation } from '../../engine/consent/sessionGate';
 import { detectCrisisPattern } from '../../engine/crisis/patternDetection';
 import { ResourceSurface } from '../crisis/ResourceSurface';
 import { TrustedAdultConnector } from '../crisis/TrustedAdultConnector';
+import { useI18n } from '../../engine/localization/i18n';
 
 interface MoodMirrorProps {
-  userId: string;
+  userId?: string;
 }
 
 export const MoodMirror: React.FC<MoodMirrorProps> = ({ userId }) => {
+  const { language } = useI18n();
   const [disclosureAccepted, setDisclosureAccepted] = useState(false);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [logged, setLogged] = useState(false);
@@ -18,7 +20,7 @@ export const MoodMirror: React.FC<MoodMirrorProps> = ({ userId }) => {
 
   const handleStartSession = () => {
     try {
-      validateSessionCreation({ userId, sessionType: 'mood_mirror', disclosureShownId: disclosure.id });
+      validateSessionCreation({ userId: userId || 'guest', sessionType: 'mood_mirror', disclosureShownId: disclosure.id });
       setIsSessionActive(true);
     } catch (err: any) {
       alert(err.message);
@@ -29,7 +31,7 @@ export const MoodMirror: React.FC<MoodMirrorProps> = ({ userId }) => {
     setLogged(true);
     // 1. Simulate saving to DB
     // 2. Feed to crisis detection engine
-    await detectCrisisPattern(userId, { sentiment });
+    await detectCrisisPattern(userId || 'guest', { sentiment });
   };
 
   if (logged) {
@@ -49,7 +51,7 @@ export const MoodMirror: React.FC<MoodMirrorProps> = ({ userId }) => {
         <h2 className="text-2xl font-bold text-indigo-900">Mood Mirror</h2>
         <div className="mt-4 bg-indigo-100 p-4 rounded-lg">
           <p className="text-sm font-medium text-indigo-800">Before we start:</p>
-          <p className="text-indigo-900 mt-2">{disclosure.text}</p>
+          <p className="text-indigo-900 mt-2">{disclosure.text[language]}</p>
         </div>
         <button
           onClick={() => setDisclosureAccepted(true)}

@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { CURRENT_DISCLOSURES } from '../../engine/assessment/disclosures';
 import { validateSessionCreation, SessionConfig } from '../../engine/consent/sessionGate';
 import { calculateRiasec, ArenaAction, RiasecProfile } from '../../engine/assessment/riasec';
+import { useI18n } from '../../engine/localization/i18n';
 
-interface SkillArenaProps {
-  userId: string;
+export interface SkillArenaProps {
+  userId?: string;
 }
 
 export const SkillArena: React.FC<SkillArenaProps> = ({ userId }) => {
+  const { language } = useI18n();
   const [disclosureAccepted, setDisclosureAccepted] = useState(false);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [actionsMade, setActionsMade] = useState<ArenaAction[]>([]);
@@ -18,7 +20,7 @@ export const SkillArena: React.FC<SkillArenaProps> = ({ userId }) => {
   const handleStartSession = () => {
     try {
       const config: SessionConfig = {
-        userId,
+        userId: userId || 'guest',
         sessionType: 'skill_arena',
         disclosureShownId: disclosure.id,
       };
@@ -66,7 +68,7 @@ export const SkillArena: React.FC<SkillArenaProps> = ({ userId }) => {
         <h2 className="text-2xl font-bold text-green-900">Skill Arena</h2>
         <div className="mt-4 bg-green-100 p-4 rounded-lg">
           <p className="text-sm font-medium text-green-800">Before you play:</p>
-          <p className="text-green-900 mt-2">{disclosure.text}</p>
+          <p className="text-fuchsia-900 mt-2">{disclosure.text[language as keyof typeof disclosure.text]}</p>
         </div>
         <button
           onClick={() => setDisclosureAccepted(true)}

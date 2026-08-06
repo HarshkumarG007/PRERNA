@@ -28,9 +28,9 @@ User Context:
  * This function mocks the sidecar response for frontend development.
  */
 export async function sendMessageToLLM(
-  history: ChatMessage[],
-  userContext: UserContext,
-  newMessage: string
+  newMessage: string,
+  _history: ChatMessage[],
+  userContext: UserContext
 ): Promise<string> {
   const contextString = JSON.stringify(userContext, null, 2);
   const systemPrompt = SYSTEM_PROMPT_TEMPLATE.replace('{CONTEXT}', contextString);

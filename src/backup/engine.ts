@@ -4,8 +4,6 @@
  */
 
 import { invoke } from '@tauri-apps/api/core';
-import { BaseDirectory } from '@tauri-apps/api/path';
-
 export interface BackupMetadata {
   version: string;
   createdAt: string;

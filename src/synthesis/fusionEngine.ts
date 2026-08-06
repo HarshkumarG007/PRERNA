@@ -93,16 +93,13 @@ export interface BehavioralPattern {
 export class ProfileFusionEngine {
   private personality: TraitProfile;
   private cognition: CognitiveProfile;
-  private behavioralPatterns: BehavioralPattern[];
-
+  
   constructor(
     personality: TraitProfile,
-    cognition: CognitiveProfile,
-    behavioralPatterns: BehavioralPattern[] = []
+    cognition: CognitiveProfile
   ) {
     this.personality = personality;
     this.cognition = cognition;
-    this.behavioralPatterns = behavioralPatterns;
   }
 
   synthesize(userId: string): UnifiedProfile {

@@ -43,7 +43,7 @@ export class BackupScheduler {
         const defaultName = `prerna-auto-${new Date().toISOString().split('T')[0]}.prerna`;
         
         // Dynamic import of fs plugin
-        const { writeTextFile, BaseDirectory } = await import('@tauri-apps/plugin-fs');
+        const { BaseDirectory } = await import('@tauri-apps/plugin-fs');
         
         // Tauri v2 fs write requires strings or bytes, we will base64 it for auto backup just in case
         // Note: For real binary backup, we should use write as Uint8Array if supported. 

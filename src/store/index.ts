@@ -55,6 +55,7 @@ export interface UnifiedProfile {
   wellbeingScore: number;
   strengths: string[];
   growthAreas: string[];
+  topCareer?: { role: string };
 }
 
 export interface Session {
@@ -136,15 +137,7 @@ export const useAppStore = create<AppState>()(
         set({ isLoading: true });
         
         try {
-          // Temporarily Mocking the Tauri invoke because we haven't implemented get_user in rust yet
-          // const user = await invoke<User>('get_user', { userId });
-          const user: User = {
-            id: userId,
-            ageRange: '16-18',
-            region: 'Delhi',
-            language: 'en',
-            createdAt: new Date().toISOString()
-          };
+          const user = await invoke<User>('get_user', { userId });
           
           if (user) {
             set({ 
@@ -183,16 +176,13 @@ export const useAppStore = create<AppState>()(
         set({ isLoading: true });
         
         try {
-          // Temporarily mock the tauri invoke because we are relying on old `create_user` from earlier mockup phase
-          // const userId = await invoke<string>('create_user', {
-          //   user: {
-          //     age_range: data.ageRange,
-          //     region: data.region,
-          //     language: data.language,
-          //   },
-          // });
-          
-          const userId = `user_${Math.random().toString(36).substr(2, 9)}`;
+          const userId = await invoke<string>('create_user', {
+            user: {
+              age_range: data.ageRange,
+              region: data.region,
+              language: data.language,
+            },
+          });
           
           // Store PIN locally (hashed in production)
           localStorage.setItem(`prerna_pin_${userId}`, data.pin);
@@ -215,28 +205,9 @@ export const useAppStore = create<AppState>()(
         set({ profileLoading: true });
         
         try {
-          // Temporarily mock getting the unified profile
-          // const profile = await invoke<UnifiedProfile>('get_unified_profile', {
-          //   userId: user.id,
-          // });
-          const profile: UnifiedProfile = {
+          const profile = await invoke<UnifiedProfile>('get_unified_profile', {
             userId: user.id,
-            generatedAt: new Date().toISOString(),
-            personality: {
-                bigFive: { openness: 60, conscientiousness: 70, extraversion: 50, agreeableness: 80, neuroticism: 40 },
-                riasec: { realistic: 30, investigative: 40, artistic: 80, social: 70, enterprising: 20, conventional: 10 },
-                emotional: { resilience: 60, empathy: 80, emotionalAwareness: 70, impulseControl: 60, socialIntuition: 75 }
-            },
-            cognition: {
-                logicalReasoning: 60, verbalFluency: 70, spatialIntelligence: 50, creativeDivergence: 80, processingSpeed: 60, workingMemory: 65, learningStyle: 'visual'
-            },
-            archetype: {
-                name: "The Dreamer", description: "Creative and empathetic", traits: ["Creative", "Empathetic"]
-            },
-            wellbeingScore: 78,
-            strengths: ["Creativity", "Empathy"],
-            growthAreas: ["Logic"]
-          };
+          });
           
           if (profile) {
             set({ profile, profileLoading: false });
@@ -304,8 +275,14 @@ export const useAppStore = create<AppState>()(
           id: crypto.randomUUID(),
         };
         
-        // Temporarily mocked backend save
-        // await invoke('save_session', { ... });
+        await invoke('save_session', {
+          session: {
+            user_id: user.id,
+            session_type: session.type,
+            raw_choices: JSON.stringify(session.metadata),
+            derived_traits: JSON.stringify(session.score ? { score: session.score } : {})
+          }
+        });
         
         // Update local state
         set(state => ({

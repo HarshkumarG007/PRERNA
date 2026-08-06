@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import { CURRENT_DISCLOSURES } from '../../engine/assessment/disclosures';
 import { validateSessionCreation } from '../../engine/consent/sessionGate';
+import { useI18n } from '../../engine/localization/i18n';
 
-export const SocialCompass: React.FC<{ userId: string }> = ({ userId }) => {
+export interface SocialCompassProps {
+  userId?: string;
+}
+
+export const SocialCompass: React.FC<SocialCompassProps> = ({ userId }) => {
+  const { language } = useI18n();
   const [accepted, setAccepted] = useState(false);
   const [active, setActive] = useState(false);
 
@@ -13,7 +19,7 @@ export const SocialCompass: React.FC<{ userId: string }> = ({ userId }) => {
       <div className="max-w-xl mx-auto mt-10 p-6 bg-orange-50 rounded-xl shadow-md border border-orange-100">
         <h2 className="text-2xl font-bold text-orange-900">Social Compass</h2>
         <div className="mt-4 bg-orange-100 p-4 rounded-lg">
-          <p className="text-orange-900">{disclosure.text}</p>
+          <p className="text-orange-900">{disclosure.text[language as keyof typeof disclosure.text]}</p>
         </div>
         <button onClick={() => setAccepted(true)} className="mt-6 w-full py-3 bg-orange-600 text-white rounded-md font-bold">I Understand</button>
       </div>
@@ -23,7 +29,12 @@ export const SocialCompass: React.FC<{ userId: string }> = ({ userId }) => {
   if (!active) {
     return (
       <div className="text-center mt-10">
-        <button onClick={() => { validateSessionCreation({ userId, sessionType: 'social_compass', disclosureShownId: disclosure.id }); setActive(true); }} className="py-3 px-6 bg-orange-600 text-white rounded-full font-bold">Start Scenario</button>
+        <p className="mb-4">{CURRENT_DISCLOSURES.social_compass.text[language as keyof typeof CURRENT_DISCLOSURES.social_compass.text]}</p>
+        <button 
+          onClick={() => {
+            validateSessionCreation({ userId: userId || 'guest', sessionType: 'social_compass', disclosureShownId: 'v1' });
+            setActive(true);
+          }} className="py-3 px-6 bg-orange-600 text-white rounded-full font-bold">Start Scenario</button>
       </div>
     );
   }

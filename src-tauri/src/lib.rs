@@ -1,6 +1,7 @@
 pub mod db;
 pub mod commands;
 pub mod ai;
+pub mod school_api;
 
 use tauri::Manager;
 use log::{info, warn};
@@ -50,6 +51,7 @@ pub fn run() {
             commands::save_session,
             commands::save_skill_session,
             commands::save_unified_profile,
+            commands::get_unified_profile,
             commands::get_parent_view,
             commands::export_all_user_data,
             commands::import_user_data,
@@ -71,6 +73,9 @@ pub fn run() {
             commands::ai::chat_with_mentor,
             commands::ai::get_model_status,
             commands::ai::generate_career_insight,
+            
+            // School Integration
+            school_api::generate_school_report,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

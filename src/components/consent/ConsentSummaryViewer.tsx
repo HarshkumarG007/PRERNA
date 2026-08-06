@@ -1,5 +1,6 @@
 import React from 'react';
 import { CURRENT_DISCLOSURES } from '../../engine/assessment/disclosures';
+import { useI18n } from '../../engine/localization/i18n';
 
 interface ConsentRecord {
   id: string;
@@ -19,6 +20,8 @@ export const ConsentSummaryViewer: React.FC<ConsentSummaryViewerProps> = ({
   viewerType,
   onRevoke,
 }) => {
+  const { language } = useI18n();
+
   if (!consentRecord) {
     return (
       <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
@@ -57,7 +60,7 @@ export const ConsentSummaryViewer: React.FC<ConsentSummaryViewerProps> = ({
                 <span className="font-semibold text-gray-800 capitalize block mb-1">
                   {scopeItem.replace('_', ' ')}
                 </span>
-                <span className="text-gray-600">{disclosure.text}</span>
+                <p className="mt-2 text-sm text-gray-500 leading-relaxed">{disclosure.text[language]}</p>
               </li>
             );
           })}

@@ -1,18 +1,17 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { AgeDeclaration } from '../../components/consent/AgeDeclaration';
-import { I18nProvider } from '../../engine/localization/i18n';
-
 import { ParentConsentFlow } from '../../components/consent/ParentConsentFlow';
+import { I18nProvider } from '../../engine/localization/i18n';
 import { AccountType } from '../../engine/consent/ageTierGate';
 
 const ConsentFlowWrapper = () => {
   const [accountType, setAccountType] = React.useState<AccountType | null>(null);
   
   if (accountType === 'under_18') {
-    return <ParentConsentFlow teenUserId="test_teen" onConsentSuccess={() => {}} />;
+    return <ParentConsentFlow onConsentGranted={() => {}} onCancel={() => {}} />;
   }
   
   return <AgeDeclaration onComplete={(_, type) => setAccountType(type)} />;

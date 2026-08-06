@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
+import { MemoryRouter } from 'react-router-dom';
 import { LifeQuests } from '../../components/activities/LifeQuests';
 import { I18nProvider } from '../../engine/localization/i18n';
 import { CURRENT_DISCLOSURES } from '../../engine/assessment/disclosures';
@@ -11,9 +11,11 @@ describe('Integration: Activity Gating', () => {
     const user = userEvent.setup();
     
     render(
-      <I18nProvider>
-        <LifeQuests userId="test_user" />
-      </I18nProvider>
+      <MemoryRouter>
+        <I18nProvider>
+          <LifeQuests />
+        </I18nProvider>
+      </MemoryRouter>
     );
 
     // The core activity content should NOT be present yet

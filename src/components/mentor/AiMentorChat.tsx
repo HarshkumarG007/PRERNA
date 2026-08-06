@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { CURRENT_DISCLOSURES } from '../../engine/assessment/disclosures';
 import { validateSessionCreation, SessionConfig } from '../../engine/consent/sessionGate';
 import { sendMessageToLLM, ChatMessage, UserContext } from '../../ai/llmClient';
+import { useI18n } from '../../engine/localization/i18n';
 
 interface AiMentorChatProps {
   userId: string;
@@ -9,6 +10,7 @@ interface AiMentorChatProps {
 }
 
 export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId, userContext }) => {
+  const { language } = useI18n();
   const [disclosureAccepted, setDisclosureAccepted] = useState(false);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -48,7 +50,7 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId, userContext 
     setIsTyping(true);
 
     try {
-      const aiResponseContent = await sendMessageToLLM(newHistory, userContext, userMsg.content);
+      const aiResponseContent = await sendMessageToLLM(userMsg.content, newHistory, userContext);
       const aiMsg: ChatMessage = { role: 'assistant', content: aiResponseContent };
       setMessages([...newHistory, aiMsg]);
     } catch (err) {
@@ -65,7 +67,7 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId, userContext 
         <h2 className="text-2xl font-bold text-blue-900">AI Mentor</h2>
         <div className="mt-4 bg-blue-100 p-4 rounded-lg">
           <p className="text-sm font-medium text-blue-800">Before we chat:</p>
-          <p className="text-blue-900 mt-2">{disclosure.text}</p>
+          <p className="text-teal-900 mt-2">{disclosure.text[language]}</p>
         </div>
         <button
           onClick={() => setDisclosureAccepted(true)}

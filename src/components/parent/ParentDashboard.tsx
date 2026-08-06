@@ -28,7 +28,6 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ teenId, onExit
 
       if (response.has_access && response.profile) {
         // Hydrate with permission-based starters
-        const prefs = ParentPermissionManager.getPreferences(teenId);
         const safeProfile: ParentSafeProfile = {
           lastUpdated: response.profile.last_active,
           teenName: 'Your Teen',
@@ -88,11 +87,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ teenId, onExit
   };
 
   const sendRequest = async () => {
-    const approved = await ParentPermissionManager.requestApproval(
-      teenId,
-      'parent-id',
-      requestType as any
-    );
+    const approved = await ParentPermissionManager.requestApproval();
     
     if (approved) {
       alert('Access granted! Refreshing...');

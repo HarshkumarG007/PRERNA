@@ -1,7 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
 import { HumanReviewQueue } from '../../components/crisis/HumanReviewQueue';
 
 describe('Integration: Admin Review Queue', () => {
@@ -9,7 +8,7 @@ describe('Integration: Admin Review Queue', () => {
     const user = userEvent.setup();
     
     // Render the dashboard
-    render(<HumanReviewQueue clinicianId="doctor_1" />);
+    render(<HumanReviewQueue />);
 
     // Since it mounts with dummy pending cases, we should see one
     expect(screen.getByText(/User:/i)).toBeInTheDocument();

@@ -1,10 +1,7 @@
-import React, { useState } from 'react';
+import { useEffect } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import { useI18n } from './engine/localization/i18n';
 
-// Import all components we built
-import { AgeDeclaration } from './components/consent/AgeDeclaration';
-import { ParentConsentFlow } from './components/consent/ParentConsentFlow';
 import { BetaOnboardingNotice } from './components/consent/BetaOnboardingNotice';
 import { LifeQuests } from './components/activities/LifeQuests';
 import { SkillArena } from './components/activities/SkillArena';
@@ -12,7 +9,6 @@ import { MoodMirror } from './components/activities/MoodMirror';
 import { SocialCompass } from './components/activities/SocialCompass';
 import { AiMentorChat } from './components/mentor/AiMentorChat';
 import { TeenProfileView } from './components/dashboard/TeenProfileView';
-import { SharedDashboardView } from './components/dashboard/SharedDashboardView';
 import { Dashboard } from './components/dashboard/Dashboard';
 import { WelcomeScreen } from './components/welcome/WelcomeScreen';
 import { LoadingScreen } from './components/common/LoadingScreen';
@@ -57,8 +53,7 @@ function App() {
   }
 
   return (
-    <Router>
-      <div className="min-h-screen flex flex-col font-sans bg-slate-50">
+    <div className="min-h-screen flex flex-col font-sans bg-slate-50">
         <header className="sticky top-0 z-50 glass-panel !rounded-none !border-x-0 !border-t-0 shadow-sm transition-all duration-300">
           <div className="max-w-7xl mx-auto flex justify-between items-center p-4">
             <div className="flex items-center space-x-8">

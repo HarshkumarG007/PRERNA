@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MessageCircle, Sparkles, ChevronRight } from 'lucide-react';
+import { MessageCircle, Sparkles } from 'lucide-react';
 
 interface MentorCardProps {
   onClick: () => void;

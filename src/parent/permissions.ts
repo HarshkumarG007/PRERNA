@@ -59,15 +59,11 @@ export class ParentPermissionManager {
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(prefs));
   }
 
-  static async requestApproval(
-    teenId: string,
-    parentId: string,
-    requestType: keyof SharingPreferences['requiresApproval']
-  ): Promise<boolean> {
+  static async requestApproval(): Promise<boolean> {
     // In production: Send notification to teen's app
     // For now: Simulate with local prompt
     const approved = confirm(
-      `Your teen is requesting to share "${requestType}" with you. Approve?`
+      `Your teen is requesting to share information with you. Approve?`
     );
     return approved;
   }

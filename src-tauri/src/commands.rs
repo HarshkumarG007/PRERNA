@@ -127,6 +127,26 @@ pub fn save_unified_profile(
     Ok(snapshot_id)
 }
 
+#[tauri::command]
+pub fn get_unified_profile(
+    state: State<DbState>,
+    user_id: String,
+) -> Result<Option<serde_json::Value>, String> {
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    
+    let sessions = db.get_user_sessions(&user_id).map_err(|e| e.to_string())?;
+    
+    let profile_session = sessions.into_iter().find(|s| s.session_type == "unified_profile");
+    
+    if let Some(session) = profile_session {
+        let profile: serde_json::Value = serde_json::from_str(&session.raw_choices)
+            .map_err(|e| format!("Failed to parse profile data: {}", e))?;
+        Ok(Some(profile))
+    } else {
+        Ok(None)
+    }
+}
+
 #[derive(Debug, serde::Deserialize)]
 pub struct ParentViewRequest {
     pub teen_id: String,
