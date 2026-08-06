@@ -71,6 +71,63 @@ pub fn save_skill_session(
 }
 
 #[tauri::command]
+pub fn save_unified_profile(
+    state: State<DbState>,
+    user_id: String,
+    profile_data: String,
+) -> Result<String, String> {
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    
+    // Parse and validate
+    let profile: serde_json::Value = serde_json::from_str(&profile_data)
+        .map_err(|e| format!("Invalid profile data: {}", e))?;
+    
+    // Extract trait snapshot from unified profile
+    let snapshot = crate::db::models::TraitSnapshot {
+        id: String::new(),
+        user_id: user_id.clone(),
+        snapshot_date: chrono::Utc::now().to_rfc3339(),
+        big_five: serde_json::from_value(
+            profile.get("personality").and_then(|p| p.get("bigFive")).cloned()
+                .unwrap_or(serde_json::json!({}))
+        ).unwrap_or_default(),
+        riasec: serde_json::from_value(
+            profile.get("personality").and_then(|p| p.get("riasec")).cloned()
+                .unwrap_or(serde_json::json!({}))
+        ).unwrap_or_default(),
+        emotional_profile: profile.get("personality")
+            .and_then(|p| p.get("emotional"))
+            .cloned()
+            .unwrap_or(serde_json::json!({})),
+        confidence_score: profile.get("archetypeConfidence")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.5) as f32,
+    };
+    
+    let snapshot_id = db.save_trait_snapshot(&snapshot)
+        .map_err(|e| e.to_string())?;
+    
+    // Also save as session for history
+    let session = crate::db::models::AssessmentSession {
+        id: String::new(),
+        user_id,
+        session_type: "unified_profile".to_string(),
+        started_at: profile.get("generatedAt")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string(),
+        completed_at: Some(chrono::Utc::now().to_rfc3339()),
+        raw_choices: profile_data,
+        derived_traits: serde_json::to_string(&profile.get("archetype"))
+            .unwrap_or_default(),
+    };
+    
+    db.save_session(&session).map_err(|e| e.to_string())?;
+    
+    Ok(snapshot_id)
+}
+
+#[tauri::command]
 pub fn get_user_sessions(
     state: State<DbState>,
     user_id: String,

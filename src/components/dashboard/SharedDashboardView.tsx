@@ -1,10 +1,11 @@
 import React from 'react';
 import { BigFiveProfile } from '../../engine/assessment/bigFive';
 import { RiasecProfile } from '../../engine/assessment/riasec';
-import { Brain, Compass, HeartPulse, Gamepad2 } from 'lucide-react';
+import { Brain, Compass, HeartPulse, Gamepad2, Sparkles } from 'lucide-react';
 import { ModelManager } from '../ai/ModelManager';
 import { MentorChat } from '../ai/MentorChat';
 import { SkillArena } from '../skills/SkillArena';
+import { ProfileDashboard } from '../synthesis/ProfileDashboard';
 import { useState } from 'react';
 
 export interface DashboardData {
@@ -20,9 +21,38 @@ interface SharedDashboardViewProps {
 
 export const SharedDashboardView: React.FC<SharedDashboardViewProps> = ({ data }) => {
   const [showArena, setShowArena] = useState(false);
+  const [showSynthesis, setShowSynthesis] = useState(false);
 
   if (showArena) {
     return <SkillArena userId={data.userId} onExit={() => setShowArena(false)} />;
+  }
+  
+  if (showSynthesis) {
+    // Inject mock data for demonstration
+    const mockPersonality = {
+      bigFive: { openness: 85, conscientiousness: 60, extraversion: 45, agreeableness: 75, neuroticism: 40 },
+      riasec: { realistic: 30, investigative: 70, artistic: 85, social: 60, enterprising: 50, conventional: 35 },
+      emotional: { resilience: 70, empathy: 80, emotionalAwareness: 75, impulseControl: 65, socialIntuition: 70 },
+      confidence: 0.85,
+      timestamp: new Date().toISOString(),
+    };
+    
+    const mockCognitive = {
+      logicalReasoning: 75,
+      verbalFluency: 90,
+      spatialIntelligence: 60,
+      creativeDivergence: 85,
+      processingSpeed: 70,
+      workingMemory: 75,
+      learningStyle: 'visual' as const,
+    };
+    
+    return <ProfileDashboard 
+      userId={data.userId} 
+      personalityProfile={mockPersonality} 
+      cognitiveProfile={mockCognitive} 
+      onExit={() => setShowSynthesis(false)} 
+    />;
   }
 
   return (
@@ -86,6 +116,14 @@ export const SharedDashboardView: React.FC<SharedDashboardViewProps> = ({ data }
                     </div>
                   </div>
                 ))}
+                
+                <button 
+                  onClick={() => setShowSynthesis(true)}
+                  className="w-full mt-4 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                >
+                  <Sparkles size={18} />
+                  View Full Synthesis
+                </button>
               </div>
             ) : (
               <div className="text-center py-4">
