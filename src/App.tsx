@@ -12,6 +12,9 @@ import { MoodMirror } from './components/activities/MoodMirror';
 import { SocialCompass } from './components/activities/SocialCompass';
 import { AiMentorChat } from './components/mentor/AiMentorChat';
 import { TeenProfileView } from './components/dashboard/TeenProfileView';
+import { SharedDashboardView } from './components/dashboard/SharedDashboardView';
+import { WelcomeScreen } from './components/welcome/WelcomeScreen';
+import { LoadingScreen } from './components/common/LoadingScreen';
 import { ParentDashboard } from './components/parent/ParentDashboard';
 
 // Dummy context for demo
@@ -21,26 +24,57 @@ const mockDashboardData = { userId: mockUserId, bigFive: mockContext.bigFive, ri
 
 function App() {
   const { language, setLanguage } = useI18n();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check for existing session
+    const checkAuth = async () => {
+      const lastUser = localStorage.getItem('prerna_last_user');
+      if (lastUser) {
+        setUserId(lastUser);
+      }
+      setIsLoading(false);
+    };
+
+    checkAuth();
+  }, []);
+
+  const handleAuthenticated = (newUserId: string) => {
+    localStorage.setItem('prerna_last_user', newUserId);
+    setUserId(newUserId);
+    setIsAuthenticated(true);
+  };
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  if (!isAuthenticated || !userId) {
+    return <WelcomeScreen onAuthenticated={handleAuthenticated} />;
+  }
 
   return (
-    <div className="min-h-screen flex flex-col font-sans">
-      <header className="sticky top-0 z-50 glass-panel !rounded-none !border-x-0 !border-t-0 shadow-sm transition-all duration-300">
-        <div className="max-w-7xl mx-auto flex justify-between items-center p-4">
-          <div className="flex items-center space-x-8">
-            <h1 className="text-2xl font-black tracking-tight text-indigo-700 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
-              PRERNA
-            </h1>
-            <nav className="hidden md:flex space-x-6 text-sm font-semibold">
-              <Link to="/beta" className="text-slate-600 hover:text-indigo-600 transition-colors">Beta Consent</Link>
-              <Link to="/quests" className="text-slate-600 hover:text-indigo-600 transition-colors">Life Quests</Link>
-              <Link to="/arena" className="text-slate-600 hover:text-indigo-600 transition-colors">Skill Arena</Link>
-              <Link to="/mood" className="text-slate-600 hover:text-indigo-600 transition-colors">Mood Mirror</Link>
-              <Link to="/social" className="text-slate-600 hover:text-indigo-600 transition-colors">Social Compass</Link>
-              <Link to="/mentor" className="text-slate-600 hover:text-indigo-600 transition-colors">AI Mentor</Link>
-              <Link to="/dashboard" className="text-slate-600 hover:text-indigo-600 transition-colors">Teen Dash</Link>
-              <Link to="/parent-dash" className="text-slate-600 hover:text-indigo-600 transition-colors">Parent Dash</Link>
-            </nav>
-          </div>
+    <Router>
+      <div className="min-h-screen flex flex-col font-sans bg-slate-50">
+        <header className="sticky top-0 z-50 glass-panel !rounded-none !border-x-0 !border-t-0 shadow-sm transition-all duration-300">
+          <div className="max-w-7xl mx-auto flex justify-between items-center p-4">
+            <div className="flex items-center space-x-8">
+              <h1 className="text-2xl font-black tracking-tight text-indigo-700 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
+                PRERNA
+              </h1>
+              <nav className="hidden md:flex space-x-6 text-sm font-semibold">
+                <Link to="/beta" className="text-slate-600 hover:text-indigo-600 transition-colors">Beta Consent</Link>
+                <Link to="/quests" className="text-slate-600 hover:text-indigo-600 transition-colors">Life Quests</Link>
+                <Link to="/arena" className="text-slate-600 hover:text-indigo-600 transition-colors">Skill Arena</Link>
+                <Link to="/mood" className="text-slate-600 hover:text-indigo-600 transition-colors">Mood Mirror</Link>
+                <Link to="/social" className="text-slate-600 hover:text-indigo-600 transition-colors">Social Compass</Link>
+                <Link to="/mentor" className="text-slate-600 hover:text-indigo-600 transition-colors">AI Mentor</Link>
+                <Link to="/dashboard" className="text-slate-600 hover:text-indigo-600 transition-colors">Teen Dash</Link>
+                <Link to="/parent-dash" className="text-slate-600 hover:text-indigo-600 transition-colors">Parent Dash</Link>
+              </nav>
+            </div>
           <div>
             <button 
               onClick={() => setLanguage(language === 'en' ? 'hi' : 'en')}
