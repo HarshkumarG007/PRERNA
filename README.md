@@ -10,6 +10,7 @@
 [![Tests](https://github.com/HarshkumarG007/PRERNA/actions/workflows/test.yml/badge.svg)](https://github.com/HarshkumarG007/PRERNA/actions/workflows/test.yml)
 [![Cross-Platform Release](https://github.com/HarshkumarG007/PRERNA/actions/workflows/release.yml/badge.svg)](https://github.com/HarshkumarG007/PRERNA/actions/workflows/release.yml)
 [![Security Scan](https://github.com/HarshkumarG007/PRERNA/actions/workflows/security.yml/badge.svg)](https://github.com/HarshkumarG007/PRERNA/actions/workflows/security.yml)
+[![Code Coverage](https://codecov.io/gh/HarshkumarG007/PRERNA/branch/main/graph/badge.svg)](https://codecov.io/gh/HarshkumarG007/PRERNA)
 
 [Getting Started](#-getting-started) • [Architecture](#-system-architecture) • [Safety & Compliance](#-safety--compliance-status) • [Roadmap](#-roadmap) • [Documentation](#-documentation-index)
 

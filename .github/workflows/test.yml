@@ -19,8 +19,12 @@ jobs:
           cache: 'npm'
       - name: Install Dependencies
         run: npm ci || npm install
-      - name: Run Tests
-        run: npm test
+      - name: Run Tests with Coverage
+        run: npm test -- --coverage
+      - name: Upload frontend coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   test-backend:
     name: Test Backend (Rust)
@@ -39,6 +43,12 @@ jobs:
         uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
-      - name: Run Tests
+      - name: Install cargo-tarpaulin
+        run: cargo install cargo-tarpaulin
+      - name: Run Tests with Coverage
         working-directory: ./src-tauri
-        run: cargo test
+        run: cargo tarpaulin --out Xml
+      - name: Upload backend coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
