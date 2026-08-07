@@ -1,30 +1,30 @@
 import os
 import torch
 from datasets import load_dataset
-# from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, TrainingArguments
 # from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+# from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, BitsAndBytesConfig
 # from trl import SFTTrainer
 
-# PRERNA AI MLOps - Stage 2 QLoRA Fine-Tuning Pipeline
+# PRERNA AI MLOps - Stage 3 QLoRA Fine-Tuning Pipeline
+# Optimized for RTX 4060 (8GB VRAM)
 
 def main():
-    print("Initializing PRERNA QLoRA Fine-Tuning...")
+    print("Initializing PRERNA QLoRA Fine-Tuning for RTX 4060...")
     
     # Configuration
-    model_id = "meta-llama/Meta-Llama-3-8B-Instruct" # Change to Qwen2.5 or Mistral as needed
+    model_id = "Qwen/Qwen2.5-7B-Instruct" 
     dataset_path = "../data/prerna_synthetic_dataset.jsonl"
-    output_dir = "./prerna-lora-adapter"
+    output_dir = "./prerna-7b-lora"
     
     if not os.path.exists(dataset_path):
         print(f"Dataset not found at {dataset_path}. Please run dataset_generation first.")
         return
         
     print(f"Dataset located. Preparing to load into memory.")
-    
     print(f"Loading base model {model_id} in 4-bit...")
-    # NOTE: The following blocks are commented out so this script doesn't crash 
-    # if run on a machine without a dedicated NVIDIA GPU and CUDA installed.
-    # When you move this to a RunPod or Colab A100 instance, simply uncomment them!
+
+    # NOTE: Commented out so this script doesn't crash on machines without CUDA.
+    # When running on the RTX 4060 or a RunPod instance, simply uncomment.
 
     """
     # 1. Load Dataset
@@ -32,17 +32,18 @@ def main():
     
     def formatting_prompts_func(example):
         output_texts = []
-        for i in range(len(example['instruction'])):
-            text = f"User: {example['instruction'][i]}\nAssistant: {example['response'][i]}"
+        for msgs in example['messages']:
+            # Assume ChatML formatting for Qwen/Mistral
+            text = f"<|im_start|>system\n{msgs[0]['content']}<|im_end|>\n<|im_start|>user\n{msgs[1]['content']}<|im_end|>\n<|im_start|>assistant\n{msgs[2]['content']}<|im_end|>"
             output_texts.append(text)
         return output_texts
 
-    # 2. 4-bit Quantization Config (QLoRA)
+    # 2. 4-bit Quantization Config (QLoRA) for 8GB VRAM
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
+        bnb_4bit_compute_dtype=torch.bfloat16,
         bnb_4bit_use_double_quant=True,
         bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.bfloat16
     )
     
     # 3. Load Base Model and Tokenizer
@@ -57,11 +58,11 @@ def main():
     )
     model = prepare_model_for_kbit_training(model)
     
-    # 4. LoRA Configuration
+    # 4. LoRA Configuration (High rank for domain adaptation)
     peft_config = LoraConfig(
-        r=16,
-        lora_alpha=32,
-        target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
+        r=64, 
+        lora_alpha=128,
+        target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
         lora_dropout=0.05,
         bias="none",
         task_type="CAUSAL_LM"
@@ -71,21 +72,20 @@ def main():
     # 5. Training Arguments
     training_args = TrainingArguments(
         output_dir=output_dir,
-        per_device_train_batch_size=4,
+        num_train_epochs=3,
+        per_device_train_batch_size=1,
         gradient_accumulation_steps=4,
-        optim="paged_adamw_32bit",
-        save_steps=50,
-        logging_steps=10,
         learning_rate=2e-4,
-        weight_decay=0.001,
         fp16=False,
         bf16=True,
+        optim="paged_adamw_8bit",  # Critical for 8GB VRAM constraints
+        save_steps=100,
+        logging_steps=10,
         max_grad_norm=0.3,
-        max_steps=200,
         warmup_ratio=0.03,
         group_by_length=True,
         lr_scheduler_type="cosine",
-        report_to="wandb" # Integrate with Weights & Biases
+        report_to="none" 
     )
     
     # 6. Start Training
@@ -94,6 +94,7 @@ def main():
         train_dataset=dataset,
         peft_config=peft_config,
         formatting_func=formatting_prompts_func,
+        max_seq_length=2048,
         args=training_args
     )
     
@@ -101,9 +102,8 @@ def main():
     trainer.model.save_pretrained(output_dir)
     """
     
-    print("Pipeline scaffold ready.")
-    print("To execute for real, uncomment the HuggingFace blocks and run on a GPU instance.")
-    print("After training, export using llama.cpp convert script to create prerna-custom.gguf.")
+    print("Pipeline scaffold ready for RTX 4060.")
+    print("To execute for real, uncomment the HuggingFace blocks and run locally.")
 
 if __name__ == "__main__":
     main()
