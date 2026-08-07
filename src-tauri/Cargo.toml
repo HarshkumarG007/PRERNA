@@ -38,3 +38,10 @@ llama-cpp-2 = "0.1.154"
 [features]
 default = ["custom-protocol"]
 custom-protocol = []
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "db_benchmark"
+harness = false
