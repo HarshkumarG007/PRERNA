@@ -1,81 +1,98 @@
 -- =======================================================================
 -- [AUTO-GENERATED REFERENCE ONLY - DO NOT EDIT]
 -- The true source of truth is src-tauri/src/db/schema.rs
--- This file exists solely for frontend reference of the database layout.
 -- =======================================================================
 
--- Users
-CREATE TABLE users (
+-- Enable foreign keys
+PRAGMA foreign_keys = ON;
+
+-- Users table (anonymous by default)
+CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
-    created_at TIMESTAMP,
-    age_declared INTEGER,
-    account_type TEXT CHECK(account_type IN ('under_18', 'adult')),
-    parent_consent_id TEXT REFERENCES parent_consents(id), -- NULL for adult accounts
-    region TEXT,
-    language TEXT DEFAULT 'en'
+    created_at TEXT NOT NULL,
+    age_range TEXT CHECK(age_range IN ('13-15', '16-18', '19-22')),
+    region TEXT, -- encrypted
+    language TEXT DEFAULT 'en',
+    encryption_key_hash TEXT,
+    last_sync TEXT
 );
 
--- Parental consent records (new — required for DPDP Section 9 compliance)
-CREATE TABLE parent_consents (
+-- Assessment Sessions (gamified interactions)
+CREATE TABLE IF NOT EXISTS sessions (
     id TEXT PRIMARY KEY,
-    parent_verified_identity_ref TEXT, -- reference to the verification signal used
-    consented_at TIMESTAMP,
-    disclosure_version TEXT, -- which version of the plain-language disclosure was shown
-    scope JSON, -- exactly what was consented to
-    revoked_at TIMESTAMP -- NULL unless revoked; revocation must be honored immediately
-);
-
--- Assessment sessions (each tied to its OWN disclosure, not a blanket one)
-CREATE TABLE sessions (
-    id TEXT PRIMARY KEY,
-    user_id TEXT REFERENCES users(id),
+    user_id TEXT NOT NULL,
     session_type TEXT CHECK(session_type IN ('life_quest', 'skill_arena', 'mood_mirror', 'social_compass', 'body_clock')),
-    disclosure_shown_id TEXT, -- which Section 7 disclosure was shown before this session
-    started_at TIMESTAMP,
-    completed_at TIMESTAMP,
-    choices JSON, -- no longer described as needing to be hidden from the user; visible to the user in their own activity history
-    derived_traits JSON
+    started_at TEXT NOT NULL,
+    completed_at TEXT,
+    raw_choices TEXT, -- encrypted JSON
+    derived_traits TEXT, -- encrypted JSON
+    disclosure_version TEXT NOT NULL,
+    disclosure_shown_at INTEGER NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Trait profiles
-CREATE TABLE trait_snapshots (
+-- Trait Profiles (evolving over time)
+CREATE TABLE IF NOT EXISTS trait_snapshots (
     id TEXT PRIMARY KEY,
-    user_id TEXT REFERENCES users(id),
-    snapshot_date TIMESTAMP,
-    big_five JSON,
-    riasec JSON,
-    multiple_intel JSON,
-    emotional_profile JSON,
-    confidence_score REAL
+    user_id TEXT NOT NULL,
+    snapshot_date TEXT NOT NULL,
+    big_five TEXT, -- JSON
+    riasec TEXT, -- JSON
+    multiple_intel TEXT, -- JSON
+    emotional_profile TEXT, -- JSON
+    confidence_score REAL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Recommendations
-CREATE TABLE recommendations (
+CREATE TABLE IF NOT EXISTS recommendations (
     id TEXT PRIMARY KEY,
-    user_id TEXT REFERENCES users(id),
+    user_id TEXT NOT NULL,
     category TEXT CHECK(category IN ('career', 'skill', 'mental_health', 'physical', 'social')),
-    content TEXT,
+    content TEXT NOT NULL,
     reasoning TEXT,
-    accepted BOOLEAN,
-    completed BOOLEAN,
-    created_at TIMESTAMP
+    accepted BOOLEAN DEFAULT 0,
+    completed BOOLEAN DEFAULT 0,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Crisis escalation events (new — separate, stricter-access table)
-CREATE TABLE crisis_events (
+-- Crisis Events (Pending Human Review)
+CREATE TABLE IF NOT EXISTS crisis_events (
     id TEXT PRIMARY KEY,
-    user_id TEXT REFERENCES users(id),
-    detected_at TIMESTAMP,
-    human_review_status TEXT CHECK(human_review_status IN ('pending', 'reviewed_no_action', 'reviewed_resources_only', 'reviewed_guardian_notified')),
-    reviewer_ref TEXT, -- which trained reviewer handled it — never blank for a notified case
-    teen_informed_at TIMESTAMP -- must be non-null before or at the moment of any guardian notification
+    user_id TEXT NOT NULL,
+    detected_at INTEGER NOT NULL,
+    severity TEXT NOT NULL,
+    human_review_status TEXT DEFAULT 'pending',
+    reviewer_id TEXT,
+    reviewer_credentials_ref TEXT,
+    decision TEXT,
+    teen_informed_at INTEGER,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Data access audit log (new — supports the user-accessible audit trail from Section 10)
-CREATE TABLE access_audit_log (
+-- Daily Check-ins (gamified data)
+CREATE TABLE IF NOT EXISTS micro_interactions (
     id TEXT PRIMARY KEY,
-    user_id TEXT REFERENCES users(id),
-    accessed_by TEXT CHECK(accessed_by IN ('self', 'parent_dashboard', 'system_process')),
-    data_scope TEXT,
-    accessed_at TIMESTAMP
+    user_id TEXT NOT NULL,
+    interaction_type TEXT NOT NULL,
+    metadata TEXT, -- encrypted JSON
+    emotional_signal REAL,
+    timestamp TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_snapshots_user_date ON trait_snapshots(user_id, snapshot_date);
+CREATE INDEX IF NOT EXISTS idx_interactions_user_time ON micro_interactions(user_id, timestamp);
+CREATE INDEX IF NOT EXISTS idx_recommendations_user ON recommendations(user_id);
+
+-- Audit log (local only, no PII)
+CREATE TABLE IF NOT EXISTS audit_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp TEXT NOT NULL,
+    action TEXT NOT NULL,
+    details TEXT
+);
+

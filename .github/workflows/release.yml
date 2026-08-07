@@ -17,7 +17,7 @@ jobs:
       matrix:
         include:
           - platform: 'macos'
-            os: 'macos-14'
+            os: 'macos-latest'
             args: '--target aarch64-apple-darwin'
           - platform: 'linux'
             os: 'ubuntu-22.04'

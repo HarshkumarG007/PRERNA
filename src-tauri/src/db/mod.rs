@@ -420,7 +420,7 @@ mod tests {
         
         // 1. Insert a user
         db.conn.execute(
-            "INSERT INTO users (id, created_at, last_active, role) VALUES (?1, '2023-01-01', '2023-01-01', 'teen')",
+            "INSERT INTO users (id, created_at, age_range, region, language, encryption_key_hash) VALUES (?1, '2023-01-01', '13-15', 'enc_reg', 'en', 'hash')",
             [user_id]
         ).unwrap();
 
