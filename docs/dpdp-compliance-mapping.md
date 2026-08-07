@@ -8,7 +8,7 @@ This document maps the non-negotiable requirements of the DPDP Act (specifically
 
 **Implementation**:
 - `src/components/consent/AgeDeclaration.tsx`: Collects the user's age. If under 18, triggers the parent verification flow.
-- `src/components/consent/ParentConsentFlow.tsx`: Enforces that an adult must complete the verification loop (e.g., via DigiLocker ID) before the system generates a valid `consentId`.
+- `src/components/consent/ParentConsentFlow.tsx`: [SIMULATED — NOT PRODUCTION READY] Enforces that an adult must complete the verification loop (e.g., via DigiLocker ID) before the system generates a valid `consentId`.
 - `src/engine/consent/ageTierGate.ts`: Middleware that permanently halts all functionality (returning a `403` equivalent) if a session attempt is made without a resolved `consentId`.
 
 ## 2. Prohibition on Behavioral Profiling / Targeted Ads (Section 9)

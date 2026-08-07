@@ -39,7 +39,7 @@ export const ParentConsentFlow: React.FC<ParentConsentFlowProps> = ({
     return (
       <div className="max-w-xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-md space-y-6 border-t-4 border-indigo-600">
         <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
-          <p className="font-bold">SIMULATED VERIFICATION — NOT FOR PRODUCTION</p>
+          <p className="font-bold">SIMULATED — NOT PRODUCTION READY</p>
           <p>This DigiLocker flow is a mockup. Do not deploy to real users without genuine backend verification integration.</p>
         </div>
         <h2 className="text-xl font-bold text-gray-900">Parent / Guardian Verification</h2>
