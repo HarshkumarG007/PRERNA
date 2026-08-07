@@ -48,8 +48,9 @@ jobs:
         if: matrix.platform == 'windows'
         shell: bash
         run: |
-          vcpkg install openssl:x64-windows
-          echo "OPENSSL_DIR=$VCPKG_INSTALLATION_ROOT/installed/x64-windows" >> $GITHUB_ENV
+          vcpkg install openssl:x64-windows-static-md
+          echo "OPENSSL_DIR=$VCPKG_INSTALLATION_ROOT/installed/x64-windows-static-md" >> $GITHUB_ENV
+          echo "OPENSSL_STATIC=1" >> $GITHUB_ENV
 
       - name: Set macOS Environment Variables
         if: matrix.platform == 'macos'
