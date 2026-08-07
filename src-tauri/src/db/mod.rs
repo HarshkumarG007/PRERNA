@@ -426,12 +426,12 @@ mod tests {
 
         // 2. Insert mock data across sensitive tables
         db.conn.execute(
-            "INSERT INTO sessions (id, user_id, start_time, disclosure_version) VALUES ('sess1', ?1, '2023-01-01', 'v1')",
+            "INSERT INTO sessions (id, user_id, session_type, started_at, disclosure_version, disclosure_shown_at) VALUES ('sess1', ?1, 'life_quest', '2023-01-01', 'v1', 1234567890)",
             [user_id]
         ).unwrap();
         
         db.conn.execute(
-            "INSERT INTO trait_snapshots (id, user_id, timestamp) VALUES ('snap1', ?1, '2023-01-01')",
+            "INSERT INTO trait_snapshots (id, user_id, snapshot_date) VALUES ('snap1', ?1, '2023-01-01')",
             [user_id]
         ).unwrap();
         
