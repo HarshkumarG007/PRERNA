@@ -5,6 +5,7 @@ use std::sync::{Arc, Mutex};
 use std::path::PathBuf;
 use anyhow::{Result, Context};
 use log::info;
+use llama_cpp_2::llama_backend::LlamaBackend;
 use llama_cpp_2::model::{LlamaModel, params::LlamaModelParams};
 use tauri::Manager;
 
