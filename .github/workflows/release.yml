@@ -51,9 +51,9 @@ jobs:
       - name: Set macOS Environment Variables
         if: matrix.platform == 'macos'
         run: |
-          echo "MACOSX_DEPLOYMENT_TARGET=10.15" >> $GITHUB_ENV
-          echo "CFLAGS=-mmacosx-version-min=10.15" >> $GITHUB_ENV
-          echo "CXXFLAGS=-mmacosx-version-min=10.15" >> $GITHUB_ENV
+          echo "MACOSX_DEPLOYMENT_TARGET=11.0" >> $GITHUB_ENV
+          echo "CFLAGS=-mmacosx-version-min=11.0" >> $GITHUB_ENV
+          echo "CXXFLAGS=-mmacosx-version-min=11.0" >> $GITHUB_ENV
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
