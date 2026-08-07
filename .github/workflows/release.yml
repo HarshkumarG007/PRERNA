@@ -45,8 +45,8 @@ jobs:
       - name: Install Windows Dependencies (OpenSSL)
         if: matrix.platform == 'windows'
         run: |
-          choco install openssl -y
-          echo "OPENSSL_DIR=C:\Program Files\OpenSSL-Win64" >> $env:GITHUB_ENV
+          vcpkg install openssl:x64-windows
+          echo "OPENSSL_DIR=$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows" >> $env:GITHUB_ENV
 
       - name: Set macOS Environment Variables
         if: matrix.platform == 'macos'
