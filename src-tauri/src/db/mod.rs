@@ -1,7 +1,7 @@
 use rusqlite::{Connection, Result, params, OptionalExtension};
 use std::path::PathBuf;
 use anyhow::{Context, Result as AnyhowResult};
-use log::{info, error};
+use log::info;
 
 pub mod models;
 pub mod schema;
@@ -336,8 +336,8 @@ impl Database {
         
         let mut result = nonce_bytes.to_vec();
         result.extend_from_slice(&ciphertext);
-        // Use general purpose encode to avoid deprecation warning, though code provided used base64::encode.
-        Ok(base64::encode(&result))
+        use base64::Engine;
+        Ok(base64::engine::general_purpose::STANDARD.encode(&result))
     }
 
     fn decrypt_field(&self, ciphertext: &str) -> AnyhowResult<String> {
@@ -349,7 +349,9 @@ impl Database {
         let cipher_key = Key::<Aes256Gcm>::from_slice(&key_bytes);
         let cipher = Aes256Gcm::new(cipher_key);
         
-        let data = base64::decode(ciphertext)?;
+        use base64::Engine;
+        let data = base64::engine::general_purpose::STANDARD.decode(ciphertext)
+            .map_err(|e| anyhow::anyhow!("Base64 decode failed: {}", e))?;
         if data.len() < 12 {
             return Err(anyhow::anyhow!("Invalid ciphertext"));
         }
@@ -407,7 +409,7 @@ mod tests {
 
     fn setup_test_db() -> Database {
         let conn = Connection::open_in_memory().unwrap();
-        crate::db::schema::initialize_schema(&conn).unwrap();
+        conn.execute_batch(crate::db::schema::SCHEMA_SQL).unwrap();
         Database { conn }
     }
 

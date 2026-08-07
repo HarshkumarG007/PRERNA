@@ -5,11 +5,7 @@ use std::sync::{Arc, Mutex};
 use std::path::PathBuf;
 use anyhow::{Result, Context};
 use log::info;
-use llama_cpp_2::context::params::LlamaContextParams;
-use llama_cpp_2::llama_backend::LlamaBackend;
-use llama_cpp_2::llama_batch::LlamaBatch;
 use llama_cpp_2::model::{LlamaModel, params::LlamaModelParams};
-use llama_cpp_2::token::LlamaToken;
 use tauri::Manager;
 
 pub mod prompts;
@@ -19,10 +15,10 @@ use prompts::ConversationContext;
 use safety::SafetyFilter;
 
 pub struct LocalLLM {
-    model: Arc<LlamaModel>,
-    backend: Arc<LlamaBackend>,
+    _model: Arc<LlamaModel>,
+    _backend: Arc<LlamaBackend>,
     safety_filter: SafetyFilter,
-    max_tokens: i32,
+    _max_tokens: i32,
 }
 
 impl LocalLLM {
@@ -63,10 +59,10 @@ impl LocalLLM {
         info!("LLM loaded successfully: {} tokens vocab", model.n_vocab());
         
         Ok(Self {
-            model,
-            backend,
+            _model: model,
+            _backend: backend,
             safety_filter: SafetyFilter::new(),
-            max_tokens: 512, // Keep responses concise for teens
+            _max_tokens: 512, // Keep responses concise for teens
         })
     }
     
