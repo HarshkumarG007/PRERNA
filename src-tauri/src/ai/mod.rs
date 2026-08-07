@@ -11,14 +11,28 @@ use tauri::Manager;
 
 pub mod prompts;
 pub mod safety;
+pub mod rag;
 
 use prompts::ConversationContext;
 use safety::SafetyFilter;
+use rag::DomainRag;
+use crate::db::models::TraitSnapshot;
+
+pub enum MentorModel {
+    BaseGGUF(PathBuf),
+    FineTunedGGUF(PathBuf),
+    RagHybrid {
+        base: PathBuf,
+        retrieval: Arc<DomainRag>,
+    }
+}
 
 pub struct LocalLLM {
+    _model_variant: MentorModel,
     _model: Arc<LlamaModel>,
     _backend: Arc<LlamaBackend>,
     safety_filter: SafetyFilter,
+    rag_engine: Arc<DomainRag>,
     _max_tokens: i32,
 }
 
@@ -60,9 +74,14 @@ impl LocalLLM {
         info!("LLM loaded successfully: {} tokens vocab", model.n_vocab());
         
         Ok(Self {
+            _model_variant: MentorModel::RagHybrid { 
+                base: model_path.clone(), 
+                retrieval: Arc::new(DomainRag::new()) 
+            },
             _model: model,
             _backend: backend,
             safety_filter: SafetyFilter::new(),
+            rag_engine: Arc::new(DomainRag::new()),
             _max_tokens: 512, // Keep responses concise for teens
         })
     }
@@ -71,10 +90,13 @@ impl LocalLLM {
         &self,
         context: &ConversationContext,
         user_message: &str,
-        trait_profile: &serde_json::Value,
+        trait_profile: &TraitSnapshot,
     ) -> Result<String> {
-        // Build contextualized prompt
-        let _prompt = self.build_prompt(context, user_message, trait_profile);
+        // 1. Retrieve Domain Context via RAG
+        let rag_context = self.rag_engine.retrieve_context(user_message, trait_profile)?;
+        
+        // 2. Build contextualized prompt
+        let _prompt = self.build_prompt(context, user_message, trait_profile, &rag_context);
         
         // Bypass actual model inference to avoid compilation errors 
         // with the older llama-cpp-2 v0.1.154 API mismatch.
@@ -91,15 +113,15 @@ impl LocalLLM {
         &self,
         context: &ConversationContext,
         user_message: &str,
-        traits: &serde_json::Value,
+        traits: &TraitSnapshot,
+        rag_context: &rag::RagContext,
     ) -> String {
-        let big_five = traits.get("bigFive").and_then(|v| v.as_object());
-        let emotional = traits.get("emotional").and_then(|v| v.as_object());
+        let openness = traits.big_five.openness;
+        let extraversion = traits.big_five.extraversion;
         
-        // Extract dominant traits for personalization
-        let openness = big_five.and_then(|o| o.get("openness")).and_then(|v| v.as_f64()).unwrap_or(50.0);
-        let extraversion = big_five.and_then(|o| o.get("extraversion")).and_then(|v| v.as_f64()).unwrap_or(50.0);
-        let resilience = emotional.and_then(|o| o.get("resilience")).and_then(|v| v.as_f64()).unwrap_or(50.0);
+        let resilience = traits.emotional_profile.get("resilience")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(50.0);
         
         // Adapt tone based on traits
         let tone = if openness > 70.0 {
@@ -117,6 +139,13 @@ impl LocalLLM {
             .map(|m| format!("{}: {}", m.role, m.content))
             .collect::<Vec<_>>()
             .join("\n");
+            
+        // Build RAG knowledge insertion
+        let knowledge = if rag_context.relevant_documents.is_empty() {
+            "No specific domain knowledge retrieved for this query.".to_string()
+        } else {
+            format!("RELEVANT DOMAIN KNOWLEDGE:\n- {}", rag_context.relevant_documents.join("\n- "))
+        };
         
         let openness_level = if openness > 60.0 { "High" } else if openness > 40.0 { "Moderate" } else { "Lower" };
         let extraversion_level = if extraversion > 60.0 { "Outgoing" } else if extraversion > 40.0 { "Balanced" } else { "Reserved" };
@@ -132,6 +161,8 @@ USER PROFILE:
 - Resilience: {resilience:.0}% ({resilience_level})
 
 YOUR TONE: {tone}
+
+{knowledge}
 
 RULES:
 1. Be culturally sensitive to Indian context (family respect, academic pressure, career expectations)
