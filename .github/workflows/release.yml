@@ -44,9 +44,10 @@ jobs:
 
       - name: Install Windows Dependencies (OpenSSL)
         if: matrix.platform == 'windows'
+        shell: bash
         run: |
           vcpkg install openssl:x64-windows
-          echo "OPENSSL_DIR=$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows" >> $env:GITHUB_ENV
+          echo "OPENSSL_DIR=$VCPKG_INSTALLATION_ROOT/installed/x64-windows" >> $GITHUB_ENV
 
       - name: Set macOS Environment Variables
         if: matrix.platform == 'macos'
@@ -71,6 +72,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          MACOSX_DEPLOYMENT_TARGET: "11.0"
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'PRERNA ${{ github.ref_name }}'
