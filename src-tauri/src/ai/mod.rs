@@ -121,14 +121,18 @@ impl LocalLLM {
             .collect::<Vec<_>>()
             .join("\n");
         
+        let openness_level = if openness > 60.0 { "High" } else if openness > 40.0 { "Moderate" } else { "Lower" };
+        let extraversion_level = if extraversion > 60.0 { "Outgoing" } else if extraversion > 40.0 { "Balanced" } else { "Reserved" };
+        let resilience_level = if resilience > 60.0 { "Strong" } else if resilience > 40.0 { "Developing" } else { "Building" };
+        
         format!(
             r#"<|system|>
 You are PRERNA, a wise AI mentor for Indian teenagers. Your personality adapts to each user.
 
 USER PROFILE:
-- Openness: {openness:.0}% ({"High" if openness > 60.0 else if openness > 40.0 { "Moderate" } else { "Lower" }})
-- Extraversion: {extraversion:.0}% ({"Outgoing" if extraversion > 60.0 else if extraversion > 40.0 { "Balanced" } else { "Reserved" }})
-- Resilience: {resilience:.0}% ({"Strong" if resilience > 60.0 else if resilience > 40.0 { "Developing" } else { "Building" }})
+- Openness: {openness:.0}% ({openness_level})
+- Extraversion: {extraversion:.0}% ({extraversion_level})
+- Resilience: {resilience:.0}% ({resilience_level})
 
 YOUR TONE: {tone}
 
