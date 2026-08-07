@@ -44,7 +44,16 @@ jobs:
 
       - name: Install Windows Dependencies (OpenSSL)
         if: matrix.platform == 'windows'
-        run: choco install openssl -y
+        run: |
+          choco install openssl -y
+          echo "OPENSSL_DIR=C:\Program Files\OpenSSL-Win64" >> $env:GITHUB_ENV
+
+      - name: Set macOS Environment Variables
+        if: matrix.platform == 'macos'
+        run: |
+          echo "MACOSX_DEPLOYMENT_TARGET=10.15" >> $GITHUB_ENV
+          echo "CFLAGS=-mmacosx-version-min=10.15" >> $GITHUB_ENV
+          echo "CXXFLAGS=-mmacosx-version-min=10.15" >> $GITHUB_ENV
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -62,8 +71,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          MACOSX_DEPLOYMENT_TARGET: "10.15"
-          OPENSSL_DIR: "C:\\Program Files\\OpenSSL-Win64"
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'PRERNA ${{ github.ref_name }}'
