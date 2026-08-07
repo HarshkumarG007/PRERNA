@@ -106,6 +106,7 @@ pub fn save_unified_profile(
             profile.get("personality").and_then(|p| p.get("riasec")).cloned()
                 .unwrap_or(serde_json::json!({}))
         ).unwrap_or_default(),
+        multiple_intel: serde_json::json!({}),
         emotional_profile: profile.get("personality")
             .and_then(|p| p.get("emotional"))
             .cloned()
@@ -425,6 +426,7 @@ pub fn create_crisis_event(
         severity,
         human_review_status: "pending".to_string(),
         reviewer_id: None,
+        reviewer_credentials_ref: None,
         decision: None,
         teen_informed_at: None,
     };

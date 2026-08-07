@@ -1,4 +1,4 @@
-use rusqlite::{Connection, Result, params};
+use rusqlite::{Connection, Result, params, OptionalExtension};
 use std::path::PathBuf;
 use anyhow::{Context, Result as AnyhowResult};
 use log::{info, error};
@@ -228,6 +228,30 @@ impl Database {
         }).optional()?;
         
         Ok(snapshot)
+    }
+
+    pub fn get_user_snapshots(&self, user_id: &str) -> AnyhowResult<Vec<TraitSnapshot>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT id, snapshot_date, big_five, riasec, multiple_intel, emotional_profile, confidence_score
+             FROM trait_snapshots 
+             WHERE user_id = ?1 
+             ORDER BY snapshot_date DESC"
+        )?;
+        
+        let snapshots = stmt.query_map([user_id], |row| {
+            Ok(TraitSnapshot {
+                id: row.get(0)?,
+                user_id: user_id.to_string(),
+                snapshot_date: row.get(1)?,
+                big_five: serde_json::from_str(&row.get::<_, String>(2)?).unwrap_or_default(),
+                riasec: serde_json::from_str(&row.get::<_, String>(3)?).unwrap_or_default(),
+                multiple_intel: serde_json::from_str(&row.get::<_, String>(4)?).unwrap_or_default(),
+                emotional_profile: serde_json::from_str(&row.get::<_, String>(5)?).unwrap_or_default(),
+                confidence_score: row.get(6)?,
+            })
+        })?.collect::<Result<Vec<_>, _>>()?;
+        
+        Ok(snapshots)
     }
 
     // === MICRO-INTERACTION OPERATIONS ===
