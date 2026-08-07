@@ -87,3 +87,35 @@ impl DomainRag {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::db::models::{TraitSnapshot, BigFive, Riasec};
+    
+    #[test]
+    fn test_rag_retrieval_profile_filtering() {
+        let rag = DomainRag::new();
+        
+        // Mock a highly neurotic (anxious) teen profile
+        let mut profile = TraitSnapshot::default();
+        profile.big_five = BigFive {
+            neuroticism: 80.0, // High neuroticism
+            openness: 50.0,
+            conscientiousness: 50.0,
+            extraversion: 50.0,
+            agreeableness: 50.0,
+        };
+        profile.emotional_profile = serde_json::json!({
+            "resilience": 30.0 // Low resilience
+        });
+        
+        let docs = rag.retrieve_context("I'm stressed", &profile).unwrap();
+        
+        // Assert retrieved docs contain calming techniques (Pranayama)
+        assert!(
+            docs.relevant_documents.iter().any(|d| d.contains("4-7-8 Breathing")),
+            "High neuroticism should retrieve grounding Pranayama"
+        );
+    }
+}
