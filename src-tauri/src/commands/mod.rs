@@ -184,7 +184,7 @@ pub fn get_parent_view(
     // In production: Verify parent-teen relationship
     let is_authorized = true;
     
-    if !is_authorized {
+    if let Err(_) = PolicyEngine::enforce_parental_authorization(is_authorized) {
         return Ok(ParentViewResponse {
             has_access: false,
             profile: None,
@@ -495,23 +495,4 @@ pub fn get_health_metrics(state: State<DbState>) -> Result<HealthMetrics, String
     })
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
 
-    #[test]
-    fn test_crisis_invariant_guardian_notification_blocked() {
-        // The invariant is: decision == GuardianNotified && teen_informed_at.is_none() -> Err
-        
-        let decision = CrisisDecision::GuardianNotified;
-        let teen_informed_at = None;
-        
-        let result = PolicyEngine::enforce_guardian_notification_invariant(&decision, teen_informed_at);
-        assert!(result.is_err(), "FATAL: Guardian notification must be blocked if teen is not informed");
-        
-        let decision_valid = CrisisDecision::GuardianNotified;
-        let teen_informed_at_valid = Some(1620000000);
-        let result_valid = PolicyEngine::enforce_guardian_notification_invariant(&decision_valid, teen_informed_at_valid);
-        assert!(result_valid.is_ok(), "Guardian notification should pass if teen is informed");
-    }
-}

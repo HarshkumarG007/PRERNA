@@ -18,4 +18,45 @@ impl PolicyEngine {
         }
         Ok(())
     }
+    /// Enforces DPDP Behavioral Tracking prohibition: Accounts under 18 cannot be subject to behavioral tracking.
+    pub fn enforce_under_18_tracking_invariant(age_range: &str, tracking_enabled: bool) -> Result<(), String> {
+        if tracking_enabled && age_range != "18+" {
+            return Err("Behavioral tracking is strictly prohibited for users under 18. Violates DPDP Section 9(2).".into());
+        }
+        Ok(())
+    }
+
+    /// Enforces Privacy requirement: Parent view must be explicitly authorized.
+    pub fn enforce_parental_authorization(is_authorized: bool) -> Result<(), String> {
+        if !is_authorized {
+            return Err("Parental view denied: no authorized relationship found or consent missing.".into());
+        }
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_crisis_invariant_guardian_notification_blocked() {
+        let decision = CrisisDecision::GuardianNotified;
+        let teen_informed_at = None;
+        let result = PolicyEngine::enforce_guardian_notification_invariant(&decision, teen_informed_at);
+        assert!(result.is_err(), "FATAL: Guardian notification must be blocked if teen is not informed");
+
+        let decision_valid = CrisisDecision::GuardianNotified;
+        let teen_informed_at_valid = Some(1620000000);
+        let result_valid = PolicyEngine::enforce_guardian_notification_invariant(&decision_valid, teen_informed_at_valid);
+        assert!(result_valid.is_ok(), "Guardian notification should pass if teen is informed");
+    }
+
+    #[test]
+    fn test_under_18_tracking_blocked() {
+        assert!(PolicyEngine::enforce_under_18_tracking_invariant("13-15", true).is_err());
+        assert!(PolicyEngine::enforce_under_18_tracking_invariant("16-17", true).is_err());
+        assert!(PolicyEngine::enforce_under_18_tracking_invariant("18+", true).is_ok());
+        assert!(PolicyEngine::enforce_under_18_tracking_invariant("13-15", false).is_ok());
+    }
 }
