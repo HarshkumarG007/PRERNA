@@ -144,19 +144,23 @@ This supersedes the prior implementation spec's remaining open items. It is sequ
 ### Ticket P5-1: Grievance Redressal Mechanism
 **Dependencies:** V2-2
 **Task:** Implement and document an accessible complaint/redressal path per legal counsel's guidance.
+**Status:** [x] Done
 
 ### Ticket P5-2: Breach Notification Procedure
 **Dependencies:** V2-2
 **Task:** Document (and, where applicable, implement tooling for) a breach-response procedure — even though local-first storage minimizes this risk, a lost/stolen device scenario still needs a documented response.
+**Status:** [x] Done
 
 ### Ticket P5-3: Data Retention & Deletion Guarantee Audit
 **Dependencies:** none
 **Task:** Verify (with a direct test, not documentation review) that the existing delete functionality genuinely removes data rather than soft-flagging it, per the original spec's requirement.
+**Status:** [x] Done
 
 ### Ticket P5-4: Reproducible Benchmarks
 **Dependencies:** none
 **Task:** Create automated benchmarking tests (e.g., using `cargo bench`) to measure the performance SLAs defined in `SYSTEM_EVALUATION_METRICS.md` (inference times, state synthesis latency).
 **Acceptance criteria:** Benchmark scripts exist and can be run locally to output measurable reliability and quality metrics.
+**Status:** [x] Done
 
 ---
 
