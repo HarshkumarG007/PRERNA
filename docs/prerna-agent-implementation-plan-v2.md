@@ -108,6 +108,16 @@ This supersedes the prior implementation spec's remaining open items. It is sequ
 **Task:** Add code signing to `release.yml` for Windows/macOS/Linux artifacts.
 **Acceptance criteria:** a built artifact passes OS-level signature verification (no "unknown publisher" warning).
 
+### Ticket P3-7: Implement Code Coverage Tracking in CI
+**Dependencies:** none
+**Task:** Integrate Codecov or `cargo-tarpaulin` into the CI pipeline to automatically measure and report test coverage on every PR.
+**Acceptance criteria:** A coverage badge exists on the README, and critical paths (PolicyEngine, CrisisRouter, FusionEngine) show >90% coverage.
+
+### Ticket P3-8: Draft Initial Architecture Decision Records (ADRs)
+**Dependencies:** none
+**Task:** Create a `docs/adr/` directory and draft the first set of ADRs documenting our major architectural choices (e.g., SQLCipher for local-first, llama-cpp over cloud API, human-gated crisis routing).
+**Acceptance criteria:** At least 3 formalized ADRs exist in the repository following standard FAANG conventions.
+
 ---
 
 ## Phase 4 — Structured, Consented Beta
@@ -142,6 +152,11 @@ This supersedes the prior implementation spec's remaining open items. It is sequ
 ### Ticket P5-3: Data Retention & Deletion Guarantee Audit
 **Dependencies:** none
 **Task:** Verify (with a direct test, not documentation review) that the existing delete functionality genuinely removes data rather than soft-flagging it, per the original spec's requirement.
+
+### Ticket P5-4: Reproducible Benchmarks
+**Dependencies:** none
+**Task:** Create automated benchmarking tests (e.g., using `cargo bench`) to measure the performance SLAs defined in `SYSTEM_EVALUATION_METRICS.md` (inference times, state synthesis latency).
+**Acceptance criteria:** Benchmark scripts exist and can be run locally to output measurable reliability and quality metrics.
 
 ---
 
