@@ -10,12 +10,14 @@ jobs:
   build-and-release:
     name: Build Tauri (${{ matrix.platform }})
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: 'macos'
-            os: 'macos-latest'
+            os: 'macos-14'
             args: '--target aarch64-apple-darwin'
           - platform: 'linux'
             os: 'ubuntu-22.04'
