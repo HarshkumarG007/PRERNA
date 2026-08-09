@@ -73,8 +73,25 @@ function App() {
     return (
       <PersonalityQuestionnaire
         onComplete={() => {
-          // Mark questionnaire as complete in the store
-          useAppStore.getState().updateProfile({} as any);
+          // Generate a default fallback profile if they skip
+          const fallbackProfile = {
+            userId: user.id,
+            generatedAt: new Date().toISOString(),
+            personality: {
+              bigFive: { openness: 50, conscientiousness: 50, extraversion: 50, agreeableness: 50, neuroticism: 50 },
+              riasec: { realistic: 50, investigative: 50, artistic: 50, social: 50, enterprising: 50, conventional: 50 },
+              emotional: { resilience: 50, empathy: 50, emotionalAwareness: 50, impulseControl: 50, socialIntuition: 50 },
+            },
+            archetype: {
+              name: 'The Explorer',
+              description: 'You are beginning your journey of self-discovery.',
+              traits: ['Curious', 'Adaptable']
+            },
+            wellbeingScore: 70,
+            strengths: ['Curiosity', 'Adaptability'],
+            growthAreas: ['Focus', 'Planning'],
+          };
+          useAppStore.getState().updateProfile(fallbackProfile as any);
           // Update user flag directly
           useAppStore.setState((state) => ({
             user: state.user ? { ...state.user, hasCompletedQuestionnaire: true } : null
