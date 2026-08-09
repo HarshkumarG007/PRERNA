@@ -59,4 +59,11 @@ mod tests {
         assert!(PolicyEngine::enforce_under_18_tracking_invariant("18+", true).is_ok());
         assert!(PolicyEngine::enforce_under_18_tracking_invariant("13-15", false).is_ok());
     }
+
+    #[test]
+    fn test_disclosure_invariant_blocked() {
+        assert!(PolicyEngine::enforce_disclosure_invariant("").is_err(), "Empty disclosure should be blocked");
+        assert!(PolicyEngine::enforce_disclosure_invariant("   ").is_err(), "Whitespace disclosure should be blocked");
+        assert!(PolicyEngine::enforce_disclosure_invariant("v1.0").is_ok(), "Valid disclosure should pass");
+    }
 }
