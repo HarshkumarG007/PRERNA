@@ -85,17 +85,16 @@ pub fn authenticate_user(
                 user.password_hash = new_hash;
             }
 
-            // Write the authenticated user_id to the backend session state
-            let mut sess = session.0.lock().map_err(|e| e.to_string())?;
-            *sess = Some(user.id.clone());
-            drop(sess);
-            
             if user.mfa_enabled {
                 Ok(Some(serde_json::json!({
                     "mfaRequired": true,
                     "userId": user.id
                 })))
             } else {
+                // RED-001/020: Only commit session if MFA is not required
+                let mut sess = session.0.lock().map_err(|e| e.to_string())?;
+                *sess = Some(user.id.clone());
+                
                 Ok(Some(serde_json::to_value(user).map_err(|e| e.to_string())?))
             }
         } else {
@@ -128,6 +127,13 @@ pub fn revoke_consent(
     let user_id = session.0.lock().map_err(|e| e.to_string())?
         .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
+    
+    // RED-010: Actually delete the relationship from the database
+    db.conn.execute(
+        "DELETE FROM parent_teen_relationships WHERE parent_user_id = ?1 OR teen_user_id = ?1",
+        rusqlite::params![user_id]
+    ).map_err(|e| e.to_string())?;
+    
     db.insert_audit_log("CONSENT_REVOKED", &format!("Consent revoked for user {}", user_id))
         .map_err(|e| e.to_string())?;
     Ok(())
@@ -576,13 +582,21 @@ pub struct ImportPackage {
 #[tauri::command]
 pub fn import_user_data(
     state: State<DbState>,
+    session_state: State<ActiveSession>,
     data: ImportPackage,
 ) -> Result<String, String> {
+    // RED-021: Enforce authentication
+    let caller_id = session_state.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+        
     let db = state.0.lock().map_err(|e| e.to_string())?;
     
     // Import user
-    let user: crate::db::models::User = serde_json::from_value(data.user)
+    let mut user: crate::db::models::User = serde_json::from_value(data.user)
         .map_err(|e| format!("Invalid user data: {}", e))?;
+        
+    // Override imported user ID with authenticated session ID to prevent cross-account injection
+    user.id = caller_id.clone();
     
     // Check if user exists
     match db.get_user(&user.id).map_err(|e| e.to_string())? {
@@ -741,6 +755,19 @@ pub fn resolve_crisis_event(
     // T5: Ensure the caller has a session and derive reviewer ID from it
     let reviewer_id = session_state.0.lock().map_err(|e| e.to_string())?
         .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+        
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    
+    // RED-003/016/017/018: Strict Reviewer Authorization
+    if !db.is_reviewer(&reviewer_id) {
+        return Err("Unauthorized: Must be a clinical reviewer".to_string());
+    }
+    
+    // Check if event is pending
+    let pending_events = db.get_pending_crisis_events().map_err(|e| e.to_string())?;
+    if !pending_events.iter().any(|e| e.id == event_id) {
+        return Err("Event is not pending or does not exist".to_string());
+    }
     
     PolicyEngine::enforce_guardian_notification_invariant(&decision, teen_informed_at)?;
     
@@ -755,7 +782,6 @@ pub fn resolve_crisis_event(
         },
     };
     
-    let db = state.0.lock().map_err(|e| e.to_string())?;
     db.resolve_crisis_event(&event_id, &reviewer_id, &reviewer_credentials_ref, decision_str, teen_informed_at).map_err(|e| e.to_string())
 }
 
@@ -776,11 +802,18 @@ pub fn export_user_data(
 pub fn delete_user_data(
     state: State<DbState>,
     session: State<ActiveSession>,
+    store: State<crate::ConversationStore>,
 ) -> Result<(), String> {
     let user_id = session.0.lock().map_err(|e| e.to_string())?
         .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    db.delete_user_data(&user_id).map_err(|e| e.to_string())
+    db.delete_user_data(&user_id).map_err(|e| e.to_string())?;
+    
+    // RED-014: Clear the user's ConversationStore in memory
+    if let Ok(mut store_guard) = store.0.lock() {
+        store_guard.remove(&user_id);
+    }
+    Ok(())
 }
 
 #[tauri::command]

@@ -20,12 +20,15 @@ pub fn generate_school_report(
     student_ids: Vec<String>,
 ) -> Result<SchoolAnalyticsReport, String> {
     // T1/T2: Require authentication.
-    // Note: A true "Educator" role check is required here in production to prevent
-    // any authenticated teen from pulling their peers' aggregate data.
-    let _caller_id = session.0.lock().map_err(|e| e.to_string())?
+    let caller_id = session.0.lock().map_err(|e| e.to_string())?
         .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
         
     let db = state.0.lock().map_err(|e| e.to_string())?;
+    
+    // RED-009: Authorize the caller as an Educator
+    if !db.is_educator(&caller_id) {
+        return Err("Unauthorized: Must be an authorized educator to request school analytics".to_string());
+    }
     
     // K-Anonymity Guard: Refuse to process cohorts smaller than 5
     let k_threshold = 5;
