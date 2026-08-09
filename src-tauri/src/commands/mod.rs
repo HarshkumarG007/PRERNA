@@ -158,7 +158,7 @@ pub fn logout(
             store_guard.remove(&user_id);
         }
     }
-    *sess = None;
+    session.clear()?;
     Ok(())
 }
 
