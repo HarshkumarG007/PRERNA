@@ -195,7 +195,7 @@ pub fn get_model_path(app_handle: &tauri::AppHandle) -> Result<PathBuf> {
     let models_dir = app_dir.join("models");
     std::fs::create_dir_all(&models_dir)?;
     
-    Ok(models_dir.join("mistral-7b-instruct-v0.2.Q4_K_M.gguf"))
+    Ok(models_dir.join("prerna-7b-q4_k_m.gguf"))
 }
 
 // Thread-safe wrapper
