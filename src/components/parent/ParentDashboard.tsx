@@ -147,12 +147,12 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ teenId, onExit
 
   if (!profile) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-50 p-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#020617] p-4">
         <div className="text-center">
-          <Shield size={64} className="text-gray-300 mx-auto mb-6" />
-          <h2 className="text-2xl font-bold text-gray-700 mb-2">No Data Shared Yet</h2>
-          <p className="text-gray-500 mb-6">Your teen hasn't set up sharing preferences.</p>
-          <button onClick={onExit} className="px-6 py-2 bg-indigo-500 text-white rounded-lg font-bold">
+          <Shield size={64} className="text-white/30 mx-auto mb-6" />
+          <h2 className="text-2xl font-bold text-white mb-2">No Data Shared Yet</h2>
+          <p className="text-white/50 mb-6">Your teen hasn't set up sharing preferences.</p>
+          <button onClick={onExit} className="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-bold transition-colors">
             Exit Dashboard
           </button>
         </div>
@@ -161,26 +161,26 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ teenId, onExit
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#f8fafc] overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-[#020617] overflow-y-auto">
       {/* Ambient Frost Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-50">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-cyan-200/40 rounded-full blur-[120px]" />
-        <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-indigo-200/40 rounded-full blur-[120px]" />
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-500/20 rounded-full blur-[120px]" />
+        <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-teal-500/20 rounded-full blur-[120px]" />
       </div>
 
       {/* Header */}
-      <div className="bg-white/70 backdrop-blur-xl shadow-sm border-b border-white/50 sticky top-0 z-10">
+      <div className="bg-[#0b1120]/80 backdrop-blur-xl shadow-sm border-b border-white/10 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-6 py-4">
-          <button onClick={onExit} className="text-slate-500 hover:text-indigo-600 flex items-center gap-2 mb-4 text-sm font-bold uppercase tracking-widest transition-colors">
+          <button onClick={onExit} className="text-white/50 hover:text-emerald-400 flex items-center gap-2 mb-4 text-sm font-bold uppercase tracking-widest transition-colors">
             <ArrowLeft size={16} /> Exit to Main App
           </button>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-black text-slate-800 tracking-tight mb-1">Parent Dashboard</h1>
-              <p className="text-slate-500 font-medium">Connected to {profile.teenName}</p>
+              <h1 className="text-3xl font-black text-white tracking-tight mb-1">Parent Dashboard</h1>
+              <p className="text-emerald-400 font-medium">Connected to {profile.teenName}</p>
             </div>
-            <div className="flex items-center gap-2 text-emerald-700 bg-emerald-50/80 backdrop-blur-md px-4 py-2 rounded-full text-sm font-bold shadow-sm border border-emerald-200/50">
-              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+            <div className="flex items-center gap-2 text-emerald-300 bg-emerald-500/10 backdrop-blur-md px-4 py-2 rounded-full text-sm font-bold border border-emerald-500/20">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
               Active now
             </div>
           </div>
@@ -199,8 +199,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ teenId, onExit
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex items-center gap-2 px-4 py-3 font-bold transition-all border-b-2 ${
                   activeTab === tab.id
-                    ? 'border-indigo-500 text-indigo-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-emerald-500 text-emerald-400'
+                    : 'border-transparent text-white/50 hover:text-white hover:border-white/30'
                 }`}
               >
                 <tab.icon size={18} />
@@ -214,14 +214,14 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ teenId, onExit
       {/* Content */}
       <div className="relative z-10 max-w-5xl mx-auto px-6 py-10 pb-20">
         {activeTab === 'overview' && (
-          <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] p-6 shadow-xl border border-white">
+          <div className="bg-white/5 backdrop-blur-xl rounded-[2rem] p-6 shadow-xl border border-white/10">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
-                <Heart className="text-indigo-600" size={20} />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 flex items-center justify-center">
+                <Heart className="text-emerald-400" size={20} />
               </div>
               <div>
-                <h2 className="text-xl font-black text-slate-800">PRERNA Parenting Intelligence</h2>
-                <p className="text-slate-400 text-sm font-medium">Personalised for {profile.teenName}</p>
+                <h2 className="text-xl font-black text-white">PRERNA Parenting Intelligence</h2>
+                <p className="text-emerald-400/70 text-sm font-medium">Personalised for {profile.teenName}</p>
               </div>
             </div>
             <ParentingGuide

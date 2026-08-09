@@ -111,6 +111,7 @@ pub fn get_model_status(llm_state: State<LLMState>) -> Result<ModelStatus, Strin
             model_name: "Not Loaded".to_string(),
             vram_usage_mb: 0,
             temperature: 0.7,
+        })
     }
 }
 
