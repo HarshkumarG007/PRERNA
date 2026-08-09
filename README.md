@@ -84,7 +84,7 @@ PRERNA relies on a secure, two-tier architecture running entirely on the user's 
 
 **Why Tauri over Electron:** native OS webview (WebView2/WebKit) instead of a bundled Chromium — roughly a 10MB binary versus Electron's 100MB+, and no shipped browser attack surface to maintain.
 
-**Why local-first is architectural, not just a feature:** every design decision — encryption at rest, no default network calls, disclosure-gated sessions, human-reviewed crisis escalation — exists because the data PRERNA handles (an adolescent's psychological profile) is among the most sensitive a piece of software can touch. Local-first means exactly that: there is no server that could be breached, subpoenaed, or sold, because there is no server.
+**Why local-first is architectural, not just a feature:** every design decision — encryption at rest, no default network calls, disclosure-gated sessions, human-reviewed crisis escalation — exists because the data PRERNA handles (an adolescent's psychological profile) is among the most sensitive a piece of software can touch. PRERNA is designed as a local-first application: core user data and processing are intended to remain on the user's device unless an explicitly documented external service is used.
 
 ---
 
