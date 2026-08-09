@@ -658,6 +658,30 @@ mod tests {
     }
 
     #[test]
+    fn test_revoke_consent_audit_trail() {
+        let mut db = Database::new_in_memory("test_secret").unwrap();
+        db.conn.execute(
+            "INSERT INTO parent_teen_relationships (id, parent_user_id, teen_user_id, established_at, status) VALUES ('1', 'p1', 't1', 'now', 'active')",
+            []
+        ).unwrap();
+        
+        assert_eq!(db.check_parent_teen_link("p1", "t1").unwrap(), true);
+        
+        // Soft delete (simulate revoke_consent)
+        db.conn.execute(
+            "UPDATE parent_teen_relationships SET status = 'revoked', revoked_at = 'now' WHERE parent_user_id = 'p1' OR teen_user_id = 'p1'",
+            []
+        ).unwrap();
+        
+        // Prove access is denied
+        assert_eq!(db.check_parent_teen_link("p1", "t1").unwrap(), false);
+        
+        // Prove row is retained for audit
+        let status: String = db.conn.query_row("SELECT status FROM parent_teen_relationships WHERE id = '1'", [], |r| r.get(0)).unwrap();
+        assert_eq!(status, "revoked");
+    }
+
+    #[test]
     fn test_crisis_state_machine() {
         let db = Database::new_in_memory("test_secret").unwrap();
         let user_id = "test_teen_123";
