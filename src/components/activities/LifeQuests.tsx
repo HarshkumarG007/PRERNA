@@ -61,7 +61,7 @@ export const LifeQuests: React.FC<LifeQuestsProps> = ({ userId }) => {
     try {
       const config: SessionConfig = {
         userId: userId || 'guest',
-        sessionType: 'life_quest',
+        sessionType: 'life_quests',
         disclosureShownId: disclosure.id,
       };
       
