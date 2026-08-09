@@ -140,3 +140,36 @@ pub enum CrisisDecision {
     ResourcesOnly,
     GuardianNotified,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SharingShares {
+    #[serde(rename = "wellbeingScore")]
+    pub wellbeing_score: bool,
+    #[serde(rename = "careerInterests")]
+    pub career_interests: bool,
+    pub strengths: bool,
+    #[serde(rename = "dailyCheckIn")]
+    pub daily_check_in: bool,
+    pub concerns: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SharingRequiresApproval {
+    #[serde(rename = "fullProfile")]
+    pub full_profile: bool,
+    #[serde(rename = "chatHistory")]
+    pub chat_history: bool,
+    #[serde(rename = "riskAlerts")]
+    pub risk_alerts: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SharingPreferences {
+    #[serde(rename = "userId")]
+    pub user_id: String,
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    pub shares: SharingShares,
+    #[serde(rename = "requiresApproval")]
+    pub requires_approval: SharingRequiresApproval,
+}

@@ -4,6 +4,7 @@
  */
 
 import { UnifiedProfile } from '../synthesis/fusionEngine';
+import { invoke } from '@tauri-apps/api/core';
 
 export interface SharingPreferences {
   userId: string;
@@ -27,12 +28,12 @@ export interface SharingPreferences {
 }
 
 export class ParentPermissionManager {
-  private static STORAGE_KEY = 'prerna_parent_sharing';
-
-  static getPreferences(userId: string): SharingPreferences {
-    const stored = localStorage.getItem(this.STORAGE_KEY);
-    if (stored) {
-      return JSON.parse(stored);
+  static async getPreferences(userId: string): Promise<SharingPreferences> {
+    try {
+      const stored = await invoke<SharingPreferences>('get_sharing_preferences', { userId });
+      if (stored) return stored;
+    } catch (e) {
+      console.warn("Failed to get preferences from backend, using defaults", e);
     }
     
     // Default: minimal sharing
@@ -54,9 +55,13 @@ export class ParentPermissionManager {
     };
   }
 
-  static updatePreferences(prefs: SharingPreferences): void {
+  static async updatePreferences(prefs: SharingPreferences): Promise<void> {
     prefs.lastUpdated = new Date().toISOString();
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(prefs));
+    try {
+      await invoke('update_sharing_preferences', { preferences: prefs });
+    } catch (e) {
+      console.error("Failed to update preferences", e);
+    }
   }
 
   static async requestApproval(): Promise<boolean> {
@@ -70,6 +75,8 @@ export class ParentPermissionManager {
     fullProfile: UnifiedProfile,
     prefs: SharingPreferences
   ): ParentSafeProfile {
+    // Note: In production, the backend firewall directly sends ParentSafeProfile.
+    // This is a fallback purely for UI formatting if needed.
     const safe: ParentSafeProfile = {
       lastUpdated: fullProfile.generatedAt,
       teenName: 'Your Teen', // Anonymized
@@ -79,7 +86,7 @@ export class ParentPermissionManager {
     if (prefs.shares.wellbeingScore) {
       safe.wellbeing = {
         score: fullProfile.wellbeingScore,
-        trend: 'stable', // Would calculate from history
+        trend: 'unavailable' as any, // P0.5 Fix: Never fabricate trend
         interpretation: this.interpretWellbeing(fullProfile.wellbeingScore),
       };
     }
@@ -100,7 +107,7 @@ export class ParentPermissionManager {
 
     if (prefs.shares.dailyCheckIn) {
       safe.lastActive = new Date().toISOString();
-      safe.checkInStreak = 5; // Would calculate from actual data
+      safe.checkInStreak = undefined; // P0.5 Fix: Never fabricate streak
     }
 
     if (prefs.shares.concerns && fullProfile.riskFactors.length > 0) {

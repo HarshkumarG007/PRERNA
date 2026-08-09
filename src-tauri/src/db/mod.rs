@@ -363,6 +363,38 @@ impl Database {
         Ok(())
     }
 
+    // === PARENT SHARING PREFERENCES ===
+
+    pub fn save_sharing_preferences(&self, user_id: &str, preferences: &crate::db::models::SharingPreferences) -> AnyhowResult<()> {
+        let prefs_json = serde_json::to_string(preferences)?;
+        let encrypted_prefs = self.encrypt_field(&prefs_json)?;
+        
+        self.conn.execute(
+            "INSERT INTO parent_sharing_preferences (user_id, preferences, last_updated)
+             VALUES (?1, ?2, ?3)
+             ON CONFLICT(user_id) DO UPDATE SET
+             preferences = excluded.preferences,
+             last_updated = excluded.last_updated",
+            params![user_id, encrypted_prefs, &preferences.last_updated],
+        )?;
+        
+        Ok(())
+    }
+    
+    pub fn get_sharing_preferences(&self, user_id: &str) -> AnyhowResult<Option<crate::db::models::SharingPreferences>> {
+        let mut stmt = self.conn.prepare("SELECT preferences FROM parent_sharing_preferences WHERE user_id = ?1")?;
+        let mut rows = stmt.query(params![user_id])?;
+        
+        if let Some(row) = rows.next()? {
+            let encrypted_prefs: String = row.get(0)?;
+            let decrypted_prefs = self.decrypt_field(&encrypted_prefs)?;
+            let prefs: crate::db::models::SharingPreferences = serde_json::from_str(&decrypted_prefs)?;
+            Ok(Some(prefs))
+        } else {
+            Ok(None)
+        }
+    }
+
     // === UTILITY METHODS ===
 
     fn encrypt_field(&self, plaintext: &str) -> AnyhowResult<String> {

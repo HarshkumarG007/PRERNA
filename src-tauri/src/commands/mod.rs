@@ -326,6 +326,16 @@ pub struct ParentViewResponse {
 }
 
 #[tauri::command]
+pub fn update_sharing_preferences(
+    state: State<DbState>,
+    preferences: crate::db::models::SharingPreferences,
+) -> Result<(), String> {
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    db.save_sharing_preferences(&preferences.user_id, &preferences)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 pub fn get_parent_view(
     state: State<DbState>,
     request: ParentViewRequest,
@@ -346,13 +356,27 @@ pub fn get_parent_view(
     let profile = db.get_latest_snapshot(&request.teen_id)
         .map_err(|e| e.to_string())?;
     
+    // Load sharing preferences, fallback to restrictive defaults
+    let prefs = db.get_sharing_preferences(&request.teen_id)
+        .map_err(|e| e.to_string())?;
+        
     let parent_safe = profile.map(|p| {
-        serde_json::json!({
-            "wellbeing_score": calculate_wellbeing_score(&p),
-            "career_interests": extract_career_interests(&p),
-            "strengths": extract_strengths(&p),
-            "last_active": p.snapshot_date,
-        })
+        let mut map = serde_json::Map::new();
+        map.insert("last_active".to_string(), serde_json::json!(p.snapshot_date));
+        
+        if let Some(ref preferences) = prefs {
+            if preferences.shares.wellbeing_score {
+                map.insert("wellbeing_score".to_string(), serde_json::json!(calculate_wellbeing_score(&p)));
+            }
+            if preferences.shares.career_interests {
+                map.insert("career_interests".to_string(), serde_json::json!(extract_career_interests(&p)));
+            }
+            if preferences.shares.strengths {
+                map.insert("strengths".to_string(), serde_json::json!(extract_strengths(&p)));
+            }
+        }
+        
+        serde_json::Value::Object(map)
     });
     
     Ok(ParentViewResponse {
@@ -599,7 +623,12 @@ pub fn resolve_crisis_event(
     let decision_str = match decision {
         CrisisDecision::NoAction => "NoAction",
         CrisisDecision::ResourcesOnly => "ResourcesOnly",
-        CrisisDecision::GuardianNotified => "GuardianNotified",
+        CrisisDecision::GuardianNotified => {
+            // P0.1 FIX: This is the ONLY place in the system where guardian notification is executed.
+            // It is strictly gated by the Rust backend after authorization and validation.
+            log::info!("MOCK GUARDIAN NOTIFICATION EXECUTED: Sent alert to guardian for crisis event {}", event_id);
+            "GuardianNotified"
+        },
     };
     
     let db = state.0.lock().map_err(|e| e.to_string())?;

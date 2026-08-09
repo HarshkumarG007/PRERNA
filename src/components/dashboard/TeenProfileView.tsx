@@ -89,7 +89,7 @@ export const TeenProfileView: React.FC = () => {
 
   React.useEffect(() => {
     if (user) {
-      setSharingPrefs(ParentPermissionManager.getPreferences(user.id));
+      ParentPermissionManager.getPreferences(user.id).then(setSharingPrefs);
     }
   }, [user]);
 
@@ -103,7 +103,7 @@ export const TeenProfileView: React.FC = () => {
       }
     };
     setSharingPrefs(newPrefs);
-    ParentPermissionManager.updatePreferences(newPrefs);
+    ParentPermissionManager.updatePreferences(newPrefs).catch(console.error);
   };
 
   if (!user) return null;

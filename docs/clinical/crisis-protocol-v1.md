@@ -6,10 +6,33 @@
 ## 1. Imminent Risk Indicators
 *A case is flagged as `pending` in the `crisis_events` table if ANY of the following strict criteria are met.*
 
-- **Explicit Ideation with Intent/Plan**: Natural language processing detects specific phrases indicating active suicidal ideation with a plan or intent (e.g., "I can't do this anymore and I know how to end it", "I want to die today"). Passive ideation (e.g., "I wish I wasn't here") triggers a resource nudge, but not an immediate human review escalation.
-- **Active Severe Self-Harm**: Explicit disclosure of recent, severe self-injurious behavior requiring medical attention.
-- **Sustained Severe Depressive Signal (PHQ-9 equivalent)**: 14 consecutive days of the lowest possible valence score in the Mood Mirror, combined with a total absence of engagement in PRERNA's proactive activities.
-- **Imminent Threat to Others**: Explicit language indicating a planned, immediate threat of violence against specific individuals or a school.
+### CRISIS-001: Explicit Ideation with Intent/Plan
+Status: PROVISIONAL
+Clinical reviewer: NONE
+Last reviewed: —
+
+**Definition:** Natural language processing detects specific phrases indicating active suicidal ideation with a plan or intent (e.g., "I can't do this anymore and I know how to end it", "I want to die today"). Passive ideation (e.g., "I wish I wasn't here") triggers a resource nudge, but not an immediate human review escalation.
+
+### CRISIS-002: Active Severe Self-Harm
+Status: PROVISIONAL
+Clinical reviewer: NONE
+Last reviewed: —
+
+**Definition:** Explicit disclosure of recent, severe self-injurious behavior requiring medical attention.
+
+### CRISIS-003: Sustained Severe Depressive Signal (PHQ-9 equivalent)
+Status: PROVISIONAL
+Clinical reviewer: NONE
+Last reviewed: —
+
+**Definition:** 14 consecutive days of the lowest possible valence score in the Mood Mirror, combined with a total absence of engagement in PRERNA's proactive activities.
+
+### CRISIS-004: Imminent Threat to Others
+Status: PROVISIONAL
+Clinical reviewer: NONE
+Last reviewed: —
+
+**Definition:** Explicit language indicating a planned, immediate threat of violence against specific individuals or a school.
 
 ## 2. Human Review Process
 *The protocol for counselors reviewing the `pending` queue.*

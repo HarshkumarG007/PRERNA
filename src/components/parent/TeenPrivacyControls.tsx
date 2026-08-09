@@ -8,7 +8,7 @@ export const TeenPrivacyControls: React.FC<{ userId: string; onClose: () => void
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    setPrefs(ParentPermissionManager.getPreferences(userId));
+    ParentPermissionManager.getPreferences(userId).then(setPrefs);
   }, [userId]);
 
   const toggleShare = (key: keyof SharingPreferences['shares']) => {
@@ -23,7 +23,7 @@ export const TeenPrivacyControls: React.FC<{ userId: string; onClose: () => void
     };
     
     setPrefs(updated);
-    ParentPermissionManager.updatePreferences(updated);
+    ParentPermissionManager.updatePreferences(updated).catch(console.error);
     
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);

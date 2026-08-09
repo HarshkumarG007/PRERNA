@@ -95,4 +95,12 @@ CREATE TABLE IF NOT EXISTS audit_log (
     action TEXT NOT NULL,
     details TEXT
 );
+
+-- Parent Sharing Preferences
+CREATE TABLE IF NOT EXISTS parent_sharing_preferences (
+    user_id TEXT PRIMARY KEY,
+    preferences TEXT NOT NULL, -- JSON
+    last_updated TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 "#;
