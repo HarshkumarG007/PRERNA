@@ -13,6 +13,7 @@ use std::sync::{Arc, Mutex};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    #[cfg(debug_assertions)]
     env_logger::init();
     
     tauri::Builder::default()

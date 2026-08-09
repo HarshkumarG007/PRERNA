@@ -36,6 +36,8 @@ thiserror = "1.0"
 log = "0.4"
 env_logger = "0.11"
 llama-cpp-2 = "0.1.154"
+zeroize = { version = "1.8", features = ["zeroize_derive"] }
+argon2 = "0.5"
 
 [features]
 default = ["custom-protocol"]
@@ -47,3 +49,9 @@ criterion = "0.5"
 [[bench]]
 name = "db_benchmark"
 harness = false
+
+[profile.release]
+strip = true       # Automatically strip symbols from the binary.
+lto = true         # Link-time optimization.
+codegen-units = 1  # Maximize size reduction/optimization.
+panic = "abort"    # Abort on panic (prevents stack/memory dumps).

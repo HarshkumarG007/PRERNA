@@ -2,6 +2,7 @@ use rusqlite::{Connection, Result, params, OptionalExtension};
 use std::path::PathBuf;
 use anyhow::{Context, Result as AnyhowResult};
 use log::info;
+use zeroize::{Zeroize, Zeroizing};
 
 pub mod models;
 pub mod schema;
@@ -31,7 +32,7 @@ impl Database {
         let key = Self::get_or_create_key()?;
         
         // Enable SQLCipher encryption
-        conn.execute_batch(&format!("PRAGMA key = '{}';", key))
+        conn.execute_batch(&format!("PRAGMA key = '{}';", key.as_str()))
             .context("Failed to set SQLCipher encryption key")?;
 
         // Verify encryption is working
@@ -47,7 +48,7 @@ impl Database {
     }
 
     /// Get encryption key from OS keyring or create new one
-    fn get_or_create_key() -> AnyhowResult<String> {
+    fn get_or_create_key() -> AnyhowResult<Zeroizing<String>> {
         let service = "prerna";
         let username = "db_encryption_key";
         
@@ -56,23 +57,25 @@ impl Database {
         match entry.get_password() {
             Ok(key) => {
                 info!("Retrieved existing encryption key from keyring");
-                Ok(key)
+                Ok(Zeroizing::new(key))
             }
             Err(_) => {
                 // Generate new 256-bit key
                 let new_key = Self::generate_secure_key()?;
-                entry.set_password(&new_key)?;
+                entry.set_password(new_key.as_str())?;
                 info!("Generated and stored new encryption key");
                 Ok(new_key)
             }
         }
     }
 
-    fn generate_secure_key() -> AnyhowResult<String> {
+    fn generate_secure_key() -> AnyhowResult<Zeroizing<String>> {
         use rand::RngCore;
         let mut key_bytes = [0u8; 32];
         rand::thread_rng().fill_bytes(&mut key_bytes);
-        Ok(hex::encode(key_bytes))
+        let key_str = Zeroizing::new(hex::encode(&key_bytes));
+        key_bytes.zeroize();
+        Ok(key_str)
     }
 
     fn init_schema(&mut self) -> AnyhowResult<()> {
@@ -367,9 +370,10 @@ impl Database {
         use aes_gcm::aead::{Aead, KeyInit};
         
         let key = Self::get_or_create_key()?;
-        let key_bytes = hex::decode(&key)?;
+        let mut key_bytes = hex::decode(&*key)?;
         let cipher_key = Key::<Aes256Gcm>::from_slice(&key_bytes);
         let cipher = Aes256Gcm::new(cipher_key);
+        key_bytes.zeroize();
         
         let nonce_bytes = rand::random::<[u8; 12]>();
         let nonce = Nonce::from_slice(&nonce_bytes);
@@ -388,9 +392,10 @@ impl Database {
         use aes_gcm::aead::{Aead, KeyInit};
         
         let key = Self::get_or_create_key()?;
-        let key_bytes = hex::decode(&key)?;
+        let mut key_bytes = hex::decode(&*key)?;
         let cipher_key = Key::<Aes256Gcm>::from_slice(&key_bytes);
         let cipher = Aes256Gcm::new(cipher_key);
+        key_bytes.zeroize();
         
         use base64::Engine;
         let data = base64::engine::general_purpose::STANDARD.decode(ciphertext)
