@@ -7,7 +7,8 @@ import { ResourceSurface } from '../crisis/ResourceSurface';
 import { TrustedAdultConnector } from '../crisis/TrustedAdultConnector';
 import { useI18n } from '../../engine/localization/i18n';
 import { useAppStore } from '../../store';
-import { Heart, Wind, AlertTriangle, Sun, CloudRain } from 'lucide-react';
+import { Heart, Wind, AlertTriangle, Sun, CloudRain, CloudLightning } from 'lucide-react';
+import { useMotionValue, useTransform } from 'framer-motion';
 
 interface MoodMirrorProps {
   userId?: string;
@@ -15,12 +16,36 @@ interface MoodMirrorProps {
 
 type Sentiment = 'positive' | 'neutral' | 'severe_distress' | null;
 
+const MOOD_ZONES = [
+  { label: 'Stormy', desc: 'Overwhelmed or extremely anxious', icon: CloudLightning, sentiment: 'severe_distress', score: 0, color: 'text-slate-400', bg: 'bg-slate-500/20' },
+  { label: 'Cloudy', desc: 'A bit off or struggling', icon: CloudRain, sentiment: 'neutral', score: 25, color: 'text-indigo-400', bg: 'bg-indigo-500/20' },
+  { label: 'Okay', desc: 'Neutral, surviving, or tired', icon: Wind, sentiment: 'neutral', score: 50, color: 'text-cyan-400', bg: 'bg-cyan-500/20' },
+  { label: 'Calm', desc: 'Peaceful, relaxed, or content', icon: Heart, sentiment: 'positive', score: 75, color: 'text-emerald-400', bg: 'bg-emerald-500/20' },
+  { label: 'Radiant', desc: 'Energetic, happy, or thriving', icon: Sun, sentiment: 'positive', score: 100, color: 'text-amber-400', bg: 'bg-amber-500/20' },
+];
+
 export const MoodMirror: React.FC<MoodMirrorProps> = ({ userId }) => {
   const { language } = useI18n();
   const [disclosureAccepted, setDisclosureAccepted] = useState(false);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [loggedMood, setLoggedMood] = useState<Sentiment>(null);
-  const [hoveredMood, setHoveredMood] = useState<Sentiment>(null);
+  const [currentZoneIndex, setCurrentZoneIndex] = useState<number>(2); // Start at "Okay"
+  
+  // Motion values for smooth interpolation
+  const sliderX = useMotionValue(2);
+  
+  // Map 0-4 to background gradients
+  const backgroundGradient = useTransform(
+    sliderX,
+    [0, 1, 2, 3, 4],
+    [
+      "linear-gradient(to bottom right, rgba(71,85,105,0.4), rgba(49,46,129,0.5))", // Stormy
+      "linear-gradient(to bottom right, rgba(79,70,229,0.3), rgba(126,34,206,0.3))", // Cloudy
+      "linear-gradient(to bottom right, rgba(6,182,212,0.3), rgba(59,130,246,0.3))", // Okay
+      "linear-gradient(to bottom right, rgba(16,185,129,0.3), rgba(13,148,136,0.3))", // Calm
+      "linear-gradient(to bottom right, rgba(245,158,11,0.3), rgba(234,88,12,0.3))"   // Radiant
+    ]
+  );
   const [isBreathing, setIsBreathing] = useState(false);
   const [sessionError, setSessionError] = useState<string | null>(null);
   const { recordSession } = useAppStore();
@@ -36,40 +61,33 @@ export const MoodMirror: React.FC<MoodMirrorProps> = ({ userId }) => {
     }
   };
 
-  const handleLogMood = async (sentiment: Sentiment) => {
+  const confirmMood = async () => {
+    const zone = MOOD_ZONES[currentZoneIndex];
+    await handleLogMood(zone.sentiment as Sentiment, zone.score);
+  };
+
+  const handleLogMood = async (sentiment: Sentiment, score: number) => {
     if (!sentiment) return;
     
     setLoggedMood(sentiment);
     
     if (sentiment === 'severe_distress') {
       setIsBreathing(true);
-      // Let the breathing exercise run for 6 seconds
       setTimeout(() => setIsBreathing(false), 6000);
     }
 
     await recordSession({
       type: 'mood_mirror',
       completedAt: new Date().toISOString(),
-      score: sentiment === 'positive' ? 100 : sentiment === 'neutral' ? 50 : 0,
-      metadata: { sentiment }
+      score: score,
+      metadata: { sentiment, detailedScore: score }
     });
     
     await checkForCrisisIndicators({
       userId: userId || 'guest',
-      content: `Logged sentiment: ${sentiment}`,
+      content: `Logged mood score: ${score} (${sentiment})`,
       sentiment: sentiment as any
     });
-  };
-
-  // Determine dynamic background colors
-  const getAmbientColors = () => {
-    const activeSentiment = hoveredMood || loggedMood;
-    switch (activeSentiment) {
-      case 'positive': return 'from-amber-500/20 to-orange-500/20';
-      case 'neutral': return 'from-cyan-500/20 to-blue-500/20';
-      case 'severe_distress': return 'from-slate-600/30 to-indigo-800/30';
-      default: return 'from-violet-500/10 to-fuchsia-500/10';
-    }
   };
 
   if (!disclosureAccepted) {
@@ -129,11 +147,11 @@ export const MoodMirror: React.FC<MoodMirrorProps> = ({ userId }) => {
   return (
     <div className="max-w-4xl mx-auto h-[calc(100vh-8rem)] flex flex-col bg-[#020617] rounded-3xl shadow-2xl border border-white/10 overflow-hidden relative transition-colors duration-1000">
       
-      {/* Dynamic Ambient Background */}
+      {/* Dynamic Ambient Background using Framer Motion interpolation */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div 
-          animate={{ background: `linear-gradient(to bottom right, var(--tw-gradient-stops))` }}
-          className={`absolute inset-0 bg-gradient-to-br ${getAmbientColors()} opacity-70 transition-colors duration-1000`} 
+          style={{ background: backgroundGradient }}
+          className="absolute inset-0 transition-opacity duration-1000 opacity-80" 
         />
         <div className="absolute -top-20 -right-20 w-[500px] h-[500px] bg-white/5 rounded-full blur-[120px]" />
       </div>
@@ -154,62 +172,80 @@ export const MoodMirror: React.FC<MoodMirrorProps> = ({ userId }) => {
                 <p className="text-white/50 font-medium text-lg">Take a breath. There's no right or wrong answer.</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-3xl">
-                {/* Positive */}
-                <motion.button
-                  whileHover={{ scale: 1.05, y: -5 }}
-                  whileTap={{ scale: 0.95 }}
-                  onHoverStart={() => setHoveredMood('positive')}
-                  onHoverEnd={() => setHoveredMood(null)}
-                  onClick={() => handleLogMood('positive')}
-                  className="relative group p-8 rounded-3xl bg-white/5 border border-white/10 hover:border-amber-400/50 backdrop-blur-md overflow-hidden transition-all text-center flex flex-col items-center gap-6"
+              <div className="w-full max-w-xl mx-auto flex flex-col items-center gap-12 mt-8">
+                
+                {/* Central Dynamic Icon & Text */}
+                <motion.div 
+                  key={currentZoneIndex}
+                  initial={{ scale: 0.8, opacity: 0, y: 10 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  transition={{ type: "spring", bounce: 0.5 }}
+                  className="flex flex-col items-center text-center space-y-4"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-b from-amber-400/0 to-amber-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <div className="w-20 h-20 rounded-full bg-amber-400/20 flex items-center justify-center">
-                    <Sun size={40} className="text-amber-400" />
+                  <div className={`w-32 h-32 rounded-[2.5rem] flex items-center justify-center shadow-2xl transition-all duration-300 ${MOOD_ZONES[currentZoneIndex].bg} border border-white/10`}>
+                    {React.createElement(MOOD_ZONES[currentZoneIndex].icon, { 
+                      size: 64, 
+                      className: MOOD_ZONES[currentZoneIndex].color 
+                    })}
                   </div>
                   <div>
-                    <h3 className="text-white font-bold text-xl mb-1">Good</h3>
-                    <p className="text-white/40 text-sm font-medium">Energetic, calm, or happy</p>
+                    <h3 className={`text-3xl font-black mb-2 transition-colors ${MOOD_ZONES[currentZoneIndex].color}`}>
+                      {MOOD_ZONES[currentZoneIndex].label}
+                    </h3>
+                    <p className="text-white/60 font-medium text-lg">{MOOD_ZONES[currentZoneIndex].desc}</p>
                   </div>
-                </motion.button>
+                </motion.div>
 
-                {/* Neutral */}
-                <motion.button
-                  whileHover={{ scale: 1.05, y: -5 }}
-                  whileTap={{ scale: 0.95 }}
-                  onHoverStart={() => setHoveredMood('neutral')}
-                  onHoverEnd={() => setHoveredMood(null)}
-                  onClick={() => handleLogMood('neutral')}
-                  className="relative group p-8 rounded-3xl bg-white/5 border border-white/10 hover:border-cyan-400/50 backdrop-blur-md overflow-hidden transition-all text-center flex flex-col items-center gap-6"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-b from-cyan-400/0 to-cyan-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <div className="w-20 h-20 rounded-full bg-cyan-400/20 flex items-center justify-center">
-                    <Wind size={40} className="text-cyan-400" />
+                {/* The Slider */}
+                <div className="w-full px-4">
+                  <div className="relative w-full h-16 flex items-center">
+                    {/* Track */}
+                    <div className="absolute inset-x-0 h-3 bg-white/10 rounded-full overflow-hidden backdrop-blur-md border border-white/5">
+                      <div 
+                        className="h-full bg-gradient-to-r from-slate-400 via-cyan-400 to-amber-400 opacity-30" 
+                      />
+                    </div>
+                    
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="4" 
+                      step="0.01"
+                      value={sliderX.get()}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        sliderX.set(val);
+                        setCurrentZoneIndex(Math.round(val));
+                      }}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                    />
+                    
+                    {/* Visual Thumb */}
+                    <motion.div 
+                      className="absolute w-8 h-8 bg-white rounded-full shadow-[0_0_20px_rgba(255,255,255,0.5)] pointer-events-none z-10 flex items-center justify-center"
+                      style={{ 
+                        left: `calc(${(sliderX.get() / 4) * 100}% - 16px)`,
+                      }}
+                      animate={{ left: `calc(${(sliderX.get() / 4) * 100}% - 16px)` }}
+                      transition={{ type: 'tween', duration: 0 }}
+                    >
+                      <div className="w-2 h-2 rounded-full bg-slate-900" />
+                    </motion.div>
                   </div>
-                  <div>
-                    <h3 className="text-white font-bold text-xl mb-1">Okay</h3>
-                    <p className="text-white/40 text-sm font-medium">Neutral, surviving, or tired</p>
+                  
+                  <div className="flex justify-between w-full px-2 mt-2 text-xs font-bold text-white/30 uppercase tracking-widest">
+                    <span>Stormy</span>
+                    <span>Radiant</span>
                   </div>
-                </motion.button>
+                </div>
 
-                {/* Distress */}
                 <motion.button
-                  whileHover={{ scale: 1.05, y: -5 }}
+                  whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onHoverStart={() => setHoveredMood('severe_distress')}
-                  onHoverEnd={() => setHoveredMood(null)}
-                  onClick={() => handleLogMood('severe_distress')}
-                  className="relative group p-8 rounded-3xl bg-white/5 border border-white/10 hover:border-slate-400/50 backdrop-blur-md overflow-hidden transition-all text-center flex flex-col items-center gap-6"
+                  onClick={confirmMood}
+                  className="mt-8 py-4 px-12 rounded-2xl shadow-xl font-black text-white bg-white/10 hover:bg-white/20 border border-white/20 transition-colors"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-b from-slate-400/0 to-slate-400/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <div className="w-20 h-20 rounded-full bg-slate-500/20 flex items-center justify-center">
-                    <CloudRain size={40} className="text-slate-300" />
-                  </div>
-                  <div>
-                    <h3 className="text-white font-bold text-xl mb-1">Struggling</h3>
-                    <p className="text-white/40 text-sm font-medium">Overwhelmed, anxious, or down</p>
-                  </div>
+                  Confirm Check-In
                 </motion.button>
               </div>
             </motion.div>
