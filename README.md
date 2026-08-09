@@ -114,6 +114,18 @@ Being direct about what's engineered versus what's independently verified is a c
 
 ---
 
+## 🛡️ Security Architecture Hardening (P0 Release)
+
+PRERNA has undergone rigorous red-team security audits to strictly close P0 trust boundary vulnerabilities. The architecture enforces the following invariants:
+
+- **Strict State-Machine Authentication (`AuthStatus`)**: The application uses a rigorous `AuthStatus` enum (`None`, `PendingMFA`, `Authenticated`). All privileged IPC commands exclusively derive the user identity from the `Authenticated` state. The backend fundamentally rejects renderer-supplied IDs and strictly isolates `PendingMFA` sessions.
+- **Renderer Spoofing Elimination**: The frontend Webview is treated as fundamentally untrusted. No privileged command accepts a `user_id` as an argument; every identity is securely resolved via the Rust session mutex.
+- **Role-Based Access Control (RBAC)**: Educator and Reviewer roles enforce explicit `tenant_id` boundaries. The system strictly fails closed on missing tenant IDs, ensuring cross-tenant isolation.
+- **Cryptographic Consent Auditability**: Revoking parental consent soft-deletes the relationship (`status = 'revoked'`), satisfying both legal audit trail requirements and immediately denying all subsequent `get_parent_view` authorization checks at the backend level.
+- **Backend-Owned Conversation History**: AI chat histories are maintained and evicted exclusively by the Rust backend. A `logout` explicitly wipes the `AuthStatus` to `None` and evicts all associated memory contexts from the local LLM `ConversationStore`.
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
