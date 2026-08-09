@@ -9,6 +9,8 @@ import { ModelManager } from '../ai/ModelManager';
 import { BackupManager } from '../backup/BackupManager';
 import { ParentPermissionManager, SharingPreferences } from '../../parent/permissions';
 import { CareerPathwaysWidget } from './CareerPathwaysWidget';
+import { RadarChart } from './RadarChart';
+import { BadgeCabinet } from './BadgeCabinet';
 
 import { useAppStore } from '../../store';
 
@@ -171,8 +173,12 @@ export const TeenProfileView: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative z-10">
         
-        {/* Traits Column */}
+        {/* Left Column */}
         <div className="space-y-8">
+          
+          {/* Badge Cabinet */}
+          <BadgeCabinet profile={profile} />
+
           {/* LLM Self-Discovery Report */}
           {profile?.llmSelfDiscoveryReport && (
             <div className="bg-gradient-to-br from-indigo-500/10 to-fuchsia-500/10 backdrop-blur-xl p-8 rounded-[2rem] border border-indigo-500/20 shadow-2xl relative overflow-hidden">
@@ -196,9 +202,9 @@ export const TeenProfileView: React.FC = () => {
             </div>
           )}
 
-          {/* Big Five */}
-          <div className="bg-[#0f172a]/80 backdrop-blur-xl p-8 rounded-[2rem] border border-white/10 shadow-2xl">
-            <div className="flex items-center space-x-4 mb-8 border-b border-white/10 pb-6">
+          {/* Big Five Radar Chart */}
+          <div className="bg-[#0f172a]/80 backdrop-blur-xl p-8 rounded-[2rem] border border-white/10 shadow-2xl flex flex-col items-center">
+            <div className="flex w-full items-center space-x-4 mb-4 border-b border-white/10 pb-6">
               <div className="w-12 h-12 rounded-2xl bg-violet-500/20 flex items-center justify-center border border-violet-500/30">
                 <Brain className="text-violet-400" size={24} />
               </div>
@@ -209,36 +215,29 @@ export const TeenProfileView: React.FC = () => {
             </div>
             
             {bigFive ? (
-              <div className="space-y-6">
-                {Object.entries(bigFive).map(([trait, score], idx) => (
-                  <div key={trait}>
-                    <div className="flex justify-between text-xs font-bold mb-2 uppercase tracking-widest">
-                      <span className="text-slate-300">{trait}</span>
-                      <span className="text-violet-400">{score}%</span>
-                    </div>
-                    <div className="h-3 bg-black/40 rounded-full overflow-hidden border border-white/5">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${score}%` }}
-                        transition={{ duration: 1, delay: idx * 0.1, ease: "easeOut" }}
-                        className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 relative"
-                      >
-                        <div className="absolute top-0 right-0 bottom-0 w-4 bg-white/20 blur-[2px]" />
-                      </motion.div>
-                    </div>
-                  </div>
-                ))}
+              <div className="py-8">
+                <RadarChart 
+                  color="violet"
+                  size={320}
+                  data={[
+                    { label: 'Openness', value: bigFive.openness || 0 },
+                    { label: 'Conscientious', value: bigFive.conscientiousness || 0 },
+                    { label: 'Extraversion', value: bigFive.extraversion || 0 },
+                    { label: 'Agreeableness', value: bigFive.agreeableness || 0 },
+                    { label: 'Neuroticism', value: bigFive.neuroticism || 0 },
+                  ]}
+                />
               </div>
             ) : (
-              <div className="text-center py-12 bg-black/20 rounded-2xl border border-dashed border-slate-700">
+              <div className="text-center py-12 w-full bg-black/20 rounded-2xl border border-dashed border-slate-700 mt-4">
                 <p className="text-slate-400 font-medium">Complete assessments to unlock.</p>
               </div>
             )}
           </div>
 
-          {/* RIASEC */}
-          <div className="bg-[#0f172a]/80 backdrop-blur-xl p-8 rounded-[2rem] border border-white/10 shadow-2xl">
-            <div className="flex items-center space-x-4 mb-8 border-b border-white/10 pb-6">
+          {/* RIASEC Radar Chart */}
+          <div className="bg-[#0f172a]/80 backdrop-blur-xl p-8 rounded-[2rem] border border-white/10 shadow-2xl flex flex-col items-center">
+            <div className="flex w-full items-center space-x-4 mb-4 border-b border-white/10 pb-6">
               <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
                 <Compass className="text-emerald-400" size={24} />
               </div>
@@ -249,28 +248,22 @@ export const TeenProfileView: React.FC = () => {
             </div>
             
             {riasec ? (
-              <div className="space-y-6">
-                {Object.entries(riasec).map(([trait, score], idx) => (
-                  <div key={trait}>
-                    <div className="flex justify-between text-xs font-bold mb-2 uppercase tracking-widest">
-                      <span className="text-slate-300">{trait}</span>
-                      <span className="text-emerald-400">{score}%</span>
-                    </div>
-                    <div className="h-3 bg-black/40 rounded-full overflow-hidden border border-white/5">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${score}%` }}
-                        transition={{ duration: 1, delay: idx * 0.1, ease: "easeOut" }}
-                        className="h-full bg-gradient-to-r from-emerald-400 to-teal-500 relative"
-                      >
-                         <div className="absolute top-0 right-0 bottom-0 w-4 bg-white/20 blur-[2px]" />
-                      </motion.div>
-                    </div>
-                  </div>
-                ))}
+              <div className="py-8">
+                <RadarChart 
+                  color="emerald"
+                  size={320}
+                  data={[
+                    { label: 'Realistic', value: riasec.realistic || 0 },
+                    { label: 'Investigative', value: riasec.investigative || 0 },
+                    { label: 'Artistic', value: riasec.artistic || 0 },
+                    { label: 'Social', value: riasec.social || 0 },
+                    { label: 'Enterprising', value: riasec.enterprising || 0 },
+                    { label: 'Conventional', value: riasec.conventional || 0 },
+                  ]}
+                />
               </div>
             ) : (
-              <div className="text-center py-12 bg-black/20 rounded-2xl border border-dashed border-slate-700">
+              <div className="text-center py-12 w-full bg-black/20 rounded-2xl border border-dashed border-slate-700 mt-4">
                 <p className="text-slate-400 font-medium">Complete skill arenas to unlock.</p>
               </div>
             )}
