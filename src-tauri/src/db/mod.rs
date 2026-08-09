@@ -342,6 +342,30 @@ impl Database {
         Ok(event.id.clone())
     }
     
+    pub fn get_pending_crisis_events(&self) -> AnyhowResult<Vec<CrisisEvent>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT id, user_id, detected_at, severity, human_review_status, reviewer_id, reviewer_credentials_ref, decision, teen_informed_at 
+             FROM crisis_events 
+             WHERE human_review_status = 'pending'"
+        )?;
+        
+        let events = stmt.query_map([], |row| {
+            Ok(CrisisEvent {
+                id: row.get(0)?,
+                user_id: row.get(1)?,
+                detected_at: row.get(2)?,
+                severity: row.get(3)?,
+                human_review_status: row.get(4)?,
+                reviewer_id: row.get(5)?,
+                reviewer_credentials_ref: row.get(6)?,
+                decision: row.get(7)?,
+                teen_informed_at: row.get(8)?,
+            })
+        })?.collect::<Result<Vec<_>, _>>()?;
+        
+        Ok(events)
+    }
+
     pub fn resolve_crisis_event(
         &self,
         event_id: &str,
@@ -349,17 +373,21 @@ impl Database {
         reviewer_credentials_ref: &str,
         decision: &str,
         teen_informed_at: Option<i64>,
-    ) -> Result<()> {
+    ) -> AnyhowResult<()> {
         let sql = "
             UPDATE crisis_events
-            SET human_review_status = ?1,
-                reviewer_ref = ?2,
-                reviewer_credentials_ref = ?3,
+            SET human_review_status = 'resolved',
+                reviewer_id = ?1,
+                reviewer_credentials_ref = ?2,
+                decision = ?3,
                 teen_informed_at = ?4
-            WHERE id = ?5
+            WHERE id = ?5 AND human_review_status != 'resolved'
         ";
         
-        self.conn.execute(sql, (decision, reviewer_id, reviewer_credentials_ref, teen_informed_at, event_id))?;
+        let updated = self.conn.execute(sql, params![reviewer_id, reviewer_credentials_ref, decision, teen_informed_at, event_id])?;
+        if updated == 0 {
+            return Err(anyhow::anyhow!("FATAL STATE MACHINE EXCEPTION: Event is either already resolved or does not exist."));
+        }
         Ok(())
     }
 
@@ -551,5 +579,61 @@ mod tests {
 
         let count_interactions_after: i64 = db.conn.query_row("SELECT COUNT(*) FROM micro_interactions WHERE user_id = ?1", [user_id], |row| row.get(0)).unwrap();
         assert_eq!(count_interactions_after, 0, "Zero-knowledge violation: Interactions remained");
+    }
+
+    #[test]
+    fn test_crisis_state_machine() {
+        let db = Database::new_in_memory("test_secret").unwrap();
+        let user_id = "test_teen_123";
+        
+        // 1. Create a user
+        db.conn.execute(
+            "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled) 
+             VALUES (?1, 'test', 'hash', 'date', '13-15', 'in', 'en', 'hash', 0)",
+            [user_id]
+        ).unwrap();
+        
+        // 2. Create a crisis event
+        let event = crate::db::models::CrisisEvent {
+            id: "crisis_1".to_string(),
+            user_id: user_id.to_string(),
+            detected_at: 1620000000,
+            severity: "high".to_string(),
+            human_review_status: "pending".to_string(),
+            reviewer_id: None,
+            reviewer_credentials_ref: None,
+            decision: None,
+            teen_informed_at: None,
+        };
+        db.create_crisis_event(&event).unwrap();
+        
+        // 3. Verify it is pending
+        let pending = db.get_pending_crisis_events().unwrap();
+        assert_eq!(pending.len(), 1);
+        assert_eq!(pending[0].id, "crisis_1");
+        
+        // 4. Resolve it
+        let resolve_res = db.resolve_crisis_event(
+            "crisis_1", 
+            "doc_123", 
+            "lcsw_ref", 
+            "GuardianNotified", 
+            Some(1620000000)
+        );
+        assert!(resolve_res.is_ok(), "Should resolve successfully");
+        
+        // 5. Verify it is no longer pending
+        let pending_after = db.get_pending_crisis_events().unwrap();
+        assert_eq!(pending_after.len(), 0);
+        
+        // 6. Attempt to resolve again (should fail)
+        let resolve_res_2 = db.resolve_crisis_event(
+            "crisis_1", 
+            "doc_123", 
+            "lcsw_ref", 
+            "GuardianNotified", 
+            Some(1620000000)
+        );
+        assert!(resolve_res_2.is_err(), "FATAL STATE MACHINE EXCEPTION: Should not resolve an already resolved event");
     }
 }

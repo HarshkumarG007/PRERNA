@@ -75,6 +75,7 @@ pub fn run() {
             
             // Crisis commands
             commands::create_crisis_event,
+            commands::get_pending_crisis_events,
             commands::resolve_crisis_event,
             
             // Data management

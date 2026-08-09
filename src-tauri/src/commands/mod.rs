@@ -610,6 +610,14 @@ pub fn create_crisis_event(
 }
 
 #[tauri::command]
+pub fn get_pending_crisis_events(
+    state: State<DbState>,
+) -> Result<Vec<CrisisEvent>, String> {
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    db.get_pending_crisis_events().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 pub fn resolve_crisis_event(
     state: State<DbState>,
     event_id: String,

@@ -18,6 +18,8 @@ import { SchoolDashboard } from './components/school/SchoolDashboard';
 import { RoleSelection } from './components/onboarding/RoleSelection';
 import { ParentLinking } from './components/onboarding/ParentLinking';
 import { PersonalityQuestionnaire } from './components/assessment/PersonalityQuestionnaire';
+import { ClinicianLogin } from './components/clinical/ClinicianLogin';
+import { ReviewDashboard } from './components/clinical/ReviewDashboard';
 import { useAppStore } from './store';
 
 // No mock context needed anymore
@@ -26,6 +28,7 @@ function App() {
   const { language, setLanguage } = useI18n();
   const { isAuthenticated, isLoading, login, logout, user, updateRole } = useAppStore();
   const [parentLinked, setParentLinked] = useState(false);
+  const [clinicianAuthed, setClinicianAuthed] = useState(false);
 
   useEffect(() => {
     // Check for existing session
@@ -193,6 +196,11 @@ function App() {
           <Route path="/profile" element={<TeenProfileView />} />
           <Route path="/parent-dash" element={<ParentDashboard teenId={user.id} onExit={() => window.location.href='/'} />} />
           <Route path="/school-dash" element={<SchoolDashboard />} />
+          <Route path="/clinician-portal" element={
+            !clinicianAuthed ? 
+              <ClinicianLogin onSuccess={() => setClinicianAuthed(true)} /> : 
+              <ReviewDashboard />
+          } />
         </Routes>
         </div>
       </main>
