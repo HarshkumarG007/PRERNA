@@ -1,0 +1,10 @@
+{
+  "total_samples": 1000,
+  "true_positives": 292,
+  "true_negatives": 628,
+  "false_positives": 80,
+  "false_negatives": 0,
+  "sensitivity": 1.0,
+  "specificity": 0.8870056497175142,
+  "fnr": 0.0
+}
