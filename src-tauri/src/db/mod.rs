@@ -513,6 +513,9 @@ impl Database {
         self.conn.execute("DELETE FROM trait_snapshots WHERE user_id = ?1", [user_id])?;
         self.conn.execute("DELETE FROM sessions WHERE user_id = ?1", [user_id])?;
         self.conn.execute("DELETE FROM recommendations WHERE user_id = ?1", [user_id])?;
+        // T9: Fix deletion completeness
+        self.conn.execute("DELETE FROM crisis_events WHERE user_id = ?1", [user_id])?;
+        self.conn.execute("DELETE FROM parent_teen_relationships WHERE teen_user_id = ?1 OR parent_user_id = ?1", [user_id])?;
         self.conn.execute("DELETE FROM users WHERE id = ?1", [user_id])?;
         
         info!("Deleted all data for user {}", user_id);

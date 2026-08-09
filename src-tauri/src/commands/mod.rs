@@ -50,23 +50,52 @@ pub fn authenticate_user(
     let db = state.0.lock().map_err(|e| e.to_string())?;
     let user_opt = db.authenticate_user_raw(&username).map_err(|e| e.to_string())?;
     
-    if let Some(user) = user_opt {
-        // Verify with Argon2
-        let parsed_hash = PasswordHash::new(&user.password_hash).map_err(|e| e.to_string())?;
-        if Argon2::default().verify_password(password_input.as_bytes(), &parsed_hash).is_ok() {
+    if let Some(mut user) = user_opt {
+        let mut is_valid = false;
+        let mut needs_migration = false;
+
+        if user.password_hash.starts_with("$argon2") {
+            let parsed_hash = PasswordHash::new(&user.password_hash).map_err(|e| e.to_string())?;
+            is_valid = Argon2::default().verify_password(password_input.as_bytes(), &parsed_hash).is_ok();
+        } else {
+            // Legacy SHA-256 fallback (T4 migration path)
+            use sha2::{Sha256, Digest};
+            let mut hasher = Sha256::new();
+            hasher.update(password_input.as_bytes());
+            let hashed_pw = hex::encode(hasher.finalize());
+            if hashed_pw == user.password_hash {
+                is_valid = true;
+                needs_migration = true;
+            }
+        }
+
+        if is_valid {
+            if needs_migration {
+                // Rehash with Argon2id and update database
+                let salt = SaltString::generate(&mut OsRng);
+                let new_hash = Argon2::default()
+                    .hash_password(password_input.as_bytes(), &salt)
+                    .map_err(|e| e.to_string())?
+                    .to_string();
+                
+                db.conn.execute(
+                    "UPDATE users SET password_hash = ?1 WHERE id = ?2",
+                    rusqlite::params![new_hash, user.id]
+                ).map_err(|e| e.to_string())?;
+                user.password_hash = new_hash;
+            }
+
             // Write the authenticated user_id to the backend session state
             let mut sess = session.0.lock().map_err(|e| e.to_string())?;
             *sess = Some(user.id.clone());
             drop(sess);
             
             if user.mfa_enabled {
-                // Require MFA step — don't fully commit session until MFA passes
                 Ok(Some(serde_json::json!({
                     "mfaRequired": true,
                     "userId": user.id
                 })))
             } else {
-                // Full login complete
                 Ok(Some(serde_json::to_value(user).map_err(|e| e.to_string())?))
             }
         } else {
@@ -108,6 +137,13 @@ pub fn revoke_consent(
 pub struct MfaSetupResponse {
     pub secret: String,
     pub qr_code_svg: String,
+}
+
+#[tauri::command]
+pub fn logout(session: State<ActiveSession>) -> Result<(), String> {
+    let mut sess = session.0.lock().map_err(|e| e.to_string())?;
+    *sess = None;
+    Ok(())
 }
 
 #[tauri::command]
@@ -213,18 +249,22 @@ pub fn verify_login_mfa(
 #[tauri::command]
 pub fn save_session(
     state: State<DbState>,
+    session_state: State<ActiveSession>,
     session: NewAssessmentSession,
 ) -> Result<String, String> {
     PolicyEngine::enforce_disclosure_invariant(&session.disclosure_version)?;
     
+    let user_id = session_state.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    let user = db.get_user(&session.user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
+    let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
     PolicyEngine::enforce_under_18_tracking_invariant(&user.age_range, false)?;
     
     
     let full_session = AssessmentSession {
         id: String::new(), // Will be generated
-        user_id: session.user_id,
+        user_id,
         session_type: session.session_type,
         started_at: chrono::Utc::now().to_rfc3339(),
         completed_at: Some(chrono::Utc::now().to_rfc3339()),
@@ -240,7 +280,7 @@ pub fn save_session(
 #[tauri::command]
 pub fn save_skill_session(
     state: State<DbState>,
-    user_id: String,
+    session_state: State<ActiveSession>,
     game_type: String,
     score: i32,
     cognitive_data: String,
@@ -248,6 +288,9 @@ pub fn save_skill_session(
     disclosure_shown_at: i64,
 ) -> Result<String, String> {
     PolicyEngine::enforce_disclosure_invariant(&disclosure_version)?;
+    
+    let user_id = session_state.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
     
     let db = state.0.lock().map_err(|e| e.to_string())?;
     let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
@@ -592,13 +635,16 @@ pub fn get_user_sessions(
 #[tauri::command]
 pub fn save_trait_snapshot(
     state: State<DbState>,
+    session_state: State<ActiveSession>,
     snapshot: NewTraitSnapshot,
 ) -> Result<String, String> {
+    let user_id = session_state.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     
     let full_snapshot = TraitSnapshot {
         id: String::new(),
-        user_id: snapshot.user_id,
+        user_id,
         snapshot_date: chrono::Utc::now().to_rfc3339(),
         big_five: snapshot.big_five,
         riasec: snapshot.riasec,
@@ -626,13 +672,16 @@ pub fn get_latest_snapshot(
 #[tauri::command]
 pub fn log_interaction(
     state: State<DbState>,
+    session_state: State<ActiveSession>,
     interaction: NewMicroInteraction,
 ) -> Result<String, String> {
+    let user_id = session_state.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     
     let full_interaction = MicroInteraction {
         id: String::new(),
-        user_id: interaction.user_id,
+        user_id,
         interaction_type: interaction.interaction_type,
         metadata: interaction.metadata,
         emotional_signal: interaction.emotional_signal,
@@ -683,12 +732,16 @@ pub fn get_pending_crisis_events(
 #[tauri::command]
 pub fn resolve_crisis_event(
     state: State<DbState>,
+    session_state: State<ActiveSession>,
     event_id: String,
-    reviewer_id: String,
     reviewer_credentials_ref: String,
     decision: CrisisDecision,
     teen_informed_at: Option<i64>,
 ) -> Result<(), String> {
+    // T5: Ensure the caller has a session and derive reviewer ID from it
+    let reviewer_id = session_state.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    
     PolicyEngine::enforce_guardian_notification_invariant(&decision, teen_informed_at)?;
     
     let decision_str = match decision {

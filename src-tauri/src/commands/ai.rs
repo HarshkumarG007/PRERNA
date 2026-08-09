@@ -2,8 +2,9 @@ use tauri::State;
 use serde::{Deserialize, Serialize};
 use crate::ai::{LLMState};
 use crate::db::{DbState};
-use crate::ActiveSession;
+use crate::{ActiveSession, ConversationStore};
 use crate::ai::safety::SafetyFilter;
+use crate::ai::prompts::Message;
 
 #[derive(Debug, Deserialize)]
 pub struct ChatRequest {
@@ -35,6 +36,7 @@ pub fn chat_with_mentor(
     llm_state: State<LLMState>,
     db_state: State<DbState>,
     session: State<ActiveSession>,
+    store: State<ConversationStore>,
     request: ChatRequest,
 ) -> Result<ChatResponse, String> {
     // T1: Derive user identity from backend session, never from renderer
@@ -78,16 +80,40 @@ pub fn chat_with_mentor(
         None => serde_json::json!({}),
     };
     
-    // T7: Conversation context is backend-owned. The renderer no longer
-    // supplies recent_messages. The ring buffer (future sprint) will feed this.
+    // T7b: Retrieve backend-owned conversation history
+    let mut history = {
+        let guard = store.0.lock().map_err(|e| e.to_string())?;
+        guard.get(&user_id).cloned().unwrap_or_default()
+    };
+    
+    // Build conversation context
     let context = crate::ai::prompts::ConversationContext {
         user_id: user_id.clone(),
-        recent_messages: vec![], // Backend ring buffer goes here
+        recent_messages: history.clone(), // Context sees previous messages
     };
     
     // Generate response (output-side SafetyFilter is called inside generate_response)
     let response = llm.generate_response(&context, &request.message, &trait_json)
         .map_err(|e| e.to_string())?;
+        
+    // Update store with new messages and enforce bounds (max 10 recent messages)
+    history.push(Message {
+        role: "user".to_string(),
+        content: request.message.clone(),
+    });
+    history.push(Message {
+        role: "assistant".to_string(),
+        content: response.clone(),
+    });
+    if history.len() > 10 {
+        let skip = history.len() - 10;
+        history = history.into_iter().skip(skip).collect();
+    }
+    
+    {
+        let mut guard = store.0.lock().map_err(|e| e.to_string())?;
+        guard.insert(user_id.clone(), history);
+    }
     
     let sentiment = analyze_sentiment(&request.message);
     let suggested_actions = suggest_actions(&request.message, &sentiment);
@@ -151,8 +177,11 @@ pub fn unload_model(llm_state: State<LLMState>) -> Result<(), String> {
 pub fn generate_career_insight(
     llm_state: State<LLMState>,
     db_state: State<DbState>,
-    user_id: String,
+    session: State<ActiveSession>,
 ) -> Result<String, String> {
+    let user_id = session.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    
     let mut guard = llm_state.0.lock().map_err(|e| e.to_string())?;
     if guard.is_none() {
         return Err("AI model is not loaded. Please download it first.".to_string());

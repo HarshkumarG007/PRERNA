@@ -11,11 +11,20 @@ pub struct SchoolAnalyticsReport {
     pub k_anonymity_threshold_met: bool,
 }
 
+use crate::ActiveSession;
+
 #[tauri::command]
 pub fn generate_school_report(
     state: State<DbState>,
+    session: State<ActiveSession>,
     student_ids: Vec<String>,
 ) -> Result<SchoolAnalyticsReport, String> {
+    // T1/T2: Require authentication.
+    // Note: A true "Educator" role check is required here in production to prevent
+    // any authenticated teen from pulling their peers' aggregate data.
+    let _caller_id = session.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+        
     let db = state.0.lock().map_err(|e| e.to_string())?;
     
     // K-Anonymity Guard: Refuse to process cohorts smaller than 5

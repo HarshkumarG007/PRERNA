@@ -16,6 +16,10 @@ use std::sync::{Arc, Mutex};
 /// this is the single source of truth after a successful authentication.
 pub struct ActiveSession(pub Mutex<Option<String>>);
 
+/// T7b: Backend-Owned Conversation History.
+/// Bounded history keyed by user_id to prevent frontend injection.
+pub struct ConversationStore(pub Mutex<std::collections::HashMap<String, Vec<crate::ai::prompts::Message>>>);
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     #[cfg(debug_assertions)]
@@ -35,6 +39,9 @@ pub fn run() {
             
             // Manage authenticated session state (initially empty)
             app.manage(ActiveSession(Mutex::new(None)));
+            
+            // Manage backend-owned conversation history
+            app.manage(ConversationStore(Mutex::new(std::collections::HashMap::new())));
 
             // Attempt to initialize local LLM
             let llm_option = match LocalLLM::new(app.handle()) {
