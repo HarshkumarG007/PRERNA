@@ -11,6 +11,7 @@ import { generateLifeQuest } from '../../assessment/scenarios/lifeQuests';
 import { useDatabase } from '../../hooks/useDatabase';
 import { useI18n } from '../../engine/localization/i18n';
 import { CURRENT_DISCLOSURES } from '../../engine/assessment/disclosures';
+import { validateSessionCreation, SessionConfig } from '../../engine/consent/sessionGate';
 
 export interface LifeQuestsProps {
   userId?: string;
@@ -57,7 +58,20 @@ export const LifeQuests: React.FC<LifeQuestsProps> = ({ userId }) => {
   }, [isSessionActive]);
 
   const handleStartSession = () => {
-    setIsSessionActive(true);
+    try {
+      const config: SessionConfig = {
+        userId: userId || 'guest',
+        sessionType: 'life_quest',
+        disclosureShownId: disclosure.id,
+      };
+      
+      // Enforces Global Rule 0.1-2
+      validateSessionCreation(config);
+      
+      setIsSessionActive(true);
+    } catch (err: any) {
+      alert(err.message);
+    }
   };
 
   const handleChoice = useCallback(async (choiceIndex: number) => {
