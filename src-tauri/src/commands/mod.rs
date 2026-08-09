@@ -91,14 +91,13 @@ pub fn authenticate_user(
             }
 
             if user.mfa_enabled {
+                session.set_pending_mfa(user.id.clone())?;
                 Ok(Some(serde_json::json!({
-                    "mfaRequired": true,
-                    "userId": user.id
+                    "mfaRequired": true
                 })))
             } else {
                 // RED-001/020: Only commit session if MFA is not required
-                let mut sess = session.0.lock().map_err(|e| e.to_string())?;
-                *sess = Some(user.id.clone());
+                session.set_authenticated(user.id.clone())?;
                 
                 Ok(Some(serde_json::to_value(user).map_err(|e| e.to_string())?))
             }
@@ -133,10 +132,10 @@ pub fn revoke_consent(
         .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     
-    // RED-010: Actually delete the relationship from the database
+    // RED-010: Actually soft-delete the relationship from the database for audit trailing
     db.conn.execute(
-        "DELETE FROM parent_teen_relationships WHERE parent_user_id = ?1 OR teen_user_id = ?1",
-        rusqlite::params![user_id]
+        "UPDATE parent_teen_relationships SET status = 'revoked', revoked_at = ?1 WHERE parent_user_id = ?2 OR teen_user_id = ?2",
+        rusqlite::params![chrono::Utc::now().to_rfc3339(), user_id]
     ).map_err(|e| e.to_string())?;
     
     db.insert_audit_log("CONSENT_REVOKED", &format!("Consent revoked for user {}", user_id))
@@ -236,12 +235,10 @@ pub fn verify_mfa_setup(
 pub fn verify_login_mfa(
     state: State<DbState>,
     session: State<ActiveSession>,
-    // user_id here is a pre-auth partial session only (MFA step before full commit)
-    // It is supplied during the MFA step and validated against the stored secret,
-    // but the full session is only committed after successful MFA.
-    user_id: String,
     token: String,
 ) -> Result<Option<User>, String> {
+    let user_id = session.get_pending_mfa_user()?;
+    
     let db = state.0.lock().map_err(|e| e.to_string())?;
     let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
     
@@ -249,18 +246,24 @@ pub fn verify_login_mfa(
         return Err("MFA not enabled".to_string());
     }
     
-    let secret_str = user.mfa_secret.as_ref().ok_or("MFA secret missing")?;
-    let secret = Secret::Encoded(secret_str.clone());
-    let totp = TOTP::new(Algorithm::SHA1, 6, 1, 30, secret.to_bytes().unwrap(), None, "".to_string())
-        .map_err(|e| e.to_string())?;
+    let secret = user.mfa_secret.as_ref().ok_or("No MFA secret configured")?;
+    
+    let totp = TOTP::new(
+        Algorithm::SHA1,
+        6,
+        1,
+        30,
+        Secret::Encoded(secret.to_string()).to_bytes().unwrap(),
+        Some("PRERNA".to_string()),
+        user.username.clone(),
+    ).map_err(|e| e.to_string())?;
         
     if totp.check_current(&token).unwrap_or(false) {
         // MFA passed — fully commit the session now
-        let mut sess = session.0.lock().map_err(|e| e.to_string())?;
-        *sess = Some(user.id.clone());
+        session.set_authenticated(user.id.clone())?;
         Ok(Some(user))
     } else {
-        Err("Invalid 2FA code".to_string())
+        Err("Invalid token".to_string())
     }
 }
 

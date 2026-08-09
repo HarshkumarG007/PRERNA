@@ -94,6 +94,8 @@ impl Database {
                 teen_user_id TEXT NOT NULL,
                 established_at TEXT NOT NULL,
                 consent_record_id TEXT,
+                status TEXT DEFAULT 'active',
+                revoked_at TEXT,
                 UNIQUE(parent_user_id, teen_user_id)
             );
         ").context("Failed to create parent_teen_relationships table")?;
@@ -187,7 +189,7 @@ impl Database {
     /// Returns false (denies access) if no explicit relationship record exists.
     pub fn check_parent_teen_link(&self, parent_id: &str, teen_id: &str) -> AnyhowResult<bool> {
         let count: i64 = self.conn.query_row(
-            "SELECT COUNT(*) FROM parent_teen_relationships WHERE parent_user_id = ?1 AND teen_user_id = ?2",
+            "SELECT COUNT(*) FROM parent_teen_relationships WHERE parent_user_id = ?1 AND teen_user_id = ?2 AND status = 'active'",
             rusqlite::params![parent_id, teen_id],
             |row| row.get(0)
         )?;

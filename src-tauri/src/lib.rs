@@ -14,7 +14,41 @@ use std::sync::{Arc, Mutex};
 /// Backend-owned authenticated session state.
 /// The renderer CANNOT supply user_id to privileged commands;
 /// this is the single source of truth after a successful authentication.
-pub struct ActiveSession(pub Mutex<Option<String>>);
+#[derive(Clone, Debug, PartialEq)]
+pub enum AuthStatus {
+    None,
+    PendingMFA(String),
+    Authenticated(String),
+}
+
+pub struct ActiveSession(pub Mutex<AuthStatus>);
+
+impl ActiveSession {
+    pub fn get_user_id(&self) -> Result<String, String> {
+        match &*self.0.lock().map_err(|e| e.to_string())? {
+            AuthStatus::Authenticated(id) => Ok(id.clone()),
+            _ => Err("Unauthorized: No active session".to_string())
+        }
+    }
+    pub fn set_pending_mfa(&self, id: String) -> Result<(), String> {
+        *self.0.lock().map_err(|e| e.to_string())? = AuthStatus::PendingMFA(id);
+        Ok(())
+    }
+    pub fn set_authenticated(&self, id: String) -> Result<(), String> {
+        *self.0.lock().map_err(|e| e.to_string())? = AuthStatus::Authenticated(id);
+        Ok(())
+    }
+    pub fn clear(&self) -> Result<(), String> {
+        *self.0.lock().map_err(|e| e.to_string())? = AuthStatus::None;
+        Ok(())
+    }
+    pub fn get_pending_mfa_user(&self) -> Result<String, String> {
+        match &*self.0.lock().map_err(|e| e.to_string())? {
+            AuthStatus::PendingMFA(id) => Ok(id.clone()),
+            _ => Err("Unauthorized: No pending MFA session".to_string())
+        }
+    }
+}
 
 /// T7b: Backend-Owned Conversation History.
 /// Bounded history keyed by user_id to prevent frontend injection.
@@ -38,7 +72,7 @@ pub fn run() {
             app.manage(DbState(std::sync::Mutex::new(database)));
             
             // Manage authenticated session state (initially empty)
-            app.manage(ActiveSession(Mutex::new(None)));
+            app.manage(ActiveSession(Mutex::new(AuthStatus::None)));
             
             // Manage backend-owned conversation history
             app.manage(ConversationStore(Mutex::new(std::collections::HashMap::new())));
