@@ -1,5 +1,6 @@
 // Re-export the inner modules
 pub mod ai;
+pub mod security_tests;
 
 use tauri::State;
 use crate::db::{DbState};
