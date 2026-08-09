@@ -7,6 +7,7 @@ use crate::db::{DbState};
 pub struct ChatRequest {
     pub user_id: String,
     pub message: String,
+    pub recent_messages: Option<Vec<crate::ai::prompts::Message>>,
     pub conversation_id: Option<String>,
 }
 
@@ -59,7 +60,7 @@ pub fn chat_with_mentor(
     // Build conversation context
     let context = crate::ai::prompts::ConversationContext {
         user_id: request.user_id.clone(),
-        recent_messages: vec![], // Would load from DB in production
+        recent_messages: request.recent_messages.unwrap_or_else(|| vec![]),
     };
     
     // Generate response
@@ -72,15 +73,17 @@ pub fn chat_with_mentor(
     // Suggest actions based on content
     let suggested_actions = suggest_actions(&request.message, &sentiment);
     
-    // Log interaction
+    // Log interaction (Data Minimization: Do NOT store raw text)
     let _ = db.log_micro_interaction(&crate::db::models::MicroInteraction {
         id: String::new(),
         user_id: request.user_id,
-        interaction_type: "ai_chat".to_string(),
+        interaction_type: "ai_chat_ephemeral".to_string(),
         metadata: serde_json::json!({
-            "user_message": request.message,
-            "ai_response": &response,
+            "message_length": request.message.len(),
+            "response_length": response.len(),
             "sentiment": &sentiment,
+            "suggested_actions_count": suggested_actions.len(),
+            "data_policy": "minimized_ephemeral",
         }).to_string(),
         emotional_signal: sentiment_score(&sentiment),
         timestamp: chrono::Utc::now().to_rfc3339(),

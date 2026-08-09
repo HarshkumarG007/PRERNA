@@ -84,7 +84,11 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
     setIsTyping(true);
 
     try {
-      const chatResponse = await sendMessageToLLM(userId, userMsg.content);
+      // Pass the last 5 messages as context to prevent context window overflow
+      // Filter out system messages or introductory bot greetings if needed, but for now we pass the raw history
+      const recentContext = messages.slice(-5);
+      
+      const chatResponse = await sendMessageToLLM(userId, userMsg.content, recentContext);
       const aiMsg: ChatMessage = { role: 'assistant', content: chatResponse.response };
       setMessages([...newHistory, aiMsg]);
     } catch (err) {

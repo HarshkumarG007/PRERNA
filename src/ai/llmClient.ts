@@ -29,6 +29,7 @@ export interface ChatResponse {
 export async function sendMessageToLLM(
   userId: string,
   newMessage: string,
+  recentMessages: ChatMessage[] = [],
   conversationId?: string
 ): Promise<ChatResponse> {
   console.log('[LLM Client] Sending message to Rust backend:', newMessage);
@@ -38,6 +39,7 @@ export async function sendMessageToLLM(
       request: {
         user_id: userId,
         message: newMessage,
+        recent_messages: recentMessages,
         conversation_id: conversationId,
       }
     });
