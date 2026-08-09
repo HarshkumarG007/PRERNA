@@ -11,6 +11,11 @@ use db::{Database, DbState};
 use ai::{LocalLLM, LLMState};
 use std::sync::{Arc, Mutex};
 
+/// Backend-owned authenticated session state.
+/// The renderer CANNOT supply user_id to privileged commands;
+/// this is the single source of truth after a successful authentication.
+pub struct ActiveSession(pub Mutex<Option<String>>);
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     #[cfg(debug_assertions)]
@@ -27,6 +32,9 @@ pub fn run() {
                 .expect("Failed to initialize database");
             
             app.manage(DbState(std::sync::Mutex::new(database)));
+            
+            // Manage authenticated session state (initially empty)
+            app.manage(ActiveSession(Mutex::new(None)));
 
             // Attempt to initialize local LLM
             let llm_option = match LocalLLM::new(app.handle()) {

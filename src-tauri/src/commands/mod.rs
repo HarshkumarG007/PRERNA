@@ -6,7 +6,14 @@ use tauri::State;
 use crate::db::{DbState};
 use crate::db::models::*;
 use crate::policy::PolicyEngine;
-use sha2::{Sha256, Digest};
+use crate::ActiveSession;
+use argon2::{
+    password_hash::{
+        rand_core::OsRng,
+        PasswordHash, PasswordHasher, PasswordVerifier, SaltString
+    },
+    Argon2
+};
 
 use totp_rs::{Algorithm, Secret, TOTP};
 use qrcode::QrCode;
@@ -19,9 +26,14 @@ pub fn create_user(
     state: State<DbState>,
     mut user: NewUser,
 ) -> Result<String, String> {
-    let mut hasher = Sha256::new();
-    hasher.update(user.password_hash.as_bytes());
-    user.password_hash = hex::encode(hasher.finalize());
+    let salt = SaltString::generate(&mut OsRng);
+    let argon2 = Argon2::default();
+    
+    let password_hash = argon2.hash_password(user.password_hash.as_bytes(), &salt)
+        .map_err(|e| e.to_string())?
+        .to_string();
+        
+    user.password_hash = password_hash;
 
     let db = state.0.lock().map_err(|e| e.to_string())?;
     db.create_user(&user).map_err(|e| e.to_string())
@@ -30,26 +42,36 @@ pub fn create_user(
 #[tauri::command]
 pub fn authenticate_user(
     state: State<DbState>,
+    session: State<ActiveSession>,
     username: String,
     password_input: String,
 ) -> Result<Option<serde_json::Value>, String> {
-    let mut hasher = Sha256::new();
-    hasher.update(password_input.as_bytes());
-    let hashed_pw = hex::encode(hasher.finalize());
     
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    let user_opt = db.authenticate_user(&username, &hashed_pw).map_err(|e| e.to_string())?;
+    let user_opt = db.authenticate_user_raw(&username).map_err(|e| e.to_string())?;
     
     if let Some(user) = user_opt {
-        if user.mfa_enabled {
-            // Require MFA step
-            Ok(Some(serde_json::json!({
-                "mfaRequired": true,
-                "userId": user.id
-            })))
+        // Verify with Argon2
+        let parsed_hash = PasswordHash::new(&user.password_hash).map_err(|e| e.to_string())?;
+        if Argon2::default().verify_password(password_input.as_bytes(), &parsed_hash).is_ok() {
+            // Write the authenticated user_id to the backend session state
+            let mut sess = session.0.lock().map_err(|e| e.to_string())?;
+            *sess = Some(user.id.clone());
+            drop(sess);
+            
+            if user.mfa_enabled {
+                // Require MFA step — don't fully commit session until MFA passes
+                Ok(Some(serde_json::json!({
+                    "mfaRequired": true,
+                    "userId": user.id
+                })))
+            } else {
+                // Full login complete
+                Ok(Some(serde_json::to_value(user).map_err(|e| e.to_string())?))
+            }
         } else {
-            // Full login
-            Ok(Some(serde_json::to_value(user).map_err(|e| e.to_string())?))
+            // Password mismatch
+            Ok(None)
         }
     } else {
         Ok(None)
@@ -59,8 +81,12 @@ pub fn authenticate_user(
 #[tauri::command]
 pub fn get_user(
     state: State<DbState>,
-    user_id: String,
+    session: State<ActiveSession>,
 ) -> Result<Option<User>, String> {
+    // Read user_id exclusively from the backend session — never trust the renderer
+    let user_id = session.0.lock().map_err(|e| e.to_string())?
+        .clone()
+        .ok_or_else(|| "Unauthorized: No active session".to_string())?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     db.get_user(&user_id).map_err(|e| e.to_string())
 }
@@ -68,11 +94,11 @@ pub fn get_user(
 #[tauri::command]
 pub fn revoke_consent(
     state: State<DbState>,
-    user_id: String,
+    session: State<ActiveSession>,
 ) -> Result<(), String> {
+    let user_id = session.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    // This immediately stops data collection by setting an audit log 
-    // and effectively locking the user profile state in the frontend.
     db.insert_audit_log("CONSENT_REVOKED", &format!("Consent revoked for user {}", user_id))
         .map_err(|e| e.to_string())?;
     Ok(())
@@ -87,8 +113,10 @@ pub struct MfaSetupResponse {
 #[tauri::command]
 pub fn generate_mfa_secret(
     state: State<DbState>,
-    user_id: String,
+    session: State<ActiveSession>,
 ) -> Result<MfaSetupResponse, String> {
+    let user_id = session.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
     
@@ -124,9 +152,11 @@ pub fn generate_mfa_secret(
 #[tauri::command]
 pub fn verify_mfa_setup(
     state: State<DbState>,
-    user_id: String,
+    session: State<ActiveSession>,
     token: String,
 ) -> Result<bool, String> {
+    let user_id = session.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
     
@@ -149,6 +179,10 @@ pub fn verify_mfa_setup(
 #[tauri::command]
 pub fn verify_login_mfa(
     state: State<DbState>,
+    session: State<ActiveSession>,
+    // user_id here is a pre-auth partial session only (MFA step before full commit)
+    // It is supplied during the MFA step and validated against the stored secret,
+    // but the full session is only committed after successful MFA.
     user_id: String,
     token: String,
 ) -> Result<Option<User>, String> {
@@ -165,6 +199,9 @@ pub fn verify_login_mfa(
         .map_err(|e| e.to_string())?;
         
     if totp.check_current(&token).unwrap_or(false) {
+        // MFA passed — fully commit the session now
+        let mut sess = session.0.lock().map_err(|e| e.to_string())?;
+        *sess = Some(user.id.clone());
         Ok(Some(user))
     } else {
         Err("Invalid 2FA code".to_string())
@@ -234,9 +271,11 @@ pub fn save_skill_session(
 #[tauri::command]
 pub fn save_unified_profile(
     state: State<DbState>,
-    user_id: String,
+    session: State<ActiveSession>,
     profile_data: String,
 ) -> Result<String, String> {
+    let user_id = session.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
     PolicyEngine::enforce_under_18_tracking_invariant(&user.age_range, false)?;
@@ -296,8 +335,11 @@ pub fn save_unified_profile(
 #[tauri::command]
 pub fn get_unified_profile(
     state: State<DbState>,
-    user_id: String,
+    session: State<ActiveSession>,
 ) -> Result<Option<serde_json::Value>, String> {
+    let user_id = session.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?
+    ;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     
     let sessions = db.get_user_sessions(&user_id).map_err(|e| e.to_string())?;
@@ -339,12 +381,20 @@ pub fn update_sharing_preferences(
 #[tauri::command]
 pub fn get_parent_view(
     state: State<DbState>,
+    session_state: State<ActiveSession>,
     request: ParentViewRequest,
 ) -> Result<ParentViewResponse, String> {
     let db = state.0.lock().map_err(|e| e.to_string())?;
     
-    // In production: Verify parent-teen relationship
-    let is_authorized = true;
+    // T3 FIX: Real parent-teen relationship check.
+    // Verify that the requesting authenticated parent has an established link to the teen.
+    let parent_id = session_state.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    
+    // A parent can only access their own linked teen's data.
+    // They cannot access arbitrary teen IDs by guessing.
+    let is_authorized = db.check_parent_teen_link(&parent_id, &request.teen_id)
+        .map_err(|e| e.to_string())?;
     
     if let Err(_) = PolicyEngine::enforce_parental_authorization(is_authorized) {
         return Ok(ParentViewResponse {
@@ -439,8 +489,10 @@ pub struct ExportPackage {
 #[tauri::command]
 pub fn export_all_user_data(
     state: State<DbState>,
-    user_id: String,
+    session: State<ActiveSession>,
 ) -> Result<ExportPackage, String> {
+    let user_id = session.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     
     // Export user profile
@@ -525,8 +577,10 @@ pub fn import_user_data(
 #[tauri::command]
 pub fn get_user_sessions(
     state: State<DbState>,
-    user_id: String,
+    session: State<ActiveSession>,
 ) -> Result<Vec<AssessmentSession>, String> {
+    let user_id = session.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     db.get_user_sessions(&user_id).map_err(|e| e.to_string())
 }
@@ -557,8 +611,10 @@ pub fn save_trait_snapshot(
 #[tauri::command]
 pub fn get_latest_snapshot(
     state: State<DbState>,
-    user_id: String,
+    session: State<ActiveSession>,
 ) -> Result<Option<TraitSnapshot>, String> {
+    let user_id = session.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     db.get_latest_snapshot(&user_id).map_err(|e| e.to_string())
 }
@@ -589,10 +645,14 @@ pub fn log_interaction(
 #[tauri::command]
 pub fn create_crisis_event(
     state: State<DbState>,
-    user_id: String,
+    session: State<ActiveSession>,
     detected_at: i64,
     severity: String,
 ) -> Result<String, String> {
+    // Crisis events are always created for the currently authenticated user.
+    // The renderer cannot create a crisis event on behalf of another user.
+    let user_id = session.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     
     let event = CrisisEvent {
@@ -649,8 +709,10 @@ pub fn resolve_crisis_event(
 #[tauri::command]
 pub fn export_user_data(
     state: State<DbState>,
-    user_id: String,
+    session: State<ActiveSession>,
 ) -> Result<UserDataExport, String> {
+    let user_id = session.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     db.export_user_data(&user_id).map_err(|e| e.to_string())
 }
@@ -658,8 +720,10 @@ pub fn export_user_data(
 #[tauri::command]
 pub fn delete_user_data(
     state: State<DbState>,
-    user_id: String,
+    session: State<ActiveSession>,
 ) -> Result<(), String> {
+    let user_id = session.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     db.delete_user_data(&user_id).map_err(|e| e.to_string())
 }

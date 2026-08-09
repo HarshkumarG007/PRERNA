@@ -2,12 +2,15 @@ use tauri::State;
 use serde::{Deserialize, Serialize};
 use crate::ai::{LLMState};
 use crate::db::{DbState};
+use crate::ActiveSession;
+use crate::ai::safety::SafetyFilter;
 
 #[derive(Debug, Deserialize)]
 pub struct ChatRequest {
-    pub user_id: String,
+    // T7: user_id and recent_messages removed from client payload.
+    // Identity is derived from the backend ActiveSession.
+    // Conversation history is managed by the backend ring buffer (future sprint).
     pub message: String,
-    pub recent_messages: Option<Vec<crate::ai::prompts::Message>>,
     pub conversation_id: Option<String>,
 }
 
@@ -31,11 +34,29 @@ pub struct ModelStatus {
 pub fn chat_with_mentor(
     llm_state: State<LLMState>,
     db_state: State<DbState>,
+    session: State<ActiveSession>,
     request: ChatRequest,
 ) -> Result<ChatResponse, String> {
+    // T1: Derive user identity from backend session, never from renderer
+    let user_id = session.0.lock().map_err(|e| e.to_string())?
+        .clone()
+        .ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    
+    // T6: Input-side SafetyFilter check.
+    // If the user's message itself contains crisis-level language, route to crisis
+    // protocol path rather than passing it to the LLM at all.
+    let input_filter = SafetyFilter::new();
+    if input_filter.detect_crisis(&request.message) {
+        return Ok(ChatResponse {
+            response: "It sounds like you might be going through something really difficult. You are not alone. Please reach out to the KIRAN Mental Health Helpline: 1800-599-0019 (free, 24/7, multilingual).".to_string(),
+            conversation_id: request.conversation_id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string()),
+            sentiment: "crisis".to_string(),
+            suggested_actions: vec!["Call KIRAN 1800-599-0019".to_string()],
+        });
+    }
+    
     let mut guard = llm_state.0.lock().map_err(|e| e.to_string())?;
     
-    // Check if the LLM was successfully initialized
     if guard.is_none() {
         return Err("AI model is not loaded. Please download it first.".to_string());
     }
@@ -45,7 +66,7 @@ pub fn chat_with_mentor(
     let db = db_state.0.lock().map_err(|e| e.to_string())?;
     
     // Get user's trait profile
-    let profile = db.get_latest_snapshot(&request.user_id)
+    let profile = db.get_latest_snapshot(&user_id)
         .map_err(|e| e.to_string())?;
     
     let trait_json = match profile {
@@ -54,29 +75,27 @@ pub fn chat_with_mentor(
             "riasec": p.riasec,
             "emotional": p.emotional_profile,
         }),
-        None => serde_json::json!({}), // New user - neutral profile
+        None => serde_json::json!({}),
     };
     
-    // Build conversation context
+    // T7: Conversation context is backend-owned. The renderer no longer
+    // supplies recent_messages. The ring buffer (future sprint) will feed this.
     let context = crate::ai::prompts::ConversationContext {
-        user_id: request.user_id.clone(),
-        recent_messages: request.recent_messages.unwrap_or_else(|| vec![]),
+        user_id: user_id.clone(),
+        recent_messages: vec![], // Backend ring buffer goes here
     };
     
-    // Generate response
+    // Generate response (output-side SafetyFilter is called inside generate_response)
     let response = llm.generate_response(&context, &request.message, &trait_json)
         .map_err(|e| e.to_string())?;
     
-    // Analyze sentiment
     let sentiment = analyze_sentiment(&request.message);
-    
-    // Suggest actions based on content
     let suggested_actions = suggest_actions(&request.message, &sentiment);
     
     // Log interaction (Data Minimization: Do NOT store raw text)
     let _ = db.log_micro_interaction(&crate::db::models::MicroInteraction {
         id: String::new(),
-        user_id: request.user_id,
+        user_id: user_id.clone(),
         interaction_type: "ai_chat_ephemeral".to_string(),
         metadata: serde_json::json!({
             "message_length": request.message.len(),

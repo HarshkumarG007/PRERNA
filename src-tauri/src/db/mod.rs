@@ -85,6 +85,18 @@ impl Database {
         // Run migrations for MFA columns if they don't exist
         let _ = self.conn.execute("ALTER TABLE users ADD COLUMN mfa_secret TEXT", []);
         let _ = self.conn.execute("ALTER TABLE users ADD COLUMN mfa_enabled BOOLEAN DEFAULT 0", []);
+        
+        // T3: Parent-teen relationship table for real authorization
+        self.conn.execute_batch("
+            CREATE TABLE IF NOT EXISTS parent_teen_relationships (
+                id TEXT PRIMARY KEY,
+                parent_user_id TEXT NOT NULL,
+                teen_user_id TEXT NOT NULL,
+                established_at TEXT NOT NULL,
+                consent_record_id TEXT,
+                UNIQUE(parent_user_id, teen_user_id)
+            );
+        ").context("Failed to create parent_teen_relationships table")?;
 
         info!("Database schema initialized");
         Ok(())
@@ -115,18 +127,13 @@ impl Database {
         Ok(id)
     }
 
-    pub fn authenticate_user(&self, username: &str, password_hash_input: &str) -> AnyhowResult<Option<User>> {
+    pub fn authenticate_user_raw(&self, username: &str) -> AnyhowResult<Option<User>> {
         let mut stmt = self.conn.prepare(
             "SELECT id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_secret, mfa_enabled 
              FROM users WHERE username = ?1"
         )?;
         
         let user = stmt.query_row([username], |row| {
-            let db_password_hash: String = row.get(2)?;
-            if db_password_hash != password_hash_input {
-                return Err(rusqlite::Error::QueryReturnedNoRows); // Hack to return None
-            }
-            
             let region_enc: String = row.get(5)?;
             let lang_enc: String = row.get(6)?;
             
@@ -172,6 +179,18 @@ impl Database {
         }).optional()?;
         
         Ok(user)
+    }
+
+    /// T3: Check whether an authenticated parent has an established link to a teen.
+    /// Returns false (denies access) if no explicit relationship record exists.
+    pub fn check_parent_teen_link(&self, parent_id: &str, teen_id: &str) -> AnyhowResult<bool> {
+        let count: i64 = self.conn.query_row(
+            "SELECT COUNT(*) FROM parent_teen_relationships 
+             WHERE parent_user_id = ?1 AND teen_user_id = ?2",
+            rusqlite::params![parent_id, teen_id],
+            |row| row.get(0),
+        )?;
+        Ok(count > 0)
     }
 
     // === ASSESSMENT OPERATIONS ===
