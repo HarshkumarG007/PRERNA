@@ -14,7 +14,9 @@ CREATE TABLE IF NOT EXISTS users (
     encryption_key_hash TEXT,
     last_sync TEXT,
     mfa_secret TEXT,
-    mfa_enabled BOOLEAN DEFAULT 0
+    mfa_enabled BOOLEAN DEFAULT 0,
+    role TEXT NOT NULL DEFAULT 'teen',
+    tenant_id TEXT
 );
 
 -- Assessment Sessions (gamified interactions)

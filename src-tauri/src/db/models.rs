@@ -12,6 +12,8 @@ pub struct User {
     pub encryption_key_hash: String,
     pub mfa_secret: Option<String>,
     pub mfa_enabled: bool,
+    pub role: String,
+    pub tenant_id: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]

@@ -30,6 +30,13 @@ pub fn generate_school_report(
         return Err("Unauthorized: Must be an authorized educator to request school analytics".to_string());
     }
     
+    // RED-009 Amendment: Fail-closed tenant boundary
+    for student_id in &student_ids {
+        if !db.check_educator_tenant_access(&caller_id, student_id) {
+            return Err("Unauthorized: Cannot request data for a student outside your tenant (or student does not exist)".to_string());
+        }
+    }
+    
     // K-Anonymity Guard: Refuse to process cohorts smaller than 5
     let k_threshold = 5;
     if student_ids.len() < k_threshold {

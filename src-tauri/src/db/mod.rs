@@ -110,8 +110,8 @@ impl Database {
         let encrypted_lang = self.encrypt_field(&user.language)?;
         
         self.conn.execute(
-            "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 0)",
+            "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled, role, tenant_id)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 0, 'teen', NULL)",
             params![
                 &id,
                 &user.username,
@@ -156,7 +156,7 @@ impl Database {
 
     pub fn get_user(&self, user_id: &str) -> AnyhowResult<Option<User>> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_secret, mfa_enabled 
+            "SELECT id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_secret, mfa_enabled, role, tenant_id
              FROM users WHERE id = ?1"
         )?;
         
@@ -175,6 +175,8 @@ impl Database {
                 encryption_key_hash: row.get(7)?,
                 mfa_secret: row.get(8).ok(),
                 mfa_enabled: row.get(9).unwrap_or(false),
+                role: row.get(10).unwrap_or_else(|_| "teen".to_string()),
+                tenant_id: row.get(11).ok(),
             })
         }).optional()?;
         
@@ -194,16 +196,41 @@ impl Database {
     
     // === AUTHORIZATION STUBS ===
     
-    pub fn is_reviewer(&self, _user_id: &str) -> bool {
-        // T5: In a full schema, this would query a roles table or column.
-        // For security release testing, we mock this strictly.
-        // E.g., we could return true if user_id starts with "REV_", but for now:
-        true // Assume true for test suite; in production, this MUST check RBAC.
+    pub fn is_reviewer(&self, user_id: &str) -> bool {
+        let role: Result<String, _> = self.conn.query_row(
+            "SELECT role FROM users WHERE id = ?1",
+            rusqlite::params![user_id],
+            |row| row.get(0)
+        );
+        role.unwrap_or_default() == "reviewer"
     }
     
-    pub fn is_educator(&self, _user_id: &str) -> bool {
-        // RED-009: In a full schema, this would query a tenant/roles table.
-        true // Assume true for test suite; in production, this MUST check RBAC.
+    pub fn is_educator(&self, user_id: &str) -> bool {
+        let role: Result<String, _> = self.conn.query_row(
+            "SELECT role FROM users WHERE id = ?1",
+            rusqlite::params![user_id],
+            |row| row.get(0)
+        );
+        role.unwrap_or_default() == "educator"
+    }
+    
+    pub fn check_educator_tenant_access(&self, educator_id: &str, student_id: &str) -> bool {
+        // Fetch both tenants
+        let ed_tenant: Result<Option<String>, _> = self.conn.query_row(
+            "SELECT tenant_id FROM users WHERE id = ?1",
+            rusqlite::params![educator_id],
+            |row| row.get(0)
+        );
+        let st_tenant: Result<Option<String>, _> = self.conn.query_row(
+            "SELECT tenant_id FROM users WHERE id = ?1",
+            rusqlite::params![student_id],
+            |row| row.get(0)
+        );
+        
+        match (ed_tenant, st_tenant) {
+            (Ok(Some(ed)), Ok(Some(st))) => ed == st,
+            _ => false, // fail closed if missing or error
+        }
     }
 
     // === ASSESSMENT OPERATIONS ===
@@ -398,6 +425,17 @@ impl Database {
         Ok(events)
     }
 
+    pub fn claim_crisis_event(&self, event_id: &str, reviewer_id: &str) -> AnyhowResult<()> {
+        let updated = self.conn.execute(
+            "UPDATE crisis_events SET reviewer_id = ?1 WHERE id = ?2 AND reviewer_id IS NULL AND human_review_status = 'pending'",
+            rusqlite::params![reviewer_id, event_id]
+        )?;
+        if updated == 0 {
+            return Err(anyhow::anyhow!("AlreadyAssigned or event does not exist / not pending"));
+        }
+        Ok(())
+    }
+
     pub fn resolve_crisis_event(
         &self,
         event_id: &str,
@@ -409,16 +447,15 @@ impl Database {
         let sql = "
             UPDATE crisis_events
             SET human_review_status = 'resolved',
-                reviewer_id = ?1,
-                reviewer_credentials_ref = ?2,
-                decision = ?3,
-                teen_informed_at = ?4
-            WHERE id = ?5 AND human_review_status != 'resolved'
+                reviewer_credentials_ref = ?1,
+                decision = ?2,
+                teen_informed_at = ?3
+            WHERE id = ?4 AND reviewer_id = ?5 AND human_review_status = 'pending'
         ";
         
-        let updated = self.conn.execute(sql, params![reviewer_id, reviewer_credentials_ref, decision, teen_informed_at, event_id])?;
+        let updated = self.conn.execute(sql, rusqlite::params![reviewer_credentials_ref, decision, teen_informed_at, event_id, reviewer_id])?;
         if updated == 0 {
-            return Err(anyhow::anyhow!("FATAL STATE MACHINE EXCEPTION: Event is either already resolved or does not exist."));
+            return Err(anyhow::anyhow!("FATAL STATE MACHINE EXCEPTION: Event is not pending, or not assigned to you, or does not exist."));
         }
         Ok(())
     }

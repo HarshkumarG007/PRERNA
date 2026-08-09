@@ -7,6 +7,11 @@ use crate::db::{DbState};
 use crate::db::models::*;
 use crate::policy::PolicyEngine;
 use crate::ActiveSession;
+use aes_gcm::{
+    aead::{Aead, AeadCore, KeyInit, OsRng as AeadOsRng},
+    Aes256Gcm, Nonce,
+};
+use base64::{engine::general_purpose::STANDARD as b64, Engine};
 use argon2::{
     password_hash::{
         rand_core::OsRng,
@@ -146,8 +151,17 @@ pub struct MfaSetupResponse {
 }
 
 #[tauri::command]
-pub fn logout(session: State<ActiveSession>) -> Result<(), String> {
+pub fn logout(
+    session: State<ActiveSession>,
+    store: State<crate::ConversationStore>,
+) -> Result<(), String> {
     let mut sess = session.0.lock().map_err(|e| e.to_string())?;
+    // RED-025: Evict memory on logout
+    if let Some(user_id) = sess.clone() {
+        if let Ok(mut store_guard) = store.0.lock() {
+            store_guard.remove(&user_id);
+        }
+    }
     *sess = None;
     Ok(())
 }
@@ -529,7 +543,17 @@ fn extract_strengths(profile: &crate::db::models::TraitSnapshot) -> Vec<String> 
     strengths
 }
 
-#[derive(Debug, serde::Serialize)]
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct EncryptedExportEnvelope {
+    pub version: String,
+    pub kdf: String,
+    pub alg: String,
+    pub salt: String, // Base64
+    pub nonce: String, // Base64
+    pub ciphertext: String, // Base64
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct ExportPackage {
     pub user: serde_json::Value,
     pub sessions: Vec<serde_json::Value>,
@@ -538,99 +562,125 @@ pub struct ExportPackage {
 }
 
 #[tauri::command]
-pub fn export_all_user_data(
+pub fn export_user_data(
     state: State<DbState>,
     session: State<ActiveSession>,
-) -> Result<ExportPackage, String> {
+    password: Option<String>,
+) -> Result<EncryptedExportEnvelope, String> {
     let user_id = session.0.lock().map_err(|e| e.to_string())?
         .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     
-    // Export user profile
-    let user = db.get_user(&user_id)
-        .map_err(|e| e.to_string())?
-        .ok_or("User not found")?;
+    let pwd = password.ok_or_else(|| "Password required for export".to_string())?;
     
-    // Export all sessions
-    let sessions = db.get_user_sessions(&user_id)
-        .map_err(|e| e.to_string())?;
+    let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
+    let sessions = db.get_user_sessions(&user_id).map_err(|e| e.to_string())?;
+    let snapshots = db.get_user_snapshots(&user_id).map_err(|e| e.to_string())?;
     
-    // Export trait snapshots
-    let snapshots = db.get_user_snapshots(&user_id)
-        .map_err(|e| e.to_string())?;
+    let package = ExportPackage {
+        user: serde_json::to_value(user).unwrap(),
+        sessions: sessions.into_iter().map(|s| serde_json::to_value(s).unwrap()).collect(),
+        snapshots: snapshots.into_iter().map(|s| serde_json::to_value(s).unwrap()).collect(),
+        preferences: serde_json::json!({}),
+    };
     
-    Ok(ExportPackage {
-        user: serde_json::to_value(user).map_err(|e| e.to_string())?,
-        sessions: sessions.into_iter()
-            .map(|s| serde_json::to_value(s).unwrap())
-            .collect(),
-        snapshots: snapshots.into_iter()
-            .map(|s| serde_json::to_value(s).unwrap())
-            .collect(),
-        preferences: serde_json::json!({}), // Mock preferences
+    let plaintext = serde_json::to_vec(&package).map_err(|e| e.to_string())?;
+    
+    use rand::RngCore;
+    let mut salt = [0u8; 16];
+    rand::thread_rng().fill_bytes(&mut salt);
+    
+    let mut key = [0u8; 32];
+    Argon2::default().hash_password_into(pwd.as_bytes(), &salt, &mut key).map_err(|e| e.to_string())?;
+    
+    let cipher = Aes256Gcm::new(aes_gcm::Key::<Aes256Gcm>::from_slice(&key));
+    let mut nonce_bytes = [0u8; 12];
+    rand::thread_rng().fill_bytes(&mut nonce_bytes);
+    let nonce = Nonce::from_slice(&nonce_bytes);
+    
+    let ciphertext = cipher.encrypt(nonce, plaintext.as_ref()).map_err(|e| format!("Encryption failed: {}", e))?;
+    
+    Ok(EncryptedExportEnvelope {
+        version: "v1".to_string(),
+        kdf: "argon2id".to_string(),
+        alg: "aes-256-gcm".to_string(),
+        salt: base64::encode(salt),
+        nonce: base64::encode(nonce_bytes),
+        ciphertext: base64::encode(ciphertext),
     })
-}
-
-#[derive(Debug, serde::Deserialize)]
-pub struct ImportPackage {
-    pub user: serde_json::Value,
-    pub sessions: Vec<serde_json::Value>,
-    pub snapshots: Vec<serde_json::Value>,
-    pub preferences: serde_json::Value,
 }
 
 #[tauri::command]
 pub fn import_user_data(
     state: State<DbState>,
     session_state: State<ActiveSession>,
-    data: ImportPackage,
+    envelope: EncryptedExportEnvelope,
+    password: Option<String>,
 ) -> Result<String, String> {
-    // RED-021: Enforce authentication
     let caller_id = session_state.0.lock().map_err(|e| e.to_string())?
         .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
         
+    let pwd = password.ok_or_else(|| "Password required for import".to_string())?;
+    
+    let salt = base64::decode(&envelope.salt).map_err(|_| "Invalid salt".to_string())?;
+    let nonce_bytes = base64::decode(&envelope.nonce).map_err(|_| "Invalid nonce".to_string())?;
+    let ciphertext = base64::decode(&envelope.ciphertext).map_err(|_| "Invalid ciphertext".to_string())?;
+    
+    let mut key = [0u8; 32];
+    Argon2::default().hash_password_into(pwd.as_bytes(), &salt, &mut key).map_err(|_| "Key derivation failed".to_string())?;
+    
+    let cipher = Aes256Gcm::new(aes_gcm::Key::<Aes256Gcm>::from_slice(&key));
+    let nonce = Nonce::from_slice(&nonce_bytes);
+    
+    let plaintext = cipher.decrypt(nonce, ciphertext.as_ref()).map_err(|_| "Invalid password or corrupted export".to_string())?;
+    
+    let data: ExportPackage = serde_json::from_slice(&plaintext).map_err(|_| "Invalid export schema".to_string())?;
+    
     let db = state.0.lock().map_err(|e| e.to_string())?;
     
-    // Import user
     let mut user: crate::db::models::User = serde_json::from_value(data.user)
-        .map_err(|e| format!("Invalid user data: {}", e))?;
-        
-    // Override imported user ID with authenticated session ID to prevent cross-account injection
+        .map_err(|_| "Invalid user data in export".to_string())?;
     user.id = caller_id.clone();
     
-    // Check if user exists
-    match db.get_user(&user.id).map_err(|e| e.to_string())? {
-        Some(_) => {
-            // Update existing (mocking with create_user for now)
-            // db.update_user(&user).map_err(|e| e.to_string())?;
-        }
-        None => {
-            // Create new
-            db.create_user(&crate::db::models::NewUser {
-                age_range: user.age_range,
-                region: user.region,
-                language: user.language,
-            }).map_err(|e| e.to_string())?;
-        }
-    }
+    // TRANSACTIONAL IMPORT
+    db.conn.execute("BEGIN TRANSACTION", []).map_err(|e| e.to_string())?;
     
-    // Import sessions
-    for session_json in data.sessions {
-        let session: crate::db::models::AssessmentSession = 
-            serde_json::from_value(session_json)
+    let result: Result<(), String> = (|| {
+        match db.get_user(&user.id).map_err(|e| e.to_string())? {
+            Some(_) => {} 
+            None => {
+                db.create_user(&crate::db::models::NewUser {
+                    username: user.username,
+                    password_hash: user.password_hash,
+                    age_range: user.age_range,
+                    region: user.region,
+                    language: user.language,
+                }).map_err(|e| e.to_string())?;
+            }
+        }
+        
+        for session_json in data.sessions {
+            let session: crate::db::models::AssessmentSession = serde_json::from_value(session_json)
                 .map_err(|e| format!("Invalid session: {}", e))?;
-        db.save_session(&session).map_err(|e| e.to_string())?;
-    }
-    
-    // Import snapshots
-    for snapshot_json in data.snapshots {
-        let snapshot: crate::db::models::TraitSnapshot = 
-            serde_json::from_value(snapshot_json)
+            db.save_session(&session).map_err(|e| e.to_string())?;
+        }
+        
+        for snapshot_json in data.snapshots {
+            let snapshot: crate::db::models::TraitSnapshot = serde_json::from_value(snapshot_json)
                 .map_err(|e| format!("Invalid snapshot: {}", e))?;
-        db.save_trait_snapshot(&snapshot).map_err(|e| e.to_string())?;
+            db.save_trait_snapshot(&snapshot).map_err(|e| e.to_string())?;
+        }
+        Ok(())
+    })();
+    
+    if result.is_err() {
+        let _ = db.conn.execute("ROLLBACK", []);
+        return result;
     }
     
-    Ok(user.id)
+    db.conn.execute("COMMIT", []).map_err(|e| e.to_string())?;
+    
+    Ok(caller_id)
 }
 
 #[tauri::command]
@@ -744,6 +794,24 @@ pub fn get_pending_crisis_events(
 }
 
 #[tauri::command]
+pub fn claim_crisis_event(
+    state: State<DbState>,
+    session_state: State<ActiveSession>,
+    event_id: String,
+) -> Result<(), String> {
+    let reviewer_id = session_state.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+        
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    
+    if !db.is_reviewer(&reviewer_id) {
+        return Err("Unauthorized: Must be a clinical reviewer".to_string());
+    }
+    
+    db.claim_crisis_event(&event_id, &reviewer_id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 pub fn resolve_crisis_event(
     state: State<DbState>,
     session_state: State<ActiveSession>,
@@ -763,11 +831,7 @@ pub fn resolve_crisis_event(
         return Err("Unauthorized: Must be a clinical reviewer".to_string());
     }
     
-    // Check if event is pending
-    let pending_events = db.get_pending_crisis_events().map_err(|e| e.to_string())?;
-    if !pending_events.iter().any(|e| e.id == event_id) {
-        return Err("Event is not pending or does not exist".to_string());
-    }
+    // DB now atomicly checks assignment and pending status in `resolve_crisis_event`
     
     PolicyEngine::enforce_guardian_notification_invariant(&decision, teen_informed_at)?;
     
@@ -787,16 +851,7 @@ pub fn resolve_crisis_event(
 
 // === DATA MANAGEMENT COMMANDS ===
 
-#[tauri::command]
-pub fn export_user_data(
-    state: State<DbState>,
-    session: State<ActiveSession>,
-) -> Result<UserDataExport, String> {
-    let user_id = session.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
-    let db = state.0.lock().map_err(|e| e.to_string())?;
-    db.export_user_data(&user_id).map_err(|e| e.to_string())
-}
+// Old export_user_data removed
 
 #[tauri::command]
 pub fn delete_user_data(
