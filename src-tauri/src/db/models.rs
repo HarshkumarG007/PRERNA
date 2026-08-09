@@ -40,7 +40,6 @@ pub struct AssessmentSession {
 
 #[derive(Debug, Deserialize)]
 pub struct NewAssessmentSession {
-    pub user_id: String,
     pub session_type: String,
     pub raw_choices: String,
     pub derived_traits: String,
@@ -101,7 +100,6 @@ pub struct MicroInteraction {
 
 #[derive(Debug, Deserialize)]
 pub struct NewMicroInteraction {
-    pub user_id: String,
     pub interaction_type: String,
     pub metadata: String,
     pub emotional_signal: f32,

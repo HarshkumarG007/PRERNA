@@ -74,7 +74,6 @@ export function useDatabase() {
 
   // Session operations
   const saveSession = useCallback(async (session: {
-    user_id: string;
     session_type: string;
     raw_choices: string;
     derived_traits: string;

@@ -37,7 +37,7 @@ export const SharedDashboardView: React.FC<SharedDashboardViewProps> = ({ data }
   }
 
   if (showArena) {
-    return <SkillArena userId={data.userId} onExit={() => setShowArena(false)} />;
+    return <SkillArena onExit={() => setShowArena(false)} />;
   }
   
   if (showSynthesis) {
@@ -75,7 +75,7 @@ export const SharedDashboardView: React.FC<SharedDashboardViewProps> = ({ data }
         <div className="lg:col-span-2 space-y-6">
           <ModelManager />
           <div className="h-full min-h-[600px]">
-            <MentorChat userId={data.userId} />
+            <MentorChat />
           </div>
         </div>
 

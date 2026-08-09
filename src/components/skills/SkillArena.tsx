@@ -8,7 +8,7 @@ import { ArrowLeft, Gamepad2, BrainCircuit, Sparkles, CheckCircle2 } from 'lucid
 
 type GameType = 'pattern' | 'word' | 'spatial' | 'reaction' | 'creative';
 
-export const SkillArena: React.FC<{ userId: string; onExit: () => void }> = ({ userId, onExit }) => {
+export const SkillArena: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   const [activeGame, setActiveGame] = useState<GameType | null>(null);
   const [engine] = useState(() => new SkillArenaEngine());
   const [completedGames, setCompletedGames] = useState<Set<GameType>>(new Set());
@@ -43,7 +43,6 @@ export const SkillArena: React.FC<{ userId: string; onExit: () => void }> = ({ u
       setShowResults(true);
       
       await saveSession({
-        user_id: userId,
         session_type: 'skill_arena',
         raw_choices: engine.exportData(),
         derived_traits: JSON.stringify(cognitiveProfile),

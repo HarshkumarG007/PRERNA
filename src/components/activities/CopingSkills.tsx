@@ -74,7 +74,6 @@ export const CopingSkills: React.FC<{ onClose: () => void }> = ({ onClose }) => 
       try {
         await invoke('log_interaction', {
           interaction: {
-            user_id: user.id,
             interaction_type: 'coping_skill_completed',
             metadata: JSON.stringify({ exercise: exerciseId }),
             emotional_signal: 0.8, // positive emotional signal for completing a coping exercise

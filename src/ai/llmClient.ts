@@ -27,7 +27,6 @@ export interface ChatResponse {
  * Sends a message to the local LLM sidecar (llama.cpp) via Tauri's IPC.
  */
 export async function sendMessageToLLM(
-  userId: string,
   newMessage: string,
   recentMessages: ChatMessage[] = [],
   conversationId?: string
@@ -37,7 +36,6 @@ export async function sendMessageToLLM(
   try {
     const response = await invoke<ChatResponse>('chat_with_mentor', {
       request: {
-        user_id: userId,
         message: newMessage,
         recent_messages: recentMessages,
         conversation_id: conversationId,

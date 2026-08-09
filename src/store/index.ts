@@ -356,7 +356,6 @@ export const useAppStore = create<AppState>()(
         
         await invoke('save_session', {
           session: {
-            user_id: user.id,
             session_type: session.type,
             raw_choices: JSON.stringify(session.metadata),
             derived_traits: JSON.stringify(session.score ? { score: session.score } : {})

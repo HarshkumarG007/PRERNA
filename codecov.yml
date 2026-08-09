@@ -1,0 +1,17 @@
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+      critical:
+        target: 90%
+        paths:
+          - "src-tauri/src/policy/"
+          - "src/engine/crisis/"
+          - "src/engine/consent/"
+
+ignore:
+  - "node_modules"
+  - "target"
+  - "src-tauri/target"

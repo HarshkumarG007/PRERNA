@@ -18,7 +18,7 @@ interface ChatResponse {
   suggested_actions: string[];
 }
 
-export const MentorChat: React.FC<{ userId: string }> = ({ userId }) => {
+export const MentorChat: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
@@ -55,7 +55,6 @@ export const MentorChat: React.FC<{ userId: string }> = ({ userId }) => {
     try {
       const response = await invoke<ChatResponse>('chat_with_mentor', {
         request: {
-          user_id: userId,
           message: userMessage.content,
         },
       });
