@@ -29,7 +29,7 @@ export const LifeQuests: React.FC<LifeQuestsProps> = ({ userId }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [showResults, setShowResults] = useState(false);
   const [profile, setProfile] = useState<TraitProfile | null>(null);
-  const [narrative, setNarrative] = useState<string>('');
+  const [revealedTrait, setRevealedTrait] = useState<{name: string, desc: string} | null>(null);
   const [sessionError, setSessionError] = useState<string | null>(null);
   
   const startTimeRef = useRef<number>(0);
@@ -81,15 +81,22 @@ export const LifeQuests: React.FC<LifeQuestsProps> = ({ userId }) => {
     
     engine.recordResponse(currentScene, choice, reactionTime);
     
-    if (choice.narrativeConsequence) {
-      setNarrative(choice.narrativeConsequence);
-      await new Promise(r => setTimeout(r, 2000));
-    }
+    // Find dominant trait for reveal
+    const dominantMapping = choice.traitMappings.reduce((prev, current) => (prev.weight > current.weight) ? prev : current);
+    
+    setRevealedTrait({
+      name: dominantMapping.trait.replace('_', ' '),
+      desc: choice.narrativeConsequence || 'Your choice shapes your path.'
+    });
+    
+    // Wait for the trait reveal animation
+    await new Promise(r => setTimeout(r, 3000));
+    
+    setRevealedTrait(null);
     
     if (currentSceneIndex < scenes.length - 1) {
       setCurrentSceneIndex(prev => prev + 1);
       startTimeRef.current = Date.now();
-      setNarrative('');
     } else {
       const finalProfile = engine.calculateProfile();
       setProfile(finalProfile);
@@ -183,24 +190,68 @@ export const LifeQuests: React.FC<LifeQuestsProps> = ({ userId }) => {
 
   const currentScene = scenes[currentSceneIndex];
 
+  const getContextColors = (context: string) => {
+    switch (context) {
+      case 'academic': return 'from-blue-600/10 to-indigo-600/10';
+      case 'creative': return 'from-fuchsia-600/10 to-purple-600/10';
+      case 'social': return 'from-orange-600/10 to-rose-600/10';
+      default: return 'from-indigo-600/10 to-purple-600/10';
+    }
+  };
+
+  const getAccentColor = (context: string) => {
+    switch (context) {
+      case 'academic': return 'indigo';
+      case 'creative': return 'fuchsia';
+      case 'social': return 'orange';
+      default: return 'indigo';
+    }
+  };
+
+  const accent = getAccentColor(currentScene.context);
+
   return (
-    <div className="max-w-4xl mx-auto h-[calc(100vh-8rem)] flex flex-col bg-[#020617] rounded-3xl shadow-2xl border border-white/10 overflow-hidden relative">
+    <div className="max-w-4xl mx-auto h-[calc(100vh-8rem)] flex flex-col bg-[#020617] rounded-3xl shadow-2xl border border-white/10 overflow-hidden relative transition-colors duration-1000">
       {/* Dynamic Ambient Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-20 -left-20 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-10 -right-20 w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[100px]" />
+        <motion.div 
+          key={currentScene.context}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1 }}
+          className={`absolute inset-0 bg-gradient-to-br ${getContextColors(currentScene.context)}`} 
+        />
+        <div className={`absolute -top-20 -left-20 w-[500px] h-[500px] bg-${accent}-600/10 rounded-full blur-[120px] transition-colors duration-1000`} />
+        <div className="absolute bottom-10 -right-20 w-[400px] h-[400px] bg-slate-600/10 rounded-full blur-[100px]" />
       </div>
 
       <div className="relative z-10 flex-1 flex flex-col p-6 md:p-10 overflow-y-auto custom-scrollbar">
         {/* Progress Header */}
-        <div className="flex justify-between items-center mb-8 bg-white/5 p-4 rounded-2xl border border-white/10 backdrop-blur-md">
-           <div className="flex items-center gap-3">
-             <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
-               <Map size={20} />
+        <div className="flex flex-col gap-4 mb-8">
+          <div className="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/10 backdrop-blur-md">
+             <div className="flex items-center gap-3">
+               <div className={`w-10 h-10 rounded-xl bg-${accent}-500/20 flex items-center justify-center text-${accent}-400 transition-colors`}>
+                 <Map size={20} />
+               </div>
+               <span className="font-bold text-white tracking-widest uppercase text-sm">Chapter {currentSceneIndex + 1}</span>
              </div>
-             <span className="font-bold text-white tracking-widest uppercase text-sm">Chapter {currentSceneIndex + 1}</span>
-           </div>
-           <div className="text-white/40 font-bold text-sm">{currentSceneIndex + 1} / {scenes.length}</div>
+             <div className="text-white/40 font-bold text-sm">{currentSceneIndex + 1} / {scenes.length}</div>
+          </div>
+          {/* Segmented Progress Bar */}
+          <div className="flex gap-1 h-1.5 w-full">
+            {scenes.map((_, idx) => (
+              <div key={idx} className="flex-1 rounded-full overflow-hidden bg-white/10">
+                {idx <= currentSceneIndex && (
+                  <motion.div 
+                    initial={{ width: idx === currentSceneIndex ? '0%' : '100%' }}
+                    animate={{ width: '100%' }}
+                    transition={{ duration: 0.5 }}
+                    className={`h-full bg-${accent}-500`}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Main Scene Content */}
@@ -227,17 +278,23 @@ export const LifeQuests: React.FC<LifeQuestsProps> = ({ userId }) => {
 
               {/* Choices */}
               <div className="space-y-4 relative">
-                {/* Floating Narrative Feedback Overlay */}
+                {/* Floating Narrative Feedback Overlay (Trait Reveal) */}
                 <AnimatePresence>
-                  {narrative && (
+                  {revealedTrait && (
                     <motion.div
-                      initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 1.1, filter: "blur(10px)" }}
+                      transition={{ type: "spring", bounce: 0.5 }}
                       className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none"
                     >
-                       <div className="bg-indigo-900/90 backdrop-blur-xl border border-indigo-500 shadow-[0_0_50px_rgba(99,102,241,0.5)] p-6 rounded-2xl text-center max-w-md w-full mx-4">
-                         <p className="text-indigo-100 font-bold text-lg leading-relaxed italic">{narrative}</p>
+                       <div className="bg-black/80 backdrop-blur-xl border border-white/20 shadow-[0_0_80px_rgba(255,255,255,0.1)] p-8 rounded-3xl text-center max-w-sm w-full mx-4 flex flex-col items-center">
+                         <div className="w-20 h-20 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/50 mb-6 shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+                            <Sparkles size={32} className="text-emerald-400" />
+                         </div>
+                         <h4 className="text-emerald-400 font-bold uppercase tracking-widest text-xs mb-2">Trait Demonstrated</h4>
+                         <h3 className="text-3xl font-black text-white mb-6 capitalize">{revealedTrait.name}</h3>
+                         <p className="text-white/80 font-medium text-lg leading-relaxed italic border-t border-white/10 pt-6">"{revealedTrait.desc}"</p>
                        </div>
                     </motion.div>
                   )}
@@ -247,12 +304,12 @@ export const LifeQuests: React.FC<LifeQuestsProps> = ({ userId }) => {
                   <motion.button
                     key={choice.id}
                     onClick={() => handleChoice(index)}
-                    disabled={!!narrative}
+                    disabled={!!revealedTrait}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full text-left p-6 bg-black/40 backdrop-blur-md border border-white/10 hover:border-indigo-500/50 hover:bg-white/5 rounded-2xl transition-all group disabled:opacity-50 flex items-center gap-5"
+                    className={`w-full text-left p-6 bg-black/40 backdrop-blur-md border border-white/10 hover:border-${accent}-500/50 hover:bg-white/5 rounded-2xl transition-all group disabled:opacity-30 disabled:pointer-events-none flex items-center gap-5`}
                   >
-                    <div className="w-10 h-10 rounded-full bg-white/5 group-hover:bg-indigo-500/20 border border-white/10 group-hover:border-indigo-500/50 flex items-center justify-center text-white/50 group-hover:text-indigo-400 font-bold transition-colors">
+                    <div className={`w-10 h-10 rounded-full bg-white/5 group-hover:bg-${accent}-500/20 border border-white/10 group-hover:border-${accent}-500/50 flex items-center justify-center text-white/50 group-hover:text-${accent}-400 font-bold transition-colors`}>
                       {String.fromCharCode(65 + index)}
                     </div>
                     <span className="text-white/90 group-hover:text-white font-semibold text-lg flex-1">
