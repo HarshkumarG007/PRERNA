@@ -145,3 +145,42 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_auth_status_state_machine() {
+        let session = ActiveSession(Mutex::new(AuthStatus::None));
+        
+        // 1. None state should reject get_user_id and get_pending_mfa
+        assert!(session.get_user_id().is_err());
+        assert!(session.get_pending_mfa_user().is_err());
+        
+        // 2. Transition to PendingMFA
+        session.set_pending_mfa("user_A".to_string()).unwrap();
+        
+        // 3. PendingMFA state should STILL reject get_user_id (RED-001/MFA bypass)
+        assert!(session.get_user_id().is_err(), "CRITICAL: PendingMFA must not be treated as Authenticated");
+        
+        // 4. PendingMFA should allow get_pending_mfa
+        assert_eq!(session.get_pending_mfa_user().unwrap(), "user_A");
+        
+        // 5. Transition to Authenticated
+        session.set_authenticated("user_A".to_string()).unwrap();
+        
+        // 6. Authenticated should allow get_user_id
+        assert_eq!(session.get_user_id().unwrap(), "user_A");
+        
+        // 7. Authenticated should reject get_pending_mfa
+        assert!(session.get_pending_mfa_user().is_err());
+        
+        // 8. Logout / clear
+        session.clear().unwrap();
+        
+        // 9. Cleared state should reject everything
+        assert!(session.get_user_id().is_err());
+        assert!(session.get_pending_mfa_user().is_err());
+    }
+}

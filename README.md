@@ -84,7 +84,7 @@ PRERNA relies on a secure, two-tier architecture running entirely on the user's 
 
 **Why Tauri over Electron:** native OS webview (WebView2/WebKit) instead of a bundled Chromium — roughly a 10MB binary versus Electron's 100MB+, and no shipped browser attack surface to maintain.
 
-**Why local-first is architectural, not just a feature:** every design decision — encryption at rest, no default network calls, disclosure-gated sessions, human-reviewed crisis escalation — exists because the data PRERNA handles (an adolescent's psychological profile) is among the most sensitive a piece of software can touch. Local-first isn't a marketing term here; there is no server that could be breached, subpoenaed, or sold, because there is no server. (*Note: "zero-knowledge" in the cryptographic sense requires proof-based protocols not present here; "local-first encrypted" is the accurate description of what PRERNA actually implements.*)
+**Why local-first is architectural, not just a feature:** every design decision — encryption at rest, no default network calls, disclosure-gated sessions, human-reviewed crisis escalation — exists because the data PRERNA handles (an adolescent's psychological profile) is among the most sensitive a piece of software can touch. Local-first means exactly that: there is no server that could be breached, subpoenaed, or sold, because there is no server.
 
 ---
 
@@ -160,7 +160,7 @@ PRERNA/
 │   ├── workflows/                  # CI/CD pipelines (lint, test, release, security)
 │   └── dependabot.yml              # Automated dependency updates
 ├── docs/                           # Compliance, safety, and evaluation documentation (see index below)
-├── src-tauri/                      # RUST BACKEND (Zero-Knowledge Environment)
+├── src-tauri/                      # RUST BACKEND (Local-First Environment)
 │   ├── src/
 │   │   ├── ai/                     # Local LLM Mentor logic in Rust (llama.cpp bindings)
 │   │   │   ├── prompts.rs          # System prompts for the AI Mentor
