@@ -17,7 +17,7 @@ import { ParentDashboard } from './components/parent/ParentDashboard';
 import { SchoolDashboard } from './components/school/SchoolDashboard';
 import { RoleSelection } from './components/onboarding/RoleSelection';
 import { ParentLinking } from './components/onboarding/ParentLinking';
-import { PersonalityQuestionnaire } from './components/assessment/PersonalityQuestionnaire';
+import { SelfDiscoveryJourney } from './components/assessment/SelfDiscoveryJourney';
 import { ClinicianLogin } from './components/clinical/ClinicianLogin';
 import { ReviewDashboard } from './components/clinical/ReviewDashboard';
 import { useAppStore } from './store';
@@ -68,10 +68,10 @@ function App() {
     );
   }
 
-  // Teen must complete the deep personality questionnaire on first login
+  // Teen must complete the deep questionnaire on first login
   if (isAuthenticated && user && user.role === 'teen' && !user.hasCompletedQuestionnaire) {
     return (
-      <PersonalityQuestionnaire
+      <SelfDiscoveryJourney
         onComplete={() => {
           // Generate a default fallback profile if they skip
           const fallbackProfile = {

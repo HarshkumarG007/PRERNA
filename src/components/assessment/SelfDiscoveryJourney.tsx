@@ -6,7 +6,7 @@ import { scoreQuestionnaire, deriveArchetype, buildLLMSynthesisPrompt, RawRespon
 import { useAppStore } from '../../store';
 import { safeInvoke } from '../../utils/mockBackend';
 
-interface PersonalityQuestionnaireProps {
+interface SelfDiscoveryJourneyProps {
   onComplete: () => void;
 }
 
@@ -26,7 +26,7 @@ const LIKERT_COLORS = [
   'from-violet-600 to-fuchsia-500',
 ];
 
-export const PersonalityQuestionnaire: React.FC<PersonalityQuestionnaireProps> = ({ onComplete }) => {
+export const SelfDiscoveryJourney: React.FC<SelfDiscoveryJourneyProps> = ({ onComplete }) => {
   const { updateProfile } = useAppStore();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [responses, setResponses] = useState<RawResponse[]>([]);
@@ -223,6 +223,9 @@ export const PersonalityQuestionnaire: React.FC<PersonalityQuestionnaireProps> =
         <div className="flex items-center gap-4">
           <div className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 ${categoryMeta.bg} ${categoryMeta.color} border ${categoryMeta.border}`}>
             {categoryMeta.icon} {categoryMeta.label}
+          </div>
+          <div className="hidden md:flex px-3 py-1.5 rounded-full text-xs font-medium bg-white/5 text-white/50 border border-white/10">
+            <Sparkles size={12} className="mr-1.5" /> Psychologically Inspired Self-Discovery
           </div>
           <button 
             onClick={onComplete}
