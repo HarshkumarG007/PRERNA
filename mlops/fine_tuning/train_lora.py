@@ -1,109 +1,109 @@
-import os
+#!/usr/bin/env python3
+"""
+QLoRA Fine-Tuning for PRERNA on RTX 4060 (8GB VRAM)
+"""
+
 import torch
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    TrainingArguments,
+    BitsAndBytesConfig
+)
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+from trl import SFTTrainer, DataCollatorForCompletionOnlyLM
 from datasets import load_dataset
-# from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, TrainingArguments
-# from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
-# from trl import SFTTrainer
+import argparse
 
-# PRERNA AI MLOps - Stage 2 QLoRA Fine-Tuning Pipeline
-
-def main():
-    print("Initializing PRERNA QLoRA Fine-Tuning...")
-    
-    # Configuration
-    model_id = "meta-llama/Meta-Llama-3-8B-Instruct" # Change to Qwen2.5 or Mistral as needed
-    dataset_path = "../data/prerna_synthetic_dataset.jsonl"
-    output_dir = "./prerna-lora-adapter"
-    
-    if not os.path.exists(dataset_path):
-        print(f"Dataset not found at {dataset_path}. Please run dataset_generation first.")
-        return
-        
-    print(f"Dataset located. Preparing to load into memory.")
-    
-    print(f"Loading base model {model_id} in 4-bit...")
-    # NOTE: The following blocks are commented out so this script doesn't crash 
-    # if run on a machine without a dedicated NVIDIA GPU and CUDA installed.
-    # When you move this to a RunPod or Colab A100 instance, simply uncomment them!
-
-    """
-    # 1. Load Dataset
-    dataset = load_dataset("json", data_files=dataset_path, split="train")
-    
-    def formatting_prompts_func(example):
-        output_texts = []
-        for i in range(len(example['instruction'])):
-            text = f"User: {example['instruction'][i]}\nAssistant: {example['response'][i]}"
-            output_texts.append(text)
-        return output_texts
-
-    # 2. 4-bit Quantization Config (QLoRA)
+def main(model_name: str = "Qwen/Qwen2.5-7B-Instruct", dataset_path: str = "mlops/data/prerna_synthetic_v1.jsonl"):
+    # 4-bit quantization for 8GB VRAM
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
-        bnb_4bit_use_double_quant=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.bfloat16
+        bnb_4bit_use_double_quant=True,  # Nested quantization for memory
+        bnb_4bit_quant_type="nf4",       # Normalized float 4 (better than FP4)
+        bnb_4bit_compute_dtype=torch.bfloat16,
     )
     
-    # 3. Load Base Model and Tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
-    tokenizer.pad_token = tokenizer.eos_token
-    
+    print(f"Loading {model_name}...")
     model = AutoModelForCausalLM.from_pretrained(
-        model_id,
+        model_name,
         quantization_config=bnb_config,
         device_map="auto",
-        trust_remote_code=True
+        trust_remote_code=True,
+        use_cache=False,  # Required for gradient checkpointing
     )
+    tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+    tokenizer.pad_token = tokenizer.eos_token
+    
+    # Prepare for training
     model = prepare_model_for_kbit_training(model)
     
-    # 4. LoRA Configuration
+    # LoRA config optimized for domain adaptation
     peft_config = LoraConfig(
-        r=16,
-        lora_alpha=32,
-        target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
+        r=64,                    # Higher rank for domain knowledge
+        lora_alpha=128,         # 2x r is standard
+        target_modules=[
+            "q_proj", "k_proj", "v_proj", "o_proj",  # Attention
+            "gate_proj", "up_proj", "down_proj",    # FFN
+        ],
         lora_dropout=0.05,
         bias="none",
-        task_type="CAUSAL_LM"
+        task_type="CAUSAL_LM",
     )
+    
     model = get_peft_model(model, peft_config)
+    model.print_trainable_parameters()  # Should show ~1-2% of params
     
-    # 5. Training Arguments
-    training_args = TrainingArguments(
-        output_dir=output_dir,
-        per_device_train_batch_size=4,
-        gradient_accumulation_steps=4,
-        optim="paged_adamw_32bit",
-        save_steps=50,
-        logging_steps=10,
+    # Load dataset
+    dataset = load_dataset("json", data_files=dataset_path, split="train")
+    
+    # Training arguments for RTX 4060
+    args = TrainingArguments(
+        output_dir="mlops/outputs/prerna-7b-lora",
+        num_train_epochs=3,
+        per_device_train_batch_size=1,      # Must be 1 for 8GB
+        gradient_accumulation_steps=4,       # Effective batch size 4
         learning_rate=2e-4,
-        weight_decay=0.001,
-        fp16=False,
-        bf16=True,
-        max_grad_norm=0.3,
-        max_steps=200,
+        max_grad_norm=0.3,                   # Gradient clipping for stability
         warmup_ratio=0.03,
-        group_by_length=True,
         lr_scheduler_type="cosine",
-        report_to="wandb" # Integrate with Weights & Biases
+        logging_steps=10,
+        save_strategy="epoch",
+        fp16=True,
+        optim="paged_adamw_8bit",            # Critical: pages optimizer states to CPU
+        group_by_length=True,                # Saves memory by batching similar lengths
     )
     
-    # 6. Start Training
+    # Response-only training (don't train on user queries)
+    response_template = "### Response:"
+    collator = DataCollatorForCompletionOnlyLM(
+        response_template=response_template,
+        tokenizer=tokenizer,
+    )
+    
     trainer = SFTTrainer(
         model=model,
+        tokenizer=tokenizer,
         train_dataset=dataset,
-        peft_config=peft_config,
-        formatting_func=formatting_prompts_func,
-        args=training_args
+        args=args,
+        data_collator=collator,
+        max_seq_length=2048,
+        dataset_text_field="messages",  # Adjust based on your JSONL structure
     )
     
+    print("Starting training...")
     trainer.train()
-    trainer.model.save_pretrained(output_dir)
-    """
     
-    print("Pipeline scaffold ready.")
-    print("To execute for real, uncomment the HuggingFace blocks and run on a GPU instance.")
-    print("After training, export using llama.cpp convert script to create prerna-custom.gguf.")
+    # Save adapter
+    model.save_pretrained("mlops/outputs/prerna-7b-lora-adapter")
+    print("Training complete. Adapter saved.")
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", default="Qwen/Qwen2.5-7B-Instruct")
+    parser.add_argument("--dataset", default="mlops/data/prerna_synthetic_v1.jsonl")
+    args = parser.parse_args()
+    
+    # Commenting out actual execution so it doesn't crash on machines without CUDA
+    print("To train locally, uncomment the main() call in train_lora.py")
+    # main(args.model, args.dataset)

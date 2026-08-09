@@ -2,10 +2,14 @@
 -- [AUTO-GENERATED REFERENCE ONLY - DO NOT EDIT]
 -- The true source of truth is src-tauri/src/db/schema.rs
 -- =======================================================================
+-- GENERATED REFERENCE — DO NOT HAND-EDIT
+-- Please see the canonical Rust definition in src-tauri/src/db/schema.rs
+-- Any modifications must be made to the Rust schema and re-generated.
 
 -- Enable foreign keys
 PRAGMA foreign_keys = ON;
 
+-- Core Tables
 -- Users table (anonymous by default)
 CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,

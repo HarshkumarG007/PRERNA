@@ -2,15 +2,19 @@ pub const SCHEMA_SQL: &str = r#"
 -- Enable foreign keys
 PRAGMA foreign_keys = ON;
 
--- Users table (anonymous by default)
+-- Users table (anonymous by default but can be fully authenticated)
 CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
+    username TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
     created_at TEXT NOT NULL,
     age_range TEXT CHECK(age_range IN ('13-15', '16-18', '19-22')),
     region TEXT, -- encrypted
     language TEXT DEFAULT 'en',
     encryption_key_hash TEXT,
-    last_sync TEXT
+    last_sync TEXT,
+    mfa_secret TEXT,
+    mfa_enabled BOOLEAN DEFAULT 0
 );
 
 -- Assessment Sessions (gamified interactions)

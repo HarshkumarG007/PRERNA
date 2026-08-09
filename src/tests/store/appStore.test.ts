@@ -88,4 +88,21 @@ describe('AppStore', () => {
     expect(streak.longestStreak).toBe(1);
     expect(streak.weeklyProgress).toContain(true); // Today should be true
   });
+
+  it('revokes consent and logs out', async () => {
+    useAppStore.setState({
+      user: { id: 'test', ageRange: '16-18', region: 'north', language: 'en', createdAt: '' },
+      isAuthenticated: true,
+      profile: { userId: 'test' } as any
+    });
+
+    const { invoke } = await import('@tauri-apps/api/core');
+    
+    await useAppStore.getState().revokeConsent();
+
+    expect(invoke).toHaveBeenCalledWith('revoke_consent', { userId: 'test' });
+    const state = useAppStore.getState();
+    expect(state.user).toBeNull();
+    expect(state.isAuthenticated).toBe(false);
+  });
 });

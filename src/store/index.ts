@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { invoke } from '@tauri-apps/api/core';
+import { safeInvoke as invoke } from '../utils/mockBackend';
 
 // Types
 export interface User {
@@ -8,7 +8,18 @@ export interface User {
   ageRange: '13-15' | '16-18' | '19-22';
   region: string;
   language: string;
+  role?: 'teen' | 'parent' | 'educator';
   createdAt: string;
+  // Rich profile fields
+  name?: string;
+  gender?: 'male' | 'female' | 'non-binary' | 'prefer-not-to-say';
+  dateOfBirth?: string; // ISO date string
+  country?: string;
+  state?: string;
+  city?: string;
+  email?: string;
+  phone?: string;
+  hasCompletedQuestionnaire?: boolean;
 }
 
 export interface UnifiedProfile {
@@ -56,6 +67,7 @@ export interface UnifiedProfile {
   strengths: string[];
   growthAreas: string[];
   topCareer?: { role: string };
+  llmSelfDiscoveryReport?: string;
 }
 
 export interface Session {
@@ -96,19 +108,34 @@ export interface AppState {
   
   // Actions
   login: (userId: string) => Promise<void>;
+  loginWithCredentials: (username: string, passwordInput: string) => Promise<string | { mfaRequired: true, userId: string }>;
   logout: () => void;
+  updateRole: (role: 'teen' | 'parent' | 'educator') => void;
+  updateProfile: (profile: Partial<UnifiedProfile>) => void;
   signup: (data: SignupData) => Promise<string>;
   loadProfile: () => Promise<void>;
   refreshStreak: () => void;
   recordSession: (session: Omit<Session, 'id'>) => Promise<void>;
   setActiveView: (view: AppState['activeView']) => void;
+  revokeConsent: () => Promise<void>;
 }
 
 export interface SignupData {
+  username: string;
+  passwordInput: string;
   ageRange: User['ageRange'];
   region: string;
   language: string;
   pin: string;
+  // Rich profile fields
+  name?: string;
+  gender?: User['gender'];
+  dateOfBirth?: string;
+  country?: string;
+  state?: string;
+  city?: string;
+  email?: string;
+  phone?: string;
 }
 
 // Create store with persistence
@@ -158,6 +185,32 @@ export const useAppStore = create<AppState>()(
         }
       },
 
+      loginWithCredentials: async (username: string, passwordInput: string) => {
+        set({ isLoading: true });
+        
+        try {
+          const response = await invoke<any>('authenticate_user', { 
+            username, 
+            passwordInput 
+          });
+          
+          if (response) {
+            if (response.mfaRequired) {
+              set({ isLoading: false });
+              return { mfaRequired: true, userId: response.userId };
+            }
+            localStorage.setItem('prerna_last_user', response.id);
+            await get().login(response.id);
+            return response.id;
+          } else {
+            throw new Error('Invalid username or password');
+          }
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
       logout: () => {
         // Clear sensitive data
         set({
@@ -172,12 +225,38 @@ export const useAppStore = create<AppState>()(
         localStorage.removeItem('prerna_last_user');
       },
 
+      updateRole: (role) => {
+        set((state) => ({
+          user: state.user ? { ...state.user, role } : null
+        }));
+      },
+
+      updateProfile: (newProfile) => {
+        set((state) => ({
+          profile: state.profile ? { ...state.profile, ...newProfile } : (newProfile as UnifiedProfile)
+        }));
+      },
+
+      revokeConsent: async () => {
+        const { user } = get();
+        if (user) {
+          try {
+            await invoke('revoke_consent', { userId: user.id });
+          } catch (e) {
+            console.error("Failed to revoke consent on backend:", e);
+          }
+        }
+        get().logout();
+      },
+
       signup: async (data: SignupData) => {
         set({ isLoading: true });
         
         try {
           const userId = await invoke<string>('create_user', {
             user: {
+              username: data.username,
+              password_hash: data.passwordInput, // Will be hashed in backend
               age_range: data.ageRange,
               region: data.region,
               language: data.language,

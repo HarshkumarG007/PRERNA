@@ -20,12 +20,13 @@ import { ProfileCard } from './ProfileCard';
 import { WellnessPulse } from './WellnessPulse';
 import { StreakTracker } from './StreakTracker';
 import { InsightsCard } from './InsightsCard';
+import { WelcomeTour } from './WelcomeTour';
 import { useAppStore, useUser, useProfile } from '../../store';
 
 export const Dashboard: React.FC = () => {
   const user = useUser();
   const profile = useProfile();
-  const { loadProfile } = useAppStore();
+  const { loadProfile, sessions, streak } = useAppStore();
   const [greeting, setGreeting] = useState('');
   const navigate = useNavigate();
 
@@ -56,6 +57,8 @@ export const Dashboard: React.FC = () => {
         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-violet-600/10 rounded-full blur-[120px]" />
         <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-fuchsia-600/10 rounded-full blur-[100px]" />
       </div>
+
+      <WelcomeTour />
 
       {/* Header */}
       <header className="relative z-10 px-6 py-8 md:px-12 md:pt-10">
@@ -146,12 +149,13 @@ export const Dashboard: React.FC = () => {
             </h2>
             <div className="flex gap-4 overflow-x-auto pb-4 snap-x hide-scrollbar">
               {[
-                { icon: '🔥', title: '5 Day Streak', desc: 'Daily check-ins' },
-                { icon: '🎯', title: 'First Quest', desc: 'Completed Life Quest' },
-                { icon: '🧠', title: 'Self Aware', desc: 'Profile generated' },
-                { icon: '💬', title: 'Seeker', desc: 'First AI chat' },
-                { icon: '🚀', title: 'Liftoff', desc: 'Joined PRERNA' },
-              ].map((achievement, idx) => (
+                { condition: true, icon: '🚀', title: 'Liftoff', desc: 'Joined PRERNA' },
+                { condition: !!profile, icon: '🧠', title: 'Self Aware', desc: 'Profile generated' },
+                { condition: sessions.some(s => s.type === 'life_quest'), icon: '🎯', title: 'First Quest', desc: 'Completed Life Quest' },
+                { condition: sessions.some(s => s.type === 'ai_chat'), icon: '💬', title: 'Seeker', desc: 'First AI chat' },
+                { condition: sessions.some(s => s.type === 'skill_arena'), icon: '⚡', title: 'Arena Contender', desc: 'Entered Skill Arena' },
+                { condition: streak && streak.longestStreak > 2, icon: '🔥', title: `${streak.longestStreak} Day Streak`, desc: 'Consistent check-ins' },
+              ].filter(a => a.condition).map((achievement, idx) => (
                 <motion.div
                   key={idx}
                   whileHover={{ scale: 1.05, y: -5 }}

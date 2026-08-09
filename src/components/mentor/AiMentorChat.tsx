@@ -1,25 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { CURRENT_DISCLOSURES } from '../../engine/assessment/disclosures';
 import { validateSessionCreation, SessionConfig } from '../../engine/consent/sessionGate';
 import { sendMessageToLLM, ChatMessage, UserContext } from '../../ai/llmClient';
 import { useI18n } from '../../engine/localization/i18n';
-import { Mic, Square } from 'lucide-react';
+import { Mic, Square, Sparkles, Send, Bot, User as UserIcon, AlertTriangle, ArrowRight } from 'lucide-react';
+
+import { useAppStore } from '../../store';
 
 interface AiMentorChatProps {
   userId: string;
-  userContext: UserContext;
 }
 
-export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId, userContext }) => {
+const QUICK_ACTIONS = [
+  "I'm feeling overwhelmed today.",
+  "Can you help me explore my career options?",
+  "I had an argument with a friend.",
+  "How can I improve my focus?",
+];
+
+export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
   const { language } = useI18n();
+  const { profile } = useAppStore();
+  
+  const userContext: UserContext = {
+    name: 'Teen',
+    bigFive: profile?.personality?.bigFive || { openness: 50, conscientiousness: 50, extraversion: 50, agreeableness: 50, neuroticism: 50 }
+  };
+  
   const [disclosureAccepted, setDisclosureAccepted] = useState(false);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-
+  const [error, setError] = useState<string | null>(null);
+  
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const disclosure = CURRENT_DISCLOSURES.ai_mentor;
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping]);
 
   const handleStartSession = () => {
     try {
@@ -32,20 +60,18 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId, userContext 
       validateSessionCreation(config);
       setIsSessionActive(true);
       
-      // Welcome message from AI
       setMessages([
-        { role: 'assistant', content: 'Hi there! I am PRERNA’s AI Mentor. I’m here to help you explore your interests. What’s on your mind today?' }
+        { role: 'assistant', content: 'Hi there! I am PRERNA’s AI Mentor. I’m here to help you explore your thoughts, feelings, and future safely. What’s on your mind today?' }
       ]);
     } catch (err: any) {
-      alert(err.message);
+      setError(err.message);
     }
   };
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isTyping) return;
+  const handleSend = async (text: string = input) => {
+    if (!text.trim() || isTyping) return;
 
-    const userMsg: ChatMessage = { role: 'user', content: input };
+    const userMsg: ChatMessage = { role: 'user', content: text };
     const newHistory = [...messages, userMsg];
     setMessages(newHistory);
     setInput('');
@@ -57,114 +83,247 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId, userContext 
       setMessages([...newHistory, aiMsg]);
     } catch (err) {
       console.error("Failed to get response from AI Mentor", err);
-      setMessages([...newHistory, { role: 'assistant', content: 'Sorry, I am having trouble connecting to my brain right now.' }]);
+      setMessages([...newHistory, { role: 'assistant', content: 'Sorry, my neural pathways are a bit congested right now. Could we try again later?' }]);
     } finally {
       setIsTyping(false);
     }
   };
 
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSend();
+  };
+
   const toggleRecording = () => {
     setIsRecording(!isRecording);
     if (!isRecording) {
-      // Simulate stopping after a few seconds for scaffolding demo
       setTimeout(() => {
         setIsRecording(false);
-        setInput("I've been feeling a bit overwhelmed lately."); // Simulated transcript
+        setInput("I've been feeling a bit overwhelmed lately.");
       }, 3000);
     }
   };
 
   if (!disclosureAccepted) {
     return (
-      <div className="max-w-xl mx-auto mt-10 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow-md border border-blue-100">
-        <h2 className="text-2xl font-bold text-blue-900">AI Mentor</h2>
-        <div className="mt-4 bg-blue-100 p-4 rounded-lg">
-          <p className="text-sm font-medium text-blue-800">Before we chat:</p>
-          <p className="text-teal-900 mt-2">{disclosure.text[language]}</p>
+      <div className="max-w-2xl mx-auto mt-10 p-8 relative overflow-hidden bg-[#020617] rounded-3xl shadow-2xl border border-white/10">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/20 rounded-full mix-blend-screen filter blur-[80px]"></div>
+        
+        <div className="relative z-10 flex flex-col items-center text-center space-y-6">
+          <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+            <Bot size={40} className="text-white" />
+          </div>
+          
+          <div>
+            <h2 className="text-3xl font-black text-white tracking-tight">Meet Your AI Mentor</h2>
+            <p className="text-cyan-200 mt-2 font-medium">A safe, private space to explore your thoughts.</p>
+          </div>
+
+          <div className="w-full bg-white/5 p-6 rounded-2xl border border-white/10 shadow-sm text-left backdrop-blur-md">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle size={18} className="text-cyan-400" />
+              <p className="text-sm font-bold text-cyan-400 uppercase tracking-widest">Before we chat</p>
+            </div>
+            <p className="text-white/80 leading-relaxed font-medium">{disclosure.text[language as keyof typeof disclosure.text]}</p>
+          </div>
+
+          <button
+            onClick={() => setDisclosureAccepted(true)}
+            className="w-full py-4 rounded-xl shadow-lg shadow-cyan-500/20 text-white font-bold bg-gradient-to-r from-cyan-500 to-blue-600 hover:scale-[1.02] active:scale-[0.98] transition-all"
+          >
+            I Understand, Let's Chat
+          </button>
         </div>
-        <button
-          onClick={() => setDisclosureAccepted(true)}
-          className="mt-6 w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-md text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 hover:-translate-y-0.5 transition-transform"
-        >
-          I Understand
-        </button>
       </div>
     );
   }
 
   if (!isSessionActive) {
     return (
-      <div className="max-w-xl mx-auto mt-10 text-center">
-        <button
+      <div className="max-w-2xl mx-auto mt-20 text-center space-y-6">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={handleStartSession}
-          className="py-3 px-6 rounded-full shadow-lg text-lg font-bold text-white bg-blue-600 hover:bg-blue-700 transition-transform hover:scale-105"
+          className="py-5 px-10 rounded-full shadow-2xl shadow-violet-500/30 text-xl font-black text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 border border-white/20"
         >
-          Start Chatting
-        </button>
+          Initialize Neural Link ✨
+        </motion.button>
+        {error && (
+          <p className="text-red-500 text-sm font-bold bg-red-500/10 border border-red-500/20 px-4 py-3 rounded-xl inline-block backdrop-blur-md">
+            {error}
+          </p>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto mt-10 flex flex-col h-[600px] bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-      <div className="p-4 bg-blue-600 text-white flex justify-between items-center">
-        <h2 className="text-lg font-bold">AI Mentor (Artificial Intelligence)</h2>
-      </div>
-      
-      <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50">
-        {messages.map((msg, idx) => (
-          <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[75%] p-3 rounded-lg ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none shadow-sm'}`}>
-              {msg.content}
-            </div>
-          </div>
-        ))}
-        {isTyping && (
-          <div className="flex justify-start">
-            <div className="max-w-[75%] p-3 rounded-lg bg-white border border-gray-200 text-gray-500 rounded-bl-none shadow-sm">
-              Typing...
-            </div>
-          </div>
-        )}
+    <div className="max-w-4xl mx-auto h-[calc(100vh-8rem)] flex flex-col bg-[#020617] rounded-3xl shadow-2xl border border-white/10 overflow-hidden relative">
+      {/* Ambient Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-20 -right-20 w-96 h-96 bg-violet-600/10 rounded-full blur-[100px]" />
+        <div className="absolute bottom-10 -left-20 w-72 h-72 bg-fuchsia-600/10 rounded-full blur-[100px]" />
       </div>
 
-      {isRecording && (
-        <div className="bg-indigo-600 p-4 text-white flex flex-col items-center justify-center animate-pulse shadow-inner">
-          <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-2">
-            <Mic size={24} className="text-white" />
+      {/* Header */}
+      <div className="relative z-10 p-5 bg-white/5 border-b border-white/10 backdrop-blur-md flex justify-between items-center">
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg">
+              <Bot size={20} className="text-white" />
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full border-2 border-[#020617]"></div>
           </div>
-          <p className="font-bold text-lg mb-1">Listening...</p>
-          <p className="text-xs text-indigo-200">Local processing only (Whisper Model)</p>
+          <div>
+            <h2 className="text-white font-bold tracking-wide">PRERNA Mentor</h2>
+            <p className="text-xs text-emerald-400 font-medium tracking-widest uppercase">Local AI Active</p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Chat Area */}
+      <div className="relative z-10 flex-1 p-6 overflow-y-auto custom-scrollbar space-y-6">
+        <AnimatePresence initial={false}>
+          {messages.map((msg, idx) => (
+            <motion.div 
+              key={idx}
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div className="flex items-end gap-2 max-w-[85%]">
+                {msg.role === 'assistant' && (
+                  <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 mb-1">
+                    <Sparkles size={14} className="text-violet-400" />
+                  </div>
+                )}
+                
+                <div className={`p-4 rounded-2xl shadow-sm backdrop-blur-md ${
+                  msg.role === 'user' 
+                    ? 'bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white rounded-br-sm' 
+                    : 'bg-white/10 border border-white/10 text-slate-100 rounded-bl-sm markdown-body'
+                }`}>
+                  {msg.role === 'user' ? (
+                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                  ) : (
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {msg.content}
+                    </ReactMarkdown>
+                  )}
+                </div>
+
+                {msg.role === 'user' && (
+                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 mb-1">
+                    <UserIcon size={14} className="text-white/70" />
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+        
+        {isTyping && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex justify-start items-end gap-2"
+          >
+            <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 mb-1">
+              <Sparkles size={14} className="text-violet-400" />
+            </div>
+            <div className="bg-white/5 border border-white/10 p-4 rounded-2xl rounded-bl-sm backdrop-blur-md flex gap-1.5 items-center h-12">
+              <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0 }} className="w-2 h-2 rounded-full bg-violet-400" />
+              <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} className="w-2 h-2 rounded-full bg-violet-400" />
+              <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }} className="w-2 h-2 rounded-full bg-violet-400" />
+            </div>
+          </motion.div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Quick Actions (only show if history is small) */}
+      {messages.length === 1 && !isTyping && (
+        <div className="relative z-10 px-6 pb-4 flex flex-wrap gap-2 justify-center">
+          {QUICK_ACTIONS.map((action, i) => (
+            <motion.button
+              key={i}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              onClick={() => handleSend(action)}
+              className="text-xs font-medium text-white/70 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-violet-500/50 px-4 py-2 rounded-full transition-colors flex items-center gap-1.5"
+            >
+              {action}
+              <ArrowRight size={12} className="opacity-50" />
+            </motion.button>
+          ))}
         </div>
       )}
 
-      <form onSubmit={handleSend} className="p-4 bg-white border-t border-gray-200 flex space-x-2">
+      {/* Recording Overlay */}
+      <AnimatePresence>
+        {isRecording && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="relative z-10 bg-white/5 border-t border-white/10 p-6 flex flex-col items-center justify-center backdrop-blur-xl"
+          >
+            <div className="relative flex items-center justify-center w-24 h-24 mb-4">
+              <motion.div 
+                animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0, 0.3] }} 
+                transition={{ repeat: Infinity, duration: 2 }}
+                className="absolute inset-0 bg-violet-500 rounded-full"
+              />
+              <motion.div 
+                animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.2, 0.5] }} 
+                transition={{ repeat: Infinity, duration: 1.5 }}
+                className="absolute inset-2 bg-fuchsia-500 rounded-full"
+              />
+              <div className="relative w-16 h-16 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-full flex items-center justify-center shadow-lg shadow-violet-500/50">
+                <Mic size={32} className="text-white" />
+              </div>
+            </div>
+            <p className="font-bold text-white text-lg tracking-wide mb-1">Listening...</p>
+            <p className="text-xs text-white/50 uppercase tracking-widest font-bold">Local Processing (Whisper)</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Input Area */}
+      <form onSubmit={onSubmit} className="relative z-10 p-4 bg-[#020617]/80 backdrop-blur-xl border-t border-white/10 flex items-end gap-3">
         <button
           type="button"
           onClick={toggleRecording}
-          className={`p-3 rounded-full flex items-center justify-center transition-colors ${
+          className={`p-3.5 rounded-2xl flex items-center justify-center transition-all ${
             isRecording 
-              ? 'bg-red-100 text-red-600 hover:bg-red-200' 
-              : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
+              ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30' 
+              : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white border border-white/10 hover:border-white/20'
           }`}
           title={isRecording ? "Stop recording" : "Start voice input"}
         >
           {isRecording ? <Square size={20} className="fill-current" /> : <Mic size={20} />}
         </button>
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask me anything..."
-          className="flex-1 p-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          disabled={isRecording}
-        />
+        
+        <div className="flex-1 relative">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Type your message..."
+            className="w-full bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 text-white rounded-2xl px-5 py-4 focus:outline-none transition-colors placeholder-white/30"
+            disabled={isRecording}
+          />
+        </div>
+        
         <button
           type="submit"
           disabled={isTyping || !input.trim() || isRecording}
-          className="px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 disabled:bg-indigo-300 transition-colors shadow-sm"
+          className="p-4 bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white rounded-2xl font-bold hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 transition-all shadow-lg shadow-violet-500/25 flex items-center justify-center"
         >
-          Send
+          <Send size={20} />
         </button>
       </form>
     </div>

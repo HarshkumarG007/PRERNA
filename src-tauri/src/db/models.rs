@@ -3,15 +3,21 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
     pub id: String,
+    pub username: String,
+    pub password_hash: String,
     pub created_at: String,
     pub age_range: String,
     pub region: String,
     pub language: String,
     pub encryption_key_hash: String,
+    pub mfa_secret: Option<String>,
+    pub mfa_enabled: bool,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct NewUser {
+    pub username: String,
+    pub password_hash: String,
     pub age_range: String,
     pub region: String,
     pub language: String,

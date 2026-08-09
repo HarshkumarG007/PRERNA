@@ -9,7 +9,7 @@ describe('Global Rule 0.1-3: Guardian Notification Constraints', () => {
       userId: 'u1',
       detectedAt: new Date(),
       humanReviewStatus: 'pending', // NOT reviewed
-      teenInformedAt: new Date(),
+      teenInformedAt: Date.now(),
     };
 
     await expect(executeGuardianNotification(event)).rejects.toThrowError(/FATAL SECURITY EXCEPTION: Cannot notify guardian without explicit human review status/);
@@ -33,7 +33,7 @@ describe('Global Rule 0.1-3: Guardian Notification Constraints', () => {
       userId: 'u3',
       detectedAt: new Date(),
       humanReviewStatus: 'reviewed_guardian_notified',
-      teenInformedAt: new Date(), // Teen is informed
+      teenInformedAt: Date.now(), // Teen is informed
     };
 
     await expect(executeGuardianNotification(event)).resolves.toBeUndefined();

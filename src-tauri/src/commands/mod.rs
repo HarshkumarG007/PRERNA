@@ -5,16 +5,54 @@ use tauri::State;
 use crate::db::{DbState};
 use crate::db::models::*;
 use crate::policy::PolicyEngine;
+use sha2::{Sha256, Digest};
+
+use totp_rs::{Algorithm, Secret, TOTP};
+use qrcode::QrCode;
+use qrcode::render::svg;
 
 // === USER COMMANDS ===
 
 #[tauri::command]
 pub fn create_user(
     state: State<DbState>,
-    user: NewUser,
+    mut user: NewUser,
 ) -> Result<String, String> {
+    let mut hasher = Sha256::new();
+    hasher.update(user.password_hash.as_bytes());
+    user.password_hash = hex::encode(hasher.finalize());
+
     let db = state.0.lock().map_err(|e| e.to_string())?;
     db.create_user(&user).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn authenticate_user(
+    state: State<DbState>,
+    username: String,
+    password_input: String,
+) -> Result<Option<serde_json::Value>, String> {
+    let mut hasher = Sha256::new();
+    hasher.update(password_input.as_bytes());
+    let hashed_pw = hex::encode(hasher.finalize());
+    
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    let user_opt = db.authenticate_user(&username, &hashed_pw).map_err(|e| e.to_string())?;
+    
+    if let Some(user) = user_opt {
+        if user.mfa_enabled {
+            // Require MFA step
+            Ok(Some(serde_json::json!({
+                "mfaRequired": true,
+                "userId": user.id
+            })))
+        } else {
+            // Full login
+            Ok(Some(serde_json::to_value(user).map_err(|e| e.to_string())?))
+        }
+    } else {
+        Ok(None)
+    }
 }
 
 #[tauri::command]
@@ -24,6 +62,112 @@ pub fn get_user(
 ) -> Result<Option<User>, String> {
     let db = state.0.lock().map_err(|e| e.to_string())?;
     db.get_user(&user_id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn revoke_consent(
+    state: State<DbState>,
+    user_id: String,
+) -> Result<(), String> {
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    // This immediately stops data collection by setting an audit log 
+    // and effectively locking the user profile state in the frontend.
+    db.insert_audit_log("CONSENT_REVOKED", &format!("Consent revoked for user {}", user_id))
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[derive(serde::Serialize)]
+pub struct MfaSetupResponse {
+    pub secret: String,
+    pub qr_code_svg: String,
+}
+
+#[tauri::command]
+pub fn generate_mfa_secret(
+    state: State<DbState>,
+    user_id: String,
+) -> Result<MfaSetupResponse, String> {
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
+    
+    let secret = Secret::generate_secret();
+    let totp = TOTP::new(
+        Algorithm::SHA1,
+        6,
+        1,
+        30,
+        secret.to_bytes().unwrap(),
+        Some("PRERNA".to_string()),
+        user.username.clone(),
+    ).map_err(|e| e.to_string())?;
+    
+    let url = totp.get_url();
+    let code = QrCode::new(url).map_err(|e| e.to_string())?;
+    let svg = code.render()
+        .min_dimensions(200, 200)
+        .dark_color(svg::Color("#6d28d9"))
+        .light_color(svg::Color("#ffffff"))
+        .build();
+    
+    // Save secret to DB temporarily or permanently (but not enabled yet)
+    db.conn.execute("UPDATE users SET mfa_secret = ?1 WHERE id = ?2", rusqlite::params![secret.to_string(), user_id])
+        .map_err(|e| e.to_string())?;
+        
+    Ok(MfaSetupResponse {
+        secret: secret.to_string(),
+        qr_code_svg: svg,
+    })
+}
+
+#[tauri::command]
+pub fn verify_mfa_setup(
+    state: State<DbState>,
+    user_id: String,
+    token: String,
+) -> Result<bool, String> {
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
+    
+    let secret_str = user.mfa_secret.ok_or("MFA secret not set")?;
+    let secret = Secret::Encoded(secret_str);
+    let totp = TOTP::new(Algorithm::SHA1, 6, 1, 30, secret.to_bytes().unwrap(), None, "".to_string())
+        .map_err(|e| e.to_string())?;
+    
+    let is_valid = totp.check_current(&token).unwrap_or(false);
+    
+    if is_valid {
+        db.conn.execute("UPDATE users SET mfa_enabled = 1 WHERE id = ?1", rusqlite::params![user_id])
+            .map_err(|e| e.to_string())?;
+        Ok(true)
+    } else {
+        Ok(false)
+    }
+}
+
+#[tauri::command]
+pub fn verify_login_mfa(
+    state: State<DbState>,
+    user_id: String,
+    token: String,
+) -> Result<Option<User>, String> {
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
+    
+    if !user.mfa_enabled {
+        return Err("MFA not enabled".to_string());
+    }
+    
+    let secret_str = user.mfa_secret.as_ref().ok_or("MFA secret missing")?;
+    let secret = Secret::Encoded(secret_str.clone());
+    let totp = TOTP::new(Algorithm::SHA1, 6, 1, 30, secret.to_bytes().unwrap(), None, "".to_string())
+        .map_err(|e| e.to_string())?;
+        
+    if totp.check_current(&token).unwrap_or(false) {
+        Ok(Some(user))
+    } else {
+        Err("Invalid 2FA code".to_string())
+    }
 }
 
 // === SESSION COMMANDS ===
@@ -36,6 +180,9 @@ pub fn save_session(
     PolicyEngine::enforce_disclosure_invariant(&session.disclosure_version)?;
     
     let db = state.0.lock().map_err(|e| e.to_string())?;
+    let user = db.get_user(&session.user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
+    PolicyEngine::enforce_under_18_tracking_invariant(&user.age_range, false)?;
+    
     
     let full_session = AssessmentSession {
         id: String::new(), // Will be generated
@@ -65,6 +212,8 @@ pub fn save_skill_session(
     PolicyEngine::enforce_disclosure_invariant(&disclosure_version)?;
     
     let db = state.0.lock().map_err(|e| e.to_string())?;
+    let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
+    PolicyEngine::enforce_under_18_tracking_invariant(&user.age_range, false)?;
     
     let session = crate::db::models::AssessmentSession {
         id: String::new(),
@@ -88,6 +237,8 @@ pub fn save_unified_profile(
     profile_data: String,
 ) -> Result<String, String> {
     let db = state.0.lock().map_err(|e| e.to_string())?;
+    let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
+    PolicyEngine::enforce_under_18_tracking_invariant(&user.age_range, false)?;
     
     // Parse and validate
     let profile: serde_json::Value = serde_json::from_str(&profile_data)
@@ -493,6 +644,17 @@ pub fn get_health_metrics(state: State<DbState>) -> Result<HealthMetrics, String
         db_size_bytes: 0, // Would need to check file size
         encryption_status: "SQLCipher AES-256".to_string(),
     })
+}
+
+// === AUDIT LOG ===
+#[tauri::command]
+pub fn insert_audit_log(
+    state: State<DbState>,
+    action: String,
+    details: String,
+) -> Result<(), String> {
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    db.insert_audit_log(&action, &details).map_err(|e| e.to_string())
 }
 
 

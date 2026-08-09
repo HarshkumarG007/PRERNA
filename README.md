@@ -32,7 +32,7 @@ PRERNA is built around one non-negotiable design principle: **it never hides wha
 |---|:---:|---|
 | **Zero-Knowledge Privacy (Offline-First)** | ✅ Built | SQLCipher (AES-256) encrypted SQLite. No cloud database exists for core functionality. Guarantees DPDP compliance by ensuring psychological profiles cannot be leaked. |
 | **Transparent Gamified Assessment** | ✅ Built | Skill Arena mini-games and Life Quests narrative scenarios — preceded by explicit disclosure. Converts raw gameplay telemetry into standardized Big Five and RIASEC profiles. |
-| **Offline AI Mentor** | ✅ Built | Uses `llama-cpp-2` to run quantized GGUF models directly on the user's CPU/GPU. An empathetic conversational guide that never sends chat logs to external APIs. |
+| **Offline AI Mentor** | 🚧 Planned | Uses `llama-cpp-2` to run quantized GGUF models directly on the user's CPU/GPU. An empathetic conversational guide that never sends chat logs to external APIs. *(Currently runs in offline mock mode pending final LLM integration)*. |
 | **Human-Gated Crisis Protocol** | ✅ Built, ⏳ pending clinical review | Scans mood logs and AI chat transcripts for high-risk flags. A trained human must confirm risk before any guardian is contacted. |
 | **Teen-Visible Parent Dashboard** | ✅ Built | Parents see conversation-starters and trends, never raw psychological data. The teen sees exactly what their parent sees. |
 | **DPDP-Aligned Consent Architecture** | ✅ Built, ⏳ pending legal review | Verifiable guardian consent required before any under-18 account collects data. Behavioral tracking is structurally disabled. |

@@ -2,11 +2,22 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { DataDelete } from '../../components/settings/DataDelete';
 import { DataExport } from '../../components/settings/DataExport';
+import { ToastProvider } from '../../components/common/Toast';
+import { useAppStore } from '../../store';
+import { waitFor } from '@testing-library/react';
+
+vi.mock('@tauri-apps/api/core', () => ({
+  invoke: vi.fn().mockResolvedValue({ user: {}, sessions: [], snapshots: [] })
+}));
 
 describe('DataGovernance UI Components', () => {
   describe('DataDelete', () => {
     it('requires a two-step confirmation to delete data', () => {
-      render(<DataDelete />);
+      render(
+        <ToastProvider>
+          <DataDelete />
+        </ToastProvider>
+      );
       
       const initialButton = screen.getByText('Delete My Data');
       expect(initialButton).toBeInTheDocument();
@@ -28,21 +39,26 @@ describe('DataGovernance UI Components', () => {
       expect(screen.getByText('Delete My Data')).toBeInTheDocument();
     });
 
-    it('triggers delete flow when confirmed', () => {
-      const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    it('triggers delete flow when confirmed', async () => {
+      render(
+        <ToastProvider>
+          <DataDelete />
+        </ToastProvider>
+      );
       
-      render(<DataDelete />);
-      
+      useAppStore.setState({ user: { id: 'test_user', age_range: '16-18', region: 'us', language: 'en' }, isAuthenticated: true, logout: vi.fn() } as any);
       fireEvent.click(screen.getByText('Delete My Data'));
       fireEvent.click(screen.getByText('Yes, Delete Everything'));
       
-      expect(alertMock).toHaveBeenCalledWith('All your local data has been permanently deleted from this device.');
-      alertMock.mockRestore();
+      await waitFor(() => {
+        expect(screen.getByText('Data Deleted')).toBeInTheDocument();
+      });
     });
   });
 
   describe('DataExport', () => {
-    it('provides a button to download data', () => {
+    it('provides a button to download data', async () => {
+      useAppStore.setState({ user: { id: 'test_user', age_range: '16-18', region: 'us', language: 'en' }, isAuthenticated: true } as any);
       // Mock URL methods
       window.URL.createObjectURL = vi.fn(() => 'blob:test');
       window.URL.revokeObjectURL = vi.fn();
@@ -55,8 +71,10 @@ describe('DataGovernance UI Components', () => {
       // Click download
       fireEvent.click(downloadButton);
       
-      expect(window.URL.createObjectURL).toHaveBeenCalled();
-      expect(window.URL.revokeObjectURL).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(window.URL.createObjectURL).toHaveBeenCalled();
+        expect(window.URL.revokeObjectURL).toHaveBeenCalled();
+      });
     });
   });
 });

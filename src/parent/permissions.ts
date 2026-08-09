@@ -60,12 +60,10 @@ export class ParentPermissionManager {
   }
 
   static async requestApproval(): Promise<boolean> {
-    // In production: Send notification to teen's app
-    // For now: Simulate with local prompt
-    const approved = confirm(
-      `Your teen is requesting to share information with you. Approve?`
-    );
-    return approved;
+    // In production: Send notification to teen's app (IPC call to Tauri)
+    // The parent CANNOT self-approve on the teen's behalf.
+    alert("Request sent to your teen's device. Waiting for their approval...");
+    return false;
   }
 
   static generateShareableData(
@@ -177,5 +175,7 @@ export interface ParentSafeProfile {
     severity: string;
     suggestedAction: string;
   }[];
+  bigFive?: Record<string, number>;
+  riasec?: Record<string, number>;
   conversationStarters: string[];
 }

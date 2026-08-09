@@ -65,8 +65,8 @@ export class SkillArenaEngine {
   private calcLogicalScore(results: GameResult[]): number {
     if (results.length === 0) return 50;
     const avg = results.reduce((sum, r) => sum + r.score, 0) / results.length;
-    const speedBonus = results.some(r => r.speed < 2000) ? 10 : 0;
-    return Math.min(100, (avg / 10) + speedBonus);
+    const speedBonus = results.some(r => r.speed > 0 && r.speed < 2000) ? 10 : 0;
+    return Math.min(100, (avg * 0.5) + speedBonus);
   }
   
   private calcVerbalScore(results: GameResult[]): number {
@@ -78,7 +78,7 @@ export class SkillArenaEngine {
     if (results.length === 0) return 50;
     const difficultyBonus = results.some(r => r.difficultyReached > 5) ? 15 : 0;
     const avg = results.reduce((sum, r) => sum + r.score, 0) / results.length;
-    return Math.min(100, (avg / 10) + difficultyBonus);
+    return Math.min(100, (avg * 0.5) + difficultyBonus);
   }
   
   private calcCreativeScore(results: GameResult[]): number {
@@ -88,14 +88,16 @@ export class SkillArenaEngine {
       return sum + (r.strategyPattern === 'exploratory' ? 20 : 0);
     }, 0) / results.length;
     const avg = results.reduce((sum, r) => sum + r.score, 0) / results.length;
-    return Math.min(100, (avg / 10) * 0.6 + uniqueness);
+    return Math.min(100, (avg * 0.4) + uniqueness);
   }
   
   private calcSpeedScore(results: GameResult[]): number {
     if (results.length === 0) return 50;
     const avgSpeed = results.reduce((sum, r) => sum + r.speed, 0) / results.length;
-    // Faster = higher score (inverse relationship)
-    return Math.max(0, Math.min(100, 100 - (avgSpeed / 50)));
+    // Faster = higher score (inverse relationship). Map 2s -> 100, 12s -> 0
+    const speedInSeconds = avgSpeed / 1000;
+    const score = 100 - Math.max(0, (speedInSeconds - 2) * 10);
+    return Math.max(0, Math.min(100, score));
   }
   
   private calcMemoryScore(results: GameResult[]): number {
@@ -126,7 +128,7 @@ export class SkillArenaEngine {
   private calcGameAverage(gameId: string): number {
     const results = this.results.get(gameId) || [];
     if (results.length === 0) return 50;
-    return results.reduce((sum, r) => sum + (r.score / 10), 0) / results.length;
+    return results.reduce((sum, r) => sum + (r.score * 0.5), 0) / results.length;
   }
   
   exportData(): string {

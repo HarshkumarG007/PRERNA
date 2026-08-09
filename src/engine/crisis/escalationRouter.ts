@@ -9,7 +9,7 @@ export interface MoodLogOrChatMessage {
 }
 
 export async function checkForCrisisIndicators(input: MoodLogOrChatMessage): Promise<void> {
-  const isConcerning = input.sentiment === 'severe_distress' || input.content.toLowerCase().includes('harm');
+  const isConcerning = input.sentiment === 'severe_distress' || /\b(harm|hurt|kill|die|suicide)\b/i.test(input.content);
   
   if (isConcerning) {
     // This is the ONLY thing this function is allowed to do on a match.

@@ -13,10 +13,11 @@ export interface SkillArenaProps {
 
 export const SkillArena: React.FC<SkillArenaProps> = ({ userId }) => {
   const { language } = useI18n();
-  const { user } = useAppStore();
+  const { user, recordSession } = useAppStore();
   const [disclosureAccepted, setDisclosureAccepted] = useState(false);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [results, setResults] = useState<any>(null);
+  const [sessionError, setSessionError] = useState<string | null>(null);
 
   const disclosure = CURRENT_DISCLOSURES.skill_arena;
 
@@ -33,19 +34,20 @@ export const SkillArena: React.FC<SkillArenaProps> = ({ userId }) => {
       
       setIsSessionActive(true);
     } catch (err: any) {
-      alert(err.message);
+      setSessionError(err.message);
     }
   };
 
   if (results) {
     return (
-      <div className="max-w-xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-md space-y-6 border-t-4 border-green-500">
-        <h2 className="text-xl font-bold text-gray-900">Arena Cleared!</h2>
-        <p className="text-gray-700">Here's how your skills map out today:</p>
-        <div className="bg-gray-50 p-4 rounded-md border">
-          <pre className="text-sm text-gray-600">{JSON.stringify(results, null, 2)}</pre>
+      <div className="max-w-xl mx-auto mt-10 p-8 bg-[#0f172a]/80 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-emerald-500/30 relative overflow-hidden text-center">
+        <div className="absolute inset-0 bg-emerald-500/10 animate-pulse pointer-events-none" />
+        <h2 className="text-3xl font-black text-white tracking-tight mb-4 relative z-10">Arena Cleared!</h2>
+        <p className="text-slate-300 font-medium mb-6 relative z-10">Here's how your skills map out today:</p>
+        <div className="bg-black/40 p-4 rounded-xl border border-white/5 mb-8 text-left relative z-10">
+          <pre className="text-sm text-emerald-400 font-mono overflow-x-auto">{JSON.stringify(results, null, 2)}</pre>
         </div>
-        <button onClick={() => setResults(null)} className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700">
+        <button onClick={() => setResults(null)} className="relative z-10 w-full py-4 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white rounded-xl font-bold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all">
           Re-enter Arena
         </button>
       </div>
@@ -54,31 +56,55 @@ export const SkillArena: React.FC<SkillArenaProps> = ({ userId }) => {
 
   if (!disclosureAccepted) {
     return (
-      <div className="max-w-xl mx-auto mt-10 p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl shadow-md border border-green-100">
-        <h2 className="text-2xl font-bold text-green-900">Skill Arena</h2>
-        <div className="mt-4 bg-green-100 p-4 rounded-lg">
-          <p className="text-sm font-medium text-green-800">Before you play:</p>
-          <p className="text-fuchsia-900 mt-2">{disclosure.text[language as keyof typeof disclosure.text]}</p>
+      <div className="max-w-2xl mx-auto mt-10 p-8 relative overflow-hidden bg-[#020617] rounded-3xl shadow-2xl border border-white/10">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 rounded-full mix-blend-screen filter blur-[80px]"></div>
+        
+        <div className="relative z-10 flex flex-col items-center text-center space-y-6">
+          <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+          </div>
+          
+          <div>
+            <h2 className="text-3xl font-black text-white tracking-tight">Skill Arena</h2>
+            <p className="text-emerald-200 mt-2 font-medium">Cognitive & linguistic processing evaluation.</p>
+          </div>
+
+          <div className="w-full bg-white/5 p-6 rounded-2xl border border-white/10 shadow-sm text-left backdrop-blur-md">
+            <div className="flex items-center gap-2 mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+              <p className="text-sm font-bold text-emerald-400 uppercase tracking-widest">Before you play</p>
+            </div>
+            <p className="text-white/80 leading-relaxed font-medium">{disclosure.text[language as keyof typeof disclosure.text]}</p>
+          </div>
+
+          <button
+            onClick={() => setDisclosureAccepted(true)}
+            className="w-full py-4 rounded-xl shadow-lg shadow-emerald-500/20 text-white font-bold bg-gradient-to-r from-emerald-500 to-cyan-500 hover:scale-[1.02] active:scale-[0.98] transition-all"
+          >
+            I Understand, Let's Play
+          </button>
         </div>
-        <button
-          onClick={() => setDisclosureAccepted(true)}
-          className="mt-6 w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-md text-sm font-bold text-white bg-green-600 hover:bg-green-700 hover:-translate-y-0.5 transition-transform"
-        >
-          I Understand, Let's Play!
-        </button>
       </div>
     );
   }
 
   if (!isSessionActive) {
     return (
-      <div className="max-w-xl mx-auto mt-10 text-center">
+      <div className="max-w-xl mx-auto mt-20 text-center space-y-8 relative">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-500/20 rounded-full blur-[120px] pointer-events-none" />
+        
         <button
           onClick={handleStartSession}
-          className="py-3 px-6 rounded-full shadow-lg text-lg font-bold text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:scale-105 transition-transform"
+          className="relative z-10 py-5 px-12 rounded-[2rem] shadow-2xl shadow-emerald-500/20 text-2xl font-black text-white bg-gradient-to-r from-emerald-400 to-cyan-500 hover:scale-105 transition-all border border-white/20 overflow-hidden group"
         >
-          Enter the Arena
+          <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+          <span className="relative z-10">Enter the Arena</span>
         </button>
+        {sessionError && (
+          <p className="relative z-10 text-rose-400 text-sm font-bold bg-rose-500/10 border border-rose-500/20 px-4 py-3 rounded-xl max-w-sm mx-auto">
+            {sessionError}
+          </p>
+        )}
       </div>
     );
   }
@@ -86,19 +112,26 @@ export const SkillArena: React.FC<SkillArenaProps> = ({ userId }) => {
   const difficulty = calculateOptimalDifficulty((user as any)?.bigFive);
 
   return (
-    <div className="max-w-4xl mx-auto mt-10 space-y-6">
-      <div className="bg-emerald-50 text-emerald-800 p-4 rounded-xl border border-emerald-200 flex items-center justify-between">
-        <div>
-          <span className="font-bold">Adaptive Pacing Active:</span> Engine detected your profile traits and set the difficulty to <strong className="uppercase">{difficulty}</strong>.
+    <div className="max-w-4xl mx-auto mt-6 space-y-6">
+      <div className="bg-[#0f172a]/80 backdrop-blur-xl text-emerald-400 p-4 rounded-2xl border border-emerald-500/20 flex items-center justify-between shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="font-medium text-sm">Adaptive Pacing Active: Engine set difficulty to <strong className="font-black text-emerald-300 uppercase tracking-widest">{difficulty}</strong>.</span>
         </div>
       </div>
       
       <div className="bg-slate-900 rounded-3xl overflow-hidden shadow-2xl">
         <WordBridge 
           difficulty={difficulty} 
-          onComplete={(res) => {
+          onComplete={async (res) => {
             setResults(res as any);
             setIsSessionActive(false);
+            await recordSession({
+              type: 'skill_arena',
+              completedAt: new Date().toISOString(),
+              score: (res as any).score || 0,
+              metadata: res as Record<string, unknown>
+            });
           }} 
         />
       </div>

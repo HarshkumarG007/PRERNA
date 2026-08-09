@@ -47,7 +47,12 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             // User commands
             commands::create_user,
+            commands::authenticate_user,
             commands::get_user,
+            commands::revoke_consent,
+            commands::generate_mfa_secret,
+            commands::verify_mfa_setup,
+            commands::verify_login_mfa,
             
             // Session commands
             commands::save_session,
@@ -66,10 +71,15 @@ pub fn run() {
             // Interaction commands
             commands::log_interaction,
             
+            // Crisis commands
+            commands::create_crisis_event,
+            commands::resolve_crisis_event,
+            
             // Data management
             commands::export_user_data,
             commands::delete_user_data,
             commands::get_health_metrics,
+            commands::insert_audit_log,
 
             // AI Commands
             commands::ai::chat_with_mentor,

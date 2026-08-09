@@ -78,6 +78,11 @@ impl Database {
     fn init_schema(&mut self) -> AnyhowResult<()> {
         self.conn.execute_batch(SCHEMA_SQL)
             .context("Failed to initialize database schema")?;
+            
+        // Run migrations for MFA columns if they don't exist
+        let _ = self.conn.execute("ALTER TABLE users ADD COLUMN mfa_secret TEXT", []);
+        let _ = self.conn.execute("ALTER TABLE users ADD COLUMN mfa_enabled BOOLEAN DEFAULT 0", []);
+
         info!("Database schema initialized");
         Ok(())
     }
@@ -90,10 +95,12 @@ impl Database {
         let encrypted_lang = self.encrypt_field(&user.language)?;
         
         self.conn.execute(
-            "INSERT INTO users (id, created_at, age_range, region, language, encryption_key_hash)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 0)",
             params![
                 &id,
+                &user.username,
+                &user.password_hash,
                 chrono::Utc::now().to_rfc3339(),
                 &user.age_range,
                 encrypted_region,
@@ -105,23 +112,59 @@ impl Database {
         Ok(id)
     }
 
+    pub fn authenticate_user(&self, username: &str, password_hash_input: &str) -> AnyhowResult<Option<User>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_secret, mfa_enabled 
+             FROM users WHERE username = ?1"
+        )?;
+        
+        let user = stmt.query_row([username], |row| {
+            let db_password_hash: String = row.get(2)?;
+            if db_password_hash != password_hash_input {
+                return Err(rusqlite::Error::QueryReturnedNoRows); // Hack to return None
+            }
+            
+            let region_enc: String = row.get(5)?;
+            let lang_enc: String = row.get(6)?;
+            
+            Ok(User {
+                id: row.get(0)?,
+                username: row.get(1)?,
+                password_hash: row.get(2)?,
+                created_at: row.get(3)?,
+                age_range: row.get(4)?,
+                region: self.decrypt_field(&region_enc).unwrap_or_default(),
+                language: self.decrypt_field(&lang_enc).unwrap_or_default(),
+                encryption_key_hash: row.get(7)?,
+                mfa_secret: row.get(8).ok(),
+                mfa_enabled: row.get(9).unwrap_or(false),
+            })
+        }).optional()?;
+        
+        Ok(user)
+    }
+
     pub fn get_user(&self, user_id: &str) -> AnyhowResult<Option<User>> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, created_at, age_range, region, language, encryption_key_hash 
+            "SELECT id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_secret, mfa_enabled 
              FROM users WHERE id = ?1"
         )?;
         
         let user = stmt.query_row([user_id], |row| {
-            let region_enc: String = row.get(3)?;
-            let lang_enc: String = row.get(4)?;
+            let region_enc: String = row.get(5)?;
+            let lang_enc: String = row.get(6)?;
             
             Ok(User {
                 id: row.get(0)?,
-                created_at: row.get(1)?,
-                age_range: row.get(2)?,
+                username: row.get(1)?,
+                password_hash: row.get(2)?,
+                created_at: row.get(3)?,
+                age_range: row.get(4)?,
                 region: self.decrypt_field(&region_enc).unwrap_or_default(),
                 language: self.decrypt_field(&lang_enc).unwrap_or_default(),
-                encryption_key_hash: row.get(5)?,
+                encryption_key_hash: row.get(7)?,
+                mfa_secret: row.get(8).ok(),
+                mfa_enabled: row.get(9).unwrap_or(false),
             })
         }).optional()?;
         
@@ -389,6 +432,16 @@ impl Database {
         self.conn.execute("DELETE FROM users WHERE id = ?1", [user_id])?;
         
         info!("Deleted all data for user {}", user_id);
+        Ok(())
+    }
+
+    // === AUDIT LOG ===
+
+    pub fn insert_audit_log(&self, action: &str, details: &str) -> AnyhowResult<()> {
+        self.conn.execute(
+            "INSERT INTO audit_log (timestamp, action, details) VALUES (?1, ?2, ?3)",
+            params![chrono::Utc::now().to_rfc3339(), action, details],
+        )?;
         Ok(())
     }
 }

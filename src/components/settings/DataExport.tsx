@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { invoke } from '@tauri-apps/api/core';
+import { useAppStore } from '../../store';
 
 export const DataExport: React.FC = () => {
   const [isExporting, setIsExporting] = useState(false);
@@ -6,14 +8,12 @@ export const DataExport: React.FC = () => {
   const handleExport = async () => {
     setIsExporting(true);
     try {
-      // In production: fetch all rows for this user from SQLite, encrypt if needed, or just generate JSON.
-      const mockExportData = {
-        user: { id: 'u123', age_declared: 16 },
-        trait_snapshots: [{ openness: 70, conscientiousness: 60 }],
-        sessions: [{ type: 'life_quests', date: new Date() }]
-      };
+      const user = useAppStore.getState().user;
+      if (!user) throw new Error("Not logged in");
       
-      const blob = new Blob([JSON.stringify(mockExportData, null, 2)], { type: 'application/json' });
+      const exportData = await invoke('export_all_user_data', { userId: user.id });
+      
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

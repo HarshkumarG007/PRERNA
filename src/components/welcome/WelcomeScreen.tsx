@@ -10,6 +10,7 @@ interface WelcomeScreenProps {
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onAuthenticated }) => {
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState<'signup' | 'login'>('signup');
+  const [authLoginMode, setAuthLoginMode] = useState<'pin' | 'full'>('full');
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   // Parallax effect for background
@@ -29,8 +30,15 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onAuthenticated })
     setShowAuth(true);
   };
 
-  const openLogin = () => {
+  const openFullLogin = () => {
     setAuthMode('login');
+    setAuthLoginMode('full');
+    setShowAuth(true);
+  };
+
+  const openPinLogin = () => {
+    setAuthMode('login');
+    setAuthLoginMode('pin');
     setShowAuth(true);
   };
 
@@ -58,7 +66,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onAuthenticated })
           </div>
           
           <button
-            onClick={openLogin}
+            onClick={openFullLogin}
             className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white/70 hover:text-white transition-colors rounded-full hover:bg-white/5"
           >
             <LogIn size={16} />
@@ -120,7 +128,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onAuthenticated })
                 </motion.button>
 
                 <motion.button
-                  onClick={openLogin}
+                  onClick={openPinLogin}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className="px-8 py-4 rounded-2xl font-bold text-white/80 border border-white/10 hover:bg-white/10 hover:border-white/30 transition-all backdrop-blur-sm text-lg"
@@ -217,6 +225,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onAuthenticated })
         {showAuth && (
           <AuthModal
             mode={authMode}
+            initialLoginMode={authLoginMode}
             onClose={() => setShowAuth(false)}
             onSuccess={onAuthenticated}
           />

@@ -5,7 +5,7 @@ export interface CrisisEvent {
   detectedAt: Date;
   humanReviewStatus: 'pending' | 'reviewed_no_action' | 'reviewed_resources_only' | 'reviewed_guardian_notified';
   reviewerRef?: string;
-  teenInformedAt?: Date;
+  teenInformedAt?: number;
 }
 
 // Deprecated in favor of escalationRouter.ts checkForCrisisIndicators

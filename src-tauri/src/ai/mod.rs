@@ -11,15 +11,29 @@ use tauri::Manager;
 
 pub mod prompts;
 pub mod safety;
+pub mod rag;
 
 use prompts::ConversationContext;
 use safety::SafetyFilter;
+use rag::DomainRag;
+
+pub enum MentorModel {
+    BaseGGUF(PathBuf),
+    FineTunedGGUF(PathBuf),
+    RagHybrid {
+        base: PathBuf,
+        retrieval: Arc<DomainRag>,
+    }
+}
 
 pub struct LocalLLM {
+    _model_variant: MentorModel,
     _model: Arc<LlamaModel>,
     _backend: Arc<LlamaBackend>,
     safety_filter: SafetyFilter,
+    rag_engine: Arc<DomainRag>,
     _max_tokens: i32,
+    mock_mode: bool,
 }
 
 impl LocalLLM {
@@ -60,10 +74,16 @@ impl LocalLLM {
         info!("LLM loaded successfully: {} tokens vocab", model.n_vocab());
         
         Ok(Self {
+            _model_variant: MentorModel::RagHybrid { 
+                base: model_path.clone(), 
+                retrieval: Arc::new(DomainRag::new()) 
+            },
             _model: model,
             _backend: backend,
             safety_filter: SafetyFilter::new(),
+            rag_engine: Arc::new(DomainRag::new()),
             _max_tokens: 512, // Keep responses concise for teens
+            mock_mode: true,
         })
     }
     
@@ -73,8 +93,15 @@ impl LocalLLM {
         user_message: &str,
         trait_profile: &serde_json::Value,
     ) -> Result<String> {
-        // Build contextualized prompt
-        let _prompt = self.build_prompt(context, user_message, trait_profile);
+        if self.mock_mode {
+            return Err(anyhow::anyhow!("AI inference is not available yet: the model runs in mock mode. Set mock_mode to false once llama-cpp-2 inference is wired."));
+        }
+        
+        // 1. Retrieve Domain Context via RAG
+        let rag_context = self.rag_engine.retrieve_context(user_message, trait_profile)?;
+        
+        // 2. Build contextualized prompt
+        let _prompt = self.build_prompt(context, user_message, trait_profile, &rag_context);
         
         // Bypass actual model inference to avoid compilation errors 
         // with the older llama-cpp-2 v0.1.154 API mismatch.
@@ -92,6 +119,7 @@ impl LocalLLM {
         context: &ConversationContext,
         user_message: &str,
         traits: &serde_json::Value,
+        rag_context: &rag::RagContext,
     ) -> String {
         let big_five = traits.get("bigFive").and_then(|v| v.as_object());
         let emotional = traits.get("emotional").and_then(|v| v.as_object());
@@ -122,6 +150,13 @@ impl LocalLLM {
         let extraversion_level = if extraversion > 60.0 { "Outgoing" } else if extraversion > 40.0 { "Balanced" } else { "Reserved" };
         let resilience_level = if resilience > 60.0 { "Strong" } else if resilience > 40.0 { "Developing" } else { "Building" };
         
+        // Build RAG knowledge insertion
+        let knowledge = if rag_context.relevant_documents.is_empty() {
+            "No specific domain knowledge retrieved for this query.".to_string()
+        } else {
+            format!("RELEVANT DOMAIN KNOWLEDGE:\n- {}", rag_context.relevant_documents.join("\n- "))
+        };
+        
         format!(
             r#"<|system|>
 You are PRERNA, a wise AI mentor for Indian teenagers. Your personality adapts to each user.
@@ -132,6 +167,8 @@ USER PROFILE:
 - Resilience: {resilience:.0}% ({resilience_level})
 
 YOUR TONE: {tone}
+
+{knowledge}
 
 RULES:
 1. Be culturally sensitive to Indian context (family respect, academic pressure, career expectations)
@@ -154,7 +191,7 @@ CONVERSATION HISTORY:
     
     /// Quick check if model is loaded
     pub fn is_ready(&self) -> bool {
-        true // Simplified
+        !self.mock_mode
     }
 }
 
