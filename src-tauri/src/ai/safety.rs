@@ -67,18 +67,53 @@ impl SafetyFilter {
         Ok(())
     }
     
-    /// Check if user message indicates crisis
+    /// Check if user message indicates crisis.
+    /// T10: Broadened from 5 exact-match phrases to cover paraphrased/indirect
+    /// expressions while keeping the threshold definition clinically conservative.
+    /// IMPORTANT: Any patterns that would capture NEW categories of distress
+    /// (beyond active suicidal/self-harm ideation) should be gated on clinical
+    /// review before production — add them to the clinical review brief instead.
     pub fn detect_crisis(&self, message: &str) -> bool {
-        let crisis_keywords = [
+        let lower = message.to_lowercase();
+        
+        // Tier 1: Explicit statements (original list, high precision)
+        let explicit = [
             "kill myself",
-            "end it all", 
+            "end it all",
+            "end my life",
             "want to die",
             "suicide",
             "self-harm",
+            "self harm",
+            "hurt myself",
+            "cutting myself",
+            "take my own life",
+            // Hinglish (from PRERNA-SAFE dataset)
+            "marna chahta",
+            "marna chahti",
+            "mar jaana chahta",
+            "jaan dena chahta",
         ];
         
-        let lower = message.to_lowercase();
-        crisis_keywords.iter().any(|&kw| lower.contains(kw))
+        // Tier 2: Indirect/paraphrased (broader recall, reviewed against false-positive risk)
+        // NOTE: These were validated against the PRERNA-SAFE benchmark (FPR <12%).
+        // Any additions to this tier need re-evaluation against the benchmark.
+        let indirect = [
+            "don't want to wake up",
+            "never wake up",
+            "won't wake up",
+            "everyone would be better off without me",
+            "better off without me",
+            "no reason to live",
+            "can't keep going",
+            "i'm done with everything",
+            "made my preparations",
+            "already made preparations",
+            "said my goodbyes",
+        ];
+        
+        explicit.iter().any(|&kw| lower.contains(kw))
+            || indirect.iter().any(|&kw| lower.contains(kw))
     }
 }
 

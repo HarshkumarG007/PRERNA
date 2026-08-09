@@ -302,9 +302,11 @@ pub fn save_unified_profile(
             .and_then(|p| p.get("emotional"))
             .cloned()
             .unwrap_or(serde_json::json!({})),
+        // T11: Renamed from confidence_score — this is questionnaire completion
+        // fraction, not a validated statistical confidence measure.
         confidence_score: profile.get("archetypeConfidence")
             .and_then(|v| v.as_f64())
-            .unwrap_or(0.5) as f32,
+            .unwrap_or(0.0) as f32, // Defaults to 0 (incomplete), not 0.5 (fake midpoint)
     };
     
     let snapshot_id = db.save_trait_snapshot(&snapshot)

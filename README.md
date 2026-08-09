@@ -3,7 +3,7 @@
 # PRERNA
 ### Personalized Real-time Engagement & Neural Resource Assistant
 
-**A zero-knowledge, offline-first desktop platform helping teenagers understand themselves — through transparent, gamified self-discovery and a locally-running AI mentor. No cloud. No hidden assessment. No data leaves the device.**
+**A local-first, encrypted desktop platform helping teenagers understand themselves — through transparent, gamified self-discovery and a locally-running AI mentor. No cloud. No hidden assessment. No data leaves the device.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Lint](https://github.com/HarshkumarG007/PRERNA/actions/workflows/lint.yml/badge.svg)](https://github.com/HarshkumarG007/PRERNA/actions/workflows/lint.yml)
@@ -30,7 +30,7 @@ PRERNA is built around one non-negotiable design principle: **it never hides wha
 
 | Feature | Status | Description |
 |---|:---:|---|
-| **Zero-Knowledge Privacy (Offline-First)** | ✅ Built | SQLCipher (AES-256) encrypted SQLite. No cloud database exists for core functionality. Guarantees DPDP compliance by ensuring psychological profiles cannot be leaked. |
+| **Local-First Encrypted Privacy** | ✅ Built | SQLCipher (AES-256) encrypted SQLite. No cloud database exists for core functionality. Designed for DPDP-aligned privacy; legal review pending before production. Psychological profiles cannot leave the device. |
 | **Transparent Gamified Assessment** | ✅ Built | Skill Arena mini-games and Life Quests narrative scenarios — preceded by explicit disclosure. Converts raw gameplay telemetry into standardized Big Five and RIASEC profiles. |
 | **Offline AI Mentor** | ✅ Built | Uses `llama-cpp-2` to run quantized GGUF models directly on the user's CPU/GPU. An empathetic conversational guide that never sends chat logs to external APIs. Strictly adheres to data minimization by discarding raw chat text locally. |
 | **Human-Gated Crisis Protocol** | ✅ Built, ⏳ pending clinical review | Scans mood logs and AI chat transcripts for high-risk flags. A trained human must confirm risk before any guardian is contacted. *(STATUS: Guardian notification is simulated via secure backend logging).* |
@@ -84,7 +84,7 @@ PRERNA relies on a secure, two-tier architecture running entirely on the user's 
 
 **Why Tauri over Electron:** native OS webview (WebView2/WebKit) instead of a bundled Chromium — roughly a 10MB binary versus Electron's 100MB+, and no shipped browser attack surface to maintain.
 
-**Why local-first is architectural, not just a feature:** every design decision — encryption at rest, no default network calls, disclosure-gated sessions, human-reviewed crisis escalation — exists because the data PRERNA handles (an adolescent's psychological profile) is among the most sensitive a piece of software can touch. Zero-knowledge isn't a marketing term here; there is no server that could be breached, subpoenaed, or sold, because there is no server.
+**Why local-first is architectural, not just a feature:** every design decision — encryption at rest, no default network calls, disclosure-gated sessions, human-reviewed crisis escalation — exists because the data PRERNA handles (an adolescent's psychological profile) is among the most sensitive a piece of software can touch. Local-first isn't a marketing term here; there is no server that could be breached, subpoenaed, or sold, because there is no server. (*Note: "zero-knowledge" in the cryptographic sense requires proof-based protocols not present here; "local-first encrypted" is the accurate description of what PRERNA actually implements.*)
 
 ---
 
