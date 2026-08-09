@@ -24,7 +24,12 @@ To help you understand what the system *can* and *cannot* do, please note:
   - `GuardianNotified` (True crisis; triggers guardian alert).
 * **We track `reviewer_credentials_ref`.** The system technically enforces that no crisis can be resolved without logging the credentials of the human who reviewed it.
 
-## Next Steps
+*Note: Please do not take the above capabilities on faith. We are happy to provide a live demo of the application or share the mathematical test outputs (unit tests) proving these invariants cannot be bypassed.*
+
+## Next Steps & Logistics
+- **Timeline:** [Insert expected turnaround time, e.g., 2 weeks]
+- **Compensation:** [Insert compensation details, e.g., standard hourly clinical consulting rate]
+
 1. Read `docs/crisis-protocol.md`.
 2. Provide a list of required changes, edits to the disclosure language, or structural feedback on the escalation flow.
 3. Once your changes are implemented, we will require a formal sign-off (with your name and date) to unblock our Beta launch.

@@ -22,7 +22,10 @@ The DPDP Act explicitly prohibits tracking and targeted advertising for users un
 * **Current State:** We operate on a "local-first" architecture. SQLite databases are encrypted on the user's local device. We have built UI components (`DataDelete.tsx`, `DataExport.tsx`) that allow the user to instantly wipe all local data or export it in JSON format.
 * **Your Task:** Are these mechanisms sufficient to satisfy the Right to Erasure and Right to Data Portability? Additionally, please review our `docs/governance/grievance-redressal.md` to ensure the reporting chain meets legal requirements.
 
-## Next Steps
+## Next Steps & Logistics
+- **Timeline:** [Insert expected turnaround time, e.g., 2 weeks]
+- **Compensation:** [Insert compensation details, e.g., standard legal consulting rate]
+
 1. Review `docs/dpdp-compliance-mapping.md`.
 2. Provide a written response specifying the required changes to our consent flow and your recommended mechanism for verifiable parental consent.
 3. Once we build the mechanism to your specifications, we will require your sign-off to proceed to the live Beta.
