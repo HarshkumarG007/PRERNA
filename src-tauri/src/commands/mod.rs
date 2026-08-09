@@ -116,9 +116,7 @@ pub fn get_user(
     session: State<ActiveSession>,
 ) -> Result<Option<User>, String> {
     // Read user_id exclusively from the backend session — never trust the renderer
-    let user_id = session.0.lock().map_err(|e| e.to_string())?
-        .clone()
-        .ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     db.get_user(&user_id).map_err(|e| e.to_string())
 }
@@ -128,8 +126,7 @@ pub fn revoke_consent(
     state: State<DbState>,
     session: State<ActiveSession>,
 ) -> Result<(), String> {
-    let user_id = session.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     
     // RED-010: Actually soft-delete the relationship from the database for audit trailing
@@ -154,9 +151,9 @@ pub fn logout(
     session: State<ActiveSession>,
     store: State<crate::ConversationStore>,
 ) -> Result<(), String> {
-    let mut sess = session.0.lock().map_err(|e| e.to_string())?;
+    let user_id_opt = session.get_user_id().ok();
     // RED-025: Evict memory on logout
-    if let Some(user_id) = sess.clone() {
+    if let Some(user_id) = user_id_opt {
         if let Ok(mut store_guard) = store.0.lock() {
             store_guard.remove(&user_id);
         }
@@ -170,8 +167,7 @@ pub fn generate_mfa_secret(
     state: State<DbState>,
     session: State<ActiveSession>,
 ) -> Result<MfaSetupResponse, String> {
-    let user_id = session.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
     
@@ -210,8 +206,7 @@ pub fn verify_mfa_setup(
     session: State<ActiveSession>,
     token: String,
 ) -> Result<bool, String> {
-    let user_id = session.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
     
@@ -340,8 +335,7 @@ pub fn save_unified_profile(
     session: State<ActiveSession>,
     profile_data: String,
 ) -> Result<String, String> {
-    let user_id = session.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
     PolicyEngine::enforce_under_18_tracking_invariant(&user.age_range, false)?;
@@ -405,9 +399,7 @@ pub fn get_unified_profile(
     state: State<DbState>,
     session: State<ActiveSession>,
 ) -> Result<Option<serde_json::Value>, String> {
-    let user_id = session.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?
-    ;
+    let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     
     let sessions = db.get_user_sessions(&user_id).map_err(|e| e.to_string())?;
@@ -570,8 +562,7 @@ pub fn export_user_data(
     session: State<ActiveSession>,
     password: Option<String>,
 ) -> Result<EncryptedExportEnvelope, String> {
-    let user_id = session.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     
     let pwd = password.ok_or_else(|| "Password required for export".to_string())?;
@@ -691,8 +682,7 @@ pub fn get_user_sessions(
     state: State<DbState>,
     session: State<ActiveSession>,
 ) -> Result<Vec<AssessmentSession>, String> {
-    let user_id = session.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     db.get_user_sessions(&user_id).map_err(|e| e.to_string())
 }
@@ -728,8 +718,7 @@ pub fn get_latest_snapshot(
     state: State<DbState>,
     session: State<ActiveSession>,
 ) -> Result<Option<TraitSnapshot>, String> {
-    let user_id = session.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     db.get_latest_snapshot(&user_id).map_err(|e| e.to_string())
 }
@@ -769,8 +758,7 @@ pub fn create_crisis_event(
 ) -> Result<String, String> {
     // Crisis events are always created for the currently authenticated user.
     // The renderer cannot create a crisis event on behalf of another user.
-    let user_id = session.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     
     let event = CrisisEvent {
@@ -862,8 +850,7 @@ pub fn delete_user_data(
     session: State<ActiveSession>,
     store: State<crate::ConversationStore>,
 ) -> Result<(), String> {
-    let user_id = session.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     db.delete_user_data(&user_id).map_err(|e| e.to_string())?;
     

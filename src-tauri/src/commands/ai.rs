@@ -40,9 +40,7 @@ pub fn chat_with_mentor(
     request: ChatRequest,
 ) -> Result<ChatResponse, String> {
     // T1: Derive user identity from backend session, never from renderer
-    let user_id = session.0.lock().map_err(|e| e.to_string())?
-        .clone()
-        .ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let user_id = session.get_user_id()?;
     
     // T6: Input-side SafetyFilter check.
     // If the user's message itself contains crisis-level language, route to crisis
@@ -179,8 +177,7 @@ pub fn generate_career_insight(
     db_state: State<DbState>,
     session: State<ActiveSession>,
 ) -> Result<String, String> {
-    let user_id = session.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let user_id = session.get_user_id()?;
     
     let mut guard = llm_state.0.lock().map_err(|e| e.to_string())?;
     if guard.is_none() {
