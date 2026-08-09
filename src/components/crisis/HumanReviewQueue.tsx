@@ -5,7 +5,7 @@ import { useToast } from '../common/Toast';
 
 // Mock data for the queue
 const MOCK_QUEUE: CrisisEvent[] = [
-  { id: 'c1', userId: 'u123', detectedAt: new Date(), humanReviewStatus: 'pending' },
+  { id: 'c1', userId: 'u123', detectedAt: new Date(), severity: 'high', humanReviewStatus: 'pending' },
 ];
 
 export const HumanReviewQueue: React.FC = () => {

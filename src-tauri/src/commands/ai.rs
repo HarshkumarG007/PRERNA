@@ -111,8 +111,17 @@ pub fn get_model_status(llm_state: State<LLMState>) -> Result<ModelStatus, Strin
             model_name: "Not Loaded".to_string(),
             vram_usage_mb: 0,
             temperature: 0.7,
-        })
     }
+}
+
+#[tauri::command]
+pub fn unload_model(llm_state: State<LLMState>) -> Result<(), String> {
+    let mut guard = llm_state.0.lock().map_err(|e| e.to_string())?;
+    // By setting it to None, we drop the LocalLLM which drops the Arc to LlamaBackend, 
+    // freeing VRAM memory safely.
+    *guard = None;
+    log::info!("AI Model explicitly unloaded to free VRAM.");
+    Ok(())
 }
 
 #[tauri::command]

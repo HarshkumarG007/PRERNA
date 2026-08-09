@@ -87,6 +87,7 @@ pub fn run() {
             // AI Commands
             commands::ai::chat_with_mentor,
             commands::ai::get_model_status,
+            commands::ai::unload_model,
             commands::ai::generate_career_insight,
             
             // School Integration

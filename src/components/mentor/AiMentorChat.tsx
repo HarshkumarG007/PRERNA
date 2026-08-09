@@ -4,11 +4,12 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { CURRENT_DISCLOSURES } from '../../engine/assessment/disclosures';
 import { validateSessionCreation, SessionConfig } from '../../engine/consent/sessionGate';
-import { sendMessageToLLM, ChatMessage, UserContext } from '../../ai/llmClient';
+import { sendMessageToLLM, ChatMessage } from '../../ai/llmClient';
 import { useI18n } from '../../engine/localization/i18n';
 import { Mic, Square, Sparkles, Send, Bot, User as UserIcon, AlertTriangle, ArrowRight } from 'lucide-react';
+import { invoke } from '@tauri-apps/api/core';
 
-import { useAppStore } from '../../store';
+
 
 interface AiMentorChatProps {
   userId: string;
@@ -23,13 +24,10 @@ const QUICK_ACTIONS = [
 
 export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
   const { language } = useI18n();
-  const { profile } = useAppStore();
+  // const { profile } = useAppStore(); // Profile not needed in mock mode
   
-  const userContext: UserContext = {
-    name: 'Teen',
-    bigFive: profile?.personality?.bigFive || { openness: 50, conscientiousness: 50, extraversion: 50, agreeableness: 50, neuroticism: 50 }
-  };
-  
+
+
   const [disclosureAccepted, setDisclosureAccepted] = useState(false);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -48,6 +46,14 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping]);
+
+  useEffect(() => {
+    // Cleanup LLM when leaving the chat interface
+    return () => {
+      console.log('Unloading AI Mentor model from VRAM...');
+      invoke('unload_model').catch(err => console.error('Failed to unload model', err));
+    };
+  }, []);
 
   const handleStartSession = () => {
     try {
@@ -78,8 +84,8 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
     setIsTyping(true);
 
     try {
-      const aiResponseContent = await sendMessageToLLM(userMsg.content, newHistory, userContext);
-      const aiMsg: ChatMessage = { role: 'assistant', content: aiResponseContent };
+      const chatResponse = await sendMessageToLLM(userId, userMsg.content);
+      const aiMsg: ChatMessage = { role: 'assistant', content: chatResponse.response };
       setMessages([...newHistory, aiMsg]);
     } catch (err) {
       console.error("Failed to get response from AI Mentor", err);
