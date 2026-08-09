@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useAppStore } from '../../store';
 
 // Mock Tauri invoke
-vi.mock('@tauri-apps/api/core', () => ({
-  invoke: vi.fn(async (cmd, args) => {
+vi.mock('../../utils/mockBackend', () => ({
+  safeInvoke: vi.fn(async (cmd, args) => {
     if (cmd === 'get_user') {
       if (args.userId === 'valid-user') {
         return {
@@ -96,11 +96,11 @@ describe('AppStore', () => {
       profile: { userId: 'test' } as any
     });
 
-    const { invoke } = await import('@tauri-apps/api/core');
+    const { safeInvoke } = await import('../../utils/mockBackend');
     
     await useAppStore.getState().revokeConsent();
 
-    expect(invoke).toHaveBeenCalledWith('revoke_consent', { userId: 'test' });
+    expect(safeInvoke).toHaveBeenCalledWith('revoke_consent', { userId: 'test' });
     const state = useAppStore.getState();
     expect(state.user).toBeNull();
     expect(state.isAuthenticated).toBe(false);

@@ -22,18 +22,18 @@ describe('Integration: Activity Gating', () => {
     expect(screen.queryByText(/Quest 1: The Mountain Path/i)).not.toBeInTheDocument();
     
     // The Disclosure banner should be visible
-    expect(screen.getByText(/Before you play/i)).toBeInTheDocument();
+    expect(screen.getByText(/Before we begin/i)).toBeInTheDocument();
     
     // The exact plain-language text for Life Quests should be rendered
     const expectedDisclosureText = CURRENT_DISCLOSURES.life_quests.text.en;
     expect(screen.getByText(expectedDisclosureText)).toBeInTheDocument();
 
     // Accept the disclosure
-    const acceptButton = screen.getByRole('button', { name: /I Understand, Let's Play!/i });
+    const acceptButton = screen.getByRole('button', { name: /I Understand, Let's Play/i });
     await user.click(acceptButton);
 
     // Now the disclosure should be gone and the activity visible
-    expect(screen.queryByText(/Before you play/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Before we begin/i)).not.toBeInTheDocument();
     expect(screen.getByText(/Start a New Quest/i)).toBeInTheDocument();
   });
 });
