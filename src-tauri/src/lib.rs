@@ -111,7 +111,7 @@ pub fn run() {
             commands::get_unified_profile,
             commands::get_parent_view,
             commands::update_sharing_preferences,
-            commands::export_all_user_data,
+            commands::export_user_data,
             commands::import_user_data,
             commands::get_user_sessions,
             
