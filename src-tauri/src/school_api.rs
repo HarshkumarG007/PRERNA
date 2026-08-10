@@ -1,6 +1,6 @@
-use tauri::State;
 use crate::db::DbState;
 use crate::db::models::TraitSnapshot;
+use tauri::State;
 
 #[derive(Debug, serde::Serialize)]
 pub struct SchoolAnalyticsReport {
@@ -26,7 +26,9 @@ pub fn generate_school_report(
 
     // RED-009: Authorize the caller as an Educator
     if !db.is_educator(&caller_id) {
-        return Err("Unauthorized: Must be an authorized educator to request school analytics".to_string());
+        return Err(
+            "Unauthorized: Must be an authorized educator to request school analytics".to_string(),
+        );
     }
 
     // RED-009 Amendment: Fail-closed tenant boundary
@@ -73,8 +75,10 @@ pub fn generate_school_report(
     let average_wellbeing = total_wellbeing / (all_snapshots.len() as i32);
 
     // Aggregate Careers & Strengths
-    let mut career_counts: std::collections::HashMap<String, i32> = std::collections::HashMap::new();
-    let mut strength_counts: std::collections::HashMap<String, i32> = std::collections::HashMap::new();
+    let mut career_counts: std::collections::HashMap<String, i32> =
+        std::collections::HashMap::new();
+    let mut strength_counts: std::collections::HashMap<String, i32> =
+        std::collections::HashMap::new();
 
     for snapshot in &all_snapshots {
         for career in extract_career_interests(snapshot) {
