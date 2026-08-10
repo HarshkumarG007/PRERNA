@@ -1,5 +1,5 @@
-use crate::db::DbState;
 use crate::db::models::TraitSnapshot;
+use crate::db::DbState;
 use tauri::State;
 
 #[derive(Debug, serde::Serialize)]

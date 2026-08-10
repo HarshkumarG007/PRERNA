@@ -40,7 +40,11 @@ impl PolicyEngine {
             return Err("Resolution time cannot be before detection time".into());
         }
         if resolved_at - detected_at > max_sla_seconds {
-            return Err(format!("SLA Breach: resolution took {} seconds, exceeding the {} seconds SLA limit", resolved_at - detected_at, max_sla_seconds));
+            return Err(format!(
+                "SLA Breach: resolution took {} seconds, exceeding the {} seconds SLA limit",
+                resolved_at - detected_at,
+                max_sla_seconds
+            ));
         }
         Ok(())
     }
@@ -54,13 +58,23 @@ mod tests {
     fn test_crisis_invariant_guardian_notification_blocked() {
         let decision = CrisisDecision::GuardianNotified;
         let teen_informed_at = None;
-        let result = PolicyEngine::enforce_guardian_notification_invariant(&decision, teen_informed_at);
-        assert!(result.is_err(), "FATAL: Guardian notification must be blocked if teen is not informed");
+        let result =
+            PolicyEngine::enforce_guardian_notification_invariant(&decision, teen_informed_at);
+        assert!(
+            result.is_err(),
+            "FATAL: Guardian notification must be blocked if teen is not informed"
+        );
 
         let decision_valid = CrisisDecision::GuardianNotified;
         let teen_informed_at_valid = Some(1620000000);
-        let result_valid = PolicyEngine::enforce_guardian_notification_invariant(&decision_valid, teen_informed_at_valid);
-        assert!(result_valid.is_ok(), "Guardian notification should pass if teen is informed");
+        let result_valid = PolicyEngine::enforce_guardian_notification_invariant(
+            &decision_valid,
+            teen_informed_at_valid,
+        );
+        assert!(
+            result_valid.is_ok(),
+            "Guardian notification should pass if teen is informed"
+        );
     }
 
     #[test]
