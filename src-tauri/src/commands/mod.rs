@@ -34,11 +34,11 @@ pub fn create_user(
 ) -> Result<String, String> {
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
-    
+
     let password_hash = argon2.hash_password(user.password_hash.as_bytes(), &salt)
         .map_err(|e| e.to_string())?
         .to_string();
-        
+
     user.password_hash = password_hash;
 
     let db = state.0.lock().map_err(|e| e.to_string())?;
@@ -52,10 +52,10 @@ pub fn authenticate_user(
     username: String,
     password_input: String,
 ) -> Result<Option<serde_json::Value>, String> {
-    
+
     let db = state.0.lock().map_err(|e| e.to_string())?;
     let user_opt = db.authenticate_user_raw(&username).map_err(|e| e.to_string())?;
-    
+
     if let Some(mut user) = user_opt {
         let mut is_valid = false;
         let mut needs_migration = false;
@@ -83,7 +83,7 @@ pub fn authenticate_user(
                     .hash_password(password_input.as_bytes(), &salt)
                     .map_err(|e| e.to_string())?
                     .to_string();
-                
+
                 db.conn.execute(
                     "UPDATE users SET password_hash = ?1 WHERE id = ?2",
                     rusqlite::params![new_hash, user.id]
@@ -99,7 +99,7 @@ pub fn authenticate_user(
             } else {
                 // RED-001/020: Only commit session if MFA is not required
                 session.set_authenticated(user.id.clone())?;
-                
+
                 Ok(Some(serde_json::to_value(user).map_err(|e| e.to_string())?))
             }
         } else {
@@ -129,13 +129,13 @@ pub fn revoke_consent(
 ) -> Result<(), String> {
     let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    
+
     // RED-010: Actually soft-delete the relationship from the database for audit trailing
     db.conn.execute(
         "UPDATE parent_teen_relationships SET status = 'revoked', revoked_at = ?1 WHERE parent_user_id = ?2 OR teen_user_id = ?2",
         rusqlite::params![chrono::Utc::now().to_rfc3339(), user_id]
     ).map_err(|e| e.to_string())?;
-    
+
     db.insert_audit_log("CONSENT_REVOKED", &format!("Consent revoked for user {}", user_id))
         .map_err(|e| e.to_string())?;
     Ok(())
@@ -149,18 +149,18 @@ pub fn submit_consent_token(
     session: State<ActiveSession>,
 ) -> Result<(), String> {
     let parent_user_id = session.get_user_id()?;
-    
+
     // Verify token using the provider-independent ConsentService
     let consent_service = ConsentService::new();
     let record = consent_service.process_consent_token(&token)?;
-    
+
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    
+
     // Insert or update the parent_teen_relationships table
     // For development, we assume relationship_id can be UUID
     let relationship_id = uuid::Uuid::new_v4().to_string();
     let consent_record_id = uuid::Uuid::new_v4().to_string();
-    
+
     db.conn.execute(
         "INSERT INTO parent_teen_relationships (
             id, parent_user_id, teen_user_id, established_at, consent_record_id, relationship_id,
@@ -190,10 +190,10 @@ pub fn submit_consent_token(
             record.provider_reference
         ]
     ).map_err(|e| format!("Database error: {}", e))?;
-    
+
     db.insert_audit_log("CONSENT_VERIFIED", &format!("Consent verified for parent {} and teen {}", parent_user_id, teen_user_id))
         .map_err(|e| e.to_string())?;
-        
+
     Ok(())
 }
 
@@ -227,7 +227,7 @@ pub fn generate_mfa_secret(
     let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
-    
+
     let secret = Secret::generate_secret();
     let totp = TOTP::new(
         Algorithm::SHA1,
@@ -238,7 +238,7 @@ pub fn generate_mfa_secret(
         Some("PRERNA".to_string()),
         user.username.clone(),
     ).map_err(|e| e.to_string())?;
-    
+
     let url = totp.get_url();
     let code = QrCode::new(url).map_err(|e| e.to_string())?;
     let svg = code.render()
@@ -246,11 +246,11 @@ pub fn generate_mfa_secret(
         .dark_color(svg::Color("#6d28d9"))
         .light_color(svg::Color("#ffffff"))
         .build();
-    
+
     // Save secret to DB temporarily or permanently (but not enabled yet)
     db.conn.execute("UPDATE users SET mfa_secret = ?1 WHERE id = ?2", rusqlite::params![secret.to_string(), user_id])
         .map_err(|e| e.to_string())?;
-        
+
     Ok(MfaSetupResponse {
         secret: secret.to_string(),
         qr_code_svg: svg,
@@ -266,14 +266,14 @@ pub fn verify_mfa_setup(
     let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
-    
+
     let secret_str = user.mfa_secret.ok_or("MFA secret not set")?;
     let secret = Secret::Encoded(secret_str);
     let totp = TOTP::new(Algorithm::SHA1, 6, 1, 30, secret.to_bytes().unwrap(), None, "".to_string())
         .map_err(|e| e.to_string())?;
-    
+
     let is_valid = totp.check_current(&token).unwrap_or(false);
-    
+
     if is_valid {
         db.conn.execute("UPDATE users SET mfa_enabled = 1 WHERE id = ?1", rusqlite::params![user_id])
             .map_err(|e| e.to_string())?;
@@ -290,16 +290,16 @@ pub fn verify_login_mfa(
     token: String,
 ) -> Result<Option<User>, String> {
     let user_id = session.get_pending_mfa_user()?;
-    
+
     let db = state.0.lock().map_err(|e| e.to_string())?;
     let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
-    
+
     if !user.mfa_enabled {
         return Err("MFA not enabled".to_string());
     }
-    
+
     let secret = user.mfa_secret.as_ref().ok_or("No MFA secret configured")?;
-    
+
     let totp = TOTP::new(
         Algorithm::SHA1,
         6,
@@ -309,7 +309,7 @@ pub fn verify_login_mfa(
         Some("PRERNA".to_string()),
         user.username.clone(),
     ).map_err(|e| e.to_string())?;
-        
+
     if totp.check_current(&token).unwrap_or(false) {
         // MFA passed — fully commit the session now
         session.set_authenticated(user.id.clone())?;
@@ -328,15 +328,15 @@ pub fn save_session(
     session: NewAssessmentSession,
 ) -> Result<String, String> {
     PolicyEngine::enforce_disclosure_invariant(&session.disclosure_version)?;
-    
+
     let user_id = session_state.0.lock().map_err(|e| e.to_string())?
         .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
-    
+
     let db = state.0.lock().map_err(|e| e.to_string())?;
     let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
     PolicyEngine::enforce_under_18_tracking_invariant(&user.age_range, false)?;
-    
-    
+
+
     let full_session = AssessmentSession {
         id: String::new(), // Will be generated
         user_id,
@@ -348,7 +348,7 @@ pub fn save_session(
         disclosure_version: session.disclosure_version,
         disclosure_shown_at: session.disclosure_shown_at,
     };
-    
+
     db.save_session(&full_session).map_err(|e| e.to_string())
 }
 
@@ -363,14 +363,14 @@ pub fn save_skill_session(
     disclosure_shown_at: i64,
 ) -> Result<String, String> {
     PolicyEngine::enforce_disclosure_invariant(&disclosure_version)?;
-    
+
     let user_id = session_state.0.lock().map_err(|e| e.to_string())?
         .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
-    
+
     let db = state.0.lock().map_err(|e| e.to_string())?;
     let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
     PolicyEngine::enforce_under_18_tracking_invariant(&user.age_range, false)?;
-    
+
     let session = crate::db::models::AssessmentSession {
         id: String::new(),
         user_id,
@@ -382,7 +382,7 @@ pub fn save_skill_session(
         disclosure_version,
         disclosure_shown_at,
     };
-    
+
     db.save_session(&session).map_err(|e| e.to_string())
 }
 
@@ -396,11 +396,11 @@ pub fn save_unified_profile(
     let db = state.0.lock().map_err(|e| e.to_string())?;
     let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
     PolicyEngine::enforce_under_18_tracking_invariant(&user.age_range, false)?;
-    
+
     // Parse and validate
     let profile: serde_json::Value = serde_json::from_str(&profile_data)
         .map_err(|e| format!("Invalid profile data: {}", e))?;
-    
+
     // Extract trait snapshot from unified profile
     let snapshot = crate::db::models::TraitSnapshot {
         id: String::new(),
@@ -426,10 +426,10 @@ pub fn save_unified_profile(
             .and_then(|v| v.as_f64())
             .unwrap_or(0.0) as f32, // Defaults to 0 (incomplete), not 0.5 (fake midpoint)
     };
-    
+
     let snapshot_id = db.save_trait_snapshot(&snapshot)
         .map_err(|e| e.to_string())?;
-    
+
     // Also save as session for history
     let session = crate::db::models::AssessmentSession {
         id: String::new(),
@@ -446,9 +446,9 @@ pub fn save_unified_profile(
         disclosure_version: "system_generated".to_string(),
         disclosure_shown_at: chrono::Utc::now().timestamp(),
     };
-    
+
     db.save_session(&session).map_err(|e| e.to_string())?;
-    
+
     Ok(snapshot_id)
 }
 
@@ -459,11 +459,11 @@ pub fn get_unified_profile(
 ) -> Result<Option<serde_json::Value>, String> {
     let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    
+
     let sessions = db.get_user_sessions(&user_id).map_err(|e| e.to_string())?;
-    
+
     let profile_session = sessions.into_iter().find(|s| s.session_type == "unified_profile");
-    
+
     if let Some(session) = profile_session {
         let profile: serde_json::Value = serde_json::from_str(&session.raw_choices)
             .map_err(|e| format!("Failed to parse profile data: {}", e))?;
@@ -503,17 +503,17 @@ pub fn get_parent_view(
     request: ParentViewRequest,
 ) -> Result<ParentViewResponse, String> {
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    
+
     // T3 FIX: Real parent-teen relationship check.
     // Verify that the requesting authenticated parent has an established link to the teen.
     let parent_id = session_state.0.lock().map_err(|e| e.to_string())?
         .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
-    
+
     // A parent can only access their own linked teen's data.
     // They cannot access arbitrary teen IDs by guessing.
     let is_authorized = db.check_parent_teen_link(&parent_id, &request.teen_id)
         .map_err(|e| e.to_string())?;
-    
+
     if let Err(_) = PolicyEngine::enforce_parental_authorization(is_authorized) {
         return Ok(ParentViewResponse {
             has_access: false,
@@ -521,18 +521,18 @@ pub fn get_parent_view(
             pending_requests: vec![],
         });
     }
-    
+
     let profile = db.get_latest_snapshot(&request.teen_id)
         .map_err(|e| e.to_string())?;
-    
+
     // Load sharing preferences, fallback to restrictive defaults
     let prefs = db.get_sharing_preferences(&request.teen_id)
         .map_err(|e| e.to_string())?;
-        
+
     let parent_safe = profile.map(|p| {
         let mut map = serde_json::Map::new();
         map.insert("last_active".to_string(), serde_json::json!(p.snapshot_date));
-        
+
         if let Some(ref preferences) = prefs {
             if preferences.shares.wellbeing_score {
                 map.insert("wellbeing_score".to_string(), serde_json::json!(calculate_wellbeing_score(&p)));
@@ -544,10 +544,10 @@ pub fn get_parent_view(
                 map.insert("strengths".to_string(), serde_json::json!(extract_strengths(&p)));
             }
         }
-        
+
         serde_json::Value::Object(map)
     });
-    
+
     Ok(ParentViewResponse {
         has_access: true,
         profile: parent_safe,
@@ -560,13 +560,13 @@ fn calculate_wellbeing_score(profile: &crate::db::models::TraitSnapshot) -> i32 
         .get("resilience")
         .and_then(|v| v.as_f64())
         .unwrap_or(0.5);
-    
+
     ((emotional * 100.0) as i32).clamp(0, 100)
 }
 
 fn extract_career_interests(profile: &crate::db::models::TraitSnapshot) -> Vec<String> {
     let mut interests = vec![];
-    
+
     if profile.riasec.investigative > 60.0 {
         interests.push("Technology/Research".to_string());
     }
@@ -576,13 +576,13 @@ fn extract_career_interests(profile: &crate::db::models::TraitSnapshot) -> Vec<S
     if profile.riasec.social > 60.0 {
         interests.push("Helping Professions".to_string());
     }
-    
+
     interests
 }
 
 fn extract_strengths(profile: &crate::db::models::TraitSnapshot) -> Vec<String> {
     let mut strengths = vec![];
-    
+
     if profile.big_five.openness > 70.0 {
         strengths.push("Creativity".to_string());
     }
@@ -592,7 +592,7 @@ fn extract_strengths(profile: &crate::db::models::TraitSnapshot) -> Vec<String> 
     if profile.big_five.extraversion > 70.0 {
         strengths.push("Leadership".to_string());
     }
-    
+
     strengths
 }
 
@@ -622,36 +622,36 @@ pub fn export_user_data(
 ) -> Result<EncryptedExportEnvelope, String> {
     let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    
+
     let pwd = password.ok_or_else(|| "Password required for export".to_string())?;
-    
+
     let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
     let sessions = db.get_user_sessions(&user_id).map_err(|e| e.to_string())?;
     let snapshots = db.get_user_snapshots(&user_id).map_err(|e| e.to_string())?;
-    
+
     let package = ExportPackage {
         user: serde_json::to_value(user).unwrap(),
         sessions: sessions.into_iter().map(|s| serde_json::to_value(s).unwrap()).collect(),
         snapshots: snapshots.into_iter().map(|s| serde_json::to_value(s).unwrap()).collect(),
         preferences: serde_json::json!({}),
     };
-    
+
     let plaintext = serde_json::to_vec(&package).map_err(|e| e.to_string())?;
-    
+
     use rand::RngCore;
     let mut salt = [0u8; 16];
     rand::thread_rng().fill_bytes(&mut salt);
-    
+
     let mut key = [0u8; 32];
     Argon2::default().hash_password_into(pwd.as_bytes(), &salt, &mut key).map_err(|e| e.to_string())?;
-    
+
     let cipher = Aes256Gcm::new(aes_gcm::Key::<Aes256Gcm>::from_slice(&key));
     let mut nonce_bytes = [0u8; 12];
     rand::thread_rng().fill_bytes(&mut nonce_bytes);
     let nonce = Nonce::from_slice(&nonce_bytes);
-    
+
     let ciphertext = cipher.encrypt(nonce, plaintext.as_ref()).map_err(|e| format!("Encryption failed: {}", e))?;
-    
+
     Ok(EncryptedExportEnvelope {
         version: "v1".to_string(),
         kdf: "argon2id".to_string(),
@@ -671,35 +671,35 @@ pub fn import_user_data(
 ) -> Result<String, String> {
     let caller_id = session_state.0.lock().map_err(|e| e.to_string())?
         .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
-        
+
     let pwd = password.ok_or_else(|| "Password required for import".to_string())?;
-    
+
     let salt = base64::decode(&envelope.salt).map_err(|_| "Invalid salt".to_string())?;
     let nonce_bytes = base64::decode(&envelope.nonce).map_err(|_| "Invalid nonce".to_string())?;
     let ciphertext = base64::decode(&envelope.ciphertext).map_err(|_| "Invalid ciphertext".to_string())?;
-    
+
     let mut key = [0u8; 32];
     Argon2::default().hash_password_into(pwd.as_bytes(), &salt, &mut key).map_err(|_| "Key derivation failed".to_string())?;
-    
+
     let cipher = Aes256Gcm::new(aes_gcm::Key::<Aes256Gcm>::from_slice(&key));
     let nonce = Nonce::from_slice(&nonce_bytes);
-    
+
     let plaintext = cipher.decrypt(nonce, ciphertext.as_ref()).map_err(|_| "Invalid password or corrupted export".to_string())?;
-    
+
     let data: ExportPackage = serde_json::from_slice(&plaintext).map_err(|_| "Invalid export schema".to_string())?;
-    
+
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    
+
     let mut user: crate::db::models::User = serde_json::from_value(data.user)
         .map_err(|_| "Invalid user data in export".to_string())?;
     user.id = caller_id.clone();
-    
+
     // TRANSACTIONAL IMPORT
     db.conn.execute("BEGIN TRANSACTION", []).map_err(|e| e.to_string())?;
-    
+
     let result: Result<(), String> = (|| {
         match db.get_user(&user.id).map_err(|e| e.to_string())? {
-            Some(_) => {} 
+            Some(_) => {}
             None => {
                 db.create_user(&crate::db::models::NewUser {
                     username: user.username,
@@ -710,13 +710,13 @@ pub fn import_user_data(
                 }).map_err(|e| e.to_string())?;
             }
         }
-        
+
         for session_json in data.sessions {
             let session: crate::db::models::AssessmentSession = serde_json::from_value(session_json)
                 .map_err(|e| format!("Invalid session: {}", e))?;
             db.save_session(&session).map_err(|e| e.to_string())?;
         }
-        
+
         for snapshot_json in data.snapshots {
             let snapshot: crate::db::models::TraitSnapshot = serde_json::from_value(snapshot_json)
                 .map_err(|e| format!("Invalid snapshot: {}", e))?;
@@ -724,14 +724,14 @@ pub fn import_user_data(
         }
         Ok(())
     })();
-    
+
     if result.is_err() {
         let _ = db.conn.execute("ROLLBACK", []);
         return result;
     }
-    
+
     db.conn.execute("COMMIT", []).map_err(|e| e.to_string())?;
-    
+
     Ok(caller_id)
 }
 
@@ -756,7 +756,7 @@ pub fn save_trait_snapshot(
     let user_id = session_state.0.lock().map_err(|e| e.to_string())?
         .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    
+
     let full_snapshot = TraitSnapshot {
         id: String::new(),
         user_id,
@@ -768,7 +768,7 @@ pub fn save_trait_snapshot(
         emotional_profile: snapshot.emotional_profile,
         confidence_score: snapshot.confidence_score,
     };
-    
+
     db.save_trait_snapshot(&full_snapshot).map_err(|e| e.to_string())
 }
 
@@ -793,7 +793,7 @@ pub fn log_interaction(
     let user_id = session_state.0.lock().map_err(|e| e.to_string())?
         .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    
+
     let full_interaction = MicroInteraction {
         id: String::new(),
         user_id,
@@ -802,7 +802,7 @@ pub fn log_interaction(
         emotional_signal: interaction.emotional_signal,
         timestamp: chrono::Utc::now().to_rfc3339(),
     };
-    
+
     db.log_micro_interaction(&full_interaction).map_err(|e| e.to_string())
 }
 
@@ -819,7 +819,7 @@ pub fn create_crisis_event(
     // The renderer cannot create a crisis event on behalf of another user.
     let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    
+
     let event = CrisisEvent {
         id: uuid::Uuid::new_v4().to_string(),
         user_id,
@@ -831,7 +831,7 @@ pub fn create_crisis_event(
         decision: None,
         teen_informed_at: None,
     };
-    
+
     db.create_crisis_event(&event).map_err(|e| e.to_string())
 }
 
@@ -851,13 +851,13 @@ pub fn claim_crisis_event(
 ) -> Result<(), String> {
     let reviewer_id = session_state.0.lock().map_err(|e| e.to_string())?
         .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
-        
+
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    
+
     if !db.is_reviewer(&reviewer_id) {
         return Err("Unauthorized: Must be a clinical reviewer".to_string());
     }
-    
+
     db.claim_crisis_event(&event_id, &reviewer_id).map_err(|e| e.to_string())
 }
 
@@ -873,18 +873,18 @@ pub fn resolve_crisis_event(
     // T5: Ensure the caller has a session and derive reviewer ID from it
     let reviewer_id = session_state.0.lock().map_err(|e| e.to_string())?
         .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
-        
+
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    
+
     // RED-003/016/017/018: Strict Reviewer Authorization
     if !db.is_reviewer(&reviewer_id) {
         return Err("Unauthorized: Must be a clinical reviewer".to_string());
     }
-    
+
     // DB now atomicly checks assignment and pending status in `resolve_crisis_event`
-    
+
     PolicyEngine::enforce_guardian_notification_invariant(&decision, teen_informed_at)?;
-    
+
     let decision_str = match decision {
         CrisisDecision::NoAction => "NoAction",
         CrisisDecision::ResourcesOnly => "ResourcesOnly",
@@ -895,7 +895,7 @@ pub fn resolve_crisis_event(
             "GuardianNotified"
         },
     };
-    
+
     db.resolve_crisis_event(&event_id, &reviewer_id, &reviewer_credentials_ref, decision_str, teen_informed_at).map_err(|e| e.to_string())
 }
 
@@ -912,7 +912,7 @@ pub fn delete_user_data(
     let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     db.delete_user_data(&user_id).map_err(|e| e.to_string())?;
-    
+
     // RED-014: Clear the user's ConversationStore in memory
     if let Ok(mut store_guard) = store.0.lock() {
         store_guard.remove(&user_id);
@@ -923,15 +923,15 @@ pub fn delete_user_data(
 #[tauri::command]
 pub fn get_health_metrics(state: State<DbState>) -> Result<HealthMetrics, String> {
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    
+
     let total_users: i64 = db.conn.query_row(
         "SELECT COUNT(*) FROM users", [], |r| r.get(0)
     ).map_err(|e| e.to_string())?;
-    
+
     let total_sessions: i64 = db.conn.query_row(
         "SELECT COUNT(*) FROM sessions", [], |r| r.get(0)
     ).map_err(|e| e.to_string())?;
-    
+
     Ok(HealthMetrics {
         total_users,
         total_sessions,

@@ -18,7 +18,7 @@ impl Database {
     /// Initialize encrypted database with key from secure storage
     pub fn new(app_handle: &tauri::AppHandle) -> AnyhowResult<Self> {
         let db_path = get_db_path(app_handle)?;
-        
+
         // Ensure directory exists
         if let Some(parent) = db_path.parent() {
             std::fs::create_dir_all(parent)?;
@@ -30,7 +30,7 @@ impl Database {
 
         // Get or create encryption key from OS keyring
         let key = Self::get_or_create_key()?;
-        
+
         // Enable SQLCipher encryption
         conn.execute_batch(&format!("PRAGMA key = '{}';", key.as_str()))
             .context("Failed to set SQLCipher encryption key")?;
@@ -43,7 +43,7 @@ impl Database {
 
         let mut db = Self { conn };
         db.init_schema()?;
-        
+
         Ok(db)
     }
 
@@ -51,9 +51,9 @@ impl Database {
     fn get_or_create_key() -> AnyhowResult<Zeroizing<String>> {
         let service = "prerna";
         let username = "db_encryption_key";
-        
+
         let entry = keyring::Entry::new(service, username)?;
-        
+
         match entry.get_password() {
             Ok(key) => {
                 info!("Retrieved existing encryption key from keyring");
@@ -81,15 +81,15 @@ impl Database {
     fn init_schema(&mut self) -> AnyhowResult<()> {
         self.conn.execute_batch(SCHEMA_SQL)
             .context("Failed to initialize database schema")?;
-            
+
         // Run migrations for MFA columns if they don't exist
         let _ = self.conn.execute("ALTER TABLE users ADD COLUMN mfa_secret TEXT", []);
         let _ = self.conn.execute("ALTER TABLE users ADD COLUMN mfa_enabled BOOLEAN DEFAULT 0", []);
-        
+
         // T3: Parent-teen relationship table for real authorization
         // Dropping for development purposes to apply Phase 4 schema changes
         let _ = self.conn.execute_batch("DROP TABLE IF EXISTS parent_teen_relationships;");
-        
+
         self.conn.execute_batch("
             CREATE TABLE IF NOT EXISTS parent_teen_relationships (
                 id TEXT PRIMARY KEY,
@@ -114,12 +114,12 @@ impl Database {
     }
 
     // === USER OPERATIONS ===
-    
+
     pub fn create_user(&self, user: &NewUser) -> AnyhowResult<String> {
         let id = uuid::Uuid::new_v4().to_string();
         let encrypted_region = self.encrypt_field(&user.region)?;
         let encrypted_lang = self.encrypt_field(&user.language)?;
-        
+
         self.conn.execute(
             "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled, role, tenant_id)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 0, 'teen', NULL)",
@@ -134,20 +134,20 @@ impl Database {
                 "key_placeholder" // In production: hash of encryption key
             ],
         )?;
-        
+
         Ok(id)
     }
 
     pub fn authenticate_user_raw(&self, username: &str) -> AnyhowResult<Option<User>> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_secret, mfa_enabled, role, tenant_id 
+            "SELECT id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_secret, mfa_enabled, role, tenant_id
              FROM users WHERE username = ?1"
         )?;
-        
+
         let user = stmt.query_row([username], |row| {
             let region_enc: String = row.get(5)?;
             let lang_enc: String = row.get(6)?;
-            
+
             Ok(User {
                 id: row.get(0)?,
                 username: row.get(1)?,
@@ -163,7 +163,7 @@ impl Database {
                 tenant_id: row.get(11).ok(),
             })
         }).optional()?;
-        
+
         Ok(user)
     }
 
@@ -172,11 +172,11 @@ impl Database {
             "SELECT id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_secret, mfa_enabled, role, tenant_id
              FROM users WHERE id = ?1"
         )?;
-        
+
         let user = stmt.query_row([user_id], |row| {
             let region_enc: String = row.get(5)?;
             let lang_enc: String = row.get(6)?;
-            
+
             Ok(User {
                 id: row.get(0)?,
                 username: row.get(1)?,
@@ -192,7 +192,7 @@ impl Database {
                 tenant_id: row.get(11).ok(),
             })
         }).optional()?;
-        
+
         Ok(user)
     }
 
@@ -206,9 +206,9 @@ impl Database {
         )?;
         Ok(count > 0)
     }
-    
+
     // === AUTHORIZATION STUBS ===
-    
+
     pub fn is_reviewer(&self, user_id: &str) -> bool {
         let role: Result<String, _> = self.conn.query_row(
             "SELECT role FROM users WHERE id = ?1",
@@ -217,7 +217,7 @@ impl Database {
         );
         role.unwrap_or_default() == "reviewer"
     }
-    
+
     pub fn is_educator(&self, user_id: &str) -> bool {
         let role: Result<String, _> = self.conn.query_row(
             "SELECT role FROM users WHERE id = ?1",
@@ -226,7 +226,7 @@ impl Database {
         );
         role.unwrap_or_default() == "educator"
     }
-    
+
     pub fn check_educator_tenant_access(&self, educator_id: &str, student_id: &str) -> bool {
         // Fetch both tenants
         let ed_tenant: Result<Option<String>, _> = self.conn.query_row(
@@ -239,7 +239,7 @@ impl Database {
             rusqlite::params![student_id],
             |row| row.get(0)
         );
-        
+
         match (ed_tenant, st_tenant) {
             (Ok(Some(ed)), Ok(Some(st))) => ed == st,
             _ => false, // fail closed if missing or error
@@ -252,7 +252,7 @@ impl Database {
         let id = uuid::Uuid::new_v4().to_string();
         let encrypted_choices = self.encrypt_field(&session.raw_choices)?;
         let encrypted_traits = self.encrypt_field(&session.derived_traits)?;
-        
+
         self.conn.execute(
             "INSERT INTO sessions (id, user_id, session_type, started_at, completed_at, raw_choices, derived_traits, disclosure_version, disclosure_shown_at)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
@@ -268,20 +268,20 @@ impl Database {
                 session.disclosure_shown_at
             ],
         )?;
-        
+
         Ok(id)
     }
 
     pub fn get_user_sessions(&self, user_id: &str) -> AnyhowResult<Vec<AssessmentSession>> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, session_type, started_at, completed_at, raw_choices, derived_traits, disclosure_version, disclosure_shown_at 
+            "SELECT id, session_type, started_at, completed_at, raw_choices, derived_traits, disclosure_version, disclosure_shown_at
              FROM sessions WHERE user_id = ?1 ORDER BY started_at DESC"
         )?;
-        
+
         let sessions = stmt.query_map([user_id], |row| {
             let choices_enc: String = row.get(4)?;
             let traits_enc: String = row.get(5)?;
-            
+
             Ok(AssessmentSession {
                 id: row.get(0)?,
                 user_id: user_id.to_string(),
@@ -295,7 +295,7 @@ impl Database {
             })
         })?
         .collect::<Result<Vec<_>, _>>()?;
-        
+
         Ok(sessions)
     }
 
@@ -303,9 +303,9 @@ impl Database {
 
     pub fn save_trait_snapshot(&self, snapshot: &TraitSnapshot) -> AnyhowResult<String> {
         let id = uuid::Uuid::new_v4().to_string();
-        
+
         self.conn.execute(
-            "INSERT INTO trait_snapshots (id, user_id, snapshot_date, item_bank_version, big_five, riasec, 
+            "INSERT INTO trait_snapshots (id, user_id, snapshot_date, item_bank_version, big_five, riasec,
              multiple_intel, emotional_profile, confidence_score)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
             params![
@@ -320,19 +320,19 @@ impl Database {
                 snapshot.confidence_score
             ],
         )?;
-        
+
         Ok(id)
     }
 
     pub fn get_latest_snapshot(&self, user_id: &str) -> AnyhowResult<Option<TraitSnapshot>> {
         let mut stmt = self.conn.prepare(
             "SELECT id, snapshot_date, item_bank_version, big_five, riasec, multiple_intel, emotional_profile, confidence_score
-             FROM trait_snapshots 
-             WHERE user_id = ?1 
-             ORDER BY snapshot_date DESC 
+             FROM trait_snapshots
+             WHERE user_id = ?1
+             ORDER BY snapshot_date DESC
              LIMIT 1"
         )?;
-        
+
         let snapshot = stmt.query_row([user_id], |row| {
             Ok(TraitSnapshot {
                 id: row.get(0)?,
@@ -346,18 +346,18 @@ impl Database {
                 confidence_score: row.get(7)?,
             })
         }).optional()?;
-        
+
         Ok(snapshot)
     }
 
     pub fn get_user_snapshots(&self, user_id: &str) -> AnyhowResult<Vec<TraitSnapshot>> {
         let mut stmt = self.conn.prepare(
             "SELECT id, snapshot_date, item_bank_version, big_five, riasec, multiple_intel, emotional_profile, confidence_score
-             FROM trait_snapshots 
-             WHERE user_id = ?1 
+             FROM trait_snapshots
+             WHERE user_id = ?1
              ORDER BY snapshot_date DESC"
         )?;
-        
+
         let snapshots = stmt.query_map([user_id], |row| {
             Ok(TraitSnapshot {
                 id: row.get(0)?,
@@ -371,7 +371,7 @@ impl Database {
                 confidence_score: row.get(7)?,
             })
         })?.collect::<Result<Vec<_>, _>>()?;
-        
+
         Ok(snapshots)
     }
 
@@ -380,7 +380,7 @@ impl Database {
     pub fn log_micro_interaction(&self, interaction: &MicroInteraction) -> AnyhowResult<String> {
         let id = uuid::Uuid::new_v4().to_string();
         let encrypted_metadata = self.encrypt_field(&interaction.metadata)?;
-        
+
         self.conn.execute(
             "INSERT INTO micro_interactions (id, user_id, interaction_type, metadata, emotional_signal, timestamp)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
@@ -393,12 +393,12 @@ impl Database {
                 interaction.timestamp
             ],
         )?;
-        
+
         Ok(id)
     }
 
     // === CRISIS OPERATIONS ===
-    
+
     pub fn create_crisis_event(&self, event: &CrisisEvent) -> AnyhowResult<String> {
         self.conn.execute(
             "INSERT INTO crisis_events (id, user_id, detected_at, severity, human_review_status, reviewer_id, decision, teen_informed_at)
@@ -416,14 +416,14 @@ impl Database {
         )?;
         Ok(event.id.clone())
     }
-    
+
     pub fn get_pending_crisis_events(&self) -> AnyhowResult<Vec<CrisisEvent>> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, user_id, detected_at, severity, human_review_status, reviewer_id, reviewer_credentials_ref, decision, teen_informed_at 
-             FROM crisis_events 
+            "SELECT id, user_id, detected_at, severity, human_review_status, reviewer_id, reviewer_credentials_ref, decision, teen_informed_at
+             FROM crisis_events
              WHERE human_review_status = 'pending'"
         )?;
-        
+
         let events = stmt.query_map([], |row| {
             Ok(CrisisEvent {
                 id: row.get(0)?,
@@ -437,7 +437,7 @@ impl Database {
                 teen_informed_at: row.get(8)?,
             })
         })?.collect::<Result<Vec<_>, _>>()?;
-        
+
         Ok(events)
     }
 
@@ -468,7 +468,7 @@ impl Database {
                 teen_informed_at = ?3
             WHERE id = ?4 AND reviewer_id = ?5 AND human_review_status = 'pending'
         ";
-        
+
         let updated = self.conn.execute(sql, rusqlite::params![reviewer_credentials_ref, decision, teen_informed_at, event_id, reviewer_id])?;
         if updated == 0 {
             return Err(anyhow::anyhow!("FATAL STATE MACHINE EXCEPTION: Event is not pending, or not assigned to you, or does not exist."));
@@ -481,7 +481,7 @@ impl Database {
     pub fn save_sharing_preferences(&self, user_id: &str, preferences: &crate::db::models::SharingPreferences) -> AnyhowResult<()> {
         let prefs_json = serde_json::to_string(preferences)?;
         let encrypted_prefs = self.encrypt_field(&prefs_json)?;
-        
+
         self.conn.execute(
             "INSERT INTO parent_sharing_preferences (user_id, preferences, last_updated)
              VALUES (?1, ?2, ?3)
@@ -490,14 +490,14 @@ impl Database {
              last_updated = excluded.last_updated",
             params![user_id, encrypted_prefs, &preferences.last_updated],
         )?;
-        
+
         Ok(())
     }
-    
+
     pub fn get_sharing_preferences(&self, user_id: &str) -> AnyhowResult<Option<crate::db::models::SharingPreferences>> {
         let mut stmt = self.conn.prepare("SELECT preferences FROM parent_sharing_preferences WHERE user_id = ?1")?;
         let mut rows = stmt.query(params![user_id])?;
-        
+
         if let Some(row) = rows.next()? {
             let encrypted_prefs: String = row.get(0)?;
             let decrypted_prefs = self.decrypt_field(&encrypted_prefs)?;
@@ -513,19 +513,19 @@ impl Database {
     fn encrypt_field(&self, plaintext: &str) -> AnyhowResult<String> {
         use aes_gcm::{Aes256Gcm, Key, Nonce};
         use aes_gcm::aead::{Aead, KeyInit};
-        
+
         let key = Self::get_or_create_key()?;
         let mut key_bytes = hex::decode(&*key)?;
         let cipher_key = Key::<Aes256Gcm>::from_slice(&key_bytes);
         let cipher = Aes256Gcm::new(cipher_key);
         key_bytes.zeroize();
-        
+
         let nonce_bytes = rand::random::<[u8; 12]>();
         let nonce = Nonce::from_slice(&nonce_bytes);
-        
+
         let ciphertext = cipher.encrypt(nonce, plaintext.as_bytes())
             .map_err(|e| anyhow::anyhow!("Encryption failed: {}", e))?;
-        
+
         let mut result = nonce_bytes.to_vec();
         result.extend_from_slice(&ciphertext);
         use base64::Engine;
@@ -535,26 +535,26 @@ impl Database {
     fn decrypt_field(&self, ciphertext: &str) -> AnyhowResult<String> {
         use aes_gcm::{Aes256Gcm, Key, Nonce};
         use aes_gcm::aead::{Aead, KeyInit};
-        
+
         let key = Self::get_or_create_key()?;
         let mut key_bytes = hex::decode(&*key)?;
         let cipher_key = Key::<Aes256Gcm>::from_slice(&key_bytes);
         let cipher = Aes256Gcm::new(cipher_key);
         key_bytes.zeroize();
-        
+
         use base64::Engine;
         let data = base64::engine::general_purpose::STANDARD.decode(ciphertext)
             .map_err(|e| anyhow::anyhow!("Base64 decode failed: {}", e))?;
         if data.len() < 12 {
             return Err(anyhow::anyhow!("Invalid ciphertext"));
         }
-        
+
         let (nonce_bytes, encrypted) = data.split_at(12);
         let nonce = Nonce::from_slice(nonce_bytes);
-        
+
         let plaintext = cipher.decrypt(nonce, encrypted)
             .map_err(|e| anyhow::anyhow!("Decryption failed: {}", e))?;
-        
+
         String::from_utf8(plaintext)
             .map_err(|e| anyhow::anyhow!("Invalid UTF-8: {}", e))
     }
@@ -562,10 +562,10 @@ impl Database {
     pub fn export_user_data(&self, user_id: &str) -> AnyhowResult<UserDataExport> {
         let user = self.get_user(user_id)?
             .ok_or_else(|| anyhow::anyhow!("User not found"))?;
-        
+
         let sessions = self.get_user_sessions(user_id)?;
         let snapshot = self.get_latest_snapshot(user_id)?;
-        
+
         Ok(UserDataExport {
             user,
             sessions,
@@ -585,7 +585,7 @@ impl Database {
         self.conn.execute("DELETE FROM parent_sharing_preferences WHERE user_id = ?1", [user_id])?;
         self.conn.execute("DELETE FROM audit_log WHERE details LIKE '%' || ?1 || '%'", [user_id])?;
         self.conn.execute("DELETE FROM users WHERE id = ?1", [user_id])?;
-        
+
         info!("Deleted all data for user {}", user_id);
         Ok(())
     }
@@ -625,7 +625,7 @@ mod tests {
     fn test_data_retention_guarantee() {
         let db = setup_test_db();
         let user_id = "test_user_delete_audit";
-        
+
         // 1. Insert a user
         db.conn.execute(
             "INSERT INTO users (id, created_at, age_range, region, language, encryption_key_hash) VALUES (?1, '2023-01-01', '13-15', 'enc_reg', 'en', 'hash')",
@@ -637,12 +637,12 @@ mod tests {
             "INSERT INTO sessions (id, user_id, session_type, started_at, disclosure_version, disclosure_shown_at) VALUES ('sess1', ?1, 'life_quest', '2023-01-01', 'v1', 1234567890)",
             [user_id]
         ).unwrap();
-        
+
         db.conn.execute(
             "INSERT INTO trait_snapshots (id, user_id, snapshot_date) VALUES ('snap1', ?1, '2023-01-01')",
             [user_id]
         ).unwrap();
-        
+
         db.conn.execute(
             "INSERT INTO micro_interactions (id, user_id, interaction_type, timestamp) VALUES ('mic1', ?1, 'mood_log', '2023-01-01')",
             [user_id]
@@ -653,7 +653,7 @@ mod tests {
         assert_eq!(count_users, 1);
         let count_sessions: i64 = db.conn.query_row("SELECT COUNT(*) FROM sessions WHERE user_id = ?1", [user_id], |row| row.get(0)).unwrap();
         assert_eq!(count_sessions, 1);
-        
+
         // 4. Trigger deletion
         db.delete_user_data(user_id).expect("Delete operation failed");
 
@@ -678,18 +678,18 @@ mod tests {
             "INSERT INTO parent_teen_relationships (id, parent_user_id, teen_user_id, established_at, status) VALUES ('1', 'p1', 't1', 'now', 'active')",
             []
         ).unwrap();
-        
+
         assert_eq!(db.check_parent_teen_link("p1", "t1").unwrap(), true);
-        
+
         // Soft delete (simulate revoke_consent)
         db.conn.execute(
             "UPDATE parent_teen_relationships SET status = 'revoked', revoked_at = 'now' WHERE parent_user_id = 'p1' OR teen_user_id = 'p1'",
             []
         ).unwrap();
-        
+
         // Prove access is denied
         assert_eq!(db.check_parent_teen_link("p1", "t1").unwrap(), false);
-        
+
         // Prove row is retained for audit
         let status: String = db.conn.query_row("SELECT status FROM parent_teen_relationships WHERE id = '1'", [], |r| r.get(0)).unwrap();
         assert_eq!(status, "revoked");
@@ -699,14 +699,14 @@ mod tests {
     fn test_crisis_state_machine() {
         let db = Database::new_in_memory("test_secret").unwrap();
         let user_id = "test_teen_123";
-        
+
         // 1. Create a user
         db.conn.execute(
-            "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled) 
+            "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled)
              VALUES (?1, 'test', 'hash', 'date', '13-15', 'in', 'en', 'hash', 0)",
             [user_id]
         ).unwrap();
-        
+
         // 2. Create a crisis event
         let event = crate::db::models::CrisisEvent {
             id: "crisis_1".to_string(),
@@ -720,32 +720,32 @@ mod tests {
             teen_informed_at: None,
         };
         db.create_crisis_event(&event).unwrap();
-        
+
         // 3. Verify it is pending
         let pending = db.get_pending_crisis_events().unwrap();
         assert_eq!(pending.len(), 1);
         assert_eq!(pending[0].id, "crisis_1");
-        
+
         // 4. Resolve it
         let resolve_res = db.resolve_crisis_event(
-            "crisis_1", 
-            "doc_123", 
-            "lcsw_ref", 
-            "GuardianNotified", 
+            "crisis_1",
+            "doc_123",
+            "lcsw_ref",
+            "GuardianNotified",
             Some(1620000000)
         );
         assert!(resolve_res.is_ok(), "Should resolve successfully");
-        
+
         // 5. Verify it is no longer pending
         let pending_after = db.get_pending_crisis_events().unwrap();
         assert_eq!(pending_after.len(), 0);
-        
+
         // 6. Attempt to resolve again (should fail)
         let resolve_res_2 = db.resolve_crisis_event(
-            "crisis_1", 
-            "doc_123", 
-            "lcsw_ref", 
-            "GuardianNotified", 
+            "crisis_1",
+            "doc_123",
+            "lcsw_ref",
+            "GuardianNotified",
             Some(1620000000)
         );
         assert!(resolve_res_2.is_err(), "FATAL STATE MACHINE EXCEPTION: Should not resolve an already resolved event");
@@ -755,10 +755,10 @@ mod tests {
     fn test_synthetic_crisis_drill_comprehensive() {
         let db = Database::new_in_memory("test_secret_comprehensive").unwrap();
         let user_id = "test_teen_synthetic";
-        
+
         // Setup User
         db.conn.execute(
-            "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled) 
+            "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled)
              VALUES (?1, 'test_synthetic', 'hash', 'date', '13-15', 'in', 'en', 'hash', 0)",
             [user_id]
         ).unwrap();
@@ -782,10 +782,10 @@ mod tests {
 
         // Negative Path A: Unclaimed Reviewer (Reviewer B tries to resolve Reviewer A's event)
         let negative_a_res = db.resolve_crisis_event(
-            "synthetic_crisis_01", 
-            "doc_456", 
-            "lcsw_ref_456", 
-            "Dismissed", 
+            "synthetic_crisis_01",
+            "doc_456",
+            "lcsw_ref_456",
+            "Dismissed",
             None
         );
         assert!(negative_a_res.is_err(), "Negative Path A failed: Reviewer B could resolve Reviewer A's event");
@@ -797,33 +797,33 @@ mod tests {
         let decision_str = "GuardianNotified";
         let teen_informed_at: Option<i64> = None;
         let policy_check = crate::policy::PolicyEngine::enforce_guardian_notification_invariant(
-            &crate::db::models::CrisisDecision::GuardianNotified, 
+            &crate::db::models::CrisisDecision::GuardianNotified,
             teen_informed_at
         );
         assert!(policy_check.is_err(), "Negative Path B failed: PolicyEngine allowed guardian notification without teen informed");
 
         // Positive Path Resolution
         let policy_check_pass = crate::policy::PolicyEngine::enforce_guardian_notification_invariant(
-            &crate::db::models::CrisisDecision::GuardianNotified, 
+            &crate::db::models::CrisisDecision::GuardianNotified,
             Some(1620001000)
         );
         assert!(policy_check_pass.is_ok());
 
         let resolve_res = db.resolve_crisis_event(
-            "synthetic_crisis_01", 
-            "doc_123", 
-            "lcsw_ref_123", 
-            "GuardianNotified", 
+            "synthetic_crisis_01",
+            "doc_123",
+            "lcsw_ref_123",
+            "GuardianNotified",
             Some(1620001000)
         );
         assert!(resolve_res.is_ok(), "Positive path failed");
 
         // Negative Path E: Duplicate Notification
         let duplicate_res = db.resolve_crisis_event(
-            "synthetic_crisis_01", 
-            "doc_123", 
-            "lcsw_ref_123", 
-            "GuardianNotified", 
+            "synthetic_crisis_01",
+            "doc_123",
+            "lcsw_ref_123",
+            "GuardianNotified",
             Some(1620001000)
         );
         assert!(duplicate_res.is_err(), "Negative Path E failed: Allowed duplicate resolution");
@@ -833,10 +833,10 @@ mod tests {
     fn test_synthetic_crisis_drill_sla() {
         let db = Database::new_in_memory("test_secret_sla").unwrap();
         let user_id = "test_teen_synthetic";
-        
+
         // Setup User
         db.conn.execute(
-            "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled) 
+            "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled)
              VALUES (?1, 'test_synthetic', 'hash', 'date', '13-15', 'in', 'en', 'hash', 0)",
             [user_id]
         ).unwrap();
@@ -859,22 +859,22 @@ mod tests {
         db.create_crisis_event(&event).unwrap();
 
         // 2. Pending Event -> Reviewer Claim
-        let _claim_clock = base_clock + 1000; 
+        let _claim_clock = base_clock + 1000;
         db.claim_crisis_event("synthetic_crisis_sla_01", "doc_sla").unwrap();
-        
+
         // 3. Test Invalid Transition (Resolution without Teen Notification for GuardianNotification)
         let policy_check_reject = crate::policy::PolicyEngine::enforce_guardian_notification_invariant(
-            &crate::db::models::CrisisDecision::GuardianNotified, 
+            &crate::db::models::CrisisDecision::GuardianNotified,
             None
         );
         assert!(policy_check_reject.is_err(), "Must reject guardian notification if teen not informed");
-        
+
         // 4. Test Invalid Reviewer
         let resolve_wrong_reviewer = db.resolve_crisis_event(
-            "synthetic_crisis_sla_01", 
-            "doc_wrong", 
-            "lcsw_ref_456", 
-            "Dismissed", 
+            "synthetic_crisis_sla_01",
+            "doc_wrong",
+            "lcsw_ref_456",
+            "Dismissed",
             None
         );
         assert!(resolve_wrong_reviewer.is_err(), "Must reject resolution by unclaimed reviewer");
@@ -883,23 +883,23 @@ mod tests {
         let late_resolution_clock = base_clock + 8000; // 8000 > 7200
         let sla_breach_res = crate::policy::PolicyEngine::enforce_sla_timing(base_clock, late_resolution_clock, sla_limit);
         assert!(sla_breach_res.is_err(), "Must reject or record SLA breach if time exceeds limit");
-        
+
         // 6. Valid sequence within SLA -> succeeds
         let valid_resolution_clock = base_clock + 5000; // 5000 < 7200
         let sla_valid_res = crate::policy::PolicyEngine::enforce_sla_timing(base_clock, valid_resolution_clock, sla_limit);
         assert!(sla_valid_res.is_ok(), "Must pass SLA timing");
-        
+
         let policy_check_pass = crate::policy::PolicyEngine::enforce_guardian_notification_invariant(
-            &crate::db::models::CrisisDecision::GuardianNotified, 
+            &crate::db::models::CrisisDecision::GuardianNotified,
             Some(valid_resolution_clock)
         );
         assert!(policy_check_pass.is_ok());
 
         let resolve_res = db.resolve_crisis_event(
-            "synthetic_crisis_sla_01", 
-            "doc_sla", 
-            "lcsw_ref_123", 
-            "GuardianNotified", 
+            "synthetic_crisis_sla_01",
+            "doc_sla",
+            "lcsw_ref_123",
+            "GuardianNotified",
             Some(valid_resolution_clock)
         );
         assert!(resolve_res.is_ok(), "Valid end-to-end synthetic drill failed");

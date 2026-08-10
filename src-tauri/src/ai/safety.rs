@@ -8,10 +8,10 @@ impl SafetyFilter {
     pub fn new() -> Self {
         Self
     }
-    
+
     pub fn check(&self, response: &str) -> Result<()> {
         let lower = response.to_lowercase();
-        
+
         // Check for concerning content
         let concerning_patterns = [
             "suicide method",
@@ -19,13 +19,13 @@ impl SafetyFilter {
             "hurt yourself",
             "self harm technique",
         ];
-        
+
         for pattern in &concerning_patterns {
             if lower.contains(pattern) {
                 bail!("Safety filter triggered: harmful content detected");
             }
         }
-        
+
         // Check for claims of being human
         let human_claims = [
             "i am human",
@@ -33,13 +33,13 @@ impl SafetyFilter {
             "i have feelings too",
             "i am a living being",
         ];
-        
+
         for pattern in &human_claims {
             if lower.contains(pattern) {
                 bail!("Safety filter triggered: model claimed to be human");
             }
         }
-        
+
         // Check for unsupported clinical/diagnostic language
         let diagnostic_claims = [
             "you have depression",
@@ -47,26 +47,26 @@ impl SafetyFilter {
             "your symptoms indicate bipolar",
             "you are suffering from adhd",
         ];
-        
+
         for pattern in &diagnostic_claims {
             if lower.contains(pattern) {
                 bail!("Safety filter triggered: model attempted to diagnose");
             }
         }
-        
+
         // Check if the response should have triggered crisis detection
         if self.detect_crisis(response) {
             bail!("Safety filter triggered: response contained crisis-level language");
         }
-        
+
         // Ensure response is appropriate length
         if response.len() > 2000 {
             bail!("Response too long");
         }
-        
+
         Ok(())
     }
-    
+
     /// Check if user message indicates crisis.
     /// T10: Broadened from 5 exact-match phrases to cover paraphrased/indirect
     /// expressions while keeping the threshold definition clinically conservative.
@@ -75,7 +75,7 @@ impl SafetyFilter {
     /// review before production — add them to the clinical review brief instead.
     pub fn detect_crisis(&self, message: &str) -> bool {
         let lower = message.to_lowercase();
-        
+
         // Tier 1: Explicit statements (original list, high precision)
         let explicit = [
             "kill myself",
@@ -94,7 +94,7 @@ impl SafetyFilter {
             "mar jaana chahta",
             "jaan dena chahta",
         ];
-        
+
         // Tier 2: Indirect/paraphrased (broader recall, reviewed against false-positive risk)
         // NOTE: These were validated against the PRERNA-SAFE benchmark (FPR <12%).
         // Any additions to this tier need re-evaluation against the benchmark.
@@ -111,7 +111,7 @@ impl SafetyFilter {
             "already made preparations",
             "said my goodbyes",
         ];
-        
+
         explicit.iter().any(|&kw| lower.contains(kw))
             || indirect.iter().any(|&kw| lower.contains(kw))
     }

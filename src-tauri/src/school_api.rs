@@ -21,21 +21,21 @@ pub fn generate_school_report(
 ) -> Result<SchoolAnalyticsReport, String> {
     // T1/T2: Require authentication.
     let caller_id = session.get_user_id()?;
-        
+
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    
+
     // RED-009: Authorize the caller as an Educator
     if !db.is_educator(&caller_id) {
         return Err("Unauthorized: Must be an authorized educator to request school analytics".to_string());
     }
-    
+
     // RED-009 Amendment: Fail-closed tenant boundary
     for student_id in &student_ids {
         if !db.check_educator_tenant_access(&caller_id, student_id) {
             return Err("Unauthorized: Cannot request data for a student outside your tenant (or student does not exist)".to_string());
         }
     }
-    
+
     // K-Anonymity Guard: Refuse to process cohorts smaller than 5
     let k_threshold = 5;
     if student_ids.len() < k_threshold {
@@ -49,14 +49,14 @@ pub fn generate_school_report(
     }
 
     let mut all_snapshots = Vec::new();
-    
+
     // Fetch latest snapshot for each student
     for id in &student_ids {
         if let Ok(Some(snapshot)) = db.get_latest_snapshot(id) {
             all_snapshots.push(snapshot);
         }
     }
-    
+
     // Check threshold again in case some IDs were invalid/missing
     if all_snapshots.len() < k_threshold {
         return Ok(SchoolAnalyticsReport {
@@ -87,7 +87,7 @@ pub fn generate_school_report(
 
     let mut sorted_careers: Vec<_> = career_counts.into_iter().collect();
     sorted_careers.sort_by(|a, b| b.1.cmp(&a.1));
-    
+
     let mut sorted_strengths: Vec<_> = strength_counts.into_iter().collect();
     sorted_strengths.sort_by(|a, b| b.1.cmp(&a.1));
 
@@ -106,7 +106,7 @@ fn calculate_wellbeing_score(profile: &TraitSnapshot) -> i32 {
         .get("resilience")
         .and_then(|v| v.as_f64())
         .unwrap_or(0.5);
-    
+
     ((emotional * 100.0) as i32).clamp(0, 100)
 }
 

@@ -14,16 +14,16 @@ mod tests {
         let missing_teen_informed_at: Option<i64> = None;
 
         let ipc_result = PolicyEngine::enforce_guardian_notification_invariant(
-            &malicious_decision, 
+            &malicious_decision,
             missing_teen_informed_at
         );
 
         // The audit MUST prove this returns an error at the Rust boundary, failing the IPC command
         assert!(
-            ipc_result.is_err(), 
+            ipc_result.is_err(),
             "SECURITY VULNERABILITY: Frontend bypassed Guardian Notification invariant!"
         );
-        
+
         let expected_error = ipc_result.unwrap_err();
         assert!(
             expected_error.contains("teen has not been informed"),
@@ -48,9 +48,9 @@ mod tests {
         // Simulating a malicious IPC call attempting to enable tracking on a 15-year-old
         let age = "13-15";
         let force_enable_tracking = true;
-        
+
         let ipc_result = PolicyEngine::enforce_under_18_tracking_invariant(
-            age, 
+            age,
             force_enable_tracking
         );
 

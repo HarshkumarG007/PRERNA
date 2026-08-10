@@ -57,19 +57,19 @@ impl DomainRag {
         let resilience = emotional.and_then(|o| o.get("resilience")).and_then(|v| v.as_f64()).unwrap_or(50.0);
         let neuroticism = big_five.and_then(|o| o.get("neuroticism")).and_then(|v| v.as_f64()).unwrap_or(50.0);
         let conscientiousness = big_five.and_then(|o| o.get("conscientiousness")).and_then(|v| v.as_f64()).unwrap_or(50.0);
-            
+
         let is_anxious = resilience < 40.0 || neuroticism > 60.0;
         let needs_focus = conscientiousness < 40.0;
-        
+
         // 2. Hybrid Search (Mocked for Phase 6 setup)
         for doc in &self.knowledge_base {
             // Semantic keyword match
             let q = query.to_lowercase();
-            let semantic_match = q.contains("stress") || 
-                                 q.contains("focus") || 
-                                 q.contains("sleep") || 
+            let semantic_match = q.contains("stress") ||
+                                 q.contains("focus") ||
+                                 q.contains("sleep") ||
                                  q.contains("study");
-                                 
+
             // Trait matching
             let trait_match = match doc.target_trait.as_deref() {
                 Some("neuroticism_high") => is_anxious,
@@ -94,11 +94,11 @@ impl DomainRag {
 mod tests {
     use super::*;
     use crate::db::models::{TraitSnapshot, BigFive, Riasec};
-    
+
     #[test]
     fn test_rag_retrieval_profile_filtering() {
         let rag = DomainRag::new();
-        
+
         // Mock a highly neurotic (anxious) teen profile
         let profile = serde_json::json!({
             "bigFive": {
@@ -112,9 +112,9 @@ mod tests {
                 "resilience": 30.0
             }
         });
-        
+
         let docs = rag.retrieve_context("I'm stressed", &profile).unwrap();
-        
+
         // Assert retrieved docs contain calming techniques (Pranayama)
         assert!(
             docs.relevant_documents.iter().any(|d| d.contains("4-7-8 Breathing")),
