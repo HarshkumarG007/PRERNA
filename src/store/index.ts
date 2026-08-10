@@ -25,6 +25,7 @@ export interface User {
 export interface UnifiedProfile {
   userId: string;
   generatedAt: string;
+  itemBankVersion?: string;
   personality: {
     bigFive: {
       openness: number;

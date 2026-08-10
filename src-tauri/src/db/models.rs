@@ -71,6 +71,7 @@ pub struct TraitSnapshot {
     pub id: String,
     pub user_id: String,
     pub snapshot_date: String,
+    pub item_bank_version: String,
     pub big_five: BigFive,
     pub riasec: Riasec,
     pub multiple_intel: serde_json::Value,
@@ -81,6 +82,7 @@ pub struct TraitSnapshot {
 #[derive(Debug, Deserialize)]
 pub struct NewTraitSnapshot {
     pub user_id: String,
+    pub item_bank_version: String,
     pub big_five: BigFive,
     pub riasec: Riasec,
     pub multiple_intel: serde_json::Value,

@@ -1,0 +1,61 @@
+{
+  "version": "v2-ipip-onet-2026",
+  "source": "O*NET Interest Profiler Short Form",
+  "citation": "U.S. Department of Labor (CC BY 4.0)",
+  "items": [
+    {
+      "id": "onet_r1",
+      "domain": "realistic",
+      "text": {
+        "en": "Build kitchen cabinets",
+        "hi": "किचन कैबिनेट बनाना"
+      },
+      "cultural_adaptation_notes": "A general carpentry/building task. Valid across cultures."
+    },
+    {
+      "id": "onet_i1",
+      "domain": "investigative",
+      "text": {
+        "en": "Develop a new medicine",
+        "hi": "कोई नई दवा विकसित करना"
+      },
+      "cultural_adaptation_notes": "Universally understood."
+    },
+    {
+      "id": "onet_a1",
+      "domain": "artistic",
+      "text": {
+        "en": "Write books or plays",
+        "hi": "किताबें या नाटक लिखना"
+      },
+      "cultural_adaptation_notes": "Universally understood."
+    },
+    {
+      "id": "onet_s1",
+      "domain": "social",
+      "text": {
+        "en": "Teach an individual an exercise routine",
+        "hi": "किसी को व्यायाम की दिनचर्या सिखाना"
+      },
+      "cultural_adaptation_notes": "Universally understood."
+    },
+    {
+      "id": "onet_e1",
+      "domain": "enterprising",
+      "text": {
+        "en": "Buy and sell stocks and bonds",
+        "hi": "स्टॉक और बॉन्ड खरीदना और बेचना"
+      },
+      "cultural_adaptation_notes": "Might be abstract for 13-year-olds; perhaps adapt to 'Buy and sell things for profit' in future passes, but keeping close to O*NET original for now."
+    },
+    {
+      "id": "onet_c1",
+      "domain": "conventional",
+      "text": {
+        "en": "Develop a spreadsheet using computer software",
+        "hi": "कंप्यूटर सॉफ्टवेयर का उपयोग करके स्प्रेडशीट विकसित करना"
+      },
+      "cultural_adaptation_notes": "Universally understood in school contexts."
+    }
+  ]
+}

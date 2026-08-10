@@ -4,6 +4,44 @@
  */
 
 import { invoke } from '@tauri-apps/api/core';
+
+export interface SyncPayload {
+  action: string;
+  data: Record<string, unknown>;
+  timestamp: string;
+}
+
+export class OfflineSyncQueue {
+  private static readonly STORAGE_KEY = 'prerna_offline_sync_queue';
+
+  static push(payload: SyncPayload) {
+    const queue = this.getQueue();
+    queue.push(payload);
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(queue));
+  }
+
+  static getQueue(): SyncPayload[] {
+    const data = localStorage.getItem(this.STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
+  }
+
+  static async flush(isOnline: boolean) {
+    if (!isOnline) return;
+    
+    const queue = this.getQueue();
+    if (queue.length === 0) return;
+
+    try {
+      // In a real scenario, this would send to the cloud/telemetry server
+      // For PRERNA, we just simulate sending and clear the queue
+      console.log(`Flushing ${queue.length} items to sync server...`);
+      localStorage.removeItem(this.STORAGE_KEY);
+    } catch (e) {
+      console.error('Failed to flush offline sync queue', e);
+    }
+  }
+}
+
 export interface BackupMetadata {
   version: string;
   createdAt: string;

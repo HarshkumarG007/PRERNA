@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { Download, Check, AlertTriangle, Cpu } from 'lucide-react';
+import { Download, Check, AlertTriangle, Cpu, WifiOff } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useNetworkStatus } from '../../hooks/useNetworkStatus';
 
 interface ModelStatus {
   loaded: boolean;
@@ -17,6 +18,7 @@ export const ModelManager: React.FC = () => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const isOnline = useNetworkStatus();
 
   useEffect(() => {
     checkStatus();
@@ -37,6 +39,11 @@ export const ModelManager: React.FC = () => {
   };
 
   const downloadModel = async () => {
+    if (!isOnline) {
+      setError('Cannot download model while offline. Please connect to the internet.');
+      return;
+    }
+
     setIsDownloading(true);
     setError(null);
     
@@ -100,13 +107,19 @@ export const ModelManager: React.FC = () => {
                   />
                 </div>
                 <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest text-right">Downloading... {downloadProgress}%</p>
+                {!isOnline && (
+                  <p className="text-rose-400 text-xs font-bold mt-2 flex items-center gap-1">
+                    <WifiOff size={12} />
+                    Offline Mode: Download Unavailable
+                  </p>
+                )}
               </div>
             ) : (
               <button
                 onClick={downloadModel}
-                disabled={isDownloading}
+                disabled={isDownloading || !isOnline}
                 className={`flex-1 py-3 px-6 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg
-                  ${isDownloading 
+                  ${isDownloading || !isOnline
                     ? 'bg-white/10 text-white/50 cursor-not-allowed border border-white/10' 
                     : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:shadow-indigo-500/25 border border-indigo-400/30'
                   }

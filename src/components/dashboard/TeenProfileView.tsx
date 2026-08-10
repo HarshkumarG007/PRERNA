@@ -8,6 +8,8 @@ import { ConsentSummaryViewer } from '../consent/ConsentSummaryViewer';
 import { ModelManager } from '../ai/ModelManager';
 import { BackupManager } from '../backup/BackupManager';
 import { ParentPermissionManager, SharingPreferences } from '../../parent/permissions';
+import { ParentGuideView } from '../parent/ParentGuideView';
+import { DisclosureGate } from '../consent/DisclosureGate';
 import { CareerPathwaysWidget } from './CareerPathwaysWidget';
 import { RadarChart } from './RadarChart';
 import { BadgeCabinet } from './BadgeCabinet';
@@ -97,6 +99,7 @@ export const TeenProfileView: React.FC = () => {
 
   const toggleSharing = (key: keyof SharingPreferences['shares']) => {
     if (!sharingPrefs || !user) return;
+    
     const newPrefs = {
       ...sharingPrefs,
       shares: {
@@ -104,9 +107,16 @@ export const TeenProfileView: React.FC = () => {
         [key]: !sharingPrefs.shares[key]
       }
     };
-    setSharingPrefs(newPrefs);
-    ParentPermissionManager.updatePreferences(newPrefs).catch(console.error);
+    
+    ParentPermissionManager.updatePreferences(newPrefs).then(() => {
+      setSharingPrefs(newPrefs);
+    });
   };
+
+  const safeProfileMemo = React.useMemo(() => {
+    if (!profile || !sharingPrefs) return null;
+    return ParentPermissionManager.generateShareableData(profile as any, sharingPrefs);
+  }, [profile, sharingPrefs]);
 
   if (!user) return null;
 
@@ -379,6 +389,22 @@ export const TeenProfileView: React.FC = () => {
                     </button>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Teen Mirror of Parent View */}
+            {profile && sharingPrefs && safeProfileMemo && (
+              <div className="mt-8 border-t border-white/10 pt-6">
+                <h4 className="font-bold text-white mb-4 text-sm flex items-center gap-2">
+                  <Shield size={16} className="text-emerald-400" />
+                  Preview: What Your Parents See
+                </h4>
+                <div className="opacity-90">
+                  {/* WARNING: parent_guide disclosure is currently PENDING REVIEW. Do not ship to real users until disclosure-draft-pending-review.md is signed off by a qualified human reviewer. */}
+                  <DisclosureGate activityType="parent_guide" onDecline={() => {}}>
+                    <ParentGuideView safeProfile={safeProfileMemo} />
+                  </DisclosureGate>
+                </div>
               </div>
             )}
           </div>

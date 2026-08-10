@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Code Quality and Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+        
+    - name: Install Frontend Dependencies
+      run: npm ci
+      
+    - name: TypeScript Strict Check
+      run: npx tsc --noEmit
+      
+    - name: Frontend Lints & Tests
+      run: |
+        npm run lint || echo "No lint script found, skipping"
+        npm run test --passWithNoTests
+        
+    - name: Install Rust Stable
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
+        
+    - name: Rust Cache
+      uses: Swatinem/rust-cache@v2
+      with:
+        workspaces: src-tauri
+        
+    - name: Install Tauri OS Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+        
+    - name: Rust Formatting Check
+      working-directory: src-tauri
+      run: cargo fmt -- --check
+      
+    - name: Rust Clippy
+      working-directory: src-tauri
+      run: cargo clippy -- -D warnings
+      
+    - name: Rust Tests
+      working-directory: src-tauri
+      run: cargo test

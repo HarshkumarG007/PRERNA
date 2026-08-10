@@ -1,0 +1,29 @@
+{
+  "version": "1.0",
+  "documents": [
+    {
+      "id": "td_identity_formation",
+      "path": "teen-development/identity_formation.md",
+      "source": "Synthesized from WHO Guidelines on Promotive and Preventive Mental Health Interventions for Adolescents",
+      "license": "Custom Open (Attribution required)",
+      "target_audience": "teen",
+      "topics": ["identity", "peer pressure", "self-esteem"]
+    },
+    {
+      "id": "pg_communication_basics",
+      "path": "parenting-guidance/communication_basics.md",
+      "source": "Synthesized from general positive parenting principles",
+      "license": "Custom Open",
+      "target_audience": "parent",
+      "topics": ["communication", "active listening", "validation"]
+    },
+    {
+      "id": "pg_autonomy_support",
+      "path": "parenting-guidance/autonomy_support.md",
+      "source": "Synthesized from general positive parenting principles",
+      "license": "Custom Open",
+      "target_audience": "parent",
+      "topics": ["autonomy", "boundaries", "independence"]
+    }
+  ]
+}

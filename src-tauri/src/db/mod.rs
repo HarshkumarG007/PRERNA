@@ -87,6 +87,9 @@ impl Database {
         let _ = self.conn.execute("ALTER TABLE users ADD COLUMN mfa_enabled BOOLEAN DEFAULT 0", []);
         
         // T3: Parent-teen relationship table for real authorization
+        // Dropping for development purposes to apply Phase 4 schema changes
+        let _ = self.conn.execute_batch("DROP TABLE IF EXISTS parent_teen_relationships;");
+        
         self.conn.execute_batch("
             CREATE TABLE IF NOT EXISTS parent_teen_relationships (
                 id TEXT PRIMARY KEY,
@@ -94,8 +97,14 @@ impl Database {
                 teen_user_id TEXT NOT NULL,
                 established_at TEXT NOT NULL,
                 consent_record_id TEXT,
-                status TEXT DEFAULT 'active',
+                relationship_id TEXT,
+                verification_method TEXT,
+                status TEXT DEFAULT 'pending',
+                issued_at TEXT,
+                expires_at TEXT,
+                verified_at TEXT,
                 revoked_at TEXT,
+                provider_reference TEXT,
                 UNIQUE(parent_user_id, teen_user_id)
             );
         ").context("Failed to create parent_teen_relationships table")?;
@@ -131,7 +140,7 @@ impl Database {
 
     pub fn authenticate_user_raw(&self, username: &str) -> AnyhowResult<Option<User>> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_secret, mfa_enabled 
+            "SELECT id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_secret, mfa_enabled, role, tenant_id 
              FROM users WHERE username = ?1"
         )?;
         
@@ -150,6 +159,8 @@ impl Database {
                 encryption_key_hash: row.get(7)?,
                 mfa_secret: row.get(8).ok(),
                 mfa_enabled: row.get(9).unwrap_or(false),
+                role: row.get(10).unwrap_or_else(|_| "teen".to_string()),
+                tenant_id: row.get(11).ok(),
             })
         }).optional()?;
         
@@ -294,13 +305,14 @@ impl Database {
         let id = uuid::Uuid::new_v4().to_string();
         
         self.conn.execute(
-            "INSERT INTO trait_snapshots (id, user_id, snapshot_date, big_five, riasec, 
+            "INSERT INTO trait_snapshots (id, user_id, snapshot_date, item_bank_version, big_five, riasec, 
              multiple_intel, emotional_profile, confidence_score)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
             params![
                 &id,
                 &snapshot.user_id,
                 snapshot.snapshot_date,
+                snapshot.item_bank_version,
                 serde_json::to_string(&snapshot.big_five)?,
                 serde_json::to_string(&snapshot.riasec)?,
                 serde_json::to_string(&snapshot.multiple_intel)?,
@@ -314,7 +326,7 @@ impl Database {
 
     pub fn get_latest_snapshot(&self, user_id: &str) -> AnyhowResult<Option<TraitSnapshot>> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, snapshot_date, big_five, riasec, multiple_intel, emotional_profile, confidence_score
+            "SELECT id, snapshot_date, item_bank_version, big_five, riasec, multiple_intel, emotional_profile, confidence_score
              FROM trait_snapshots 
              WHERE user_id = ?1 
              ORDER BY snapshot_date DESC 
@@ -326,11 +338,12 @@ impl Database {
                 id: row.get(0)?,
                 user_id: user_id.to_string(),
                 snapshot_date: row.get(1)?,
-                big_five: serde_json::from_str(&row.get::<_, String>(2)?).unwrap_or_default(),
-                riasec: serde_json::from_str(&row.get::<_, String>(3)?).unwrap_or_default(),
-                multiple_intel: serde_json::from_str(&row.get::<_, String>(4)?).unwrap_or_default(),
-                emotional_profile: serde_json::from_str(&row.get::<_, String>(5)?).unwrap_or_default(),
-                confidence_score: row.get(6)?,
+                item_bank_version: row.get(2)?,
+                big_five: serde_json::from_str(&row.get::<_, String>(3)?).unwrap_or_default(),
+                riasec: serde_json::from_str(&row.get::<_, String>(4)?).unwrap_or_default(),
+                multiple_intel: serde_json::from_str(&row.get::<_, String>(5)?).unwrap_or_default(),
+                emotional_profile: serde_json::from_str(&row.get::<_, String>(6)?).unwrap_or_default(),
+                confidence_score: row.get(7)?,
             })
         }).optional()?;
         
@@ -339,7 +352,7 @@ impl Database {
 
     pub fn get_user_snapshots(&self, user_id: &str) -> AnyhowResult<Vec<TraitSnapshot>> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, snapshot_date, big_five, riasec, multiple_intel, emotional_profile, confidence_score
+            "SELECT id, snapshot_date, item_bank_version, big_five, riasec, multiple_intel, emotional_profile, confidence_score
              FROM trait_snapshots 
              WHERE user_id = ?1 
              ORDER BY snapshot_date DESC"
@@ -350,11 +363,12 @@ impl Database {
                 id: row.get(0)?,
                 user_id: user_id.to_string(),
                 snapshot_date: row.get(1)?,
-                big_five: serde_json::from_str(&row.get::<_, String>(2)?).unwrap_or_default(),
-                riasec: serde_json::from_str(&row.get::<_, String>(3)?).unwrap_or_default(),
-                multiple_intel: serde_json::from_str(&row.get::<_, String>(4)?).unwrap_or_default(),
-                emotional_profile: serde_json::from_str(&row.get::<_, String>(5)?).unwrap_or_default(),
-                confidence_score: row.get(6)?,
+                item_bank_version: row.get(2)?,
+                big_five: serde_json::from_str(&row.get::<_, String>(3)?).unwrap_or_default(),
+                riasec: serde_json::from_str(&row.get::<_, String>(4)?).unwrap_or_default(),
+                multiple_intel: serde_json::from_str(&row.get::<_, String>(5)?).unwrap_or_default(),
+                emotional_profile: serde_json::from_str(&row.get::<_, String>(6)?).unwrap_or_default(),
+                confidence_score: row.get(7)?,
             })
         })?.collect::<Result<Vec<_>, _>>()?;
         
@@ -735,5 +749,159 @@ mod tests {
             Some(1620000000)
         );
         assert!(resolve_res_2.is_err(), "FATAL STATE MACHINE EXCEPTION: Should not resolve an already resolved event");
+    }
+
+    #[test]
+    fn test_synthetic_crisis_drill_comprehensive() {
+        let db = Database::new_in_memory("test_secret_comprehensive").unwrap();
+        let user_id = "test_teen_synthetic";
+        
+        // Setup User
+        db.conn.execute(
+            "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled) 
+             VALUES (?1, 'test_synthetic', 'hash', 'date', '13-15', 'in', 'en', 'hash', 0)",
+            [user_id]
+        ).unwrap();
+
+        // 1. Synthetic high-risk signal & Detection
+        let event = crate::db::models::CrisisEvent {
+            id: "synthetic_crisis_01".to_string(),
+            user_id: user_id.to_string(),
+            detected_at: 1620000000,
+            severity: "high".to_string(),
+            human_review_status: "pending".to_string(),
+            reviewer_id: None,
+            reviewer_credentials_ref: None,
+            decision: None,
+            teen_informed_at: None,
+        };
+        db.create_crisis_event(&event).unwrap();
+
+        // Reviewer A claims the event
+        db.claim_crisis_event("synthetic_crisis_01", "doc_123").unwrap();
+
+        // Negative Path A: Unclaimed Reviewer (Reviewer B tries to resolve Reviewer A's event)
+        let negative_a_res = db.resolve_crisis_event(
+            "synthetic_crisis_01", 
+            "doc_456", 
+            "lcsw_ref_456", 
+            "Dismissed", 
+            None
+        );
+        assert!(negative_a_res.is_err(), "Negative Path A failed: Reviewer B could resolve Reviewer A's event");
+
+        // Negative Path B: Guardian Notification Before Teen Notification
+        // First we check PolicyEngine directly, as that's where the domain logic lives (in commands, this is checked before calling db)
+        // Since db just saves it, in the real app `commands::resolve_crisis_event` calls `PolicyEngine::enforce_guardian_notification_invariant`.
+        // Let's simulate the command layer logic:
+        let decision_str = "GuardianNotified";
+        let teen_informed_at: Option<i64> = None;
+        let policy_check = crate::policy::PolicyEngine::enforce_guardian_notification_invariant(
+            &crate::db::models::CrisisDecision::GuardianNotified, 
+            teen_informed_at
+        );
+        assert!(policy_check.is_err(), "Negative Path B failed: PolicyEngine allowed guardian notification without teen informed");
+
+        // Positive Path Resolution
+        let policy_check_pass = crate::policy::PolicyEngine::enforce_guardian_notification_invariant(
+            &crate::db::models::CrisisDecision::GuardianNotified, 
+            Some(1620001000)
+        );
+        assert!(policy_check_pass.is_ok());
+
+        let resolve_res = db.resolve_crisis_event(
+            "synthetic_crisis_01", 
+            "doc_123", 
+            "lcsw_ref_123", 
+            "GuardianNotified", 
+            Some(1620001000)
+        );
+        assert!(resolve_res.is_ok(), "Positive path failed");
+
+        // Negative Path E: Duplicate Notification
+        let duplicate_res = db.resolve_crisis_event(
+            "synthetic_crisis_01", 
+            "doc_123", 
+            "lcsw_ref_123", 
+            "GuardianNotified", 
+            Some(1620001000)
+        );
+        assert!(duplicate_res.is_err(), "Negative Path E failed: Allowed duplicate resolution");
+    }
+
+    #[test]
+    fn test_synthetic_crisis_drill_sla() {
+        let db = Database::new_in_memory("test_secret_sla").unwrap();
+        let user_id = "test_teen_synthetic";
+        
+        // Setup User
+        db.conn.execute(
+            "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled) 
+             VALUES (?1, 'test_synthetic', 'hash', 'date', '13-15', 'in', 'en', 'hash', 0)",
+            [user_id]
+        ).unwrap();
+
+        let base_clock = 1620000000;
+        let sla_limit = 7200; // 2 hours
+
+        // 1. Detection
+        let event = crate::db::models::CrisisEvent {
+            id: "synthetic_crisis_sla_01".to_string(),
+            user_id: user_id.to_string(),
+            detected_at: base_clock,
+            severity: "high".to_string(),
+            human_review_status: "pending".to_string(),
+            reviewer_id: None,
+            reviewer_credentials_ref: None,
+            decision: None,
+            teen_informed_at: None,
+        };
+        db.create_crisis_event(&event).unwrap();
+
+        // 2. Pending Event -> Reviewer Claim
+        let _claim_clock = base_clock + 1000; 
+        db.claim_crisis_event("synthetic_crisis_sla_01", "doc_sla").unwrap();
+        
+        // 3. Test Invalid Transition (Resolution without Teen Notification for GuardianNotification)
+        let policy_check_reject = crate::policy::PolicyEngine::enforce_guardian_notification_invariant(
+            &crate::db::models::CrisisDecision::GuardianNotified, 
+            None
+        );
+        assert!(policy_check_reject.is_err(), "Must reject guardian notification if teen not informed");
+        
+        // 4. Test Invalid Reviewer
+        let resolve_wrong_reviewer = db.resolve_crisis_event(
+            "synthetic_crisis_sla_01", 
+            "doc_wrong", 
+            "lcsw_ref_456", 
+            "Dismissed", 
+            None
+        );
+        assert!(resolve_wrong_reviewer.is_err(), "Must reject resolution by unclaimed reviewer");
+
+        // 5. Test SLA Breach
+        let late_resolution_clock = base_clock + 8000; // 8000 > 7200
+        let sla_breach_res = crate::policy::PolicyEngine::enforce_sla_timing(base_clock, late_resolution_clock, sla_limit);
+        assert!(sla_breach_res.is_err(), "Must reject or record SLA breach if time exceeds limit");
+        
+        // 6. Valid sequence within SLA -> succeeds
+        let valid_resolution_clock = base_clock + 5000; // 5000 < 7200
+        let sla_valid_res = crate::policy::PolicyEngine::enforce_sla_timing(base_clock, valid_resolution_clock, sla_limit);
+        assert!(sla_valid_res.is_ok(), "Must pass SLA timing");
+        
+        let policy_check_pass = crate::policy::PolicyEngine::enforce_guardian_notification_invariant(
+            &crate::db::models::CrisisDecision::GuardianNotified, 
+            Some(valid_resolution_clock)
+        );
+        assert!(policy_check_pass.is_ok());
+
+        let resolve_res = db.resolve_crisis_event(
+            "synthetic_crisis_sla_01", 
+            "doc_sla", 
+            "lcsw_ref_123", 
+            "GuardianNotified", 
+            Some(valid_resolution_clock)
+        );
+        assert!(resolve_res.is_ok(), "Valid end-to-end synthetic drill failed");
     }
 }

@@ -118,6 +118,16 @@ export class ParentPermissionManager {
       }));
     }
 
+    // Map safe personality dimensions (omit neuroticism and clinical markers)
+    safe.bigFive = {
+      openness: fullProfile.personality?.bigFive?.openness || 0,
+      conscientiousness: fullProfile.personality?.bigFive?.conscientiousness || 0,
+      extraversion: fullProfile.personality?.bigFive?.extraversion || 0,
+      agreeableness: fullProfile.personality?.bigFive?.agreeableness || 0,
+    };
+
+    safe.riasec = { ...fullProfile.personality?.riasec } as Record<string, number>;
+
     // Generate conversation starters
     safe.conversationStarters = this.generateConversationStarters(fullProfile, prefs);
 
@@ -182,7 +192,7 @@ export interface ParentSafeProfile {
     severity: string;
     suggestedAction: string;
   }[];
-  bigFive?: Record<string, number>;
+  bigFive?: Omit<Record<string, number>, 'neuroticism'>;
   riasec?: Record<string, number>;
   conversationStarters: string[];
 }

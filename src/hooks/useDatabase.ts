@@ -28,6 +28,7 @@ export interface AssessmentSession {
 
 export interface TraitSnapshot {
   id: string;
+  item_bank_version: string;
   big_five: {
     openness: number;
     conscientiousness: number;
@@ -77,6 +78,8 @@ export function useDatabase() {
     session_type: string;
     raw_choices: string;
     derived_traits: string;
+    disclosure_version: string;
+    disclosure_shown_at: number;
   }): Promise<string | null> => {
     return invokeCommand<string>('save_session', { session });
   }, [invokeCommand]);
@@ -88,6 +91,7 @@ export function useDatabase() {
   // Trait operations
   const saveTraitSnapshot = useCallback(async (snapshot: {
     user_id: string;
+    item_bank_version: string;
     big_five: TraitSnapshot['big_five'];
     riasec: TraitSnapshot['riasec'];
     multiple_intel: unknown;

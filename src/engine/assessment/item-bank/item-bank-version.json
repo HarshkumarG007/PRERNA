@@ -1,0 +1,17 @@
+{
+  "current_version": "v2-ipip-onet-2026",
+  "historical_versions": [
+    {
+      "version": "v1-prerna-original",
+      "active_from": "2023-01-01T00:00:00Z",
+      "retired_at": "2026-08-10T00:00:00Z",
+      "description": "Original gamified synthetic item bank."
+    },
+    {
+      "version": "v2-ipip-onet-2026",
+      "active_from": "2026-08-10T00:00:00Z",
+      "retired_at": null,
+      "description": "Validated item bank using IPIP (Big Five) and O*NET (RIASEC) short forms."
+    }
+  ]
+}

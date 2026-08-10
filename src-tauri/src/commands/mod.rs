@@ -7,6 +7,7 @@ use crate::db::{DbState};
 use crate::db::models::*;
 use crate::policy::PolicyEngine;
 use crate::ActiveSession;
+use crate::consent::ConsentService;
 use aes_gcm::{
     aead::{Aead, AeadCore, KeyInit, OsRng as AeadOsRng},
     Aes256Gcm, Nonce,
@@ -137,6 +138,62 @@ pub fn revoke_consent(
     
     db.insert_audit_log("CONSENT_REVOKED", &format!("Consent revoked for user {}", user_id))
         .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn submit_consent_token(
+    token: String,
+    teen_user_id: String,
+    state: State<DbState>,
+    session: State<ActiveSession>,
+) -> Result<(), String> {
+    let parent_user_id = session.get_user_id()?;
+    
+    // Verify token using the provider-independent ConsentService
+    let consent_service = ConsentService::new();
+    let record = consent_service.process_consent_token(&token)?;
+    
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    
+    // Insert or update the parent_teen_relationships table
+    // For development, we assume relationship_id can be UUID
+    let relationship_id = uuid::Uuid::new_v4().to_string();
+    let consent_record_id = uuid::Uuid::new_v4().to_string();
+    
+    db.conn.execute(
+        "INSERT INTO parent_teen_relationships (
+            id, parent_user_id, teen_user_id, established_at, consent_record_id, relationship_id,
+            verification_method, status, issued_at, expires_at, verified_at, provider_reference
+        ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
+        ON CONFLICT(parent_user_id, teen_user_id) DO UPDATE SET
+            status = excluded.status,
+            verification_method = excluded.verification_method,
+            provider_reference = excluded.provider_reference,
+            issued_at = excluded.issued_at,
+            expires_at = excluded.expires_at,
+            verified_at = excluded.verified_at,
+            consent_record_id = excluded.consent_record_id
+        ",
+        rusqlite::params![
+            relationship_id,
+            parent_user_id,
+            teen_user_id,
+            record.issued_at,
+            consent_record_id,
+            relationship_id,
+            record.verification_method,
+            record.status,
+            record.issued_at,
+            record.expires_at.unwrap_or_default(),
+            record.issued_at, // verified_at
+            record.provider_reference
+        ]
+    ).map_err(|e| format!("Database error: {}", e))?;
+    
+    db.insert_audit_log("CONSENT_VERIFIED", &format!("Consent verified for parent {} and teen {}", parent_user_id, teen_user_id))
+        .map_err(|e| e.to_string())?;
+        
     Ok(())
 }
 
@@ -349,6 +406,7 @@ pub fn save_unified_profile(
         id: String::new(),
         user_id: user_id.clone(),
         snapshot_date: chrono::Utc::now().to_rfc3339(),
+        item_bank_version: "v2-ipip-onet-2026".to_string(),
         big_five: serde_json::from_value(
             profile.get("personality").and_then(|p| p.get("bigFive")).cloned()
                 .unwrap_or(serde_json::json!({}))
@@ -703,6 +761,7 @@ pub fn save_trait_snapshot(
         id: String::new(),
         user_id,
         snapshot_date: chrono::Utc::now().to_rfc3339(),
+        item_bank_version: snapshot.item_bank_version,
         big_five: snapshot.big_five,
         riasec: snapshot.riasec,
         multiple_intel: snapshot.multiple_intel,

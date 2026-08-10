@@ -15,14 +15,14 @@ export const MentorCard: React.FC<MentorCardProps> = ({ onClick }) => {
       onClick={onClick}
       whileHover={{ scale: 1.02, y: -4 }}
       whileTap={{ scale: 0.98 }}
-      className="relative overflow-hidden p-6 rounded-3xl bg-gradient-to-br from-pink-600/20 to-rose-600/20 border border-pink-500/30 hover:border-pink-500/50 text-left shadow-lg backdrop-blur-md flex flex-col h-full"
+      className="relative overflow-hidden p-6 rounded-3xl bg-pink-50/80 border border-pink-200 hover:border-pink-300 text-left glass-panel flex flex-col h-full transition-colors"
     >
       <div className="absolute -top-20 -right-20 w-40 h-40 bg-pink-500/30 rounded-full blur-[40px] pointer-events-none" />
 
-      <div className="relative flex-grow flex flex-col">
+      <div className="relative z-10 flex-grow flex flex-col">
         <div className="flex items-start justify-between mb-5">
-          <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center shadow-inner">
-            <MessageCircle className="text-pink-300" size={28} />
+          <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center shadow-sm">
+            <MessageCircle className="text-pink-600" size={28} />
           </div>
           {hasUnread && (
             <span className="flex h-3.5 w-3.5 relative">
@@ -32,16 +32,16 @@ export const MentorCard: React.FC<MentorCardProps> = ({ onClick }) => {
           )}
         </div>
 
-        <h3 className="text-white font-black text-xl mb-1.5">AI Mentor</h3>
-        <p className="text-white/60 font-medium text-sm mb-4">Always here to listen</p>
+        <h3 className="text-slate-900 font-black text-xl mb-1.5">AI Mentor</h3>
+        <p className="text-slate-500 font-medium text-sm mb-4">Always here to listen</p>
 
-        <div className="p-4 bg-black/20 rounded-xl border border-white/5 mb-4 flex-grow relative overflow-hidden">
+        <div className="p-4 bg-white/50 rounded-xl border border-slate-200 mb-4 flex-grow relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-pink-500"></div>
-          <p className="text-white/80 font-medium text-sm italic pl-2">"{lastMessage}"</p>
+          <p className="text-slate-700 font-medium text-sm italic pl-2">"{lastMessage}"</p>
         </div>
 
         <div className="flex justify-end">
-            <div className="flex items-center justify-center gap-1.5 text-pink-950 font-bold text-sm bg-pink-400 hover:bg-pink-300 transition-colors px-4 py-1.5 rounded-xl shadow-lg shadow-pink-500/20 w-full sm:w-auto">
+            <div className="flex items-center justify-center gap-1.5 text-white font-bold text-sm bg-pink-600 hover:bg-pink-700 transition-colors px-4 py-1.5 rounded-xl shadow-md shadow-pink-600/20 w-full sm:w-auto">
             <Sparkles size={16} />
             <span>Chat Now</span>
             </div>

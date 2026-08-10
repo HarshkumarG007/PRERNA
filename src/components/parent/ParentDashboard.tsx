@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, MessageCircle, Shield, Settings, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Heart, Shield, MessageCircle, ArrowLeft, Settings, ChevronRight } from 'lucide-react';
 import { ParentSafeProfile, ParentPermissionManager } from '../../parent/permissions';
+import { DisclosureGate } from '../consent/DisclosureGate';
 import { invoke } from '@tauri-apps/api/core';
 import { ConversationGuides } from './ConversationGuides';
 import { ParentingGuide } from './ParentingGuide';
+import { ParentGuideView } from './ParentGuideView';
 
 interface ParentDashboardProps {
   teenId: string; // The teen being viewed
@@ -240,6 +242,13 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ teenId, onExit
               checkInStreak={profile.checkInStreak || 0}
               strengths={profile.strengths || []}
             />
+
+            <div className="mt-8">
+              {/* WARNING: parent_guide disclosure is currently PENDING REVIEW. Do not ship to real users until disclosure-draft-pending-review.md is signed off by a qualified human reviewer. */}
+              <DisclosureGate activityType="parent_guide" onDecline={() => {}}>
+                <ParentGuideView safeProfile={profile} />
+              </DisclosureGate>
+            </div>
           </div>
         )}
         {activeTab === 'conversations' && <ConversationsTab profile={profile} />}

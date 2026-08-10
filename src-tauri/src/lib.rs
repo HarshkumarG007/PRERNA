@@ -3,6 +3,7 @@ pub mod commands;
 pub mod policy;
 pub mod ai;
 pub mod school_api;
+pub mod consent;
 
 use tauri::Manager;
 use log::{info, warn};
@@ -62,6 +63,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_log::Builder::new().build())
         .setup(|app| {
             info!("PRERNA backend initializing...");
             
@@ -100,6 +102,7 @@ pub fn run() {
             commands::authenticate_user,
             commands::get_user,
             commands::revoke_consent,
+            commands::submit_consent_token,
             commands::generate_mfa_secret,
             commands::verify_mfa_setup,
             commands::verify_login_mfa,

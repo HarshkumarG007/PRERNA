@@ -6,9 +6,19 @@ import { SkillArenaEngine, CognitiveProfile, GameResult } from '../../assessment
 import { useDatabase } from '../../hooks/useDatabase';
 import { ArrowLeft, Gamepad2, BrainCircuit, Sparkles, CheckCircle2 } from 'lucide-react';
 
+import { DisclosureGate } from '../consent/DisclosureGate';
+
 type GameType = 'pattern' | 'word' | 'spatial' | 'reaction' | 'creative';
 
 export const SkillArena: React.FC<{ onExit: () => void }> = ({ onExit }) => {
+  return (
+    <DisclosureGate activityType="skill_arena" onDecline={onExit}>
+      <SkillArenaInner onExit={onExit} />
+    </DisclosureGate>
+  );
+};
+
+const SkillArenaInner: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   const [activeGame, setActiveGame] = useState<GameType | null>(null);
   const [engine] = useState(() => new SkillArenaEngine());
   const [completedGames, setCompletedGames] = useState<Set<GameType>>(new Set());
@@ -46,6 +56,8 @@ export const SkillArena: React.FC<{ onExit: () => void }> = ({ onExit }) => {
         session_type: 'skill_arena',
         raw_choices: engine.exportData(),
         derived_traits: JSON.stringify(cognitiveProfile),
+        disclosure_version: '1.0',
+        disclosure_shown_at: Date.now(),
       });
     }
   };

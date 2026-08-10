@@ -51,7 +51,17 @@ const EXERCISES = [
   }
 ];
 
+import { DisclosureGate } from '../consent/DisclosureGate';
+
 export const CopingSkills: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  return (
+    <DisclosureGate activityType="coping_skills" onDecline={onClose}>
+      <CopingSkillsInner onClose={onClose} />
+    </DisclosureGate>
+  );
+};
+
+const CopingSkillsInner: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [activeExercise, setActiveExercise] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);
   const user = useAppStore(state => state.user);

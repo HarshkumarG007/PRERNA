@@ -1,0 +1,57 @@
+{
+  "version": "v2-ipip-onet-2026",
+  "source": "IPIP Big-Five Factor Markers",
+  "citation": "Goldberg et al. (2006)",
+  "items": [
+    {
+      "id": "ipip_e1",
+      "domain": "extraversion",
+      "keyed": "positive",
+      "text": {
+        "en": "Am the life of the party.",
+        "hi": "मैं पार्टी की जान हूँ।"
+      },
+      "cultural_adaptation_notes": "Literal translation fits well."
+    },
+    {
+      "id": "ipip_a1",
+      "domain": "agreeableness",
+      "keyed": "positive",
+      "text": {
+        "en": "Sympathize with others' feelings.",
+        "hi": "दूसरों की भावनाओं के प्रति सहानुभूति रखता हूँ।"
+      },
+      "cultural_adaptation_notes": "Literal translation fits well."
+    },
+    {
+      "id": "ipip_c1",
+      "domain": "conscientiousness",
+      "keyed": "positive",
+      "text": {
+        "en": "Get chores done right away.",
+        "hi": "अपना काम तुरंत कर लेता हूँ।"
+      },
+      "cultural_adaptation_notes": "Literal translation fits well."
+    },
+    {
+      "id": "ipip_n1",
+      "domain": "neuroticism",
+      "keyed": "positive",
+      "text": {
+        "en": "Have frequent mood swings.",
+        "hi": "मेरे मूड में बार-बार बदलाव आता है।"
+      },
+      "cultural_adaptation_notes": "Literal translation fits well."
+    },
+    {
+      "id": "ipip_o1",
+      "domain": "openness",
+      "keyed": "positive",
+      "text": {
+        "en": "Have a vivid imagination.",
+        "hi": "मेरी कल्पना शक्ति बहुत अच्छी है।"
+      },
+      "cultural_adaptation_notes": "Literal translation fits well."
+    }
+  ]
+}

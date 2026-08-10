@@ -28,9 +28,18 @@ export const BetaOnboardingNotice: React.FC<BetaOnboardingNoticeProps> = ({ onAc
       
       <div className="bg-white p-5 rounded-lg border border-amber-200 mb-6 shadow-sm">
         <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-2">Important Notice</h3>
-        <p className="text-gray-700 font-medium">
+        <p className="text-gray-700 font-medium mb-3">
           {disclosure.text[language]}
         </p>
+        <div className="bg-gray-50 p-3 rounded border border-gray-200 text-sm space-y-2">
+          <p>
+            <strong>Crisis Response SLA:</strong> Our human-review escalations are guaranteed within <strong>2 hours</strong> during standard operating hours (9 AM - 9 PM IST). 
+            Outside these hours, responses may be delayed up to 8 hours.
+          </p>
+          <p>
+            <strong>Direct Contact:</strong> If you experience technical issues or have concerns about data processing, contact the beta engineering team directly at <a href="mailto:beta-support@prerna.project" className="text-amber-600 underline">beta-support@prerna.project</a>.
+          </p>
+        </div>
       </div>
 
       <div className="flex items-start mb-6">

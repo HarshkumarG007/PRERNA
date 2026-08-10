@@ -2,667 +2,376 @@
 
 ### Personalized Real-time Engagement & Neural Resource Assistant
 
-**PRERNA is a local-first desktop platform for adolescent self-discovery, wellbeing support, career exploration, and transparent AI-assisted guidance.**
+**A local-first desktop platform for transparent, privacy-conscious self-discovery and AI-assisted mentoring for teenagers.**
 
-PRERNA is designed around a simple principle:
+PRERNA combines self-discovery activities, career exploration, wellbeing-oriented reflection, a locally running AI mentor, and privacy-preserving family/school interfaces in a native desktop application.
 
-> **Sensitive personal information should remain under the user's control by default.**
+The project is designed around a simple principle:
 
-Core data processing is designed to remain on the user's device. The application uses an encrypted local database, a locally running AI mentor, explicit disclosure before assessment activities, backend-owned authorization, and human-gated escalation for safety-critical workflows.
+> **The person using PRERNA should understand what the system collects, why it collects it, and who can access it.**
 
-PRERNA is **not a diagnostic or clinical device** and is not intended to replace qualified mental-health, educational, or medical professionals.
+PRERNA is designed as a **local-first application**: core user data and processing are intended to remain on the user's device unless an explicitly documented external service is used.
 
-[Getting Started](#-getting-started) · [Features](#-key-features) · [Architecture](#-system-architecture) · [Security](#-security-architecture) · [Safety & Compliance](#-safety--compliance) · [Roadmap](#-roadmap) · [Documentation](#-documentation)
-
----
-
-## 🌱 Why PRERNA?
-
-Adolescents often have to navigate academic pressure, career uncertainty, emotional challenges, social relationships, and questions about identity using fragmented tools.
-
-PRERNA brings several of these experiences together while treating privacy and transparency as architectural requirements rather than optional features.
-
-The platform is designed to provide:
-
-* Transparent self-discovery activities
-* Career and interest exploration
-* Emotional and wellbeing reflection
-* A locally running AI mentor
-* Teen-visible parental insights
-* Privacy-preserving school analytics
-* Explicit consent and disclosure flows
-* Human-gated safety escalation
-* Local encrypted storage
-* User-controlled export and deletion
-
-PRERNA does **not** aim to secretly profile teenagers or replace human professionals.
+> **Important:** PRERNA is currently an engineering project and is **not certified as a clinical, medical, legal, or production child-safety system**. Clinical and legal review remain external dependencies before a real-user beta.
 
 ---
 
-# ✨ Key Features
+## 📌 Project Status
 
-| Feature                            | Status                          | Description                                                                                                                                           |
-| ---------------------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Local-First Data Architecture**  | ✅ Implemented                   | Core application data is designed to remain on the user's device. External integrations, where present, are explicitly separated from the local core. |
-| **Encrypted Local Database**       | ✅ Implemented                   | SQLite-based local storage with SQLCipher encryption for data at rest.                                                                                |
-| **Transparent Assessments**        | ✅ Implemented                   | Assessment activities disclose their purpose before collecting activity data.                                                                         |
-| **Gamified Self-Discovery**        | ✅ Implemented                   | Skill Arena, Life Quests, mood/reflection activities, and profile synthesis provide engaging self-discovery experiences.                              |
-| **Local AI Mentor**                | ✅ Implemented                   | Quantized GGUF models can run locally through Rust/`llama-cpp-2` integration.                                                                         |
-| **Backend-Owned Authentication**   | ✅ Hardened                      | Privileged commands derive identity from the Rust session rather than trusting renderer-supplied user IDs.                                            |
-| **MFA State Machine**              | ✅ Hardened                      | Authentication uses explicit `None → PendingMFA → Authenticated` states.                                                                              |
-| **Parent/Teen Access Control**     | ✅ Implemented                   | Parent views are restricted through backend authorization and active relationship checks.                                                             |
-| **Consent Revocation Audit Trail** | ✅ Implemented                   | Revoked relationships are retained for audit purposes while access is immediately denied.                                                             |
-| **Human-Gated Crisis Workflow**    | 🚧 Implemented / Review Pending | Safety escalation requires the defined human-review gate; clinical validation remains pending.                                                        |
-| **Career Pathways**                | ✅ Phase 3                       | Career classifier and pathway presentation have been integrated.                                                                                      |
-| **School Cohort Analytics**        | 🚧 Implemented                  | Aggregate reporting uses a minimum `k ≥ 5` threshold as an anti-identification safeguard.                                                             |
-| **Encrypted Export / Deletion**    | ✅ Implemented                   | Users can control export and deletion of locally stored information.                                                                                  |
-| **English / Hindi i18n**           | ✅ Implemented                   | Core user-facing disclosure and consent experiences support English and Hindi.                                                                        |
-| **Architecture Decision Records**  | ✅ Added                         | Foundational decisions for encryption, offline AI, and crisis handling are documented under `docs/adr/`.                                              |
-| **Frontend Type Safety**           | ✅ Verified                      | TypeScript compilation is checked with `tsc --noEmit`.                                                                                                |
+| Area                        | Status                  | Notes                                                                               |
+| --------------------------- | ----------------------- | ----------------------------------------------------------------------------------- |
+| Local-first architecture    | ✅ Implemented           | Core application state and sensitive processing are designed around local execution |
+| Encrypted local database    | ✅ Implemented           | SQLite/SQLCipher-based encrypted storage                                            |
+| Rust/Tauri backend          | ✅ Implemented           | Privileged operations execute through the Rust backend                              |
+| AuthStatus security model   | ✅ Implemented           | `None → PendingMFA → Authenticated` state machine                                   |
+| Renderer identity isolation | ✅ Implemented           | Privileged IPC resolves identity from backend session state                         |
+| Role / tenant isolation     | ✅ Implemented           | Backend authorization boundaries for privileged roles                               |
+| AI Mentor                   | ✅ Implemented           | Local LLM architecture using GGUF / llama.cpp bindings                              |
+| Assessment disclosure gates | ✅ Implemented           | `DisclosureGate` integrated into remaining Phase 3 activities                       |
+| Frontend security hygiene   | ✅ Implemented           | Renderer no longer supplies privileged `user_id` values                             |
+| Career pathway classifier   | 🚧 Integrated           | Feature implementation is present; further validation remains                       |
+| Crisis protocol             | 🚧 Engineering complete | External clinical review still required                                             |
+| Synthetic crisis drill      | 🚧 Documented           | Backend execution must be confirmed in a native Rust environment                    |
+| Parental verification       | 🚧 Architecture defined | Production provider and legal approach remain subject to review                     |
+| DPDP compliance             | ⏳ Legal review pending  | Architecture mapping exists; this is not a legal certification                      |
+| Clinical validation         | ⏳ Pending               | Requires qualified licensed reviewer                                                |
+| Production beta             | ⏳ Blocked               | Requires external review and production-grade consent verification                  |
+
+### Current milestone
+
+**Phase 3 — Substantially Complete**
+
+**Phase 4 — In Preparation / External Validation**
+
+The repository is **not being represented as production-certified** until the remaining native backend verification, clinical review, legal review, and production guardian-verification work are completed.
 
 ---
 
-# 🏛️ System Architecture
+## ✨ Core Capabilities
 
-PRERNA uses a local-first desktop architecture built around a React frontend and Rust/Tauri backend.
+### 🔐 Local-First Privacy
+
+PRERNA is architected so that sensitive user information is processed locally wherever practical.
+
+* Encrypted local database using SQLite/SQLCipher
+* Backend-owned sensitive state
+* No renderer-controlled privileged identity
+* Local AI inference architecture
+* Local conversation context management
+* Explicit data export and deletion pathways
+* External services are treated as explicit architectural boundaries rather than implicit dependencies
+
+Local-first is an **architectural design goal**, not a claim that every future integration will necessarily be offline.
+
+---
+
+### 🧠 Local AI Mentor
+
+PRERNA includes a locally running AI mentor designed around privacy-conscious interaction.
+
+The backend uses Rust bindings around llama.cpp-compatible inference and quantized GGUF models.
+
+Key principles:
+
+* AI inference is intended to occur locally
+* Renderer code does not directly own privileged conversation state
+* Conversation context is managed by the Rust backend
+* Logout clears the authenticated session
+* Associated local conversation context is evicted on logout
+* The AI mentor is not presented as a therapist, diagnostician, or replacement for professional support
+
+---
+
+### 🎮 Transparent Self-Discovery
+
+PRERNA uses interactive activities rather than presenting psychological profiling as a hidden background process.
+
+Examples include:
+
+* Skill Arena
+* Life Quests
+* Mood-oriented reflection
+* Coping-skill activities
+* Career exploration
+* Profile synthesis
+
+PRERNA follows the principle: **No profile-data collection before disclosure.** 
+
+Before an activity that collects profile-relevant information can begin, the user must be shown the applicable disclosure and acknowledge it. This boundary is implemented through the frontend `DisclosureGate` architecture (integrated for Skill Arena, Coping Skills, etc.) and corresponding regression tests.
+
+The disclosure mechanism is an engineering control. Its legal sufficiency remains subject to external legal review.
+
+---
+
+### 🚨 Human-Gated Crisis Protocol
+
+PRERNA contains an engineered crisis-escalation pathway designed around human review.
+
+The intended flow is:
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│                     PRERNA DESKTOP APP                     │
-│                                                             │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │                 FRONTEND / WEBVIEW                    │  │
-│  │                                                       │  │
-│  │ React 19 + TypeScript + Vite + Tailwind CSS v4       │  │
-│  │                                                       │  │
-│  │ ┌────────────┐ ┌────────────┐ ┌────────────────────┐ │  │
-│  │ │ Components │ │  Zustand   │ │ Assessment / i18n │ │  │
-│  │ │    / UI     │ │   Store    │ │      Engines       │ │  │
-│  │ └────────────┘ └────────────┘ └────────────────────┘ │  │
-│  └───────────────────────┬───────────────────────────────┘  │
-│                          │ Tauri IPC                         │
-│                          ▼                                   │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │                    RUST BACKEND                       │  │
-│  │                                                       │  │
-│  │ Rust + Tauri 2                                       │  │
-│  │                                                       │  │
-│  │ ┌──────────────┐ ┌──────────────┐ ┌────────────────┐ │  │
-│  │ │ IPC Commands │ │ Auth / RBAC  │ │ Safety / Crisis│ │  │
-│  │ └──────────────┘ └──────────────┘ └────────────────┘ │  │
-│  │                                                       │  │
-│  │ ┌──────────────┐ ┌──────────────┐ ┌────────────────┐ │  │
-│  │ │ Database DAO │ │ Local AI     │ │ School /       │ │  │
-│  │ │ + SQLCipher  │ │ llama.cpp    │ │ External APIs  │ │  │
-│  │ └──────────────┘ └──────────────┘ └────────────────┘ │  │
-│  └───────────────┬─────────────────┬─────────────────────┘  │
-│                  │                 │                        │
-│                  ▼                 ▼                        │
-│        ┌─────────────────┐  ┌──────────────────┐            │
-│        │ Encrypted Local │  │ Local GGUF Model │            │
-│        │ SQLite Database │  │    / LLM         │            │
-│        └─────────────────┘  └──────────────────┘            │
-└─────────────────────────────────────────────────────────────┘
+Signal Detection
+      ↓
+Pending Crisis Event
+      ↓
+Human Reviewer Claim
+      ↓
+Risk Resolution
+      ↓
+Teen Notification
+      ↓
+Guardian Notification
 ```
 
-### Local-first boundary
+The backend is designed to enforce the ordering of privileged actions rather than trusting the frontend to enforce it.
 
-"Local-first" is an architectural description, not a claim that the application can never communicate externally.
+Important constraints include:
 
-The core design is:
+* A crisis event must exist before resolution
+* Reviewer actions are tied to the reviewer who claimed the event
+* Guardian notification is blocked before required review state exists
+* Guardian notification is blocked before the teen has been informed
+* Backend authorization is authoritative
 
-* Sensitive application data is stored locally by default.
-* Core AI inference can run locally.
-* Core application functionality does not require a central PRERNA cloud database.
-* Renderer code is treated as untrusted input.
-* Privileged identity decisions are made by the Rust backend.
-* External integrations are isolated and should be explicitly documented.
-* Network-dependent features must not silently expand the application's data-sharing boundary.
-
-This distinction is important for maintaining technically defensible privacy claims.
+The crisis criteria themselves are **engineering-authored and provisional** until reviewed by a qualified mental-health professional.
 
 ---
 
-# 🔐 Security Architecture
+### 👨👩👧 Teen-Visible Parent Interface
 
-PRERNA has undergone P0 security hardening focused on the frontend/backend trust boundary.
+PRERNA is designed so that parent-facing information is intentionally constrained.
 
-## 1. Backend-Owned Authentication
+The architecture distinguishes between:
 
-The frontend is **not trusted to identify the current user**.
+* raw/private user information
+* parent-safe information
+* conversation starters
+* aggregated trends
 
-Privileged Tauri commands obtain identity from the backend-owned `ActiveSession`.
+The teen-visible parent view is intended to make the information boundary explicit rather than silently exposing private psychological information.
 
-The session state is explicitly represented as:
+---
 
-```rust
-pub enum AuthStatus {
-    None,
-    PendingMFA(String),
-    Authenticated(String),
-}
-```
+### 🏫 School / Cohort Analytics
 
-The important invariant is:
+PRERNA includes an architecture for aggregate school-level insights.
+
+The intended model emphasizes:
+
+* aggregation rather than individual profiling
+* tenant isolation
+* minimum cohort thresholds
+* role-based authorization
+* backend-enforced access controls
+
+The current architecture uses a hard **`k ≥ 5`** threshold where cohort anonymity is required.
+
+Institutional integrations remain explicit external-service boundaries and are not part of the claim that all PRERNA processing is permanently offline.
+
+---
+
+# 🛡️ Security Architecture
+
+Security is treated as a backend trust-boundary problem rather than a frontend convention.
+
+## AuthStatus State Machine
+
+The application uses an explicit authentication state machine:
 
 ```text
 None
   │
+  ├── login
   ▼
 PendingMFA
   │
-  │ successful MFA
+  ├── successful MFA verification
   ▼
 Authenticated
 ```
 
-`PendingMFA` is never treated as an authenticated session.
+Privileged identity resolution is performed by the Rust backend.
 
-Therefore:
+### Privileged commands
 
-```text
-PendingMFA
-    │
-    └── get_user_id() → DENY
+Authenticated commands use the backend session getter:
+
+```rust
+session.get_user_id()?
 ```
 
-while:
+rather than trusting renderer-provided identity values.
 
-```text
-Authenticated
-    │
-    └── get_user_id() → ALLOW
-```
+This means:
 
-This prevents a partially authenticated session from accessing privileged commands.
+* `None` → denied
+* `PendingMFA` → denied for authenticated-only commands
+* `Authenticated` → user identity available to the backend
+
+MFA verification uses the corresponding pending-MFA session state.
 
 ---
 
-## 2. Renderer Identity Spoofing Protection
+## Renderer Spoofing Protection
 
-Privileged IPC commands should not accept a renderer-supplied `user_id` to establish authorization.
+The WebView/renderer is treated as an untrusted caller.
+
+Privileged commands should not accept a caller-controlled:
+
+```text
+user_id
+```
+
+as the authority for authorization.
 
 Instead:
 
-```rust
-let user_id = session.get_user_id()?;
+```text
+Renderer
+   │
+   │ invoke(command)
+   ▼
+Rust IPC Handler
+   │
+   │ resolve authenticated session
+   ▼
+Backend Authorization
+   │
+   ▼
+Database / Protected Operation
 ```
 
-The backend resolves the authenticated identity itself.
-
-This protects against a compromised or manipulated WebView attempting to impersonate another user by changing an IPC parameter.
-
-The same trust-boundary principle applies to caller identity and parent/teen authorization.
+This prevents a renderer from simply changing an ID and attempting to operate on another user's records.
 
 ---
 
-## 3. MFA Identity Binding
+## Role and Tenant Isolation
 
-The MFA verification command obtains the pending identity from the backend session:
+Privileged institutional operations enforce authorization boundaries for:
 
-```rust
-let user_id = session.get_pending_mfa_user()?;
-```
+* role
+* tenant
+* authenticated identity
 
-The frontend therefore cannot select an arbitrary account for MFA verification.
+Missing tenant information fails closed rather than implicitly granting broad access.
 
-The intended authorization invariant is:
-
-```text
-Frontend-provided user ID
-        │
-        ▼
-      DENIED
-
-Backend PendingMFA identity
-        │
-        ▼
-   MFA verification
-        │
-        ▼
- Authenticated session
-```
+This is particularly important for educator/reviewer workflows where records must not cross organizational boundaries.
 
 ---
 
-## 4. Session Clearing and Logout
+## Consent Revocation
 
-Logout clears the backend authentication state:
+Parental consent relationships are represented as revocable state rather than being silently deleted.
 
-```text
-Authenticated
-      │
-      ▼
-   logout()
-      │
-      ├── clear AuthStatus
-      ├── evict associated AI conversation memory
-      └── return to None
-```
-
-This prevents an authenticated identity or associated local AI conversation context from surviving a logout.
-
----
-
-## 5. Consent Revocation
-
-Parent/teen relationships use an auditable revocation model.
-
-Instead of physically deleting the relationship row:
+The intended lifecycle is:
 
 ```text
-status = 'revoked'
-revoked_at = <timestamp>
+active
+  ↓
+revoked
 ```
 
-Authorization checks only accept:
-
-```text
-status = 'active'
-```
-
-Therefore:
-
-```text
-Active relationship
-        │
-        ▼
-   Parent access
-        │
-        ▼
-   revoke_consent()
-        │
-        ├── retain audit record
-        └── status = revoked
-                  │
-                  ▼
-            future access
-                  │
-                  ▼
-                DENY
-```
+Once revoked, subsequent parent-view authorization checks must fail.
 
 This preserves an audit trail while preventing continued access.
 
 ---
 
-## 6. Role and Tenant Isolation
+## Logout Security
 
-Educator and reviewer workflows are designed around explicit tenant boundaries.
+Logout is treated as a security boundary.
 
-Authorization should fail closed when required tenant information is missing rather than implicitly assuming a shared/default tenant.
-
-This is particularly important for school and institutional deployments.
-
----
-
-# 🧠 Local AI Mentor
-
-PRERNA supports a locally running AI mentor using quantized GGUF models through Rust bindings around `llama.cpp`.
-
-The intended architecture is:
+The intended sequence is:
 
 ```text
-Teen
- │
- ▼
-React Mentor UI
- │
- │ Tauri IPC
- ▼
-Rust AI command
- │
- ▼
-Local ConversationStore
- │
- ▼
-llama.cpp / GGUF model
- │
- ▼
-Local response
+Authenticated
+     ↓
+logout
+     ↓
+AuthStatus = None
+     ↓
+associated local AI conversation context evicted
 ```
 
-Core conversation processing can therefore occur without sending the conversation to a hosted AI API.
-
-The backend also owns conversation lifecycle management so that logout can evict associated conversation memory.
-
-### Important limitation
-
-Local inference does not automatically make every deployment completely offline.
-
-If an explicitly integrated external service is used elsewhere in the application, that service remains subject to its own data-sharing boundary and documentation.
+The backend therefore does not rely solely on the frontend to forget sensitive state.
 
 ---
 
-# 🎯 Assessment & Self-Discovery
-
-PRERNA uses transparent, gamified activities rather than hidden psychological profiling.
-
-Current areas include:
-
-* Skill Arena
-* Life Quests
-* Mood and reflection activities
-* Coping-skill exercises
-* Career pathway exploration
-* Profile synthesis
-* Big Five / RIASEC-oriented assessment experiences
-
-Assessment activities should clearly communicate their purpose before collecting relevant activity data.
-
-Raw interaction data is processed according to the application's local-first data model and should not be represented as a clinical diagnosis.
-
----
-
-# 💼 Career Pathways
-
-Phase 3 introduced the career pathway classification flow.
-
-The system connects assessment and interest signals to career-oriented exploration through:
+# 🏗️ System Architecture
 
 ```text
-Assessment / Activities
-          │
-          ▼
-    Trait / Interest Data
-          │
-          ▼
-   Career Classifier
-          │
-          ▼
- Career Pathway Results
-          │
-          ▼
- Exploration / Guidance
+┌──────────────────────────────────────────────────────────────┐
+│                        FRONTEND                              │
+│                 React + TypeScript + Vite                    │
+│                                                              │
+│  ┌───────────────┐  ┌──────────────┐  ┌──────────────────┐  │
+│  │ UI Components │  │ Zustand      │  │ Disclosure /     │  │
+│  │ & Activities  │  │ State        │  │ Consent Gates    │  │
+│  └───────────────┘  └──────────────┘  └──────────────────┘  │
+│                         │                                    │
+│                         │ Tauri IPC                          │
+└─────────────────────────┼────────────────────────────────────┘
+                          ▼
+┌──────────────────────────────────────────────────────────────┐
+│                         RUST BACKEND                         │
+│                         Tauri 2                              │
+│                                                              │
+│  ┌──────────────┐ ┌──────────────┐ ┌─────────────────────┐ │
+│  │ IPC Commands │ │ AuthStatus   │ │ Policy / Safety     │ │
+│  │              │ │ Session      │ │ Enforcement         │ │
+│  └──────────────┘ └──────────────┘ └─────────────────────┘ │
+│          │                 │                    │            │
+│          ▼                 ▼                    ▼            │
+│  ┌───────────────────────────────────────────────────────┐ │
+│  │                 Data / Service Layer                   │ │
+│  │                                                        │ │
+│  │   SQLite / SQLCipher       Local LLM       School API  │ │
+│  └───────────────────────────────────────────────────────┘ │
+└───────────────┬──────────────────────┬─────────────────────┘
+                │                      │
+                ▼                      ▼
+       ┌─────────────────┐    ┌────────────────────┐
+       │ Encrypted Local │    │ Local GGUF Model   │
+       │ Database        │    │ / llama.cpp        │
+       └─────────────────┘    └────────────────────┘
 ```
 
-Career results are intended as exploratory guidance rather than deterministic predictions about a teenager's future.
+### Why Tauri?
+
+PRERNA uses Tauri because it provides:
+
+* native OS WebView integration
+* Rust backend execution
+* smaller application footprint than Electron in typical configurations
+* a clear frontend/backend trust boundary
+* strong suitability for local-first desktop applications
+
+The exact security properties of the deployed application still depend on configuration, platform security, dependencies, signing, and operational controls.
 
 ---
 
-# 🛡️ Safety & Crisis Protocol
+# 🧰 Technology Stack
 
-PRERNA contains a human-gated safety escalation architecture.
-
-The intended flow is:
-
-```text
-Potential high-risk signal
-          │
-          ▼
-     Safety detection
-          │
-          ▼
-    Human review gate
-          │
-     ┌────┴────┐
-     │         │
-   Reject    Confirm
-     │         │
-     ▼         ▼
-   Stop    Teen informed
-               │
-               ▼
-        Guardian escalation
-```
-
-The system is designed so that a detected signal alone is not sufficient to trigger guardian notification.
-
-### Current status
-
-The engineering architecture is implemented, but the clinical criteria used for risk detection require review by appropriately qualified mental-health professionals before production use.
-
-See:
-
-* [`docs/crisis-protocol.md`](docs/crisis-protocol.md)
-* [`docs/adr/0003-human-gated-crisis-protocol.md`](docs/adr/0003-human-gated-crisis-protocol.md)
+| Layer      | Technology          | Purpose                                    |
+| ---------- | ------------------- | ------------------------------------------ |
+| Frontend   | React 19            | Desktop application UI                     |
+| Language   | TypeScript          | Type-safe frontend development             |
+| Build      | Vite                | Frontend development and production builds |
+| Styling    | Tailwind CSS v4     | UI styling system                          |
+| State      | Zustand             | Application state management               |
+| Desktop    | Tauri 2             | Native desktop shell and IPC               |
+| Backend    | Rust                | Security-sensitive application logic       |
+| Database   | SQLite / `rusqlite` | Local persistence                          |
+| Encryption | SQLCipher           | Encrypted database storage                 |
+| Local AI   | `llama-cpp-2`       | Local GGUF inference                       |
+| Testing    | Vitest              | Frontend tests                             |
+| Testing    | Cargo test          | Rust/backend tests                         |
+| CI/CD      | GitHub Actions      | Automated validation and builds            |
+| Coverage   | Codecov             | Coverage reporting/enforcement             |
 
 ---
 
-# 👪 Parent / Teen Privacy Model
-
-PRERNA distinguishes between:
-
-### Teen-private information
-
-Sensitive information such as:
-
-* Raw conversations
-* Detailed psychological information
-* Private reflections
-* Sensitive assessment responses
-
-should not automatically become visible to parents.
-
-### Parent-visible information
-
-Parent-facing experiences are designed around:
-
-* Conversation starters
-* Appropriate trends
-* Supportive observations
-* Teen-visible shared information
-
-The guiding principle is:
-
-> **Parents should receive useful support signals without automatically receiving a teenager's private inner-life data.**
-
-The exact production policy remains subject to legal, safety, and product review.
-
----
-
-# 🏫 School Analytics
-
-PRERNA includes a school/institutional analytics architecture intended to provide aggregate insights rather than expose individual student profiles.
-
-The implementation uses a minimum cohort threshold:
-
-```text
-k ≥ 5
-```
-
-The purpose is to reduce the risk that an aggregate result can be used to infer information about a specific student.
-
-School integrations remain a separate boundary from the local-first core and must be reviewed independently for data minimization, consent, authorization, and deployment requirements.
-
----
-
-# 🔒 Privacy & Compliance Position
-
-PRERNA uses privacy-by-architecture principles, but the project does **not** claim that the software itself constitutes legal compliance or certification.
-
-### DPDP alignment
-
-The repository contains an architectural mapping to India's Digital Personal Data Protection framework.
-
-However:
-
-* Legal counsel has not yet certified the implementation.
-* Production consent workflows require appropriate verification.
-* Regulatory obligations depend on the actual deployment, processing activities, parties involved, and applicable law.
-
-See:
-
-[`docs/dpdp-compliance-mapping.md`](docs/dpdp-compliance-mapping.md)
-
-### Clinical safety
-
-Clinical safety criteria are engineering-authored until reviewed by qualified professionals.
-
-See:
-
-[`docs/crisis-protocol.md`](docs/crisis-protocol.md)
-
-### Product classification
-
-PRERNA is a self-discovery and support application.
-
-**It is not a medical device, diagnostic system, or replacement for professional care.**
-
----
-
-# 🧪 Verification & Testing
-
-The project uses multiple verification layers.
-
-## Frontend
-
-TypeScript compilation:
-
-```bash
-npx tsc --noEmit
-```
-
-Frontend tests:
-
-```bash
-npm test
-```
-
-## Rust backend
-
-```bash
-cd src-tauri
-cargo test
-```
-
-## Security-sensitive regression tests
-
-Important security invariants include tests covering:
-
-* Authentication state transitions
-* MFA isolation
-* Session clearing
-* Consent revocation
-* Parent/teen authorization
-* Crisis escalation gates
-* Backend authorization boundaries
-
-### Verification status
-
-The repository distinguishes between:
-
-**Implemented**
-
-The code exists in the repository.
-
-**Structurally verified**
-
-The relevant code paths and invariants have been inspected.
-
-**Automated test verified**
-
-An automated test covers the invariant.
-
-**Externally reviewed**
-
-A qualified external professional has reviewed the relevant safety/legal/clinical requirement.
-
-These categories are intentionally not treated as interchangeable.
-
----
-
-# 📊 Code Quality & Coverage
-
-PRERNA uses GitHub Actions for automated development checks and maintains Codecov configuration for coverage reporting.
-
-Coverage targets should be interpreted as engineering quality targets rather than proof of security or clinical correctness.
-
-A high code-coverage percentage cannot by itself establish:
-
-* Legal compliance
-* Clinical safety
-* Security correctness
-* Absence of vulnerabilities
-* Product suitability for minors
-
-Those require separate forms of review.
-
----
-
-# 🏗️ Technology Stack
-
-| Layer           | Technology          | Purpose                              |
-| --------------- | ------------------- | ------------------------------------ |
-| Frontend        | React 19            | Desktop application UI               |
-| Language        | TypeScript          | Type-safe frontend development       |
-| Build Tool      | Vite                | Fast development/build pipeline      |
-| Styling         | Tailwind CSS v4     | UI styling system                    |
-| State           | Zustand             | Frontend application state           |
-| Desktop Runtime | Tauri 2             | Native desktop shell and IPC         |
-| Backend         | Rust                | Security-sensitive application logic |
-| Database        | SQLite / `rusqlite` | Local persistence                    |
-| Encryption      | SQLCipher           | Encrypted local database             |
-| Local AI        | `llama-cpp-2`       | Local GGUF model inference           |
-| Testing         | Vitest              | Frontend testing                     |
-| Backend Testing | Cargo test          | Rust unit/integration testing        |
-| CI/CD           | GitHub Actions      | Automated validation and builds      |
-| Coverage        | Codecov             | Coverage reporting                   |
-| Localization    | i18n                | English/Hindi support                |
-
----
-
-# 🚀 Getting Started
-
-## Prerequisites
-
-Install:
-
-* [Rust](https://www.rust-lang.org/tools/install)
-* Node.js 20+
-* npm
-* Tauri prerequisites for your operating system
-
-For Tauri-specific platform requirements, see the official Tauri prerequisites documentation.
-
-## Clone the repository
-
-```bash
-git clone https://github.com/HarshkumarG007/PRERNA.git
-cd PRERNA
-```
-
-## Install dependencies
-
-```bash
-npm install
-```
-
-## Start development
-
-```bash
-npm run tauri dev
-```
-
-This launches the React frontend inside the Tauri desktop application with the Rust backend.
-
----
-
-# 📦 Production Build
-
-Build the desktop application with:
-
-```bash
-npm run tauri build
-```
-
-The resulting application bundle is generated according to the platform-specific Tauri configuration.
-
-Before distributing a production build, verify:
-
-* Code signing
-* Platform installer configuration
-* Native dependencies
-* Database encryption configuration
-* Model packaging/licensing
-* Privacy notices
-* Consent implementation
-* Safety review
-* Legal review
-
----
-
-# 📁 Repository Structure
+# 📂 Repository Structure
 
 ```text
 PRERNA/
@@ -679,18 +388,22 @@ PRERNA/
 │   │   └── 0003-human-gated-crisis-protocol.md
 │   │
 │   ├── crisis-protocol.md
+│   ├── crisis-drill-runbook.md
+│   ├── synthetic-crisis-drill-runbook.md
 │   ├── dpdp-compliance-mapping.md
 │   ├── disclosure-language-review.md
+│   ├── parental-verification-architecture.md
+│   ├── review-briefs/
+│   │   ├── clinical-review-brief.md
+│   │   └── legal-review-brief.md
 │   ├── prerna-enterprise-review.md
 │   ├── prerna-gap-analysis.md
 │   ├── prerna-critical-fixes-and-build-guide.md
 │   └── prerna-agent-implementation-plan-v2.md
 │
 ├── mlops/
-│   └── Safety / evaluation assets
 │
 ├── public/
-│   └── Static frontend assets
 │
 ├── src/
 │   ├── ai/
@@ -698,11 +411,13 @@ PRERNA/
 │   ├── backup/
 │   ├── components/
 │   │   ├── activities/
+│   │   ├── ai/
 │   │   ├── consent/
 │   │   ├── crisis/
 │   │   ├── dashboard/
+│   │   ├── mentor/
 │   │   ├── parent/
-│   │   ├── settings/
+│   │   ├── skills/
 │   │   └── synthesis/
 │   ├── db/
 │   ├── engine/
@@ -722,172 +437,315 @@ PRERNA/
 │   │   └── main.rs
 │   └── tauri.conf.json
 │
-├── codecov.yml
-├── index.html
 ├── package.json
-├── tsconfig.json
-├── vite.config.ts
+├── package-lock.json
+├── codecov.yml
 ├── SYSTEM_EVALUATION_METRICS.md
-├── project_context_for_claude.md
+├── LICENSE
 └── README.md
 ```
 
 ---
 
-# 🧭 Architecture Decision Records
+# 🚀 Getting Started
 
-Important architectural decisions are documented separately so future contributors can understand **why** the system is designed this way.
+## Prerequisites
 
-| ADR                                                      | Decision                                |
-| -------------------------------------------------------- | --------------------------------------- |
-| [ADR-0001](docs/adr/0001-local-first-encryption.md)      | Local-first encrypted data architecture |
-| [ADR-0002](docs/adr/0002-offline-llm-mentor.md)          | Offline/local AI mentor architecture    |
-| [ADR-0003](docs/adr/0003-human-gated-crisis-protocol.md) | Human-gated crisis escalation           |
+Install:
 
-These records should be updated when architectural assumptions materially change.
+* Rust stable toolchain
+* Node.js 20+
+* npm
+* Tauri prerequisites for your operating system
+
+For platform-specific requirements, consult the official Tauri prerequisites documentation.
+
+## Clone
+
+```bash
+git clone https://github.com/HarshkumarG007/PRERNA.git
+cd PRERNA
+```
+
+## Install frontend dependencies
+
+```bash
+npm install
+```
+
+## Start development
+
+```bash
+npm run tauri dev
+```
+
+This launches the React frontend together with the Rust/Tauri backend.
 
 ---
 
-# 🗺️ Development Roadmap
+# 🧪 Verification
+
+## TypeScript
+
+```bash
+npx tsc --noEmit
+```
+
+The latest Phase 3/4A work has been validated against TypeScript compilation.
+
+## Frontend tests
+
+```bash
+npm test
+```
+
+The latest reported frontend verification completed with:
+
+```text
+24 tests passing
+```
+
+## Rust checks
+
+Run from the Tauri directory:
+
+```bash
+cd src-tauri
+
+cargo check
+cargo test
+```
+
+The repository includes backend tests for authorization and crisis-path invariants.
+
+> **Verification note:** Rust compilation/test results should be considered authoritative only when executed successfully in a native environment or CI. A previous development environment did not have `cargo` available, so backend verification must not be claimed merely because the source has been patched.
+
+---
+
+# 🔒 Safety & Compliance
+
+PRERNA deliberately distinguishes between:
+
+1. **Engineering implementation**
+2. **Automated verification**
+3. **External professional validation**
+4. **Production certification**
+
+These are not interchangeable.
+
+## Clinical review
+
+The crisis-detection criteria and escalation policy are engineering-authored proposals.
+
+They require review by a qualified licensed mental-health professional before being treated as clinically validated.
+
+See:
+
+`docs/crisis-protocol.md`
+
+and:
+
+`docs/review-briefs/clinical-review-brief.md`
+
+---
+
+## Legal / DPDP review
+
+The project contains an architecture-to-DPDP mapping, but this does **not** constitute legal advice or certification.
+
+See:
+
+`docs/dpdp-compliance-mapping.md`
+
+and:
+
+`docs/review-briefs/legal-review-brief.md`
+
+Qualified legal counsel must review the actual production data flows, consent mechanisms, retention policies, processor relationships, notices, and operational procedures.
+
+---
+
+## Guardian Verification
+
+The current project distinguishes development simulation from production verification.
+
+A provider-independent production architecture has been documented in:
+
+`docs/parental-verification-architecture.md`
+
+The final provider and verification mechanism remain subject to legal, security, operational, and product review.
+
+The architecture intentionally does not claim that a particular identity provider, Aadhaar/DigiLocker flow, payment-card method, or other mechanism is automatically legally sufficient.
+
+---
+
+## Crisis Drill
+
+A synthetic end-to-end crisis drill has been documented (`docs/synthetic-crisis-drill-runbook.md`) to validate the intended workflow and its invariant constraints without using real vulnerable-person data. Native Rust execution remains part of the final verification evidence.
+
+---
+
+# 📜 Important Safety Disclaimer
+
+PRERNA is **not**:
+
+* a medical device
+* a diagnostic system
+* a therapist
+* a replacement for a licensed mental-health professional
+* a substitute for emergency services
+* a guarantee of legal or regulatory compliance
+
+Any wellbeing or psychological information produced by PRERNA should be treated as supportive self-discovery information rather than a clinical diagnosis.
+
+Where a user may be at immediate risk, real-world professional and emergency support should take precedence over software output.
+
+---
+
+# 🗺️ Roadmap
 
 ## Phase 1 — Foundation
 
-* Local-first application architecture
+**Status: ✅ Substantially implemented**
+
+* Local-first architecture
 * Encrypted local storage
-* Transparent assessment model
-* Initial safety architecture
-* Core desktop application
-
-**Status: ✅ Completed**
-
----
-
-## Phase 2 — Security & Governance Hardening
-
-* Backend-owned authentication
-* MFA state machine
-* Renderer identity-spoofing protection
-* Parent/teen authorization hardening
-* Consent revocation auditability
-* Session lifecycle hardening
-* Safety and compliance documentation
-
-**Status: ✅ Major P0 hardening completed**
+* Rust/Tauri backend
+* Local AI architecture
+* Disclosure-oriented assessment design
+* Human-gated crisis architecture
 
 ---
 
-## Phase 3 — Product & Architecture Completion
+## Phase 2 — Security & Governance Foundations
 
-* Career classifier
-* Career pathway UI
-* Assessment persistence hardening
-* Frontend identity-boundary cleanup
-* AI mentor integration cleanup
-* Code coverage infrastructure
-* Architecture Decision Records
-* TypeScript compilation verification
+**Status: ✅ Substantially implemented**
 
-**Status: ✅ Completed**
+* AuthStatus state machine
+* Backend-owned identity resolution
+* Renderer identity spoofing protections
+* Role/tenant authorization boundaries
+* Consent revocation enforcement
+* Backend-owned AI conversation state
+* Logout memory eviction
+* Security-focused documentation
+
+---
+
+## Phase 3 — Feature Completion
+
+**Status: 🚧 Substantially complete**
+
+Implemented/integrated work includes:
+
+* Career pathway classification
+* Assessment activity integration
+* Disclosure gates
+* Skill Arena disclosure enforcement
+* Coping Skills disclosure enforcement
+* Frontend `user_id` hygiene
+* Code coverage configuration
+* Foundational ADRs
+* TypeScript compilation
+* Frontend regression tests
+
+Remaining work is primarily validation, integration hardening, and evidence collection rather than representing the phase as completely certified.
 
 ---
 
 ## Phase 4 — External Validation
 
-* Licensed clinical review
-* Qualified legal review
-* Production-grade guardian verification
-* Independent security review
-* Native Rust CI verification across supported platforms
+**Phase 4 technical foundation: implemented. Native verification and external professional validation pending.**
 
-**Status: 🚧 Next major validation stage**
+* **P4-1 — Production Guardian Verification:** Provider-independent interface proposed; production implementation and legal review pending.
+* **P4-2 — Clinical Review:** Requires a licensed clinical reviewer for detection criteria, escalation rules, and disclosures.
+* **P4-3 — Crisis Drill:** Requires native backend execution, SLA measurement, and invariant verification.
+* **P4-4 — Legal Review:** Requires DPDP architecture review, consent review, retention/deletion review, and operational compliance review.
+
+*(See [Safety & Compliance](#-safety--compliance) for detailed validation requirements.)*
 
 ---
 
 ## Phase 5 — Structured Beta
 
-* Small consented cohort
-* Real parental verification
-* Production telemetry/privacy review
-* Accessibility testing
-* Performance testing
-* Safety monitoring
+**Status: ⏳ Blocked pending external validation**
 
-**Status: ⏳ Planned**
+Beta should begin only after:
 
----
+* clinical review
+* legal review
+* production guardian verification
+* native backend test verification
+* crisis drill evidence
+* security review
+* operational incident procedures
 
-## Phase 6 — Governance & Production Readiness
-
-* Formal grievance mechanism
-* Breach-response procedure
-* Production code signing
-* Release security review
-* Dependency/SBOM governance
-* Operational incident response
-
-**Status: ⏳ Planned**
+are complete and accepted by the responsible project stakeholders.
 
 ---
 
-# 📚 Documentation Index
+# 📚 Documentation
 
-| Document                                                                                         | Purpose                                       |
-| ------------------------------------------------------------------------------------------------ | --------------------------------------------- |
-| [`docs/crisis-protocol.md`](docs/crisis-protocol.md)                                             | Crisis detection and human-review protocol    |
-| [`docs/dpdp-compliance-mapping.md`](docs/dpdp-compliance-mapping.md)                             | DPDP architectural mapping                    |
-| [`docs/disclosure-language-review.md`](docs/disclosure-language-review.md)                       | English/Hindi disclosure and consent language |
-| [`docs/adr/0001-local-first-encryption.md`](docs/adr/0001-local-first-encryption.md)             | Local-first encryption decision               |
-| [`docs/adr/0002-offline-llm-mentor.md`](docs/adr/0002-offline-llm-mentor.md)                     | Local AI architecture decision                |
-| [`docs/adr/0003-human-gated-crisis-protocol.md`](docs/adr/0003-human-gated-crisis-protocol.md)   | Crisis escalation architecture decision       |
-| [`SYSTEM_EVALUATION_METRICS.md`](SYSTEM_EVALUATION_METRICS.md)                                   | System evaluation and quality metrics         |
-| [`project_context_for_claude.md`](project_context_for_claude.md)                                 | Architectural context for AI coding agents    |
-| [`docs/prerna-enterprise-review.md`](docs/prerna-enterprise-review.md)                           | Enterprise architecture review                |
-| [`docs/prerna-gap-analysis.md`](docs/prerna-gap-analysis.md)                                     | Security and implementation gap analysis      |
-| [`docs/prerna-critical-fixes-and-build-guide.md`](docs/prerna-critical-fixes-and-build-guide.md) | Critical fixes and build guidance             |
-| [`docs/prerna-agent-implementation-plan-v2.md`](docs/prerna-agent-implementation-plan-v2.md)     | Implementation roadmap                        |
+| Document                                        | Purpose                                                |
+| ----------------------------------------------- | ------------------------------------------------------ |
+| `docs/crisis-protocol.md`                       | Crisis detection and human-review protocol             |
+| `docs/synthetic-crisis-drill-runbook.md`        | Synthetic end-to-end crisis validation                 |
+| `docs/dpdp-compliance-mapping.md`               | Engineering mapping to DPDP requirements               |
+| `docs/parental-verification-architecture.md`    | Proposed production guardian-verification architecture |
+| `docs/disclosure-language-review.md`            | English/Hindi disclosure and consent language          |
+| `docs/review-briefs/clinical-review-brief.md`   | Clinical reviewer package                              |
+| `docs/review-briefs/legal-review-brief.md`      | Legal reviewer package                                 |
+| `docs/adr/0001-local-first-encryption.md`       | Local-first encryption decision                        |
+| `docs/adr/0002-offline-llm-mentor.md`           | Local AI architecture decision                         |
+| `docs/adr/0003-human-gated-crisis-protocol.md`  | Crisis governance architecture decision                |
+| `SYSTEM_EVALUATION_METRICS.md`                  | System performance and evaluation metrics              |
+| `docs/prerna-enterprise-review.md`              | Foundational enterprise review                         |
+| `docs/prerna-gap-analysis.md`                   | Architectural gap analysis                             |
+| `docs/prerna-critical-fixes-and-build-guide.md` | Critical fixes and build guidance                      |
+| `docs/prerna-agent-implementation-plan-v2.md`   | Detailed implementation roadmap                        |
+| `project_context_for_claude.md`                 | AI-agent architectural onboarding                      |
 
 ---
 
 # 🤝 Contributing
 
-Contributions are welcome through issues and pull requests.
+Contributions are welcome, but PRERNA handles unusually sensitive information.
 
-Because PRERNA handles sensitive adolescent information, contributions affecting the following areas require additional scrutiny:
+Changes involving any of the following require additional scrutiny:
 
-* Authentication
-* Authorization
-* Consent
-* Assessment data
-* AI conversations
-* Crisis handling
-* Parent/teen visibility
-* School analytics
-* Encryption
-* External integrations
+* authentication
+* authorization
+* consent
+* disclosure
+* assessment telemetry
+* psychological profiles
+* AI conversation history
+* crisis detection
+* guardian notification
+* school analytics
+* data export/deletion
+* external data processors
 
-### Security-sensitive changes
+Contributors should preserve the backend trust boundaries and documented architectural invariants.
 
-Do not weaken or bypass backend authorization merely to simplify frontend development.
-
-In particular:
-
-> **The renderer must never become the source of truth for authorization identity.**
-
-Changes to security-sensitive paths should include appropriate regression tests and documentation updates.
+Before submitting a security-sensitive change, review the relevant ADR and documentation under `docs/`.
 
 ---
 
-# 🔐 Responsible Disclosure
+# 🔐 Security Reporting
 
-If you discover a security vulnerability, please avoid publicly exposing exploit details before the issue can be assessed and addressed.
+Please do not publicly disclose a serious security vulnerability before the project has had an opportunity to investigate it.
 
 Security-sensitive reports should include:
 
-* A clear description
-* Reproduction steps
-* Affected component
-* Security impact
-* Suggested mitigation, if available
+* affected component
+* reproducible steps
+* expected behavior
+* actual behavior
+* security impact
+* whether sensitive data can be accessed or modified
+
+For production deployments, a dedicated security-reporting process should be established before handling real adolescent data.
 
 ---
 
@@ -895,7 +753,9 @@ Security-sensitive reports should include:
 
 PRERNA is released under the MIT License.
 
-See [`LICENSE`](LICENSE) for the complete license text.
+See:
+
+`LICENSE`
 
 ---
 
@@ -903,38 +763,24 @@ See [`LICENSE`](LICENSE) for the complete license text.
 
 **Harshkumar G.**
 
-GitHub: [@HarshkumarG007](https://github.com/HarshkumarG007)
+GitHub: `@HarshkumarG007`
+
+Repository:
+
+`https://github.com/HarshkumarG007/PRERNA`
 
 ---
 
-# ⚠️ Project Status
-
-PRERNA is an actively developed project.
-
-The repository contains substantial implemented functionality and security hardening, but it should **not be interpreted as production-certified merely because features are implemented or tests exist**.
-
-The following areas still require external validation before a production deployment involving minors:
-
-* Clinical safety review
-* Legal/privacy review
-* Production guardian-consent verification
-* Independent security assessment
-* Cross-platform native CI verification
-* Operational incident-response procedures
-
-Implementation maturity and external certification are deliberately treated as separate milestones.
-
----
-
-## Philosophy
+## Project Philosophy
 
 PRERNA is built around a simple idea:
 
-> **Technology should help young people understand themselves without turning their private lives into someone else's dataset.**
+> **Privacy should be an architectural property, transparency should be visible to the user, and safety decisions should not be hidden behind software automation.**
 
-Local-first by design.
-Transparent by default.
-Human oversight where it matters.
-Privacy as an architectural constraint.
+The goal is not to make software that knows everything about a teenager.
 
-**Built with care for the people behind the data.**
+The goal is to build software that helps a teenager understand themselves **without unnecessarily taking ownership of their inner life away from them.**
+
+---
+
+**Built local-first, on purpose.**

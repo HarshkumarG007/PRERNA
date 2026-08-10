@@ -13,18 +13,18 @@ export const InsightsCard: React.FC<InsightsCardProps> = ({ strengths, insights,
     onClick={onClick}
     disabled={!onClick}
     whileHover={onClick ? { scale: 1.02 } : {}}
-    className={`p-6 rounded-3xl bg-white/5 border border-white/10 shadow-lg backdrop-blur-md text-left h-full flex flex-col group ${onClick ? 'cursor-pointer hover:border-white/30 transition-colors' : 'cursor-default'}`}
+    className={`p-6 rounded-3xl glass-panel border-slate-200 shadow-lg backdrop-blur-md text-left h-full flex flex-col group ${onClick ? 'cursor-pointer hover:border-violet-300 transition-colors' : 'cursor-default'}`}
   >
-    <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between mb-5">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
-            <Lightbulb className="text-amber-400" size={22} />
+        <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shadow-sm">
+            <Lightbulb className="text-amber-500" size={22} />
         </div>
-        <h3 className="text-white font-black text-xl">Key Insights</h3>
+        <h3 className="text-slate-900 font-black text-xl">Key Insights</h3>
       </div>
       {onClick && (
-        <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-            <ChevronRight className="text-white/50 group-hover:text-white transition-colors" size={18} />
+        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-slate-200 transition-colors">
+            <ChevronRight className="text-slate-400 group-hover:text-slate-600 transition-colors" size={18} />
         </div>
       )}
     </div>
@@ -36,19 +36,19 @@ export const InsightsCard: React.FC<InsightsCardProps> = ({ strengths, insights,
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: idx * 0.1 }}
-          className="flex items-start gap-3 bg-black/20 p-3 rounded-xl border border-white/5"
+          className="flex items-start gap-3 bg-white/50 p-3 rounded-xl border border-slate-200"
         >
-          <span className="text-amber-400 mt-0.5 text-lg leading-none">•</span>
-          <p className="text-white/80 font-medium text-sm leading-relaxed">{insight}</p>
+          <span className="text-amber-500 mt-0.5 text-lg leading-none">•</span>
+          <p className="text-slate-600 font-medium text-sm leading-relaxed">{insight}</p>
         </motion.div>
       ))}
     </div>
 
-    <div className="mt-auto pt-5 border-t border-white/10">
-      <p className="text-white/40 font-bold text-xs mb-3 uppercase tracking-wider">Superpowers</p>
+    <div className="mt-auto pt-5 border-t border-slate-200">
+      <p className="text-slate-500 font-bold text-xs mb-3 uppercase tracking-wider">Superpowers</p>
       <div className="flex flex-wrap gap-2">
         {strengths.map((strength) => (
-          <span key={strength} className="px-3 py-1.5 bg-emerald-500/10 text-emerald-400 font-bold text-xs rounded-lg border border-emerald-500/20">
+          <span key={strength} className="px-3 py-1.5 bg-emerald-50 text-emerald-600 font-bold text-xs rounded-lg border border-emerald-200">
             {strength}
           </span>
         ))}

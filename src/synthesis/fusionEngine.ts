@@ -9,6 +9,7 @@ import { CognitiveProfile } from '../assessment/skills/engine';
 export interface UnifiedProfile {
   userId: string;
   generatedAt: string;
+  itemBankVersion: string;
   
   // Core Dimensions
   personality: TraitProfile;
@@ -121,6 +122,7 @@ export class ProfileFusionEngine {
     return {
       userId,
       generatedAt: new Date().toISOString(),
+      itemBankVersion: "v2-ipip-onet-2026",
       personality: this.personality,
       cognition: this.cognition,
       archetype,
@@ -525,3 +527,77 @@ export class ProfileFusionEngine {
     return triggers.length > 0 ? triggers : ["Personal goals", "Small rewards"];
   }
 }
+
+// FE-1: Deterministic Scoring logic for extended item bank
+export interface RawItemResponse {
+  id: string;
+  domain: string;
+  keyed: 'positive' | 'negative';
+  score: number; // 1-5
+}
+
+export class DeterministicScorer {
+  static scoreIPIP(responses: RawItemResponse[]) {
+    const scores: Record<string, { raw: number, max: number }> = {
+      extraversion: { raw: 0, max: 0 },
+      agreeableness: { raw: 0, max: 0 },
+      conscientiousness: { raw: 0, max: 0 },
+      neuroticism: { raw: 0, max: 0 },
+      openness: { raw: 0, max: 0 }
+    };
+
+    for (const r of responses) {
+      if (scores[r.domain]) {
+        const value = r.keyed === 'positive' ? r.score : (6 - r.score);
+        scores[r.domain].raw += value;
+        scores[r.domain].max += 5;
+      }
+    }
+
+    const normalize = (domain: string) => {
+      const { raw, max } = scores[domain];
+      return max > 0 ? Math.round((raw / max) * 100) : 0;
+    };
+
+    return {
+      extraversion: normalize('extraversion'),
+      agreeableness: normalize('agreeableness'),
+      conscientiousness: normalize('conscientiousness'),
+      neuroticism: normalize('neuroticism'),
+      openness: normalize('openness'),
+    };
+  }
+
+  static scoreONET(responses: RawItemResponse[]) {
+    const scores: Record<string, { raw: number, max: number }> = {
+      realistic: { raw: 0, max: 0 },
+      investigative: { raw: 0, max: 0 },
+      artistic: { raw: 0, max: 0 },
+      social: { raw: 0, max: 0 },
+      enterprising: { raw: 0, max: 0 },
+      conventional: { raw: 0, max: 0 }
+    };
+
+    for (const r of responses) {
+      if (scores[r.domain]) {
+        scores[r.domain].raw += r.score;
+        scores[r.domain].max += 5;
+      }
+    }
+
+    const normalize = (domain: string) => {
+      const { raw, max } = scores[domain];
+      return max > 0 ? Math.round((raw / max) * 100) : 0;
+    };
+
+    return {
+      realistic: normalize('realistic'),
+      investigative: normalize('investigative'),
+      artistic: normalize('artistic'),
+      social: normalize('social'),
+      enterprising: normalize('enterprising'),
+      conventional: normalize('conventional'),
+    };
+  }
+}
+

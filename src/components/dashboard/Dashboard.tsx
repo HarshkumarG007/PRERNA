@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Zap,
   TrendingUp,
+  WifiOff
 } from 'lucide-react';
 
 // Sub-components
@@ -21,11 +22,15 @@ import { WellnessPulse } from './WellnessPulse';
 import { StreakTracker } from './StreakTracker';
 import { InsightsCard } from './InsightsCard';
 import { WelcomeTour } from './WelcomeTour';
+import { InsightNarrativeView } from '../synthesis/InsightNarrativeView';
+import { DisclosureGate } from '../consent/DisclosureGate';
+import { useNetworkStatus } from '../../hooks/useNetworkStatus';
 import { useAppStore, useUser, useProfile } from '../../store';
 
 export const Dashboard: React.FC = () => {
   const user = useUser();
   const profile = useProfile();
+  const isOnline = useNetworkStatus();
   const { loadProfile, sessions, streak } = useAppStore();
   const [greeting, setGreeting] = useState('');
   const navigate = useNavigate();
@@ -69,7 +74,15 @@ export const Dashboard: React.FC = () => {
             </div>
             <div>
               <p className="text-white/60 font-medium text-sm mb-0.5">{greeting}</p>
-              <h1 className="text-3xl font-black text-white tracking-tight">{getFirstName()}</h1>
+              <h1 className="text-3xl font-black text-white tracking-tight flex items-center gap-3">
+                {getFirstName()}
+                {!isOnline && (
+                  <span className="flex items-center gap-1 text-xs font-bold bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-full border border-rose-500/30">
+                    <WifiOff size={12} />
+                    Offline Mode
+                  </span>
+                )}
+              </h1>
             </div>
           </div>
 
@@ -84,8 +97,6 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
       </header>
-
-      {/* Main Content */}
       <main className="relative z-10 px-6 md:px-12">
         <div className="max-w-6xl mx-auto space-y-10">
           
@@ -170,6 +181,21 @@ export const Dashboard: React.FC = () => {
               ))}
             </div>
           </section>
+
+          {/* AI Narrative Insight */}
+          {profile && (
+            <motion.section variants={{
+              hidden: { opacity: 0, y: 20 },
+              show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+            }} className="pb-10">
+              <div className="mb-8">
+                {/* WARNING: insight_narrative disclosure is currently PENDING REVIEW. Do not ship to real users until disclosure-draft-pending-review.md is signed off by a qualified human reviewer. */}
+                <DisclosureGate activityType="insight_narrative" onDecline={() => {}}>
+                  <InsightNarrativeView profile={profile} />
+                </DisclosureGate>
+              </div>
+            </motion.section>
+          )}
         </div>
       </main>
 

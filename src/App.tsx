@@ -155,9 +155,11 @@ function App() {
         <header className="sticky top-0 z-50 glass-panel !rounded-none !border-x-0 !border-t-0 shadow-sm transition-all duration-300">
           <div className="max-w-7xl mx-auto flex justify-between items-center p-4">
             <div className="flex items-center space-x-8">
-              <h1 className="text-2xl font-black tracking-tight text-indigo-700 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
-                PRERNA
-              </h1>
+              <Link to="/">
+                <h1 className="text-2xl font-black tracking-tight text-indigo-700 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
+                  PRERNA
+                </h1>
+              </Link>
               <nav className="hidden md:flex space-x-6 text-sm font-semibold">
                 <Link to="/beta" className="text-slate-600 hover:text-indigo-600 transition-colors">Beta Consent</Link>
                 <Link to="/quests" className="text-slate-600 hover:text-indigo-600 transition-colors">Life Quests</Link>

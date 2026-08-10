@@ -33,6 +33,17 @@ impl PolicyEngine {
         }
         Ok(())
     }
+
+    /// Enforces SLA timing: resolution must occur within the required SLA timeframe
+    pub fn enforce_sla_timing(detected_at: i64, resolved_at: i64, max_sla_seconds: i64) -> Result<(), String> {
+        if resolved_at < detected_at {
+            return Err("Resolution time cannot be before detection time".into());
+        }
+        if resolved_at - detected_at > max_sla_seconds {
+            return Err(format!("SLA Breach: resolution took {} seconds, exceeding the {} seconds SLA limit", resolved_at - detected_at, max_sla_seconds));
+        }
+        Ok(())
+    }
 }
 
 #[cfg(test)]

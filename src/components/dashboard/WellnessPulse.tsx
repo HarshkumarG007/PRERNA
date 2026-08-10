@@ -20,10 +20,10 @@ export const WellnessPulse: React.FC<WellnessPulseProps> = ({ score }) => {
   // We need to handle Tailwind arbitrary color classes correctly in a real app,
   // but for the sake of the demo we'll map them explicitly to ensure they're compiled by tailwind
   const colorMap = {
-    emerald: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', bar: 'bg-emerald-400' },
-    blue: { bg: 'bg-blue-500/20', text: 'text-blue-400', bar: 'bg-blue-400' },
-    amber: { bg: 'bg-amber-500/20', text: 'text-amber-400', bar: 'bg-amber-400' },
-    rose: { bg: 'bg-rose-500/20', text: 'text-rose-400', bar: 'bg-rose-400' },
+    emerald: { bg: 'bg-emerald-50 text-emerald-600', text: 'text-emerald-600', bar: 'bg-emerald-500' },
+    blue: { bg: 'bg-blue-50 text-blue-600', text: 'text-blue-600', bar: 'bg-blue-500' },
+    amber: { bg: 'bg-amber-50 text-amber-600', text: 'text-amber-600', bar: 'bg-amber-500' },
+    rose: { bg: 'bg-rose-50 text-rose-600', text: 'text-rose-600', bar: 'bg-rose-500' },
   };
 
   const colors = colorMap[status.color as keyof typeof colorMap];
@@ -32,7 +32,7 @@ export const WellnessPulse: React.FC<WellnessPulseProps> = ({ score }) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md shadow-xl"
+      className="p-6 rounded-3xl glass-panel transition-colors"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-5">
@@ -40,7 +40,7 @@ export const WellnessPulse: React.FC<WellnessPulseProps> = ({ score }) => {
             <Heart className={colors.text} size={32} />
           </div>
           <div>
-            <h3 className="text-white font-black text-xl mb-1">Wellness Pulse</h3>
+            <h3 className="text-slate-900 font-black text-xl mb-1">Wellness Pulse</h3>
             <p className={`${colors.text} font-bold text-sm flex items-center gap-1.5`}>
               <Icon size={16} />
               {status.label}
@@ -50,7 +50,7 @@ export const WellnessPulse: React.FC<WellnessPulseProps> = ({ score }) => {
 
         <div className="text-right">
           <div className={`text-4xl font-black ${colors.text}`}>{score}</div>
-          <p className="text-white/40 font-medium text-xs mt-1">out of 100</p>
+          <p className="text-slate-400 font-medium text-xs mt-1">out of 100</p>
         </div>
       </div>
 
@@ -63,7 +63,7 @@ export const WellnessPulse: React.FC<WellnessPulseProps> = ({ score }) => {
             animate={{ height: `${(val / 100) * 100}%` }}
             transition={{ delay: idx * 0.1, duration: 0.5, type: 'spring' }}
             className={`flex-1 rounded-t-sm ${
-              idx === 6 ? colors.bar : 'bg-white/10'
+              idx === 6 ? colors.bar : 'bg-slate-200'
             }`}
           />
         ))}

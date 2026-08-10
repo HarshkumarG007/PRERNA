@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS trait_snapshots (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
     snapshot_date TEXT NOT NULL,
+    item_bank_version TEXT DEFAULT 'v2-ipip-onet-2026',
     big_five TEXT, -- JSON
     riasec TEXT, -- JSON
     multiple_intel TEXT, -- JSON
