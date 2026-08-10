@@ -65,9 +65,9 @@ export const ParentConsentFlow: React.FC<ParentConsentFlowProps> = ({
       <div className="max-w-xl mx-auto mt-10 p-8 glass-panel border-t-4 border-t-indigo-500 space-y-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-bl-full blur-2xl" />
         
-        <div className="bg-indigo-50/80 backdrop-blur-sm border-l-4 border-indigo-500 text-indigo-800 p-4 mb-4 text-sm rounded-r-lg" role="alert">
-          <p className="font-bold flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" /> DPDP Compliance Mode</p>
-          <p className="mt-1">Since DigiLocker is pending approval, we are using the legally viable <strong>Email Verification (OTP)</strong> fallback to establish verifiable parental consent.</p>
+        <div className="bg-orange-50/80 backdrop-blur-sm border-l-4 border-orange-500 text-orange-800 p-4 mb-4 text-sm rounded-r-lg" role="alert">
+          <p className="font-bold flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" /> SIMULATED — NOT PRODUCTION READY</p>
+          <p className="mt-1">This is a simulated verification flow for demonstration purposes only. A real verification mechanism (e.g., DigiLocker or verified OTP) is required before production deployment.</p>
         </div>
         <h2 className="text-2xl font-black text-slate-900">Parent / Guardian Verification</h2>
         

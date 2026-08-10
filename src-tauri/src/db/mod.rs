@@ -658,6 +658,11 @@ mod tests {
             [user_id]
         ).unwrap();
 
+        db.conn.execute(
+            "INSERT INTO crisis_events (id, user_id, detected_at, risk_level, severity_score, contextual_snippet) VALUES ('crisis1', ?1, 123456, 'High', 85, 'test')",
+            [user_id]
+        ).unwrap();
+
         // 3. Verify data exists
         let count_users: i64 = db.conn.query_row("SELECT COUNT(*) FROM users WHERE id = ?1", [user_id], |row| row.get(0)).unwrap();
         assert_eq!(count_users, 1);
@@ -679,6 +684,9 @@ mod tests {
 
         let count_interactions_after: i64 = db.conn.query_row("SELECT COUNT(*) FROM micro_interactions WHERE user_id = ?1", [user_id], |row| row.get(0)).unwrap();
         assert_eq!(count_interactions_after, 0, "Zero-knowledge violation: Interactions remained");
+
+        let count_crisis_after: i64 = db.conn.query_row("SELECT COUNT(*) FROM crisis_events WHERE user_id = ?1", [user_id], |row| row.get(0)).unwrap();
+        assert_eq!(count_crisis_after, 0, "Zero-knowledge violation (T9): Crisis events remained");
     }
 
     #[test]
