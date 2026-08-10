@@ -95,14 +95,19 @@ pub fn generate_school_report(
         cohort_size: all_snapshots.len(),
         average_wellbeing,
         top_career_clusters: sorted_careers.into_iter().take(3).map(|(k, _)| k).collect(),
-        top_cognitive_strengths: sorted_strengths.into_iter().take(3).map(|(k, _)| k).collect(),
+        top_cognitive_strengths: sorted_strengths
+            .into_iter()
+            .take(3)
+            .map(|(k, _)| k)
+            .collect(),
         k_anonymity_threshold_met: true,
     })
 }
 
 // Helpers (Shared with ParentDashboard logic ideally, duplicated here for self-contained module)
 fn calculate_wellbeing_score(profile: &TraitSnapshot) -> i32 {
-    let emotional = profile.emotional_profile
+    let emotional = profile
+        .emotional_profile
         .get("resilience")
         .and_then(|v| v.as_f64())
         .unwrap_or(0.5);
@@ -112,16 +117,28 @@ fn calculate_wellbeing_score(profile: &TraitSnapshot) -> i32 {
 
 fn extract_career_interests(profile: &TraitSnapshot) -> Vec<String> {
     let mut interests = vec![];
-    if profile.riasec.investigative > 60.0 { interests.push("Technology/Research".to_string()); }
-    if profile.riasec.artistic > 60.0 { interests.push("Design/Arts".to_string()); }
-    if profile.riasec.social > 60.0 { interests.push("Helping Professions".to_string()); }
+    if profile.riasec.investigative > 60.0 {
+        interests.push("Technology/Research".to_string());
+    }
+    if profile.riasec.artistic > 60.0 {
+        interests.push("Design/Arts".to_string());
+    }
+    if profile.riasec.social > 60.0 {
+        interests.push("Helping Professions".to_string());
+    }
     interests
 }
 
 fn extract_strengths(profile: &TraitSnapshot) -> Vec<String> {
     let mut strengths = vec![];
-    if profile.big_five.openness > 70.0 { strengths.push("Creativity".to_string()); }
-    if profile.big_five.conscientiousness > 70.0 { strengths.push("Reliability".to_string()); }
-    if profile.big_five.extraversion > 70.0 { strengths.push("Leadership".to_string()); }
+    if profile.big_five.openness > 70.0 {
+        strengths.push("Creativity".to_string());
+    }
+    if profile.big_five.conscientiousness > 70.0 {
+        strengths.push("Reliability".to_string());
+    }
+    if profile.big_five.extraversion > 70.0 {
+        strengths.push("Leadership".to_string());
+    }
     strengths
 }

@@ -30,7 +30,7 @@ rand = "0.8"
 base64 = "0.22"
 sha2 = "0.10"
 hex = "0.4"
-totp-rs = { version = "5.5", features = ["qr"] }
+totp-rs = { version = "5.5", features = ["qr", "gen_secret"] }
 qrcode = "0.14"
 anyhow = "1.0"
 thiserror = "1.0"
