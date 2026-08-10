@@ -116,7 +116,7 @@ pub fn get_user(
     state: State<DbState>,
     session: State<ActiveSession>,
 ) -> Result<Option<User>, String> {
-    // Read user_id exclusively from the backend session — never trust the renderer
+    // Read user_id exclusively from the backend session â€” never trust the renderer
     let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
     db.get_user(&user_id).map_err(|e| e.to_string())
@@ -311,7 +311,7 @@ pub fn verify_login_mfa(
     ).map_err(|e| e.to_string())?;
 
     if totp.check_current(&token).unwrap_or(false) {
-        // MFA passed — fully commit the session now
+        // MFA passed â€” fully commit the session now
         session.set_authenticated(user.id.clone())?;
         Ok(Some(user))
     } else {
@@ -420,7 +420,7 @@ pub fn save_unified_profile(
             .and_then(|p| p.get("emotional"))
             .cloned()
             .unwrap_or(serde_json::json!({})),
-        // T11: Renamed from confidence_score — this is questionnaire completion
+        // T11: Renamed from confidence_score â€” this is questionnaire completion
         // fraction, not a validated statistical confidence measure.
         confidence_score: profile.get("archetypeConfidence")
             .and_then(|v| v.as_f64())
@@ -489,8 +489,16 @@ pub struct ParentViewResponse {
 #[tauri::command]
 pub fn update_sharing_preferences(
     state: State<DbState>,
+    session_state: State<ActiveSession>,
     preferences: crate::db::models::SharingPreferences,
 ) -> Result<(), String> {
+    let session_user_id = session_state.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+
+    if session_user_id != preferences.user_id {
+        return Err("Unauthorized: Cannot update preferences for another user".to_string());
+    }
+
     let db = state.0.lock().map_err(|e| e.to_string())?;
     db.save_sharing_preferences(&preferences.user_id, &preferences)
         .map_err(|e| e.to_string())
@@ -838,8 +846,17 @@ pub fn create_crisis_event(
 #[tauri::command]
 pub fn get_pending_crisis_events(
     state: State<DbState>,
+    session_state: State<ActiveSession>,
 ) -> Result<Vec<CrisisEvent>, String> {
+    let reviewer_id = session_state.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+
     let db = state.0.lock().map_err(|e| e.to_string())?;
+    
+    // T2/T5: Verify caller is authorized
+    if !db.is_educator(&reviewer_id) {
+        return Err("Unauthorized: Must be an authorized reviewer".to_string());
+    }
     db.get_pending_crisis_events().map_err(|e| e.to_string())
 }
 
@@ -921,8 +938,19 @@ pub fn delete_user_data(
 }
 
 #[tauri::command]
-pub fn get_health_metrics(state: State<DbState>) -> Result<HealthMetrics, String> {
+pub fn get_health_metrics(
+    state: State<DbState>,
+    session_state: State<ActiveSession>,
+) -> Result<HealthMetrics, String> {
+    let reviewer_id = session_state.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+
     let db = state.0.lock().map_err(|e| e.to_string())?;
+
+    // T2: Only authorized educators can view health metrics
+    if !db.is_educator(&reviewer_id) {
+        return Err("Unauthorized: Must be an authorized reviewer to view metrics".to_string());
+    }
 
     let total_users: i64 = db.conn.query_row(
         "SELECT COUNT(*) FROM users", [], |r| r.get(0)
@@ -944,9 +972,13 @@ pub fn get_health_metrics(state: State<DbState>) -> Result<HealthMetrics, String
 #[tauri::command]
 pub fn insert_audit_log(
     state: State<DbState>,
+    session_state: State<ActiveSession>,
     action: String,
     details: String,
 ) -> Result<(), String> {
+    let _user_id = session_state.0.lock().map_err(|e| e.to_string())?
+        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+
     let db = state.0.lock().map_err(|e| e.to_string())?;
     db.insert_audit_log(&action, &details).map_err(|e| e.to_string())
 }
