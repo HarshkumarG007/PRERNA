@@ -78,6 +78,16 @@ impl Database {
         Ok(key_str)
     }
 
+    #[cfg(test)]
+    pub fn new_in_memory(key: &str) -> AnyhowResult<Self> {
+        let conn = Connection::open_in_memory()?;
+        conn.execute_batch(&format!("PRAGMA key = '{}';", key))
+            .context("Failed to set SQLCipher encryption key")?;
+        let mut db = Self { conn };
+        db.init_schema()?;
+        Ok(db)
+    }
+
     fn init_schema(&mut self) -> AnyhowResult<()> {
         self.conn.execute_batch(SCHEMA_SQL)
             .context("Failed to initialize database schema")?;

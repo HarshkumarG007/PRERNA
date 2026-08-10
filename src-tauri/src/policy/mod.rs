@@ -73,8 +73,17 @@ mod tests {
 
     #[test]
     fn test_disclosure_invariant_blocked() {
-        assert!(PolicyEngine::enforce_disclosure_invariant("").is_err(), "Empty disclosure should be blocked");
-        assert!(PolicyEngine::enforce_disclosure_invariant("   ").is_err(), "Whitespace disclosure should be blocked");
-        assert!(PolicyEngine::enforce_disclosure_invariant("v1.0").is_ok(), "Valid disclosure should pass");
+        assert!(
+            PolicyEngine::enforce_disclosure_invariant("").is_err(),
+            "Empty disclosure should be blocked"
+        );
+        assert!(
+            PolicyEngine::enforce_disclosure_invariant("   ").is_err(),
+            "Whitespace disclosure should be blocked"
+        );
+        assert!(
+            PolicyEngine::enforce_disclosure_invariant("v1.0").is_ok(),
+            "Valid disclosure should pass"
+        );
     }
 }
