@@ -659,7 +659,7 @@ mod tests {
         ).unwrap();
 
         db.conn.execute(
-            "INSERT INTO crisis_events (id, user_id, detected_at, risk_level, severity_score, contextual_snippet) VALUES ('crisis1', ?1, 123456, 'High', 85, 'test')",
+            "INSERT INTO crisis_events (id, user_id, detected_at, severity) VALUES ('crisis1', ?1, 123456, 'High')",
             [user_id]
         ).unwrap();
 
