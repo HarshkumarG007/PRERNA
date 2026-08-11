@@ -329,8 +329,7 @@ pub fn save_session(
 ) -> Result<String, String> {
     PolicyEngine::enforce_disclosure_invariant(&session.disclosure_version)?;
 
-    let user_id = session_state.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let user_id = session_state.get_user_id()?;
 
     let db = state.0.lock().map_err(|e| e.to_string())?;
     let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
@@ -364,8 +363,7 @@ pub fn save_skill_session(
 ) -> Result<String, String> {
     PolicyEngine::enforce_disclosure_invariant(&disclosure_version)?;
 
-    let user_id = session_state.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let user_id = session_state.get_user_id()?;
 
     let db = state.0.lock().map_err(|e| e.to_string())?;
     let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
@@ -492,8 +490,7 @@ pub fn update_sharing_preferences(
     session_state: State<ActiveSession>,
     preferences: crate::db::models::SharingPreferences,
 ) -> Result<(), String> {
-    let session_user_id = session_state.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let session_user_id = session_state.get_user_id()?;
 
     if session_user_id != preferences.user_id {
         return Err("Unauthorized: Cannot update preferences for another user".to_string());
@@ -514,8 +511,7 @@ pub fn get_parent_view(
 
     // T3 FIX: Real parent-teen relationship check.
     // Verify that the requesting authenticated parent has an established link to the teen.
-    let parent_id = session_state.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let parent_id = session_state.get_user_id()?;
 
     // A parent can only access their own linked teen's data.
     // They cannot access arbitrary teen IDs by guessing.
@@ -677,8 +673,7 @@ pub fn import_user_data(
     envelope: EncryptedExportEnvelope,
     password: Option<String>,
 ) -> Result<String, String> {
-    let caller_id = session_state.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let caller_id = session_state.get_user_id()?;
 
     let pwd = password.ok_or_else(|| "Password required for import".to_string())?;
 
@@ -761,8 +756,7 @@ pub fn save_trait_snapshot(
     session_state: State<ActiveSession>,
     snapshot: NewTraitSnapshot,
 ) -> Result<String, String> {
-    let user_id = session_state.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let user_id = session_state.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
 
     let full_snapshot = TraitSnapshot {
@@ -798,8 +792,7 @@ pub fn log_interaction(
     session_state: State<ActiveSession>,
     interaction: NewMicroInteraction,
 ) -> Result<String, String> {
-    let user_id = session_state.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let user_id = session_state.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
 
     let full_interaction = MicroInteraction {
@@ -848,8 +841,7 @@ pub fn get_pending_crisis_events(
     state: State<DbState>,
     session_state: State<ActiveSession>,
 ) -> Result<Vec<CrisisEvent>, String> {
-    let reviewer_id = session_state.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let reviewer_id = session_state.get_user_id()?;
 
     let db = state.0.lock().map_err(|e| e.to_string())?;
     
@@ -866,8 +858,7 @@ pub fn claim_crisis_event(
     session_state: State<ActiveSession>,
     event_id: String,
 ) -> Result<(), String> {
-    let reviewer_id = session_state.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let reviewer_id = session_state.get_user_id()?;
 
     let db = state.0.lock().map_err(|e| e.to_string())?;
 
@@ -888,8 +879,7 @@ pub fn resolve_crisis_event(
     teen_informed_at: Option<i64>,
 ) -> Result<(), String> {
     // T5: Ensure the caller has a session and derive reviewer ID from it
-    let reviewer_id = session_state.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let reviewer_id = session_state.get_user_id()?;
 
     let db = state.0.lock().map_err(|e| e.to_string())?;
 
@@ -942,8 +932,7 @@ pub fn get_health_metrics(
     state: State<DbState>,
     session_state: State<ActiveSession>,
 ) -> Result<HealthMetrics, String> {
-    let reviewer_id = session_state.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let reviewer_id = session_state.get_user_id()?;
 
     let db = state.0.lock().map_err(|e| e.to_string())?;
 
@@ -976,8 +965,7 @@ pub fn insert_audit_log(
     action: String,
     details: String,
 ) -> Result<(), String> {
-    let _user_id = session_state.0.lock().map_err(|e| e.to_string())?
-        .clone().ok_or_else(|| "Unauthorized: No active session".to_string())?;
+    let _user_id = session_state.get_user_id()?;
 
     let db = state.0.lock().map_err(|e| e.to_string())?;
     db.insert_audit_log(&action, &details).map_err(|e| e.to_string())

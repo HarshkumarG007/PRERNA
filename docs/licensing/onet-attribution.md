@@ -4,10 +4,10 @@
 The RIASEC career interest constructs in PRERNA are assessed using items adapted from the **O*NET Interest Profiler**, developed by the National Center for O*NET Development, under sponsorship of the U.S. Department of Labor/Employment and Training Administration.
 
 **Specific Scale Used:** O*NET Interest Profiler Short Form (60-item set).
+**Source:** The official published Interest Profiler manual. (The live Web Services API is not used as its terms are explicitly non-transferable/non-redistributable).
 
 ## Licensing & Reuse
-The O*NET Interest Profiler tools are licensed under the **Creative Commons Attribution 4.0 International License (CC BY 4.0)**. 
-Link to license: https://creativecommons.org/licenses/by/4.0/
+The O*NET Interest Profiler tools used here are licensed under the **O*NET Developer License**. This explicitly allows for modification, translation, and localization of the items, unlike the CC BY-ND or Web Services API licenses.
 
 ## Required Attribution
 This product incorporates information from the O*NET Interest Profiler, sponsored by the U.S. Department of Labor, Employment and Training Administration (USDOL/ETA). O*NET™ is a trademark of USDOL/ETA. 
