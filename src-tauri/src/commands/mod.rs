@@ -728,9 +728,9 @@ pub fn import_user_data(
         Ok(())
     })();
 
-    if result.is_err() {
+    if let Err(e) = result {
         let _ = db.conn.execute("ROLLBACK", []);
-        return result;
+        return Err(e);
     }
 
     db.conn.execute("COMMIT", []).map_err(|e| e.to_string())?;

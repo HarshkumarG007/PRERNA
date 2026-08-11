@@ -6,22 +6,37 @@ impl PolicyEngine {
     /// Enforces DPDP transparency requirement: Data cannot be saved without an explicit disclosure being recorded.
     pub fn enforce_disclosure_invariant(disclosure_version: &str) -> Result<(), String> {
         if disclosure_version.trim().is_empty() {
-            return Err("Cannot save session: no disclosure was recorded. Violates DPDP Section 9(3).".into());
+            return Err(
+                "Cannot save session: no disclosure was recorded. Violates DPDP Section 9(3)."
+                    .into(),
+            );
         }
         Ok(())
     }
 
     /// Enforces Clinical Safety requirement: Guardian cannot be autonomously notified without human review and teen being informed first.
-    pub fn enforce_guardian_notification_invariant(decision: &CrisisDecision, teen_informed_at: Option<i64>) -> Result<(), String> {
+    pub fn enforce_guardian_notification_invariant(
+        decision: &CrisisDecision,
+        teen_informed_at: Option<i64>,
+    ) -> Result<(), String> {
         if *decision == CrisisDecision::GuardianNotified && teen_informed_at.is_none() {
-            return Err("Cannot notify guardian: teen has not been informed yet. Violates Crisis Protocol.".into());
+            return Err(
+                "Cannot notify guardian: teen has not been informed yet. Violates Crisis Protocol."
+                    .into(),
+            );
         }
         Ok(())
     }
     /// Enforces DPDP Behavioral Tracking prohibition: Accounts under 18 cannot be subject to behavioral tracking.
-    pub fn enforce_under_18_tracking_invariant(age_range: &str, tracking_enabled: bool) -> Result<(), String> {
+    pub fn enforce_under_18_tracking_invariant(
+        age_range: &str,
+        tracking_enabled: bool,
+    ) -> Result<(), String> {
         if tracking_enabled && age_range != "18+" {
-            return Err("Behavioral tracking is strictly prohibited for users under 18. Violates DPDP Section 9(2).".into());
+            return Err(
+                "Behavioral tracking is strictly prohibited for users under 18. Violates DPDP Section 9(2)."
+                    .into(),
+            );
         }
         Ok(())
     }
@@ -29,13 +44,19 @@ impl PolicyEngine {
     /// Enforces Privacy requirement: Parent view must be explicitly authorized.
     pub fn enforce_parental_authorization(is_authorized: bool) -> Result<(), String> {
         if !is_authorized {
-            return Err("Parental view denied: no authorized relationship found or consent missing.".into());
+            return Err(
+                "Parental view denied: no authorized relationship found or consent missing.".into(),
+            );
         }
         Ok(())
     }
 
     /// Enforces SLA timing: resolution must occur within the required SLA timeframe
-    pub fn enforce_sla_timing(detected_at: i64, resolved_at: i64, max_sla_seconds: i64) -> Result<(), String> {
+    pub fn enforce_sla_timing(
+        detected_at: i64,
+        resolved_at: i64,
+        max_sla_seconds: i64,
+    ) -> Result<(), String> {
         if resolved_at < detected_at {
             return Err("Resolution time cannot be before detection time".into());
         }
