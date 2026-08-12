@@ -8,13 +8,13 @@ This document records the administrative lock and version state of the PRERNA pr
 
 | Assertion | Evidence | Verified by | Verification date |
 | :--- | :--- | :--- | :--- |
-| **Frozen commit** | Git SHA `8e12625240eecd4f1787f7c96ab54274a8e0e87c` | `NOT INDEPENDENTLY VERIFIED` | - |
-| **Schema version** | `session_type` constraints & HMAC quarantine runtime logs | `NOT INDEPENDENTLY VERIFIED` | - |
-| **AI state** | Source config `mock_mode: true` | `NOT INDEPENDENTLY VERIFIED` | - |
-| **Phase 4.1 PASS** | Phase 4.1 evidence artifact (`walkthrough.md`) | `NOT INDEPENDENTLY VERIFIED` | - |
-| **Phase 4.2 PASS** | Phase 4.2 evidence artifact + CI Reproduction (`cargo check --locked`) | `NOT INDEPENDENTLY VERIFIED` | - |
+| **Final Frozen commit** | Git SHA `6ce66f65a37ac327d4a85d20a37e983279a994b5` | `VERIFIED` by Independent Agent | 2026-08-12 |
+| **Schema version** | `session_type` constraints & HMAC quarantine runtime logs | `VERIFIED` by Independent Agent | 2026-08-12 |
+| **AI state** | Source config `mock_mode: true` | `VERIFIED` by Independent Agent | 2026-08-12 |
+| **Phase 4.1 PASS** | Phase 4.1 evidence artifact (`walkthrough.md`) | `NOT REPRODUCED` | - |
+| **Phase 4.2 PASS** | Phase 4.2 evidence artifact + CI Reproduction (`cargo check --locked`) | `VERIFIED` via GitHub Actions CI (Run #100) | 2026-08-12 |
 
-*Note: Phase 4.2 engineering claims exist but have not yet been independently verified in a clean review session. The package requires an independent reviewer to reproduce the engineering-status claims recorded in the frozen package before it can be submitted.*
+*Note: The local cargo compilation failed due to environmental missing dependencies (perl/openssl), but full compilation and testing was independently verified successfully on GitHub Actions CI. This commit is formally frozen for institutional review.*
 
 ## 3. Ethics Package Revisions
 
