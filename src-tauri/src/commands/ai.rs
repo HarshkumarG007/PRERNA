@@ -42,17 +42,11 @@ pub fn chat_with_mentor(
     // T1: Derive user identity from backend session, never from renderer
     let user_id = session.get_user_id()?;
 
-    // T6: Input-side SafetyFilter check.
-    // If the user's message itself contains crisis-level language, route to crisis
-    // protocol path rather than passing it to the LLM at all.
-    let input_filter = SafetyFilter::new();
-    if input_filter.detect_crisis(&request.message) {
-        return Ok(ChatResponse {
-            response: "It sounds like you might be going through something really difficult. You are not alone. Please reach out to the KIRAN Mental Health Helpline: 1800-599-0019 (free, 24/7, multilingual).".to_string(),
-            conversation_id: request.conversation_id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string()),
-            sentiment: "crisis".to_string(),
-            suggested_actions: vec!["Call KIRAN 1800-599-0019".to_string()],
-        });
+    // T6 & T15: Input-side SafetyFilter check.
+    // If the user's message contains crisis-level language, route to crisis
+    // protocol path, explicitly persisting the CrisisEvent.
+    if let Some(response) = handle_crisis_detection(&db_state, &user_id, &request)? {
+        return Ok(response);
     }
 
     let mut guard = llm_state.0.lock().map_err(|e| e.to_string())?;
@@ -287,6 +281,144 @@ fn format_riasec(riasec: &crate::db::models::Riasec) -> String {
         .iter()
         .take(3)
         .map(|(name, score)| format!("- {}: {:.0}%", name, score))
-        .collect::<Vec<_>>()
         .join("\n")
+}
+
+pub(crate) fn handle_crisis_detection(
+    db_state: &DbState,
+    user_id: &str,
+    request: &ChatRequest,
+) -> Result<Option<ChatResponse>, String> {
+    let input_filter = SafetyFilter::new();
+    if input_filter.detect_crisis(&request.message) {
+        let db = db_state.0.lock().map_err(|e| e.to_string())?;
+
+        let crisis_event = crate::db::models::CrisisEvent {
+            id: uuid::Uuid::new_v4().to_string(),
+            user_id: user_id.to_string(),
+            detected_at: chrono::Utc::now().timestamp(),
+            severity: "high".to_string(),
+            human_review_status: "pending".to_string(),
+            reviewer_id: None,
+            reviewer_credentials_ref: None,
+            decision: None,
+            teen_informed_at: None,
+        };
+
+        // If this fails, we return the error rather than silently swallowing it.
+        db.create_crisis_event(&crisis_event)
+            .map_err(|e| e.to_string())?;
+
+        return Ok(Some(ChatResponse {
+            response: "It sounds like you might be going through something really difficult. You are not alone. Please reach out to the KIRAN Mental Health Helpline: 1800-599-0019 (free, 24/7, multilingual).".to_string(),
+            conversation_id: request
+                .conversation_id
+                .clone()
+                .unwrap_or_else(|| uuid::Uuid::new_v4().to_string()),
+            sentiment: "crisis".to_string(),
+            suggested_actions: vec!["Call KIRAN 1800-599-0019".to_string()],
+        }));
+    }
+    Ok(None)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::db::Database;
+    use std::sync::Mutex;
+
+    #[test]
+    fn test_crisis_detection_persists_event() {
+        let db = Database::new_in_memory().unwrap();
+        
+        // Ensure schemas exist
+        db.conn
+            .execute(
+                "CREATE TABLE crisis_events (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    detected_at INTEGER NOT NULL,
+                    severity TEXT NOT NULL,
+                    human_review_status TEXT NOT NULL,
+                    reviewer_id TEXT,
+                    reviewer_credentials_ref TEXT,
+                    decision TEXT,
+                    teen_informed_at INTEGER
+                )",
+                [],
+            )
+            .unwrap();
+            
+        let db_state = DbState(Mutex::new(db));
+        
+        let request = ChatRequest {
+            message: "I feel like giving up on everything forever".to_string(),
+            conversation_id: None,
+        };
+        
+        let user_id = "teen_123";
+        
+        let result = handle_crisis_detection(&db_state, user_id, &request);
+        assert!(result.is_ok());
+        
+        let response = result.unwrap();
+        assert!(response.is_some());
+        let response = response.unwrap();
+        
+        assert_eq!(response.sentiment, "crisis");
+        
+        // Verify it was actually persisted in the DB
+        let db_lock = db_state.0.lock().unwrap();
+        let events = db_lock.get_pending_crisis_events().unwrap();
+        
+        assert_eq!(events.len(), 1, "Exactly one crisis event should be created");
+        assert_eq!(events[0].user_id, "teen_123");
+        assert_eq!(events[0].severity, "high");
+        assert_eq!(events[0].human_review_status, "pending");
+    }
+
+    #[test]
+    fn test_crisis_detection_duplicate_submission() {
+        let db = Database::new_in_memory().unwrap();
+        db.conn
+            .execute(
+                "CREATE TABLE crisis_events (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    detected_at INTEGER NOT NULL,
+                    severity TEXT NOT NULL,
+                    human_review_status TEXT NOT NULL,
+                    reviewer_id TEXT,
+                    reviewer_credentials_ref TEXT,
+                    decision TEXT,
+                    teen_informed_at INTEGER
+                )",
+                [],
+            )
+            .unwrap();
+            
+        let db_state = DbState(Mutex::new(db));
+        
+        let request = ChatRequest {
+            message: "I feel like giving up on everything forever".to_string(),
+            conversation_id: None,
+        };
+        
+        let user_id = "teen_123";
+        
+        // Submit first time
+        handle_crisis_detection(&db_state, user_id, &request).unwrap();
+        
+        // Submit second time identically
+        handle_crisis_detection(&db_state, user_id, &request).unwrap();
+        
+        let db_lock = db_state.0.lock().unwrap();
+        let events = db_lock.get_pending_crisis_events().unwrap();
+        
+        // Documented Behavior: Repeated identical crisis submission creates a separate event 
+        // with a new UUID, ensuring no escalation signal is dropped, even if it causes duplicates.
+        assert_eq!(events.len(), 2, "Repeated crisis message should create duplicate events to ensure safety");
+        assert_ne!(events[0].id, events[1].id, "Each event must have a unique ID");
+    }
 }

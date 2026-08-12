@@ -130,10 +130,10 @@ pub fn run() {
             // Crisis commands
             commands::create_crisis_event,
             commands::get_pending_crisis_events,
+            commands::claim_crisis_event,
             commands::resolve_crisis_event,
 
             // Data management
-            commands::export_user_data,
             commands::delete_user_data,
             commands::get_health_metrics,
             commands::insert_audit_log,

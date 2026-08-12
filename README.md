@@ -26,7 +26,7 @@ PRERNA is designed as a **local-first application**: core user data and processi
 | AuthStatus security model   | ✅ Implemented           | `None → PendingMFA → Authenticated` state machine                                   |
 | Renderer identity isolation | ✅ Implemented           | Privileged IPC resolves identity from backend session state                         |
 | Role / tenant isolation     | ✅ Implemented           | Backend authorization boundaries for privileged roles                               |
-| AI Mentor                   | ⚠️ Mocked / unavailable in study build | Local LLM architecture designed using GGUF/llama.cpp but mocked for study |
+| AI Mentor                   | 🚫 Deferred / inference pending | Local LLM integration scaffold exists; real inference deferred due to `llama-cpp-2` native dependency requirements |
 | Assessment disclosure gates | ✅ Implemented           | `DisclosureGate` integrated into remaining Phase 3 activities                       |
 | Frontend security hygiene   | ✅ Implemented           | Renderer no longer supplies privileged `user_id` values                             |
 | Career pathway classifier   | 🚧 Integrated           | Feature implementation is present; further validation remains                       |
@@ -67,9 +67,9 @@ Local-first is an **architectural design goal**, not a claim that every future i
 
 ### 🧠 Local AI Mentor
 
-PRERNA includes a locally running AI mentor designed around privacy-conscious interaction.
+PRERNA includes a local LLM integration scaffold designed around privacy-conscious interaction.
 
-The backend uses Rust bindings around llama.cpp-compatible inference and quantized GGUF models.
+The architecture is prepared for Rust bindings around llama.cpp-compatible inference and quantized GGUF models. However, actual AI inference is currently pending and runs in `mock_mode`.
 
 Key principles:
 
