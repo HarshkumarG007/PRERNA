@@ -8,13 +8,14 @@ This document records the administrative lock and version state of the PRERNA pr
 
 | Assertion | Evidence | Verified by | Verification date |
 | :--- | :--- | :--- | :--- |
-| **Final Frozen commit** | Git SHA `6ce66f65a37ac327d4a85d20a37e983279a994b5` | `VERIFIED` by Independent Agent | 2026-08-12 |
+| **Candidate Frozen commit** | Git SHA `6ce66f65a37ac327d4a85d20a37e983279a994b5` | `CI CANDIDATE` | 2026-08-12 |
 | **Schema version** | `session_type` constraints & HMAC quarantine runtime logs | `VERIFIED` by Independent Agent | 2026-08-12 |
 | **AI state** | Source config `mock_mode: true` | `VERIFIED` by Independent Agent | 2026-08-12 |
 | **Phase 4.1 PASS** | Phase 4.1 evidence artifact (`walkthrough.md`) | `NOT REPRODUCED` | - |
-| **Phase 4.2 PASS** | Phase 4.2 evidence artifact + CI Reproduction (`cargo check --locked`) | `VERIFIED` via GitHub Actions CI (Run #100) | 2026-08-12 |
+| **Phase 4.2 PASS** | Previous premature `VERIFIED` assertion (Commit `6b84e91`) based on partial CI run | **RETRACTED** | 2026-08-12 |
+| **Overall Phase 4.2 Reproduction** | Automated Testing #101 — FAILED, exit code 101; Rust backend compilation/test target reported multiple Clippy diagnostics and compilation errors. | **NOT VERIFIED** | - |
 
-*Note: The local cargo compilation failed due to environmental missing dependencies (perl/openssl), but full compilation and testing was independently verified successfully on GitHub Actions CI. This commit is formally frozen for institutional review.*
+*Note: The documentation commit `6b84e91` prematurely declared the candidate commit `6ce66f65...` verified. The full `Automated Testing #101` CI job reached a terminal `FAILED` state (exit code 101). The verification claim is therefore formally retracted, and Phase 4.2 status reverts to NOT VERIFIED pending defect fixes and a clean CI reproduction.*
 
 ## 3. Ethics Package Revisions
 
