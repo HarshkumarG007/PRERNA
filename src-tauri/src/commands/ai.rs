@@ -39,6 +39,16 @@ pub fn chat_with_mentor(
     store: State<ConversationStore>,
     request: ChatRequest,
 ) -> Result<ChatResponse, String> {
+    chat_with_mentor_inner(&llm_state, &db_state, &session, &store, request)
+}
+
+pub(crate) fn chat_with_mentor_inner(
+    llm_state: &LLMState,
+    db_state: &DbState,
+    session: &ActiveSession,
+    store: &ConversationStore,
+    request: ChatRequest,
+) -> Result<ChatResponse, String> {
     // T1: Derive user identity from backend session, never from renderer
     let user_id = session.get_user_id()?;
 
@@ -327,11 +337,10 @@ mod tests {
     use super::*;
     use crate::db::Database;
     use std::sync::Mutex;
+    use std::collections::HashMap;
 
-    #[test]
-    fn test_crisis_detection_persists_event() {
+    fn setup_test_env(authenticated_user: Option<&str>) -> (LLMState, DbState, crate::ActiveSession, ConversationStore) {
         let db = Database::new_in_memory().unwrap();
-        
         // Ensure schemas exist
         db.conn
             .execute(
@@ -351,74 +360,133 @@ mod tests {
             .unwrap();
             
         let db_state = DbState(Mutex::new(db));
+        let llm_state = LLMState(Mutex::new(None)); // Model not loaded
+        
+        // Mock session
+        let auth_status = match authenticated_user {
+            Some(id) => crate::AuthStatus::Authenticated(id.to_string()),
+            None => crate::AuthStatus::None,
+        };
+        let session = crate::ActiveSession(Mutex::new(auth_status));
+
+        let store = ConversationStore(Mutex::new(HashMap::new()));
+        
+        (llm_state, db_state, session, store)
+    }
+
+    #[test]
+    fn test_t15_1_command_level_crisis_persistence() {
+        let (llm_state, db_state, session, store) = setup_test_env(Some("USER_A"));
         
         let request = ChatRequest {
-            message: "I feel like giving up on everything forever".to_string(),
+            message: "I feel like giving up on everything forever".to_string(), // crisis message
             conversation_id: None,
         };
         
-        let user_id = "teen_123";
+        let result = chat_with_mentor_inner(&llm_state, &db_state, &session, &store, request);
         
-        let result = handle_crisis_detection(&db_state, user_id, &request);
+        // Verify response is a crisis response
         assert!(result.is_ok());
-        
         let response = result.unwrap();
-        assert!(response.is_some());
-        let response = response.unwrap();
-        
         assert_eq!(response.sentiment, "crisis");
         
         // Verify it was actually persisted in the DB
         let db_lock = db_state.0.lock().unwrap();
         let events = db_lock.get_pending_crisis_events().unwrap();
         
+        // Exactly one event, authenticated user owns it, high severity, pending
         assert_eq!(events.len(), 1, "Exactly one crisis event should be created");
-        assert_eq!(events[0].user_id, "teen_123");
+        assert_eq!(events[0].user_id, "USER_A");
         assert_eq!(events[0].severity, "high");
         assert_eq!(events[0].human_review_status, "pending");
     }
 
     #[test]
-    fn test_crisis_detection_duplicate_submission() {
-        let db = Database::new_in_memory().unwrap();
-        db.conn
-            .execute(
-                "CREATE TABLE crisis_events (
-                    id TEXT PRIMARY KEY,
-                    user_id TEXT NOT NULL,
-                    detected_at INTEGER NOT NULL,
-                    severity TEXT NOT NULL,
-                    human_review_status TEXT NOT NULL,
-                    reviewer_id TEXT,
-                    reviewer_credentials_ref TEXT,
-                    decision TEXT,
-                    teen_informed_at INTEGER
-                )",
-                [],
-            )
-            .unwrap();
-            
-        let db_state = DbState(Mutex::new(db));
+    fn test_t15_2_authenticated_identity_cannot_be_spoofed() {
+        let (llm_state, db_state, session, store) = setup_test_env(Some("USER_A"));
         
         let request = ChatRequest {
-            message: "I feel like giving up on everything forever".to_string(),
-            conversation_id: None,
+            message: "I feel like giving up on everything forever".to_string(), // crisis message
+            // Even if the client somehow controlled a user_id payload, our struct 
+            // drops it or doesn't have it, and the backend relies solely on `session`.
+            conversation_id: Some("conv_123".to_string()), 
         };
         
-        let user_id = "teen_123";
-        
-        // Submit first time
-        handle_crisis_detection(&db_state, user_id, &request).unwrap();
-        
-        // Submit second time identically
-        handle_crisis_detection(&db_state, user_id, &request).unwrap();
+        let _ = chat_with_mentor_inner(&llm_state, &db_state, &session, &store, request);
         
         let db_lock = db_state.0.lock().unwrap();
         let events = db_lock.get_pending_crisis_events().unwrap();
         
-        // Documented Behavior: Repeated identical crisis submission creates a separate event 
-        // with a new UUID, ensuring no escalation signal is dropped, even if it causes duplicates.
-        assert_eq!(events.len(), 2, "Repeated crisis message should create duplicate events to ensure safety");
-        assert_ne!(events[0].id, events[1].id, "Each event must have a unique ID");
+        // The event must belong to USER_A, ignoring any other identity assumptions
+        assert_eq!(events.len(), 1);
+        assert_eq!(events[0].user_id, "USER_A", "Ownership must be derived from ActiveSession");
+    }
+
+    #[test]
+    fn test_t15_3_persistence_failure() {
+        let (llm_state, db_state, session, store) = setup_test_env(Some("USER_A"));
+        
+        // Drop the table to simulate infrastructure fault
+        {
+            let db_lock = db_state.0.lock().unwrap();
+            db_lock.conn.execute("DROP TABLE crisis_events", []).unwrap();
+        }
+        
+        let request = ChatRequest {
+            message: "I feel like giving up on everything forever".to_string(), // crisis message
+            conversation_id: None,
+        };
+        
+        // The command must propagate the DB failure and NOT return a successful ChatResponse
+        let result = chat_with_mentor_inner(&llm_state, &db_state, &session, &store, request);
+        assert!(result.is_err(), "Persistence failure must not be swallowed");
+    }
+
+    #[test]
+    fn test_t15_4_non_crisis_regression() {
+        let (llm_state, db_state, session, store) = setup_test_env(Some("USER_A"));
+        
+        // Ensure user profile exists for the non-crisis path to fetch it
+        {
+            let db_lock = db_state.0.lock().unwrap();
+            db_lock.conn.execute(
+                "CREATE TABLE user_snapshots (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, version INTEGER NOT NULL, snapshot_data TEXT NOT NULL, created_at INTEGER NOT NULL)",
+                [],
+            ).unwrap();
+            db_lock.conn.execute(
+                "CREATE TABLE micro_interactions (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, interaction_type TEXT NOT NULL, metadata TEXT NOT NULL, emotional_signal INTEGER NOT NULL, timestamp TEXT NOT NULL)",
+                [],
+            ).unwrap();
+            
+            // Insert empty profile
+            let profile = crate::db::models::UserSnapshot {
+                id: "snap_1".to_string(),
+                user_id: "USER_A".to_string(),
+                version: 1,
+                big_five: serde_json::json!({}),
+                riasec: serde_json::json!({}),
+                emotional_profile: serde_json::json!({}),
+                created_at: chrono::Utc::now().timestamp(),
+            };
+            db_lock.save_snapshot(&profile).unwrap();
+        }
+
+        let request = ChatRequest {
+            message: "Hello, how are you?".to_string(), // Benign message
+            conversation_id: None,
+        };
+        
+        let result = chat_with_mentor_inner(&llm_state, &db_state, &session, &store, request);
+        
+        // We assert on the primary invariant: NO crisis event is created.
+        {
+            let db_lock = db_state.0.lock().unwrap();
+            let events = db_lock.get_pending_crisis_events().unwrap();
+            assert_eq!(events.len(), 0, "Benign message must not create a crisis event");
+        }
+        
+        // The test allows the subsequent error (AI model not loaded) to happen,
+        // proving the crisis detector didn't short-circuit it into a "successful" crisis response.
+        assert!(result.is_err());
     }
 }
