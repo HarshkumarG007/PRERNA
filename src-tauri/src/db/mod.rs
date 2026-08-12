@@ -210,9 +210,11 @@ impl Database {
                          LEFT JOIN users t ON t.id = ptr.teen_user_id
                          WHERE p.id IS NULL OR t.id IS NULL;",
                     )?;
-                    stmt.query_map([], |row| Ok((row.get(0)?, row.get(1)?)))?
+                    let items = stmt
+                        .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))?
                         .filter_map(|r| r.ok())
-                        .collect()
+                        .collect();
+                    items
                 };
 
                 let orphan_count = orphans.len();
@@ -281,9 +283,11 @@ impl Database {
                          )
                          SELECT parent_user_id, teen_user_id FROM Ranked WHERE rn > 1;"
                     )?;
-                    stmt.query_map([], |row| Ok((row.get(0)?, row.get(1)?)))?
+                    let items = stmt
+                        .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))?
                         .filter_map(|r| r.ok())
-                        .collect()
+                        .collect();
+                    items
                 };
 
                 if !duplicates.is_empty() {

@@ -589,12 +589,12 @@ pub fn get_parent_view(
     }
 
     let profile = db
-        .get_latest_snapshot(&request.teen_id)
+        .get_latest_snapshot(&request.target_teen_id)
         .map_err(|e| e.to_string())?;
 
     // Load sharing preferences, fallback to restrictive defaults
     let prefs = db
-        .get_sharing_preferences(&request.teen_id)
+        .get_sharing_preferences(&request.target_teen_id)
         .map_err(|e| e.to_string())?;
 
     let parent_safe = profile.map(|p| {
