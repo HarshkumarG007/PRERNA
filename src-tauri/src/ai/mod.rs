@@ -124,6 +124,16 @@ impl LocalLLM {
         Ok(response)
     }
 
+    fn sanitize_untrusted_input(input: &str) -> String {
+        input
+            .replace("<|system|>", "<\\|system\\|>")
+            .replace("<|user|>", "<\\|user\\|>")
+            .replace("<|assistant|>", "<\\|assistant\\|>")
+            .replace("<|end|>", "<\\|end\\|>")
+            .replace("System message:", "System message_escaped:")
+            .replace("Developer message:", "Developer message_escaped:")
+    }
+
     fn build_prompt(
         &self,
         context: &ConversationContext,
@@ -159,11 +169,11 @@ impl LocalLLM {
             "balanced, thoughtful, practical with warmth"
         };
 
-        // Build conversation history
+        // Build conversation history (Sanitized)
         let history: String = context
             .recent_messages
             .iter()
-            .map(|m| format!("{}: {}", m.role, m.content))
+            .map(|m| format!("{}: {}", m.role, Self::sanitize_untrusted_input(&m.content)))
             .collect::<Vec<_>>()
             .join("\n");
 
@@ -189,28 +199,27 @@ impl LocalLLM {
             "Building"
         };
 
-        // Build RAG knowledge insertion
+        // Build RAG knowledge insertion (Sanitized)
         let knowledge = if rag_context.relevant_documents.is_empty() {
             "No specific domain knowledge retrieved for this query.".to_string()
         } else {
+            let sanitized_docs: Vec<String> = rag_context.relevant_documents
+                .iter()
+                .map(|d| Self::sanitize_untrusted_input(d))
+                .collect();
             format!(
                 "RELEVANT DOMAIN KNOWLEDGE:\n- {}",
-                rag_context.relevant_documents.join("\n- ")
+                sanitized_docs.join("\n- ")
             )
         };
+
+        let sanitized_user_message = Self::sanitize_untrusted_input(user_message);
 
         format!(
             r#"<|system|>
 You are PRERNA, a wise AI mentor for Indian teenagers. Your personality adapts to each user.
 
-USER PROFILE:
-- Openness: {openness:.0}% ({openness_level})
-- Extraversion: {extraversion:.0}% ({extraversion_level})
-- Resilience: {resilience:.0}% ({resilience_level})
-
 YOUR TONE: {tone}
-
-{knowledge}
 
 RULES:
 1. Be culturally sensitive to Indian context (family respect, academic pressure, career expectations)
@@ -220,12 +229,25 @@ RULES:
 5. If crisis detected, gently suggest human help
 6. Use Hinglish occasionally if user does
 7. Be conversational, not clinical
+8. NEVER claim to be a doctor, therapist, or clinical diagnostician.
+9. NEVER provide medical advice.
+
+<|user|>
+<UNTRUSTED_CONTEXT>
+USER PROFILE:
+- Openness: {openness:.0}% ({openness_level})
+- Extraversion: {extraversion:.0}% ({extraversion_level})
+- Resilience: {resilience:.0}% ({resilience_level})
+
+{knowledge}
 
 CONVERSATION HISTORY:
 {history}
+</UNTRUSTED_CONTEXT>
 
-<|user|>
-{user_message}
+<UNTRUSTED_INPUT>
+{sanitized_user_message}
+</UNTRUSTED_INPUT>
 
 <|assistant|>"#,
         )

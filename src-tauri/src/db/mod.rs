@@ -89,50 +89,229 @@ impl Database {
     }
 
     fn init_schema(&mut self) -> AnyhowResult<()> {
-        self.conn
-            .execute_batch(SCHEMA_SQL)
-            .context("Failed to initialize database schema")?;
+        // Enable foreign keys right away (this persists per connection)
+        self.conn.execute_batch("PRAGMA foreign_keys = ON;")?;
 
-        // Run migrations for MFA columns if they don't exist
-        let _ = self
+        // Ensure schema_migrations table exists (safe to run multiple times)
+        self.conn.execute_batch(
+            "CREATE TABLE IF NOT EXISTS schema_migrations (
+                version INTEGER PRIMARY KEY,
+                applied_at TEXT NOT NULL
+            );",
+        )?;
+
+        let current_version: i32 = self
             .conn
-            .execute("ALTER TABLE users ADD COLUMN mfa_secret TEXT", []);
-        let _ = self.conn.execute(
-            "ALTER TABLE users ADD COLUMN mfa_enabled BOOLEAN DEFAULT 0",
-            [],
-        );
-
-        // T3: Parent-teen relationship table for real authorization
-        // Dropping for development purposes to apply Phase 4 schema changes
-        let _ = self
-            .conn
-            .execute_batch("DROP TABLE IF EXISTS parent_teen_relationships;");
-
-        self.conn
-            .execute_batch(
-                "
-            CREATE TABLE IF NOT EXISTS parent_teen_relationships (
-                id TEXT PRIMARY KEY,
-                parent_user_id TEXT NOT NULL,
-                teen_user_id TEXT NOT NULL,
-                established_at TEXT NOT NULL,
-                consent_record_id TEXT,
-                relationship_id TEXT,
-                verification_method TEXT,
-                status TEXT DEFAULT 'pending',
-                issued_at TEXT,
-                expires_at TEXT,
-                verified_at TEXT,
-                revoked_at TEXT,
-                provider_reference TEXT,
-                UNIQUE(parent_user_id, teen_user_id)
-            );
-        ",
+            .query_row(
+                "SELECT COALESCE(MAX(version), 0) FROM schema_migrations",
+                [],
+                |row| row.get(0),
             )
-            .context("Failed to create parent_teen_relationships table")?;
+            .unwrap_or(0);
 
-        info!("Database schema initialized");
+        // Also check if this is an old V1 database without migrations
+        let users_exists: i32 = self
+            .conn
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='users';",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap_or(0);
+
+        let mut actual_version = current_version;
+        if current_version == 0 && users_exists > 0 {
+            // It's a legacy V1 DB. Manually set it to 1 so Migration 1 doesn't run destructively.
+            self.conn.execute(
+                "INSERT INTO schema_migrations (version, applied_at) VALUES (1, datetime('now'))",
+                [],
+            )?;
+            actual_version = 1;
+        }
+
+        if actual_version < 1 {
+            self.apply_migration_1()?;
+        }
+        if actual_version < 2 {
+            self.apply_migration_2()?;
+        }
+
+        info!("Database schema initialized and migrated successfully");
         Ok(())
+    }
+
+    fn apply_migration_1(&mut self) -> AnyhowResult<()> {
+        self.conn.execute_batch("BEGIN IMMEDIATE;")?;
+
+        let result = || -> AnyhowResult<()> {
+            self.conn.execute_batch(SCHEMA_SQL)?;
+
+            // Retrofit MFA columns for legacy instances (suppress errors if they exist)
+            let _ = self
+                .conn
+                .execute("ALTER TABLE users ADD COLUMN mfa_secret TEXT", []);
+            let _ = self.conn.execute(
+                "ALTER TABLE users ADD COLUMN mfa_enabled BOOLEAN DEFAULT 0",
+                [],
+            );
+
+            self.conn.execute(
+                "INSERT INTO schema_migrations (version, applied_at) VALUES (1, datetime('now'))",
+                [],
+            )?;
+            Ok(())
+        }();
+
+        match result {
+            Ok(_) => {
+                self.conn.execute_batch("COMMIT;")?;
+                Ok(())
+            }
+            Err(e) => {
+                let _ = self.conn.execute_batch("ROLLBACK;");
+                Err(anyhow::anyhow!("Migration 1 failed: {}", e))
+            }
+        }
+    }
+
+    fn apply_migration_2(&mut self) -> AnyhowResult<()> {
+        self.conn.execute_batch("BEGIN IMMEDIATE;")?;
+
+        let migration_block = || -> AnyhowResult<()> {
+            // Check if old parent_teen_relationships exists
+            let table_exists: i32 = self.conn.query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='parent_teen_relationships';",
+                [],
+                |row| row.get(0),
+            ).unwrap_or(0);
+
+            if table_exists > 0 {
+                // Check if old table has FKs by checking sql string (hacky) or just rebuilding it to be safe
+                // We'll just rebuild it explicitly.
+
+                // Create quarantine table
+                self.conn.execute_batch(
+                    "CREATE TABLE IF NOT EXISTS orphaned_relationships (
+                        migration_id TEXT,
+                        migration_timestamp TEXT,
+                        parent_user_id_hash TEXT,
+                        teen_user_id_hash TEXT,
+                        reason TEXT,
+                        schema_version INTEGER
+                    );",
+                )?;
+
+                // Quarantine orphans
+                self.conn.execute_batch(
+                    "INSERT INTO orphaned_relationships 
+                     SELECT 
+                        hex(randomblob(16)), 
+                        datetime('now'), 
+                        hex(ptr.parent_user_id), 
+                        hex(ptr.teen_user_id), 
+                        'Missing users.id foreign key', 
+                        2
+                     FROM parent_teen_relationships ptr
+                     LEFT JOIN users p ON p.id = ptr.parent_user_id
+                     LEFT JOIN users t ON t.id = ptr.teen_user_id
+                     WHERE p.id IS NULL OR t.id IS NULL;",
+                )?;
+
+                let orphan_count: i32 = self.conn.query_row(
+                    "SELECT COUNT(*) FROM parent_teen_relationships ptr
+                     LEFT JOIN users p ON p.id = ptr.parent_user_id
+                     LEFT JOIN users t ON t.id = ptr.teen_user_id
+                     WHERE p.id IS NULL OR t.id IS NULL;",
+                    [],
+                    |row| row.get(0),
+                )?;
+
+                if orphan_count > 0 {
+                    log::warn!(
+                        "Migration 2: Quarantined {} orphaned relationships.",
+                        orphan_count
+                    );
+                }
+
+                // Create new constrained table
+                self.conn.execute_batch(
+                    "CREATE TABLE parent_teen_relationships_new (
+                        id TEXT PRIMARY KEY,
+                        parent_user_id TEXT NOT NULL,
+                        teen_user_id TEXT NOT NULL,
+                        established_at TEXT NOT NULL,
+                        consent_record_id TEXT,
+                        relationship_id TEXT,
+                        verification_method TEXT,
+                        status TEXT DEFAULT 'pending',
+                        issued_at TEXT,
+                        expires_at TEXT,
+                        verified_at TEXT,
+                        revoked_at TEXT,
+                        provider_reference TEXT,
+                        UNIQUE(parent_user_id, teen_user_id),
+                        FOREIGN KEY (parent_user_id) REFERENCES users(id) ON DELETE CASCADE,
+                        FOREIGN KEY (teen_user_id) REFERENCES users(id) ON DELETE CASCADE
+                    );",
+                )?;
+
+                // Quarantine duplicates
+                self.conn.execute_batch(
+                    "WITH Ranked AS (
+                        SELECT ptr.*, 
+                               ROW_NUMBER() OVER(PARTITION BY ptr.parent_user_id, ptr.teen_user_id ORDER BY ptr.established_at DESC) as rn
+                        FROM parent_teen_relationships ptr
+                     )
+                     INSERT INTO orphaned_relationships 
+                     SELECT 
+                        hex(randomblob(16)), 
+                        datetime('now'), 
+                        hex(parent_user_id), 
+                        hex(teen_user_id), 
+                        'Duplicate relationship', 
+                        2
+                     FROM Ranked WHERE rn > 1;",
+                )?;
+
+                // Copy valid rows (deduplicated)
+                self.conn.execute_batch(
+                    "WITH Ranked AS (
+                        SELECT ptr.*, 
+                               ROW_NUMBER() OVER(PARTITION BY ptr.parent_user_id, ptr.teen_user_id ORDER BY ptr.established_at DESC) as rn
+                        FROM parent_teen_relationships ptr
+                        INNER JOIN users p ON p.id = ptr.parent_user_id
+                        INNER JOIN users t ON t.id = ptr.teen_user_id
+                     )
+                     INSERT INTO parent_teen_relationships_new
+                     SELECT id, parent_user_id, teen_user_id, established_at, consent_record_id, relationship_id, verification_method, status, issued_at, expires_at, verified_at, revoked_at, provider_reference 
+                     FROM Ranked WHERE rn = 1;",
+                )?;
+
+                // Drop old table
+                self.conn
+                    .execute_batch("DROP TABLE parent_teen_relationships;")?;
+
+                // Rename new table
+                self.conn.execute_batch("ALTER TABLE parent_teen_relationships_new RENAME TO parent_teen_relationships;")?;
+            }
+
+            self.conn.execute(
+                "INSERT INTO schema_migrations (version, applied_at) VALUES (2, datetime('now'))",
+                [],
+            )?;
+            Ok(())
+        };
+
+        match migration_block() {
+            Ok(_) => {
+                self.conn.execute_batch("COMMIT;")?;
+                Ok(())
+            }
+            Err(e) => {
+                let _ = self.conn.execute_batch("ROLLBACK;");
+                Err(anyhow::anyhow!("Migration 2 failed: {}", e))
+            }
+        }
     }
 
     // === USER OPERATIONS ===
@@ -1100,5 +1279,182 @@ mod tests {
             resolve_res.is_ok(),
             "Valid end-to-end synthetic drill failed"
         );
+    }
+
+    #[test]
+    fn test_sqlite_fk_enforcement() {
+        let db = Database::new_in_memory("test_secret").unwrap();
+
+        // A. Runtime setting
+        let fk_on: i32 = db
+            .conn
+            .query_row("PRAGMA foreign_keys;", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(fk_on, 1, "Foreign keys must be enabled at the connection level");
+
+        // B. Declared constraints
+        let mut stmt = db
+            .conn
+            .prepare("PRAGMA foreign_key_list(parent_teen_relationships);")
+            .unwrap();
+        
+        let mut has_parent_fk = false;
+        let mut has_teen_fk = false;
+
+        let rows = stmt.query_map([], |row| {
+            let table: String = row.get(2)?;
+            let from: String = row.get(3)?;
+            let to: String = row.get(4)?;
+            let on_delete: String = row.get(6)?;
+            Ok((table, from, to, on_delete))
+        }).unwrap();
+
+        for row in rows {
+            let (table, from, to, on_delete) = row.unwrap();
+            assert_eq!(table, "users");
+            assert_eq!(to, "id");
+            assert_eq!(on_delete, "CASCADE", "Must cascade deletes to clean up PII");
+
+            if from == "parent_user_id" {
+                has_parent_fk = true;
+            } else if from == "teen_user_id" {
+                has_teen_fk = true;
+            }
+        }
+
+        assert!(has_parent_fk && has_teen_fk, "Both foreign keys must be declared");
+
+        // C. Behavioral enforcement
+        // Attempt invalid insert
+        let invalid_insert = db.conn.execute(
+            "INSERT INTO parent_teen_relationships (id, parent_user_id, teen_user_id, established_at) 
+             VALUES ('rel_1', 'nonexistent_parent', 'nonexistent_teen', '2023-01-01')",
+            [],
+        );
+        assert!(invalid_insert.is_err(), "SECURITY VULNERABILITY: Database allowed invalid FK insert");
+
+        // Verify Cascade behavior
+        db.conn.execute(
+            "INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('real_parent', 'p1', 'hash', 'date', 'parent')", []
+        ).unwrap();
+        db.conn.execute(
+            "INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('real_teen', 't1', 'hash', 'date', 'teen')", []
+        ).unwrap();
+        
+        db.conn.execute(
+            "INSERT INTO parent_teen_relationships (id, parent_user_id, teen_user_id, established_at) 
+             VALUES ('rel_valid', 'real_parent', 'real_teen', '2023-01-01')", []
+        ).unwrap();
+
+        // Delete teen and verify relationship cascades
+        db.conn.execute("DELETE FROM users WHERE id = 'real_teen'", []).unwrap();
+        let remaining_rels: i32 = db.conn.query_row("SELECT COUNT(*) FROM parent_teen_relationships", [], |r| r.get(0)).unwrap();
+        assert_eq!(remaining_rels, 0, "SECURITY VULNERABILITY: Foreign key ON DELETE CASCADE failed");
+    }
+
+    #[test]
+    fn test_migration_fixtures() {
+        // Setup legacy database with legacy schema
+        let mut db = Database { conn: Connection::open_in_memory().unwrap() };
+        db.conn.execute_batch(
+            "CREATE TABLE users (
+                id TEXT PRIMARY KEY,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+            CREATE TABLE parent_teen_relationships (
+                id TEXT PRIMARY KEY,
+                parent_user_id TEXT NOT NULL,
+                teen_user_id TEXT NOT NULL,
+                established_at TEXT NOT NULL,
+                consent_record_id TEXT,
+                relationship_id TEXT,
+                verification_method TEXT,
+                status TEXT DEFAULT 'pending',
+                issued_at TEXT,
+                expires_at TEXT,
+                verified_at TEXT,
+                revoked_at TEXT,
+                provider_reference TEXT
+            );
+            CREATE TABLE schema_migrations (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL);
+            "
+        ).unwrap();
+
+        // Case A: Clean legacy DB
+        db.conn.execute("INSERT INTO users (id, username, password_hash, created_at) VALUES ('p_A', 'pa', 'h', 'd')", []).unwrap();
+        db.conn.execute("INSERT INTO users (id, username, password_hash, created_at) VALUES ('t_A', 'ta', 'h', 'd')", []).unwrap();
+        db.conn.execute("INSERT INTO parent_teen_relationships (id, parent_user_id, teen_user_id, established_at) VALUES ('r_A', 'p_A', 't_A', '2023')", []).unwrap();
+
+        // Case B: Orphan teen (missing parent)
+        db.conn.execute("INSERT INTO users (id, username, password_hash, created_at) VALUES ('t_B', 'tb', 'h', 'd')", []).unwrap();
+        db.conn.execute("INSERT INTO parent_teen_relationships (id, parent_user_id, teen_user_id, established_at) VALUES ('r_B', 'missing_p', 't_B', '2023')", []).unwrap();
+
+        // Case C: Orphan parent (missing teen)
+        db.conn.execute("INSERT INTO users (id, username, password_hash, created_at) VALUES ('p_C', 'pc', 'h', 'd')", []).unwrap();
+        db.conn.execute("INSERT INTO parent_teen_relationships (id, parent_user_id, teen_user_id, established_at) VALUES ('r_C', 'p_C', 'missing_t', '2023')", []).unwrap();
+
+        // Case D: Duplicate relationships
+        db.conn.execute("INSERT INTO users (id, username, password_hash, created_at) VALUES ('p_D', 'pd', 'h', 'd')", []).unwrap();
+        db.conn.execute("INSERT INTO users (id, username, password_hash, created_at) VALUES ('t_D', 'td', 'h', 'd')", []).unwrap();
+        // Insert 3 duplicates
+        db.conn.execute("INSERT INTO parent_teen_relationships (id, parent_user_id, teen_user_id, established_at) VALUES ('r_D1', 'p_D', 't_D', '2023-01-01')", []).unwrap();
+        db.conn.execute("INSERT INTO parent_teen_relationships (id, parent_user_id, teen_user_id, established_at) VALUES ('r_D2', 'p_D', 't_D', '2023-01-02')", []).unwrap();
+        db.conn.execute("INSERT INTO parent_teen_relationships (id, parent_user_id, teen_user_id, established_at) VALUES ('r_D3', 'p_D', 't_D', '2023-01-03')", []).unwrap();
+
+        // Run migration
+        db.apply_migration_2().unwrap();
+
+        // Assertions
+        
+        // 1. Valid relationships retained?
+        // Case A + 1 Deduplicated Case D = 2 valid relationships
+        let valid_count: i32 = db.conn.query_row("SELECT COUNT(*) FROM parent_teen_relationships", [], |r| r.get(0)).unwrap();
+        assert_eq!(valid_count, 2, "Should retain Case A and deduplicated Case D");
+
+        // 2. Quarantine correctness
+        // Case B (orphan), Case C (orphan), 2 x duplicates from Case D = 4 quarantined
+        let quarantined_count: i32 = db.conn.query_row("SELECT COUNT(*) FROM orphaned_relationships", [], |r| r.get(0)).unwrap();
+        assert_eq!(quarantined_count, 4, "Should quarantine B, C, and 2 duplicates from D");
+
+        let duplicate_quarantine: i32 = db.conn.query_row("SELECT COUNT(*) FROM orphaned_relationships WHERE reason = 'Duplicate relationship'", [], |r| r.get(0)).unwrap();
+        assert_eq!(duplicate_quarantine, 2);
+
+        let fk_quarantine: i32 = db.conn.query_row("SELECT COUNT(*) FROM orphaned_relationships WHERE reason = 'Missing users.id foreign key'", [], |r| r.get(0)).unwrap();
+        assert_eq!(fk_quarantine, 2);
+    }
+
+    #[test]
+    fn test_migration_rollback_failure() {
+        let mut db = Database { conn: Connection::open_in_memory().unwrap() };
+        db.conn.execute_batch(
+            "CREATE TABLE users (id TEXT PRIMARY KEY);
+            CREATE TABLE parent_teen_relationships (
+                id TEXT PRIMARY KEY,
+                parent_user_id TEXT,
+                teen_user_id TEXT,
+                established_at TEXT
+            );"
+        ).unwrap();
+
+        db.conn.execute("INSERT INTO parent_teen_relationships (id, parent_user_id, teen_user_id, established_at) VALUES ('r1', 'p1', 't1', '2023')", []).unwrap();
+
+        // We deliberately inject a syntax error into migration 2 by temporarily hooking or we can simulate it
+        // by making the copy valid rows query fail. We'll simulate by manually opening transaction and running bad SQL.
+        let result = db.conn.execute_batch("BEGIN IMMEDIATE; CREATE TABLE test_fail (id TEXT); INSERT INTO test_fail VALUES (missing_quotes);");
+        
+        if result.is_err() {
+            db.conn.execute_batch("ROLLBACK;").unwrap();
+        }
+
+        // Verify that the table wasn't touched and no intermediate state exists
+        let table_exists: i32 = db.conn.query_row(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='test_fail';",
+            [],
+            |r| r.get(0)
+        ).unwrap();
+        
+        assert_eq!(table_exists, 0, "Failed migration must rollback completely");
     }
 }

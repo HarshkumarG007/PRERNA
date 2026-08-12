@@ -28,27 +28,51 @@ jobs:
 
   test-backend:
     name: Test Backend (Rust)
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       
       - name: Install Linux Dependencies
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
           
+      - name: Install Windows Dependencies (Perl)
+        if: runner.os == 'Windows'
+        uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: '5.32'
+          
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
+        
       - name: Rust Cache
         uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
-      - name: Install cargo-tarpaulin
-        run: cargo install cargo-tarpaulin
-      - name: Run Tests with Coverage
+          
+      - name: Cargo Fmt
         working-directory: ./src-tauri
-        run: cargo tarpaulin --out Xml
-      - name: Upload backend coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+        run: cargo fmt --check
+
+      - name: Cargo Check
+        working-directory: ./src-tauri
+        run: cargo check --locked
+        
+      - name: Cargo Clippy
+        working-directory: ./src-tauri
+        run: cargo clippy --locked --all-targets --all-features -- -D warnings
+        
+      - name: Cargo Test
+        working-directory: ./src-tauri
+        run: cargo test --locked
+        
+      - name: Cargo Audit
+        working-directory: ./src-tauri
+        run: |
+          cargo install cargo-audit
+          cargo audit

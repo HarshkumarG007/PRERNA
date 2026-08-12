@@ -106,4 +106,40 @@ CREATE TABLE IF NOT EXISTS parent_sharing_preferences (
     last_updated TEXT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- Schema Migrations
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    version INTEGER PRIMARY KEY,
+    applied_at TEXT NOT NULL
+);
+
+-- Parent-Teen Relationships
+CREATE TABLE IF NOT EXISTS parent_teen_relationships (
+    id TEXT PRIMARY KEY,
+    parent_user_id TEXT NOT NULL,
+    teen_user_id TEXT NOT NULL,
+    established_at TEXT NOT NULL,
+    consent_record_id TEXT,
+    relationship_id TEXT,
+    verification_method TEXT,
+    status TEXT DEFAULT 'pending',
+    issued_at TEXT,
+    expires_at TEXT,
+    verified_at TEXT,
+    revoked_at TEXT,
+    provider_reference TEXT,
+    UNIQUE(parent_user_id, teen_user_id),
+    FOREIGN KEY (parent_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (teen_user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Orphaned Relationships (Quarantine during migration)
+CREATE TABLE IF NOT EXISTS orphaned_relationships (
+    migration_id TEXT,
+    migration_timestamp TEXT,
+    parent_user_id_hash TEXT,
+    teen_user_id_hash TEXT,
+    reason TEXT,
+    schema_version INTEGER
+);
 "#;

@@ -46,11 +46,58 @@ impl SafetyFilter {
             "i diagnose you with",
             "your symptoms indicate bipolar",
             "you are suffering from adhd",
+            "i am a clinical psychologist",
+            "i am a doctor",
+            "i am a therapist",
         ];
 
         for pattern in &diagnostic_claims {
             if lower.contains(pattern) {
-                bail!("Safety filter triggered: model attempted to diagnose");
+                bail!("Safety filter triggered: model attempted to diagnose or claim clinical identity");
+            }
+        }
+
+        // Check for emergency instructions or self-harm advice
+        let unsafe_advice = [
+            "you should take these pills",
+            "how to make a noose",
+            "just do it",
+            "it is better to die",
+        ];
+
+        for pattern in &unsafe_advice {
+            if lower.contains(pattern) {
+                bail!("Safety filter triggered: unsafe advice detected");
+            }
+        }
+
+        // Check for requests for sensitive personal information
+        let pii_requests = [
+            "what is your address",
+            "what is your phone number",
+            "where do you live",
+            "what is your full name",
+            "tell me your password",
+        ];
+
+        for pattern in &pii_requests {
+            if lower.contains(pattern) {
+                bail!("Safety filter triggered: requested PII");
+            }
+        }
+
+        // Check for inappropriate guardian notification claims or workflow bypass
+        let workflow_bypass = [
+            "i will not tell your parents",
+            "this is a secret between us",
+            "don't tell the human reviewers",
+            "i won't report this",
+            "i have notified your parents", // Model cannot actually do this, so it shouldn't claim it
+        ];
+
+        for pattern in &workflow_bypass {
+            if lower.contains(pattern) {
+                bail!("Safety filter triggered: workflow bypass or false notification claim");
             }
         }
 

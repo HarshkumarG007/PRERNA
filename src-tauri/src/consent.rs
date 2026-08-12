@@ -4,6 +4,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConsentRecord {
+    pub teen_user_id: String,
     pub provider_reference: String,
     pub verification_method: String,
     pub status: String,
@@ -15,7 +16,12 @@ pub trait GuardianVerificationAdapter {
     fn verify_token(&self, token: &str) -> Result<ConsentRecord, String>;
 }
 
-/// A strictly non-production mock adapter that simulates email OTP verification.
+/// # Consent States
+/// 1. Mock (MockEmailVerificationAdapter): Development-only simulation. It does not establish that the submitting person is the parent/legal guardian and must not be used as evidence of production parental verification.
+/// 2. Provider-bound: The architecture supports authenticated identity binding.
+/// 3. Production verified: Real provider assertion + cryptographic/authenticated verification (pending implementation).
+/// 
+/// A strictly non-production mock adapter that simulates verification.
 /// Used only for development and testing.
 pub struct MockEmailVerificationAdapter;
 
@@ -25,8 +31,17 @@ impl GuardianVerificationAdapter for MockEmailVerificationAdapter {
             return Err("Mock adapter cannot be used in production".into());
         }
 
+        // Token format for mock: "OTP:teen_user_id"
+        let parts: Vec<&str> = token.split(':').collect();
+        if parts.len() != 2 {
+            return Err("Invalid mock token format. Expected OTP:teen_id".into());
+        }
+
+        let otp = parts[0];
+        let teen_user_id = parts[1].to_string();
+
         // Simulate token validation (e.g., must be 6 digits)
-        if token.len() != 6 || !token.chars().all(char::is_numeric) {
+        if otp.len() != 6 || !otp.chars().all(char::is_numeric) {
             return Err("Invalid mock OTP token".into());
         }
 
@@ -42,6 +57,7 @@ impl GuardianVerificationAdapter for MockEmailVerificationAdapter {
         let expires = now + 365 * 24 * 60 * 60; // 1 year expiry
 
         Ok(ConsentRecord {
+            teen_user_id,
             provider_reference,
             verification_method: "mock_email_otp".to_string(),
             status: "verified".to_string(),

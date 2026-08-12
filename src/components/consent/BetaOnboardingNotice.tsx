@@ -33,8 +33,7 @@ export const BetaOnboardingNotice: React.FC<BetaOnboardingNoticeProps> = ({ onAc
         </p>
         <div className="bg-gray-50 p-3 rounded border border-gray-200 text-sm space-y-2">
           <p>
-            <strong>Crisis Response SLA:</strong> Our human-review escalations are guaranteed within <strong>2 hours</strong> during standard operating hours (9 AM - 9 PM IST). 
-            Outside these hours, responses may be delayed up to 8 hours.
+            <strong>Crisis Response:</strong> Human-review escalations are handled by the safety team. As a prototype system, responses are not guaranteed and should not be relied upon in an active emergency.
           </p>
           <p>
             <strong>Direct Contact:</strong> If you experience technical issues or have concerns about data processing, contact the beta engineering team directly at <a href="mailto:beta-support@prerna.project" className="text-amber-600 underline">beta-support@prerna.project</a>.

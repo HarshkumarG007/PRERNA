@@ -40,6 +40,7 @@ export const TeenPrivacyControls: React.FC<{ userId: string; onClose: () => void
       >
         <button 
           onClick={onClose}
+          aria-label="Close privacy settings"
           className="absolute top-6 right-6 text-gray-400 hover:text-gray-800 transition-colors z-10"
         >
           <X size={24} />
@@ -97,6 +98,8 @@ export const TeenPrivacyControls: React.FC<{ userId: string; onClose: () => void
                 </div>
                 <button
                   onClick={() => toggleShare(item.key as keyof SharingPreferences['shares'])}
+                  aria-label={`Toggle sharing for ${item.label}`}
+                  aria-pressed={prefs.shares[item.key as keyof typeof prefs.shares]}
                   className={`relative w-16 h-8 rounded-full transition-colors flex-shrink-0 ${
                     prefs.shares[item.key as keyof typeof prefs.shares]
                       ? 'bg-emerald-500'

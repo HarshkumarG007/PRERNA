@@ -144,7 +144,7 @@ pub fn revoke_consent(state: State<DbState>, session: State<ActiveSession>) -> R
 #[tauri::command]
 pub fn submit_consent_token(
     token: String,
-    teen_user_id: String,
+    frontend_teen_id: String,
     state: State<DbState>,
     session: State<ActiveSession>,
 ) -> Result<(), String> {
@@ -153,6 +153,14 @@ pub fn submit_consent_token(
     // Verify token using the provider-independent ConsentService
     let consent_service = ConsentService::new();
     let record = consent_service.process_consent_token(&token)?;
+
+    // Non-authoritative consistency check: Ensure the frontend didn't pass a mismatched teen ID
+    if !frontend_teen_id.is_empty() && frontend_teen_id != record.teen_user_id {
+        return Err("Consent token is not valid for the selected teen".to_string());
+    }
+
+    // IDENTITY BOUNDARY: The authoritative teen_user_id is derived exclusively from the token
+    let authoritative_teen_id = record.teen_user_id;
 
     let db = state.0.lock().map_err(|e| e.to_string())?;
 
@@ -179,7 +187,7 @@ pub fn submit_consent_token(
             rusqlite::params![
                 relationship_id,
                 parent_user_id,
-                teen_user_id,
+                authoritative_teen_id,
                 record.issued_at,
                 consent_record_id,
                 relationship_id,

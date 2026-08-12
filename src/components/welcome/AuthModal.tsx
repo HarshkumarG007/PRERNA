@@ -209,6 +209,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
         <div className="relative p-6 pb-4 flex-shrink-0 z-10">
           <button
             onClick={onClose}
+            aria-label="Close authentication modal"
             className="absolute top-4 right-4 p-2 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-colors"
           >
             <X size={18} />
@@ -538,6 +539,8 @@ const SignupFlow: React.FC<{
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
               className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -557,6 +560,8 @@ const SignupFlow: React.FC<{
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? "Hide PIN" : "Show PIN"}
+              aria-pressed={showPassword}
               className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -655,6 +660,8 @@ const LoginForm: React.FC<{
           />
           <button
             onClick={() => setShowPassword(!showPassword)}
+            aria-label={showPassword ? "Hide PIN" : "Show PIN"}
+            aria-pressed={showPassword}
             className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
           >
             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -689,6 +696,8 @@ const LoginForm: React.FC<{
           />
           <button
             onClick={() => setShowPassword(!showPassword)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-pressed={showPassword}
             className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
           >
             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}

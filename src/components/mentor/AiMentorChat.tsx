@@ -307,6 +307,8 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
         <button
           type="button"
           onClick={toggleRecording}
+          aria-label={isRecording ? "Stop recording" : "Start voice input"}
+          aria-pressed={isRecording}
           className={`p-3.5 rounded-2xl flex items-center justify-center transition-all ${
             isRecording 
               ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30' 
@@ -330,6 +332,7 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
         
         <button
           type="submit"
+          aria-label="Send message"
           disabled={isTyping || !input.trim() || isRecording}
           className="p-4 bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white rounded-2xl font-bold hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 transition-all shadow-lg shadow-violet-500/25 flex items-center justify-center"
         >
