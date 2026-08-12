@@ -1,8 +1,8 @@
-import { TraitSnapshot, BigFive, Riasec } from './scoringEngine';
 import ipipItems from './items/ipip-bigfive-adapted.json';
 import onetItems from './items/onet-riasec-adapted.json';
 import { z } from 'zod';
 
+export type TraitSnapshot = z.infer<typeof FusionSchema>;
 export interface FusionItem {
   id: string;
   source: 'IPIP' | 'ONET';
@@ -36,8 +36,8 @@ export const FusionSchema = z.object({
     enterprising: z.number(),
     conventional: z.number(),
   }),
-  multiple_intel: z.record(z.any()).optional(),
-  emotional_profile: z.record(z.any()).optional(),
+  multiple_intel: z.record(z.string(), z.any()).optional(),
+  emotional_profile: z.record(z.string(), z.any()).optional(),
   confidence_score: z.number(),
 });
 
