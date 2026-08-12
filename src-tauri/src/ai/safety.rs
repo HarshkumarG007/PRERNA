@@ -135,7 +135,7 @@ impl SafetyFilter {
             "hurt myself",
             "cutting myself",
             "take my own life",
-            // Hinglish (from PRERNA-SAFE dataset)
+            // Hinglish
             "marna chahta",
             "marna chahti",
             "mar jaana chahta",
@@ -143,7 +143,7 @@ impl SafetyFilter {
         ];
 
         // Tier 2: Indirect/paraphrased (broader recall, reviewed against false-positive risk)
-        // NOTE: These were validated against the PRERNA-SAFE benchmark (FPR <12%).
+        // NOTE: Engineering-authored heuristic detection; clinical/safety validation pending.
         // Any additions to this tier need re-evaluation against the benchmark.
         let indirect = [
             "don't want to wake up",

@@ -1,20 +1,30 @@
-> **Status: DRAFT — READY FOR INSTITUTIONAL REVIEW — NOT APPROVED**
-> **Study:** PRERNA Phase 4 Formative Usability Study
-> **Recruitment:** BLOCKED
-> **Document version:** 0.1
-> **Last reviewed:** 2026-08-12
-
----
-
 # 03. Participant Recruitment
 
-## Recruitment Demographics
-- Adolescents (13-17) and their legally authorized guardians.
-- Recruitment will be strictly voluntary.
+**Status:** DRAFT — NOT APPROVED  
+*(Recruitment is currently CLOSED and BLOCKED pending institutional ethics approval)*
 
-## Power Dynamics and Safeguards
-- **Who Recruits**: Recruitment will be conducted by independent researchers, not by individuals holding authority over the minors (e.g., teachers, school administrators, or treating clinicians).
-- **Identity Knowledge**: Participant identity will be known only to the primary research team managing the sessions.
-- **Independence**: Participation will have absolutely zero impact on the teen's academic grades, school standing, or access to external services.
-- **Voluntary Communication**: All recruitment materials will explicitly state that participation is entirely voluntary and that participants can say "no" or withdraw at any time without any consequences.
-- **Compensation**: If compensation is provided (e.g., gift cards), it will be given regardless of whether the participant finishes the full session, removing financial pressure to complete the study.
+## 1. Recruitment Pause
+**No real minor may be recruited, contacted, or interacted with for research purposes regarding the PRERNA prototype until the applicable institutional ethics authority has formally approved the protocol.**
+
+## 2. Target Population
+When recruitment is authorized, the study aims to recruit:
+- **Sample Size:** 10–15 adolescent/guardian dyads (formative usability sizing).
+- **Adolescents:** Aged 13–17, residing in India.
+- **Guardians:** Legal parent or guardian capable of providing informed consent.
+
+## 3. Inclusion Criteria
+- Adolescent is between the ages of 13 and 17.
+- Adolescent and guardian are fluent in the language of the prototype and study administration (English/Hindi).
+- Guardian possesses the technical literacy required to operate the guardian view of the software during the usability test.
+- Guardian provides documented informed permission; Adolescent provides documented informed assent.
+
+## 4. Exclusion Criteria
+- Individuals currently experiencing an acute mental health crisis, active severe distress, or active suicidal ideation (as identified during the pre-screening phase), to avoid unnecessary burden.
+- Individuals who cannot independently navigate a standard desktop interface.
+
+## 5. Recruitment Methods
+- **Channels:** Recruitment will be conducted through community centers, partner schools, or authorized opt-in research panels, subject to IEC-approved recruitment materials (flyers/emails).
+- **Pre-screening:** Interested guardians will complete a brief pre-screening questionnaire to confirm inclusion/exclusion criteria.
+
+## 6. Compensation
+Participants will be compensated for their time in accordance with standard institutional guidelines (e.g., an honorarium or gift card). Compensation will not be contingent upon completing the entire session; participants who withdraw early will still receive the full compensation to prevent coercion.

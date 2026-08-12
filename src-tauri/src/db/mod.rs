@@ -201,34 +201,49 @@ impl Database {
                     );",
                 )?;
 
-                // Quarantine orphans
-                self.conn.execute_batch(
-                    "INSERT INTO orphaned_relationships 
-                     SELECT 
-                        hex(randomblob(16)), 
-                        datetime('now'), 
-                        hex(ptr.parent_user_id), 
-                        hex(ptr.teen_user_id), 
-                        'Missing users.id foreign key', 
-                        2
-                     FROM parent_teen_relationships ptr
-                     LEFT JOIN users p ON p.id = ptr.parent_user_id
-                     LEFT JOIN users t ON t.id = ptr.teen_user_id
-                     WHERE p.id IS NULL OR t.id IS NULL;",
-                )?;
+                // DB-002 Quarantine orphans using true HMAC-SHA-256
+                let orphans: Vec<(String, String)> = {
+                    let mut stmt = self.conn.prepare(
+                        "SELECT ptr.parent_user_id, ptr.teen_user_id
+                         FROM parent_teen_relationships ptr
+                         LEFT JOIN users p ON p.id = ptr.parent_user_id
+                         LEFT JOIN users t ON t.id = ptr.teen_user_id
+                         WHERE p.id IS NULL OR t.id IS NULL;"
+                    )?;
+                    stmt.query_map([], |row| {
+                        Ok((row.get(0)?, row.get(1)?))
+                    })?.filter_map(|r| r.ok()).collect()
+                };
 
-                let orphan_count: i32 = self.conn.query_row(
-                    "SELECT COUNT(*) FROM parent_teen_relationships ptr
-                     LEFT JOIN users p ON p.id = ptr.parent_user_id
-                     LEFT JOIN users t ON t.id = ptr.teen_user_id
-                     WHERE p.id IS NULL OR t.id IS NULL;",
-                    [],
-                    |row| row.get(0),
-                )?;
-
+                let orphan_count = orphans.len();
                 if orphan_count > 0 {
+                    use hmac::{Hmac, Mac};
+                    use sha2::Sha256;
+                    
+                    // For auditability and traceability, we use a stable application key.
+                    // In a production environment, this should be fetched from a KMS or secure enclave.
+                    let key = b"PRERNA_STABLE_QUARANTINE_KEY_001";
+                    let mac = Hmac::<Sha256>::new_from_slice(key).expect("HMAC can take key of any size");
+
+                    for (p_id, t_id) in orphans {
+                        let mut p_mac = mac.clone();
+                        p_mac.update(p_id.as_bytes());
+                        let p_hash = hex::encode(p_mac.finalize().into_bytes());
+
+                        let mut t_mac = mac.clone();
+                        t_mac.update(t_id.as_bytes());
+                        let t_hash = hex::encode(t_mac.finalize().into_bytes());
+
+                        self.conn.execute(
+                            "INSERT INTO orphaned_relationships (
+                                migration_id, migration_timestamp, parent_user_id_hash, teen_user_id_hash, reason, schema_version
+                            ) VALUES (?1, datetime('now'), ?2, ?3, 'Missing users.id foreign key', 2)",
+                            rusqlite::params![uuid::Uuid::new_v4().to_string(), p_hash, t_hash]
+                        )?;
+                    }
+
                     log::warn!(
-                        "Migration 2: Quarantined {} orphaned relationships.",
+                        "Migration 2: Quarantined {} orphaned relationships with HMAC-SHA256.",
                         orphan_count
                     );
                 }
@@ -255,23 +270,45 @@ impl Database {
                     );",
                 )?;
 
-                // Quarantine duplicates
-                self.conn.execute_batch(
-                    "WITH Ranked AS (
-                        SELECT ptr.*, 
-                               ROW_NUMBER() OVER(PARTITION BY ptr.parent_user_id, ptr.teen_user_id ORDER BY ptr.established_at DESC) as rn
-                        FROM parent_teen_relationships ptr
-                     )
-                     INSERT INTO orphaned_relationships 
-                     SELECT 
-                        hex(randomblob(16)), 
-                        datetime('now'), 
-                        hex(parent_user_id), 
-                        hex(teen_user_id), 
-                        'Duplicate relationship', 
-                        2
-                     FROM Ranked WHERE rn > 1;",
-                )?;
+                // DB-002 Quarantine duplicates using true HMAC-SHA256
+                let duplicates: Vec<(String, String)> = {
+                    let mut stmt = self.conn.prepare(
+                        "WITH Ranked AS (
+                            SELECT ptr.*, 
+                                   ROW_NUMBER() OVER(PARTITION BY ptr.parent_user_id, ptr.teen_user_id ORDER BY ptr.established_at DESC) as rn
+                            FROM parent_teen_relationships ptr
+                         )
+                         SELECT parent_user_id, teen_user_id FROM Ranked WHERE rn > 1;"
+                    )?;
+                    stmt.query_map([], |row| {
+                        Ok((row.get(0)?, row.get(1)?))
+                    })?.filter_map(|r| r.ok()).collect()
+                };
+
+                if !duplicates.is_empty() {
+                    use hmac::{Hmac, Mac};
+                    use sha2::Sha256;
+                    
+                    let key = b"PRERNA_STABLE_QUARANTINE_KEY_001";
+                    let mac = Hmac::<Sha256>::new_from_slice(key).expect("HMAC can take key of any size");
+
+                    for (p_id, t_id) in duplicates {
+                        let mut p_mac = mac.clone();
+                        p_mac.update(p_id.as_bytes());
+                        let p_hash = hex::encode(p_mac.finalize().into_bytes());
+
+                        let mut t_mac = mac.clone();
+                        t_mac.update(t_id.as_bytes());
+                        let t_hash = hex::encode(t_mac.finalize().into_bytes());
+
+                        self.conn.execute(
+                            "INSERT INTO orphaned_relationships (
+                                migration_id, migration_timestamp, parent_user_id_hash, teen_user_id_hash, reason, schema_version
+                            ) VALUES (?1, datetime('now'), ?2, ?3, 'Duplicate relationship', 2)",
+                            rusqlite::params![uuid::Uuid::new_v4().to_string(), p_hash, t_hash]
+                        )?;
+                    }
+                }
 
                 // Copy valid rows (deduplicated)
                 self.conn.execute_batch(
@@ -1008,6 +1045,11 @@ mod tests {
     #[test]
     fn test_revoke_consent_audit_trail() {
         let mut db = Database::new_in_memory("test_secret").unwrap();
+        
+        // Insert users first to satisfy foreign keys
+        db.conn.execute("INSERT INTO users (id, role, name, email, password_hash, created_at) VALUES ('p1', 'parent', 'Parent 1', 'p1@test.com', 'hash', 'now')", []).unwrap();
+        db.conn.execute("INSERT INTO users (id, role, name, email, password_hash, created_at) VALUES ('t1', 'teen', 'Teen 1', 't1@test.com', 'hash', 'now')", []).unwrap();
+
         db.conn.execute(
             "INSERT INTO parent_teen_relationships (id, parent_user_id, teen_user_id, established_at, status) VALUES ('1', 'p1', 't1', 'now', 'active')",
             []

@@ -1,33 +1,27 @@
-> **Status: DRAFT — READY FOR INSTITUTIONAL REVIEW — NOT APPROVED**
-> **Study:** PRERNA Phase 4 Formative Usability Study
-> **Recruitment:** BLOCKED
-> **Document version:** 0.1
-> **Last reviewed:** 2026-08-12
-
----
-
 # 00. Study Summary
 
-## General Information
-- **Title**: PRERNA Phase 4 Formative Usability Study
-- **Nature of Study**: Human-Computer Interaction (HCI) usability, comprehension, and privacy expectation evaluation.
+**Title:** Formative Usability and Comprehension Evaluation of the PRERNA Prototype  
+**Phase:** 4 (Internal Readiness Passed, External Validation Pending)  
+**Status:** DRAFT — NOT APPROVED
 
-**IMPORTANT DISCLAIMER:**
-> This study is designed to evaluate usability and comprehension. Participation is not medical treatment and should not be understood as providing therapeutic or clinical benefit.
+## 1. Study Objectives
+This formative usability study aims to evaluate the PRERNA prototype interface with its intended demographic (Indian teenagers and their guardians). The primary objectives are to:
+- Evaluate the clarity, comprehension, and usability of the interface.
+- Assess the effectiveness of the privacy boundaries, disclosures, and consent mechanisms.
+- Measure trust calibration and workflow navigation through non-clinical activities.
 
-## Participants
-- **Target Population**: Adolescents (13-17 years old) and their legally authorized guardians.
-- **Sample Size**: 5–10 participant dyads.
-- **Why Minors are Necessary**: PRERNA is specifically designed as an adolescent guidance platform. Usability and privacy comprehension cannot be accurately extrapolated from adult usage.
+## 2. Study Scope
+This study is strictly bounded to usability and comprehension testing. 
+**It is not designed to, and will not, establish:**
+- Therapeutic efficacy
+- Clinical safety
+- Diagnostic validity
 
-## Study Focus
-- **What is PRERNA?**: A local-first application designed to help teenagers explore their interests with guardian-bound privacy.
-- **What are we studying?**: Whether users understand PRERNA's data practices, guardian visibility, and safety escalation pathways.
-- **Study Duration**: One 45-60 minute session per participant.
+## 3. Target Demographic
+- **Minors (Teens):** Aged 13–17, based in India, with varying baselines of privacy comprehension.
+- **Guardians:** Parents or legal guardians capable of providing informed permission and interacting with the guardian view.
 
-## Data Collection
-- **Collected**: Usability metrics, teach-back comprehension answers, time on task.
-- **Not Collected**: No clinical assessments, no intentional solicitation of emotional distress, no biometric data.
-
-## Termination Criteria
-The study will be immediately terminated for an individual participant if they exhibit significant distress or voluntarily withdraw. The entire study will be paused if unexpected systemic usability risks (e.g. privacy breaches) are discovered.
+## 4. Environment and Conditions
+- Conducted in a controlled setting utilizing synthetic or safely bounded data flows.
+- Real AI inference (LLM interaction) is explicitly **mocked and unavailable** for this study to eliminate the risk of unbounded generative AI responses during the initial usability phase.
+- Supported by trained moderators observing standardized scripts to prevent coercion, psychological interviewing, or accidental therapeutic interaction.

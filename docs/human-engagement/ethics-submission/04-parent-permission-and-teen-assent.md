@@ -1,30 +1,33 @@
-> **Status: DRAFT — READY FOR INSTITUTIONAL REVIEW — NOT APPROVED**
-> **Study:** PRERNA Phase 4 Formative Usability Study
-> **Recruitment:** BLOCKED
-> **Document version:** 0.1
-> **Last reviewed:** 2026-08-12
+# 04. Parent Permission and Teen Assent
 
----
+**Status:** DRAFT — NOT APPROVED
 
-# 04. Parent Permission & Teen Assent
+## 1. Dual-Consent Architecture
+Research involving minors requires a dual-consent process. PRERNA requires:
+1. **Informed Permission** from the parent or legal guardian.
+2. **Informed Assent** from the adolescent participant.
 
-**IMPORTANT DISCLAIMER:**
-> This study is designed to evaluate usability and comprehension. Participation is not medical treatment and should not be understood as providing therapeutic or clinical benefit.
+Both must be obtained prior to any study-related interaction.
 
-## Two-Tiered Research Consent Structure
-Participation in this research requires two distinct authorizations, separate from the product's internal verification mechanisms:
-1. **Guardian Permission**: Explicit, informed permission from the legally authorized guardian allowing their child to participate.
-2. **Teen Assent**: Explicit agreement from the adolescent to participate. 
+## 2. Guardian Permission Process
+- The guardian will be provided with an Information Sheet detailing the study objectives, risks, benefits, data handling, and withdrawal procedures.
+- The Information Sheet will clearly state that the prototype tested relies on local-first processing, but for the purposes of the study, data resides on provisioned test devices.
+- The guardian will sign the Permission Form (digitally or physically, as approved by the IEC).
 
-*If a guardian gives permission but the teen refuses assent, the teen will not participate.*
+## 3. Teen Assent Process
+- The adolescent will be provided with an age-appropriate Assent Form. The language will be simplified, avoiding legal jargon, focusing on:
+  - What they will be asked to do.
+  - Who will see their answers (explicitly distinguishing between the researcher and the guardian view in the software).
+  - Their absolute right to stop participating at any time.
+- The moderator will verbally review the Assent Form at the beginning of the session (see Protocol 01, Section 8.2).
 
-## Comprehension Before Signature
-Prior to signing any documents, the moderator must verify comprehension. 
-The process is: **Explain -> Questions -> Teach-back -> Permission/Assent -> Study**.
+## 4. The "Teach-Back" Method
+To ensure genuine comprehension (rather than rote agreement), the study utilizes the "Teach-Back" method.
+- **For Assent:** "Can you explain to me what we are going to do today?"
+- **For Privacy Boundaries:** During the usability test, the moderator will ask, "In your own words, who do you think can see the information you type into this section?" (Protocol 01, Section 8.3).
+- If the participant demonstrates a fundamental misunderstanding of the privacy boundaries that cannot be corrected through standardized clarification, the moderator will conclude the session.
 
-The moderator will verify the teen can accurately answer:
-- What is this study about?
-- Is this a medical treatment?
-- Do you have to participate?
-- What happens if you want to stop halfway through?
-- Who can see the notes we take today?
+## 5. Right to Withdraw
+- Participants may withdraw at any time during the session.
+- Participants may request the deletion of their study data (observation notes, recordings if applicable) up until the point of data de-identification and aggregation.
+- The withdrawal process is intentionally frictionless and does not require justification.

@@ -1,33 +1,20 @@
-> **Status: DRAFT — READY FOR INSTITUTIONAL REVIEW — NOT APPROVED**
-> **Study:** PRERNA Phase 4 Formative Usability Study
-> **Recruitment:** BLOCKED
-> **Document version:** 0.1
-> **Last reviewed:** 2026-08-12
-
----
-
 # 02. Risk-Benefit Analysis
 
-**IMPORTANT DISCLAIMER:**
-> This study is designed to evaluate usability and comprehension. Participation is not medical treatment and should not be understood as providing therapeutic or clinical benefit.
+**Status:** DRAFT — NOT APPROVED
 
-## Potential Risks
-1. **Privacy/Confidentiality**: Accidental disclosure of PII during the session.
-2. **Emotional Discomfort**: Mild frustration using prototype software, or discomfort reading about safety features.
-3. **Misunderstanding of AI Capabilities**: Participant mistakenly believing the AI is a licensed clinician.
-4. **Misunderstanding of Guardian Access**: Teen mistakenly believing parents can read private messages, or parents mistakenly expecting full access.
-5. **Perceived Pressure**: Participant feeling obligated to continue the study despite wishing to stop.
-6. **Unexpected Disclosures**: Accidental, spontaneous disclosure of sensitive safety-related content by the teen.
-7. **Researcher Access**: Unauthorized access to collected research data.
+## 1. Minimal Risk Classification
+The Phase 4 Formative Usability Study is designed to meet the criteria for **minimal risk** research. The probability and magnitude of harm or discomfort anticipated in the research are not greater than those ordinarily encountered in daily life or during the performance of routine online application usage.
 
-## Mitigations
-- **Synthetic Scenarios**: Participants are explicitly instructed to use non-sensitive topics.
-- **Data Minimization**: Audio/video of the participant's face is not recorded unless separately consented to.
-- **No Intentional Crisis Induction**: Under no circumstances will a crisis be induced or requested.
-- **Right to Stop**: Reiterated verbally before and during the study.
-- **Safeguarding Protocol**: Strict "hard stop" rules if unexpected distress occurs.
-- **Controlled Environment**: Sessions are moderated by trained personnel.
-- **Restricted Access**: Research data is isolated, anonymized where possible, and strictly access-controlled.
+## 2. Potential Risks and Mitigations
 
-## Expected Benefits
-There is **no direct therapeutic or clinical benefit** to the participants. The expected benefit is strictly structural knowledge: identifying UX failures, privacy misconceptions, and comprehension gaps to improve the safety and clarity of the PRERNA architecture for future users.
+| Identified Risk | Probability | Severity | Mitigation Strategy |
+| :--- | :--- | :--- | :--- |
+| **Privacy Misunderstanding**<br>Teenager believes their data is private when it is accessible to guardians, or vice versa. | Low-Medium | Moderate | Evaluated directly via the "Teach-Back" protocol in the moderator script. Study relies entirely on synthetic/mocked inputs rather than requiring real personal disclosures. |
+| **Unexpected Sensitive Disclosure**<br>Participant shares real-life distress or clinical information with the moderator. | Low | High | Standardized script strictly limits psychological probing. Implementation of the **Sensitive-Content Hard Stop** (Protocol 01, Sec 8.6). Presence of a documented escalation pathway to a Designated Safeguarding Lead (DSL). |
+| **Generative AI Hallucination/Harm**<br>The AI mentor provides inappropriate or harmful responses. | Zero | None | **AI Mentor is explicitly mocked/unavailable** for this phase. No live inference occurs. |
+| **Data Breach**<br>Loss of participant study data. | Low | Moderate | Study is conducted on provisioned devices/accounts. PRERNA employs local-first SQLite/SQLCipher encryption. No PII is collected beyond the required consent/assent forms, which are stored separately in secured institutional drives. |
+| **Coercion to Participate**<br>Teen feels obligated to participate due to parental or researcher pressure. | Low | High | Assent is reaffirmed verbally at the start of the session. The participant is explicitly told they may stop at any time without penalty or need for explanation. |
+
+## 3. Potential Benefits
+- **Direct Benefits to Participants:** There are no direct therapeutic or clinical benefits to the participants in this usability study. 
+- **Benefits to Society/Science:** The insights gathered will directly inform the architectural privacy boundaries, consent mechanisms, and user-experience safeguards of digital mental wellbeing tools for adolescents in India. Iterative refinement based on teenager comprehension is critical before moving to efficacy or clinical evaluations.

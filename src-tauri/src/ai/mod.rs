@@ -124,8 +124,9 @@ impl LocalLLM {
         Ok(response)
     }
 
-    fn sanitize_untrusted_input(input: &str) -> String {
-        input
+    fn sanitize_untrusted_input(input: &str, limit: usize) -> String {
+        let truncated: String = input.chars().take(limit).collect();
+        truncated
             .replace("<|system|>", "<\\|system\\|>")
             .replace("<|user|>", "<\\|user\\|>")
             .replace("<|assistant|>", "<\\|assistant\\|>")
@@ -169,11 +170,12 @@ impl LocalLLM {
             "balanced, thoughtful, practical with warmth"
         };
 
-        // Build conversation history (Sanitized)
+        // Build conversation history (Sanitized, bounded to 10 entries and 500 chars each)
         let history: String = context
             .recent_messages
             .iter()
-            .map(|m| format!("{}: {}", m.role, Self::sanitize_untrusted_input(&m.content)))
+            .take(10)
+            .map(|m| format!("{}: {}", m.role, Self::sanitize_untrusted_input(&m.content, 500)))
             .collect::<Vec<_>>()
             .join("\n");
 
@@ -199,13 +201,14 @@ impl LocalLLM {
             "Building"
         };
 
-        // Build RAG knowledge insertion (Sanitized)
+        // Build RAG knowledge insertion (Sanitized, bounded to 3 docs and 1000 chars each)
         let knowledge = if rag_context.relevant_documents.is_empty() {
             "No specific domain knowledge retrieved for this query.".to_string()
         } else {
             let sanitized_docs: Vec<String> = rag_context.relevant_documents
                 .iter()
-                .map(|d| Self::sanitize_untrusted_input(d))
+                .take(3)
+                .map(|d| Self::sanitize_untrusted_input(d, 1000))
                 .collect();
             format!(
                 "RELEVANT DOMAIN KNOWLEDGE:\n- {}",
@@ -213,7 +216,7 @@ impl LocalLLM {
             )
         };
 
-        let sanitized_user_message = Self::sanitize_untrusted_input(user_message);
+        let sanitized_user_message = Self::sanitize_untrusted_input(user_message, 2000);
 
         format!(
             r#"<|system|>

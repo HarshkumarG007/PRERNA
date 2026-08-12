@@ -3690,6 +3690,7 @@ dependencies = [
  "criterion",
  "env_logger",
  "hex",
+ "hmac",
  "keyring",
  "llama-cpp-2",
  "log",

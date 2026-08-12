@@ -135,7 +135,7 @@ pub fn revoke_consent(state: State<DbState>, session: State<ActiveSession>) -> R
 
     db.insert_audit_log(
         "CONSENT_REVOKED",
-        &format!("Consent revoked for user {}", user_id),
+        "Consent relationship revoked",
     )
     .map_err(|e| e.to_string())?;
     Ok(())
@@ -203,10 +203,7 @@ pub fn submit_consent_token(
 
     db.insert_audit_log(
         "CONSENT_VERIFIED",
-        &format!(
-            "Consent verified for parent {} and teen {}",
-            parent_user_id, teen_user_id
-        ),
+        &format!("Consent verified successfully, relationship={}", relationship_id),
     )
     .map_err(|e| e.to_string())?;
 
@@ -538,8 +535,7 @@ pub fn get_unified_profile(
 
 #[derive(Debug, serde::Deserialize)]
 pub struct ParentViewRequest {
-    pub teen_id: String,
-    pub parent_id: String,
+    pub target_teen_id: String,
 }
 
 #[derive(Debug, serde::Serialize)]
@@ -581,7 +577,7 @@ pub fn get_parent_view(
     // A parent can only access their own linked teen's data.
     // They cannot access arbitrary teen IDs by guessing.
     let is_authorized = db
-        .check_parent_teen_link(&parent_id, &request.teen_id)
+        .check_parent_teen_link(&parent_id, &request.target_teen_id)
         .map_err(|e| e.to_string())?;
 
     if let Err(_) = PolicyEngine::enforce_parental_authorization(is_authorized) {
@@ -953,7 +949,7 @@ pub fn get_pending_crisis_events(
     let db = state.0.lock().map_err(|e| e.to_string())?;
 
     // T2/T5: Verify caller is authorized
-    if !db.is_educator(&reviewer_id) {
+    if !db.is_reviewer(&reviewer_id) {
         return Err("Unauthorized: Must be an authorized reviewer".to_string());
     }
     db.get_pending_crisis_events().map_err(|e| e.to_string())

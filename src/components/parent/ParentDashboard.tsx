@@ -27,7 +27,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ teenId, onExit
   const loadParentView = async () => {
     try {
       const response: any = await invoke('get_parent_view', { 
-        request: { teen_id: teenId, parent_id: 'parent-123' }
+        request: { target_teen_id: teenId }
       });
 
       if (response.has_access && response.profile) {

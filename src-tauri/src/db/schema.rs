@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS sessions (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
-    session_type TEXT CHECK(session_type IN ('life_quest', 'skill_arena', 'mood_mirror', 'social_compass', 'body_clock')),
+    session_type TEXT CHECK(session_type IN ('life_quest', 'skill_arena', 'mood_mirror', 'social_compass', 'body_clock', 'unified_profile')),
     started_at TEXT NOT NULL,
     completed_at TEXT,
     raw_choices TEXT, -- encrypted JSON
@@ -71,6 +71,10 @@ CREATE TABLE IF NOT EXISTS crisis_events (
     reviewer_credentials_ref TEXT,
     decision TEXT,
     teen_informed_at INTEGER,
+    resolved_by TEXT,
+    resolved_at TEXT,
+    notes TEXT, -- encrypted JSON
+    -- P1 - POLICY DECISION REQUIRED: ON DELETE CASCADE currently forces hard-deletion pending ethics review on de-identified retention.
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
