@@ -20,7 +20,7 @@ pub trait GuardianVerificationAdapter {
 /// 1. Mock (MockEmailVerificationAdapter): Development-only simulation. It does not establish that the submitting person is the parent/legal guardian and must not be used as evidence of production parental verification.
 /// 2. Provider-bound: The architecture supports authenticated identity binding.
 /// 3. Production verified: Real provider assertion + cryptographic/authenticated verification (pending implementation).
-/// 
+///
 /// A strictly non-production mock adapter that simulates verification.
 /// Used only for development and testing.
 pub struct MockEmailVerificationAdapter;

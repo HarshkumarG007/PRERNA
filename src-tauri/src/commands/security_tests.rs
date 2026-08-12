@@ -107,9 +107,10 @@ mod tests {
         // The frontend maliciously sends teen_user_id = "teen_B"
         let token_teen_id = "teen_A";
         let frontend_teen_id = "teen_B";
-        
-        let consistency_check_passed = !(!frontend_teen_id.is_empty() && frontend_teen_id != token_teen_id);
-        
+
+        let consistency_check_passed =
+            !(!frontend_teen_id.is_empty() && frontend_teen_id != token_teen_id);
+
         assert!(
             !consistency_check_passed,
             "SECURITY VULNERABILITY: Identity consistency check bypassed"
@@ -123,7 +124,7 @@ mod tests {
         let sanitized = malicious_input
             .replace("<|system|>", "<\\|system\\|>")
             .replace("<|assistant|>", "<\\|assistant\\|>");
-            
+
         assert!(
             !sanitized.contains("<|system|>"),
             "SECURITY VULNERABILITY: Prompt injection delimiter not sanitized"

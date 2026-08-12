@@ -133,11 +133,8 @@ pub fn revoke_consent(state: State<DbState>, session: State<ActiveSession>) -> R
         rusqlite::params![chrono::Utc::now().to_rfc3339(), user_id]
     ).map_err(|e| e.to_string())?;
 
-    db.insert_audit_log(
-        "CONSENT_REVOKED",
-        "Consent relationship revoked",
-    )
-    .map_err(|e| e.to_string())?;
+    db.insert_audit_log("CONSENT_REVOKED", "Consent relationship revoked")
+        .map_err(|e| e.to_string())?;
     Ok(())
 }
 
@@ -203,7 +200,10 @@ pub fn submit_consent_token(
 
     db.insert_audit_log(
         "CONSENT_VERIFIED",
-        &format!("Consent verified successfully, relationship={}", relationship_id),
+        &format!(
+            "Consent verified successfully, relationship={}",
+            relationship_id
+        ),
     )
     .map_err(|e| e.to_string())?;
 

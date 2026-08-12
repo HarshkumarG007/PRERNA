@@ -208,22 +208,23 @@ impl Database {
                          FROM parent_teen_relationships ptr
                          LEFT JOIN users p ON p.id = ptr.parent_user_id
                          LEFT JOIN users t ON t.id = ptr.teen_user_id
-                         WHERE p.id IS NULL OR t.id IS NULL;"
+                         WHERE p.id IS NULL OR t.id IS NULL;",
                     )?;
-                    stmt.query_map([], |row| {
-                        Ok((row.get(0)?, row.get(1)?))
-                    })?.filter_map(|r| r.ok()).collect()
+                    stmt.query_map([], |row| Ok((row.get(0)?, row.get(1)?)))?
+                        .filter_map(|r| r.ok())
+                        .collect()
                 };
 
                 let orphan_count = orphans.len();
                 if orphan_count > 0 {
                     use hmac::{Hmac, Mac};
                     use sha2::Sha256;
-                    
+
                     // For auditability and traceability, we use a stable application key.
                     // In a production environment, this should be fetched from a KMS or secure enclave.
                     let key = b"PRERNA_STABLE_QUARANTINE_KEY_001";
-                    let mac = Hmac::<Sha256>::new_from_slice(key).expect("HMAC can take key of any size");
+                    let mac =
+                        Hmac::<Sha256>::new_from_slice(key).expect("HMAC can take key of any size");
 
                     for (p_id, t_id) in orphans {
                         let mut p_mac = mac.clone();
@@ -280,17 +281,18 @@ impl Database {
                          )
                          SELECT parent_user_id, teen_user_id FROM Ranked WHERE rn > 1;"
                     )?;
-                    stmt.query_map([], |row| {
-                        Ok((row.get(0)?, row.get(1)?))
-                    })?.filter_map(|r| r.ok()).collect()
+                    stmt.query_map([], |row| Ok((row.get(0)?, row.get(1)?)))?
+                        .filter_map(|r| r.ok())
+                        .collect()
                 };
 
                 if !duplicates.is_empty() {
                     use hmac::{Hmac, Mac};
                     use sha2::Sha256;
-                    
+
                     let key = b"PRERNA_STABLE_QUARANTINE_KEY_001";
-                    let mac = Hmac::<Sha256>::new_from_slice(key).expect("HMAC can take key of any size");
+                    let mac =
+                        Hmac::<Sha256>::new_from_slice(key).expect("HMAC can take key of any size");
 
                     for (p_id, t_id) in duplicates {
                         let mut p_mac = mac.clone();
@@ -1045,7 +1047,7 @@ mod tests {
     #[test]
     fn test_revoke_consent_audit_trail() {
         let mut db = Database::new_in_memory("test_secret").unwrap();
-        
+
         // Insert users first to satisfy foreign keys
         db.conn.execute("INSERT INTO users (id, role, name, email, password_hash, created_at) VALUES ('p1', 'parent', 'Parent 1', 'p1@test.com', 'hash', 'now')", []).unwrap();
         db.conn.execute("INSERT INTO users (id, role, name, email, password_hash, created_at) VALUES ('t1', 'teen', 'Teen 1', 't1@test.com', 'hash', 'now')", []).unwrap();
@@ -1332,24 +1334,29 @@ mod tests {
             .conn
             .query_row("PRAGMA foreign_keys;", [], |r| r.get(0))
             .unwrap();
-        assert_eq!(fk_on, 1, "Foreign keys must be enabled at the connection level");
+        assert_eq!(
+            fk_on, 1,
+            "Foreign keys must be enabled at the connection level"
+        );
 
         // B. Declared constraints
         let mut stmt = db
             .conn
             .prepare("PRAGMA foreign_key_list(parent_teen_relationships);")
             .unwrap();
-        
+
         let mut has_parent_fk = false;
         let mut has_teen_fk = false;
 
-        let rows = stmt.query_map([], |row| {
-            let table: String = row.get(2)?;
-            let from: String = row.get(3)?;
-            let to: String = row.get(4)?;
-            let on_delete: String = row.get(6)?;
-            Ok((table, from, to, on_delete))
-        }).unwrap();
+        let rows = stmt
+            .query_map([], |row| {
+                let table: String = row.get(2)?;
+                let from: String = row.get(3)?;
+                let to: String = row.get(4)?;
+                let on_delete: String = row.get(6)?;
+                Ok((table, from, to, on_delete))
+            })
+            .unwrap();
 
         for row in rows {
             let (table, from, to, on_delete) = row.unwrap();
@@ -1364,7 +1371,10 @@ mod tests {
             }
         }
 
-        assert!(has_parent_fk && has_teen_fk, "Both foreign keys must be declared");
+        assert!(
+            has_parent_fk && has_teen_fk,
+            "Both foreign keys must be declared"
+        );
 
         // C. Behavioral enforcement
         // Attempt invalid insert
@@ -1373,7 +1383,10 @@ mod tests {
              VALUES ('rel_1', 'nonexistent_parent', 'nonexistent_teen', '2023-01-01')",
             [],
         );
-        assert!(invalid_insert.is_err(), "SECURITY VULNERABILITY: Database allowed invalid FK insert");
+        assert!(
+            invalid_insert.is_err(),
+            "SECURITY VULNERABILITY: Database allowed invalid FK insert"
+        );
 
         // Verify Cascade behavior
         db.conn.execute(
@@ -1382,24 +1395,37 @@ mod tests {
         db.conn.execute(
             "INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('real_teen', 't1', 'hash', 'date', 'teen')", []
         ).unwrap();
-        
+
         db.conn.execute(
             "INSERT INTO parent_teen_relationships (id, parent_user_id, teen_user_id, established_at) 
              VALUES ('rel_valid', 'real_parent', 'real_teen', '2023-01-01')", []
         ).unwrap();
 
         // Delete teen and verify relationship cascades
-        db.conn.execute("DELETE FROM users WHERE id = 'real_teen'", []).unwrap();
-        let remaining_rels: i32 = db.conn.query_row("SELECT COUNT(*) FROM parent_teen_relationships", [], |r| r.get(0)).unwrap();
-        assert_eq!(remaining_rels, 0, "SECURITY VULNERABILITY: Foreign key ON DELETE CASCADE failed");
+        db.conn
+            .execute("DELETE FROM users WHERE id = 'real_teen'", [])
+            .unwrap();
+        let remaining_rels: i32 = db
+            .conn
+            .query_row("SELECT COUNT(*) FROM parent_teen_relationships", [], |r| {
+                r.get(0)
+            })
+            .unwrap();
+        assert_eq!(
+            remaining_rels, 0,
+            "SECURITY VULNERABILITY: Foreign key ON DELETE CASCADE failed"
+        );
     }
 
     #[test]
     fn test_migration_fixtures() {
         // Setup legacy database with legacy schema
-        let mut db = Database { conn: Connection::open_in_memory().unwrap() };
-        db.conn.execute_batch(
-            "CREATE TABLE users (
+        let mut db = Database {
+            conn: Connection::open_in_memory().unwrap(),
+        };
+        db.conn
+            .execute_batch(
+                "CREATE TABLE users (
                 id TEXT PRIMARY KEY,
                 username TEXT UNIQUE NOT NULL,
                 password_hash TEXT NOT NULL,
@@ -1421,8 +1447,9 @@ mod tests {
                 provider_reference TEXT
             );
             CREATE TABLE schema_migrations (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL);
-            "
-        ).unwrap();
+            ",
+            )
+            .unwrap();
 
         // Case A: Clean legacy DB
         db.conn.execute("INSERT INTO users (id, username, password_hash, created_at) VALUES ('p_A', 'pa', 'h', 'd')", []).unwrap();
@@ -1449,16 +1476,32 @@ mod tests {
         db.apply_migration_2().unwrap();
 
         // Assertions
-        
+
         // 1. Valid relationships retained?
         // Case A + 1 Deduplicated Case D = 2 valid relationships
-        let valid_count: i32 = db.conn.query_row("SELECT COUNT(*) FROM parent_teen_relationships", [], |r| r.get(0)).unwrap();
-        assert_eq!(valid_count, 2, "Should retain Case A and deduplicated Case D");
+        let valid_count: i32 = db
+            .conn
+            .query_row("SELECT COUNT(*) FROM parent_teen_relationships", [], |r| {
+                r.get(0)
+            })
+            .unwrap();
+        assert_eq!(
+            valid_count, 2,
+            "Should retain Case A and deduplicated Case D"
+        );
 
         // 2. Quarantine correctness
         // Case B (orphan), Case C (orphan), 2 x duplicates from Case D = 4 quarantined
-        let quarantined_count: i32 = db.conn.query_row("SELECT COUNT(*) FROM orphaned_relationships", [], |r| r.get(0)).unwrap();
-        assert_eq!(quarantined_count, 4, "Should quarantine B, C, and 2 duplicates from D");
+        let quarantined_count: i32 = db
+            .conn
+            .query_row("SELECT COUNT(*) FROM orphaned_relationships", [], |r| {
+                r.get(0)
+            })
+            .unwrap();
+        assert_eq!(
+            quarantined_count, 4,
+            "Should quarantine B, C, and 2 duplicates from D"
+        );
 
         let duplicate_quarantine: i32 = db.conn.query_row("SELECT COUNT(*) FROM orphaned_relationships WHERE reason = 'Duplicate relationship'", [], |r| r.get(0)).unwrap();
         assert_eq!(duplicate_quarantine, 2);
@@ -1469,34 +1512,41 @@ mod tests {
 
     #[test]
     fn test_migration_rollback_failure() {
-        let mut db = Database { conn: Connection::open_in_memory().unwrap() };
-        db.conn.execute_batch(
-            "CREATE TABLE users (id TEXT PRIMARY KEY);
+        let mut db = Database {
+            conn: Connection::open_in_memory().unwrap(),
+        };
+        db.conn
+            .execute_batch(
+                "CREATE TABLE users (id TEXT PRIMARY KEY);
             CREATE TABLE parent_teen_relationships (
                 id TEXT PRIMARY KEY,
                 parent_user_id TEXT,
                 teen_user_id TEXT,
                 established_at TEXT
-            );"
-        ).unwrap();
+            );",
+            )
+            .unwrap();
 
         db.conn.execute("INSERT INTO parent_teen_relationships (id, parent_user_id, teen_user_id, established_at) VALUES ('r1', 'p1', 't1', '2023')", []).unwrap();
 
         // We deliberately inject a syntax error into migration 2 by temporarily hooking or we can simulate it
         // by making the copy valid rows query fail. We'll simulate by manually opening transaction and running bad SQL.
         let result = db.conn.execute_batch("BEGIN IMMEDIATE; CREATE TABLE test_fail (id TEXT); INSERT INTO test_fail VALUES (missing_quotes);");
-        
+
         if result.is_err() {
             db.conn.execute_batch("ROLLBACK;").unwrap();
         }
 
         // Verify that the table wasn't touched and no intermediate state exists
-        let table_exists: i32 = db.conn.query_row(
-            "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='test_fail';",
-            [],
-            |r| r.get(0)
-        ).unwrap();
-        
+        let table_exists: i32 = db
+            .conn
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='test_fail';",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+
         assert_eq!(table_exists, 0, "Failed migration must rollback completely");
     }
 }

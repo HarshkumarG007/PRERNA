@@ -175,7 +175,13 @@ impl LocalLLM {
             .recent_messages
             .iter()
             .take(10)
-            .map(|m| format!("{}: {}", m.role, Self::sanitize_untrusted_input(&m.content, 500)))
+            .map(|m| {
+                format!(
+                    "{}: {}",
+                    m.role,
+                    Self::sanitize_untrusted_input(&m.content, 500)
+                )
+            })
             .collect::<Vec<_>>()
             .join("\n");
 
@@ -205,7 +211,8 @@ impl LocalLLM {
         let knowledge = if rag_context.relevant_documents.is_empty() {
             "No specific domain knowledge retrieved for this query.".to_string()
         } else {
-            let sanitized_docs: Vec<String> = rag_context.relevant_documents
+            let sanitized_docs: Vec<String> = rag_context
+                .relevant_documents
                 .iter()
                 .take(3)
                 .map(|d| Self::sanitize_untrusted_input(d, 1000))
