@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Brain, Heart, Compass, Sparkles, Star } from 'lucide-react';
-import { QUESTIONNAIRE_ITEMS, TOTAL_QUESTIONS } from '../../engine/assessment/questionnaireData';
-import { scoreQuestionnaire, deriveArchetype, buildLLMSynthesisPrompt, RawResponse } from '../../engine/assessment/scoringEngine';
+import { deriveArchetype, buildLLMSynthesisPrompt, ScoredProfile } from '../../engine/assessment/scoringEngine';
+import { generateAssessment, scoreFusionProfile, RawFusionResponse } from '../../engine/assessment/fusionEngine';
 import { useAppStore } from '../../store';
 import { safeInvoke } from '../../utils/mockBackend';
 
@@ -28,14 +28,25 @@ const LIKERT_COLORS = [
 
 export const SelfDiscoveryJourney: React.FC<SelfDiscoveryJourneyProps> = ({ onComplete }) => {
   const { updateProfile } = useAppStore();
+  
+  const assessmentItems = React.useMemo(() => {
+    return generateAssessment().map(item => ({
+      id: item.id,
+      text: item.text,
+      category: (item.source === 'IPIP' ? 'personality' : 'career') as 'personality' | 'career' | 'emotional',
+      emoji: item.source === 'IPIP' ? '🧠' : '🧭'
+    }));
+  }, []);
+  const TOTAL_QUESTIONS = assessmentItems.length;
+
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [responses, setResponses] = useState<RawResponse[]>([]);
+  const [responses, setResponses] = useState<RawFusionResponse[]>([]);
   const [selectedScore, setSelectedScore] = useState<number | null>(null);
   const [isComplete, setIsComplete] = useState(false);
   const [archetype, setArchetype] = useState<ReturnType<typeof deriveArchetype> | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const currentItem = QUESTIONNAIRE_ITEMS[currentIndex];
+  const currentItem = assessmentItems[currentIndex] || assessmentItems[0];
   const progress = (currentIndex / TOTAL_QUESTIONS) * 100;
   const categoryMeta = CATEGORY_META[currentItem.category];
 
@@ -43,7 +54,7 @@ export const SelfDiscoveryJourney: React.FC<SelfDiscoveryJourneyProps> = ({ onCo
     setSelectedScore(score);
 
     setTimeout(async () => {
-      const newResponses = [...responses, { questionId: currentItem.id, score }];
+      const newResponses = [...responses, { itemId: currentItem.id, score }];
       setResponses(newResponses);
       setSelectedScore(null);
 
@@ -52,10 +63,30 @@ export const SelfDiscoveryJourney: React.FC<SelfDiscoveryJourneyProps> = ({ onCo
       } else {
         // All done — score and derive archetype
         setIsProcessing(true);
-        const scoredProfile = scoreQuestionnaire(newResponses);
+        const fusionSnapshot = scoreFusionProfile(newResponses);
+        
+        // Adapt to ScoredProfile for archetype derivation
+        const scoredProfile: ScoredProfile = {
+          ...fusionSnapshot.big_five,
+          ...fusionSnapshot.riasec,
+          // fusionEngine doesn't provide emotional scores yet, stub them
+          empathy: 75,
+          resilience: 70,
+          impulseControl: 65,
+          emotionalAwareness: 70,
+          socialIntuition: 68
+        };
+        
         const detectedArchetype = deriveArchetype(scoredProfile);
         setArchetype(detectedArchetype);
         
+        // Save the profile to backend (FE-2 Requirement)
+        try {
+          await safeInvoke('save_unified_profile', { profileData: JSON.stringify(fusionSnapshot) });
+        } catch (e) {
+          console.error("Failed to save profile to backend:", e);
+        }
+
         // Generate personalized LLM report
         const prompt = buildLLMSynthesisPrompt('Teen', scoredProfile, detectedArchetype); // Teen name could be dynamic
         const llmReport = await safeInvoke<string>('generate_llm_text', { prompt });
