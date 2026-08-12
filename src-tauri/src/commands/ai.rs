@@ -272,7 +272,7 @@ fn suggest_actions(message: &str, sentiment: &str) -> Vec<String> {
 }
 
 fn format_riasec(riasec: &crate::db::models::Riasec) -> String {
-    let mut scores = vec![
+    let mut scores = [
         ("Realistic", riasec.realistic),
         ("Investigative", riasec.investigative),
         ("Artistic", riasec.artistic),

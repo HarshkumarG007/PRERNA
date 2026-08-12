@@ -93,10 +93,10 @@ pub fn generate_school_report(
     }
 
     let mut sorted_careers: Vec<_> = career_counts.into_iter().collect();
-    sorted_careers.sort_by(|a, b| b.1.cmp(&a.1));
+    sorted_careers.sort_by_key(|b| std::cmp::Reverse(b.1));
 
     let mut sorted_strengths: Vec<_> = strength_counts.into_iter().collect();
-    sorted_strengths.sort_by(|a, b| b.1.cmp(&a.1));
+    sorted_strengths.sort_by_key(|b| std::cmp::Reverse(b.1));
 
     Ok(SchoolAnalyticsReport {
         cohort_size: all_snapshots.len(),

@@ -1061,7 +1061,7 @@ mod tests {
             []
         ).unwrap();
 
-        assert_eq!(db.check_parent_teen_link("p1", "t1").unwrap(), true);
+        assert!(db.check_parent_teen_link("p1", "t1").unwrap());
 
         // Soft delete (simulate revoke_consent)
         db.conn.execute(
@@ -1070,7 +1070,7 @@ mod tests {
         ).unwrap();
 
         // Prove access is denied
-        assert_eq!(db.check_parent_teen_link("p1", "t1").unwrap(), false);
+        assert!(!db.check_parent_teen_link("p1", "t1").unwrap());
 
         // Prove row is retained for audit
         let status: String = db
