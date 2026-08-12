@@ -707,10 +707,12 @@ mod tests {
         let user_id = "test_user_delete_audit";
 
         // 1. Insert a user
-        db.conn.execute(
-            "INSERT INTO users (id, created_at, age_range, region, language, encryption_key_hash) VALUES (?1, '2023-01-01', '13-15', 'enc_reg', 'en', 'hash')",
-            [user_id]
-        ).unwrap();
+        db.conn
+            .execute(
+                "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash) VALUES (?1, 'testuser', 'hash', '2023-01-01', '13-15', 'enc_reg', 'en', 'hash')",
+                [user_id],
+            )
+            .unwrap();
 
         // 2. Insert mock data across sensitive tables
         db.conn.execute(
@@ -887,6 +889,7 @@ mod tests {
         assert_eq!(pending[0].id, "crisis_1");
 
         // 4. Resolve it
+        db.claim_crisis_event("crisis_1", "doc_123").unwrap();
         let resolve_res = db.resolve_crisis_event(
             "crisis_1",
             "doc_123",

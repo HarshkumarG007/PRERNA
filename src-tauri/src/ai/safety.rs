@@ -106,6 +106,7 @@ impl SafetyFilter {
             "better off without me",
             "no reason to live",
             "can't keep going",
+            "can't go on anymore",
             "i'm done with everything",
             "made my preparations",
             "already made preparations",
