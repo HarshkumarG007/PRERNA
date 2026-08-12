@@ -1,6 +1,9 @@
+use app_lib::db::{
+    models::{AssessmentSession, NewUser},
+    Database,
+};
 use criterion::{criterion_group, criterion_main, Criterion};
 use rusqlite::Connection;
-use app_lib::db::{Database, models::{AssessmentSession, NewUser}};
 
 // PRERNA System Benchmarks (P5-4)
 // Measures AES-256 local encryption latency and SQLite insertion performance
@@ -18,9 +21,11 @@ fn bench_session_save(c: &mut Criterion) {
         region: "Delhi".to_string(),
         language: "en".to_string(),
     };
-    
-    let user_id = db.create_user(&user).unwrap_or_else(|_| "test_user".to_string());
-    
+
+    let user_id = db
+        .create_user(&user)
+        .unwrap_or_else(|_| "test_user".to_string());
+
     c.bench_function("save_session_encrypted", |b| {
         b.iter(|| {
             let session = AssessmentSession {

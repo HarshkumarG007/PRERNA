@@ -46,7 +46,11 @@ impl DomainRag {
         }
     }
 
-    pub fn retrieve_context(&self, query: &str, teen_profile: &serde_json::Value) -> Result<RagContext> {
+    pub fn retrieve_context(
+        &self,
+        query: &str,
+        teen_profile: &serde_json::Value,
+    ) -> Result<RagContext> {
         info!("Retrieving domain context for query: {}", query);
         let mut relevant = Vec::new();
 
@@ -54,9 +58,18 @@ impl DomainRag {
         let big_five = teen_profile.get("bigFive").and_then(|v| v.as_object());
         let emotional = teen_profile.get("emotional").and_then(|v| v.as_object());
 
-        let resilience = emotional.and_then(|o| o.get("resilience")).and_then(|v| v.as_f64()).unwrap_or(50.0);
-        let neuroticism = big_five.and_then(|o| o.get("neuroticism")).and_then(|v| v.as_f64()).unwrap_or(50.0);
-        let conscientiousness = big_five.and_then(|o| o.get("conscientiousness")).and_then(|v| v.as_f64()).unwrap_or(50.0);
+        let resilience = emotional
+            .and_then(|o| o.get("resilience"))
+            .and_then(|v| v.as_f64())
+            .unwrap_or(50.0);
+        let neuroticism = big_five
+            .and_then(|o| o.get("neuroticism"))
+            .and_then(|v| v.as_f64())
+            .unwrap_or(50.0);
+        let conscientiousness = big_five
+            .and_then(|o| o.get("conscientiousness"))
+            .and_then(|v| v.as_f64())
+            .unwrap_or(50.0);
 
         let is_anxious = resilience < 40.0 || neuroticism > 60.0;
         let needs_focus = conscientiousness < 40.0;
@@ -65,10 +78,10 @@ impl DomainRag {
         for doc in &self.knowledge_base {
             // Semantic keyword match
             let q = query.to_lowercase();
-            let semantic_match = q.contains("stress") ||
-                                 q.contains("focus") ||
-                                 q.contains("sleep") ||
-                                 q.contains("study");
+            let semantic_match = q.contains("stress")
+                || q.contains("focus")
+                || q.contains("sleep")
+                || q.contains("study");
 
             // Trait matching
             let trait_match = match doc.target_trait.as_deref() {
@@ -93,7 +106,7 @@ impl DomainRag {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::db::models::{TraitSnapshot, BigFive, Riasec};
+    use crate::db::models::{BigFive, Riasec, TraitSnapshot};
 
     #[test]
     fn test_rag_retrieval_profile_filtering() {
@@ -117,7 +130,9 @@ mod tests {
 
         // Assert retrieved docs contain calming techniques (Pranayama)
         assert!(
-            docs.relevant_documents.iter().any(|d| d.contains("4-7-8 Breathing")),
+            docs.relevant_documents
+                .iter()
+                .any(|d| d.contains("4-7-8 Breathing")),
             "High neuroticism should retrieve grounding Pranayama"
         );
     }

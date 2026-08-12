@@ -1,7 +1,7 @@
-use rusqlite::{Connection, Result, params, OptionalExtension};
-use std::path::PathBuf;
 use anyhow::{Context, Result as AnyhowResult};
 use log::info;
+use rusqlite::{params, Connection, OptionalExtension, Result};
+use std::path::PathBuf;
 use zeroize::{Zeroize, Zeroizing};
 
 pub mod models;
@@ -89,18 +89,28 @@ impl Database {
     }
 
     fn init_schema(&mut self) -> AnyhowResult<()> {
-        self.conn.execute_batch(SCHEMA_SQL)
+        self.conn
+            .execute_batch(SCHEMA_SQL)
             .context("Failed to initialize database schema")?;
 
         // Run migrations for MFA columns if they don't exist
-        let _ = self.conn.execute("ALTER TABLE users ADD COLUMN mfa_secret TEXT", []);
-        let _ = self.conn.execute("ALTER TABLE users ADD COLUMN mfa_enabled BOOLEAN DEFAULT 0", []);
+        let _ = self
+            .conn
+            .execute("ALTER TABLE users ADD COLUMN mfa_secret TEXT", []);
+        let _ = self.conn.execute(
+            "ALTER TABLE users ADD COLUMN mfa_enabled BOOLEAN DEFAULT 0",
+            [],
+        );
 
         // T3: Parent-teen relationship table for real authorization
         // Dropping for development purposes to apply Phase 4 schema changes
-        let _ = self.conn.execute_batch("DROP TABLE IF EXISTS parent_teen_relationships;");
+        let _ = self
+            .conn
+            .execute_batch("DROP TABLE IF EXISTS parent_teen_relationships;");
 
-        self.conn.execute_batch("
+        self.conn
+            .execute_batch(
+                "
             CREATE TABLE IF NOT EXISTS parent_teen_relationships (
                 id TEXT PRIMARY KEY,
                 parent_user_id TEXT NOT NULL,
@@ -117,7 +127,9 @@ impl Database {
                 provider_reference TEXT,
                 UNIQUE(parent_user_id, teen_user_id)
             );
-        ").context("Failed to create parent_teen_relationships table")?;
+        ",
+            )
+            .context("Failed to create parent_teen_relationships table")?;
 
         info!("Database schema initialized");
         Ok(())
@@ -154,25 +166,27 @@ impl Database {
              FROM users WHERE username = ?1"
         )?;
 
-        let user = stmt.query_row([username], |row| {
-            let region_enc: String = row.get(5)?;
-            let lang_enc: String = row.get(6)?;
+        let user = stmt
+            .query_row([username], |row| {
+                let region_enc: String = row.get(5)?;
+                let lang_enc: String = row.get(6)?;
 
-            Ok(User {
-                id: row.get(0)?,
-                username: row.get(1)?,
-                password_hash: row.get(2)?,
-                created_at: row.get(3)?,
-                age_range: row.get(4)?,
-                region: self.decrypt_field(&region_enc).unwrap_or_default(),
-                language: self.decrypt_field(&lang_enc).unwrap_or_default(),
-                encryption_key_hash: row.get(7)?,
-                mfa_secret: row.get(8).ok(),
-                mfa_enabled: row.get(9).unwrap_or(false),
-                role: row.get(10).unwrap_or_else(|_| "teen".to_string()),
-                tenant_id: row.get(11).ok(),
+                Ok(User {
+                    id: row.get(0)?,
+                    username: row.get(1)?,
+                    password_hash: row.get(2)?,
+                    created_at: row.get(3)?,
+                    age_range: row.get(4)?,
+                    region: self.decrypt_field(&region_enc).unwrap_or_default(),
+                    language: self.decrypt_field(&lang_enc).unwrap_or_default(),
+                    encryption_key_hash: row.get(7)?,
+                    mfa_secret: row.get(8).ok(),
+                    mfa_enabled: row.get(9).unwrap_or(false),
+                    role: row.get(10).unwrap_or_else(|_| "teen".to_string()),
+                    tenant_id: row.get(11).ok(),
+                })
             })
-        }).optional()?;
+            .optional()?;
 
         Ok(user)
     }
@@ -183,25 +197,27 @@ impl Database {
              FROM users WHERE id = ?1"
         )?;
 
-        let user = stmt.query_row([user_id], |row| {
-            let region_enc: String = row.get(5)?;
-            let lang_enc: String = row.get(6)?;
+        let user = stmt
+            .query_row([user_id], |row| {
+                let region_enc: String = row.get(5)?;
+                let lang_enc: String = row.get(6)?;
 
-            Ok(User {
-                id: row.get(0)?,
-                username: row.get(1)?,
-                password_hash: row.get(2)?,
-                created_at: row.get(3)?,
-                age_range: row.get(4)?,
-                region: self.decrypt_field(&region_enc).unwrap_or_default(),
-                language: self.decrypt_field(&lang_enc).unwrap_or_default(),
-                encryption_key_hash: row.get(7)?,
-                mfa_secret: row.get(8).ok(),
-                mfa_enabled: row.get(9).unwrap_or(false),
-                role: row.get(10).unwrap_or_else(|_| "teen".to_string()),
-                tenant_id: row.get(11).ok(),
+                Ok(User {
+                    id: row.get(0)?,
+                    username: row.get(1)?,
+                    password_hash: row.get(2)?,
+                    created_at: row.get(3)?,
+                    age_range: row.get(4)?,
+                    region: self.decrypt_field(&region_enc).unwrap_or_default(),
+                    language: self.decrypt_field(&lang_enc).unwrap_or_default(),
+                    encryption_key_hash: row.get(7)?,
+                    mfa_secret: row.get(8).ok(),
+                    mfa_enabled: row.get(9).unwrap_or(false),
+                    role: row.get(10).unwrap_or_else(|_| "teen".to_string()),
+                    tenant_id: row.get(11).ok(),
+                })
             })
-        }).optional()?;
+            .optional()?;
 
         Ok(user)
     }
@@ -223,7 +239,7 @@ impl Database {
         let role: Result<String, _> = self.conn.query_row(
             "SELECT role FROM users WHERE id = ?1",
             rusqlite::params![user_id],
-            |row| row.get(0)
+            |row| row.get(0),
         );
         role.unwrap_or_default() == "reviewer"
     }
@@ -232,7 +248,7 @@ impl Database {
         let role: Result<String, _> = self.conn.query_row(
             "SELECT role FROM users WHERE id = ?1",
             rusqlite::params![user_id],
-            |row| row.get(0)
+            |row| row.get(0),
         );
         role.unwrap_or_default() == "educator"
     }
@@ -242,12 +258,12 @@ impl Database {
         let ed_tenant: Result<Option<String>, _> = self.conn.query_row(
             "SELECT tenant_id FROM users WHERE id = ?1",
             rusqlite::params![educator_id],
-            |row| row.get(0)
+            |row| row.get(0),
         );
         let st_tenant: Result<Option<String>, _> = self.conn.query_row(
             "SELECT tenant_id FROM users WHERE id = ?1",
             rusqlite::params![student_id],
-            |row| row.get(0)
+            |row| row.get(0),
         );
 
         match (ed_tenant, st_tenant) {
@@ -288,23 +304,24 @@ impl Database {
              FROM sessions WHERE user_id = ?1 ORDER BY started_at DESC"
         )?;
 
-        let sessions = stmt.query_map([user_id], |row| {
-            let choices_enc: String = row.get(4)?;
-            let traits_enc: String = row.get(5)?;
+        let sessions = stmt
+            .query_map([user_id], |row| {
+                let choices_enc: String = row.get(4)?;
+                let traits_enc: String = row.get(5)?;
 
-            Ok(AssessmentSession {
-                id: row.get(0)?,
-                user_id: user_id.to_string(),
-                session_type: row.get(1)?,
-                started_at: row.get(2)?,
-                completed_at: row.get(3)?,
-                raw_choices: self.decrypt_field(&choices_enc).unwrap_or_default(),
-                derived_traits: self.decrypt_field(&traits_enc).unwrap_or_default(),
-                disclosure_version: row.get(6)?,
-                disclosure_shown_at: row.get(7)?,
-            })
-        })?
-        .collect::<Result<Vec<_>, _>>()?;
+                Ok(AssessmentSession {
+                    id: row.get(0)?,
+                    user_id: user_id.to_string(),
+                    session_type: row.get(1)?,
+                    started_at: row.get(2)?,
+                    completed_at: row.get(3)?,
+                    raw_choices: self.decrypt_field(&choices_enc).unwrap_or_default(),
+                    derived_traits: self.decrypt_field(&traits_enc).unwrap_or_default(),
+                    disclosure_version: row.get(6)?,
+                    disclosure_shown_at: row.get(7)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
 
         Ok(sessions)
     }
@@ -343,19 +360,23 @@ impl Database {
              LIMIT 1"
         )?;
 
-        let snapshot = stmt.query_row([user_id], |row| {
-            Ok(TraitSnapshot {
-                id: row.get(0)?,
-                user_id: user_id.to_string(),
-                snapshot_date: row.get(1)?,
-                item_bank_version: row.get(2)?,
-                big_five: serde_json::from_str(&row.get::<_, String>(3)?).unwrap_or_default(),
-                riasec: serde_json::from_str(&row.get::<_, String>(4)?).unwrap_or_default(),
-                multiple_intel: serde_json::from_str(&row.get::<_, String>(5)?).unwrap_or_default(),
-                emotional_profile: serde_json::from_str(&row.get::<_, String>(6)?).unwrap_or_default(),
-                confidence_score: row.get(7)?,
+        let snapshot = stmt
+            .query_row([user_id], |row| {
+                Ok(TraitSnapshot {
+                    id: row.get(0)?,
+                    user_id: user_id.to_string(),
+                    snapshot_date: row.get(1)?,
+                    item_bank_version: row.get(2)?,
+                    big_five: serde_json::from_str(&row.get::<_, String>(3)?).unwrap_or_default(),
+                    riasec: serde_json::from_str(&row.get::<_, String>(4)?).unwrap_or_default(),
+                    multiple_intel: serde_json::from_str(&row.get::<_, String>(5)?)
+                        .unwrap_or_default(),
+                    emotional_profile: serde_json::from_str(&row.get::<_, String>(6)?)
+                        .unwrap_or_default(),
+                    confidence_score: row.get(7)?,
+                })
             })
-        }).optional()?;
+            .optional()?;
 
         Ok(snapshot)
     }
@@ -368,19 +389,23 @@ impl Database {
              ORDER BY snapshot_date DESC"
         )?;
 
-        let snapshots = stmt.query_map([user_id], |row| {
-            Ok(TraitSnapshot {
-                id: row.get(0)?,
-                user_id: user_id.to_string(),
-                snapshot_date: row.get(1)?,
-                item_bank_version: row.get(2)?,
-                big_five: serde_json::from_str(&row.get::<_, String>(3)?).unwrap_or_default(),
-                riasec: serde_json::from_str(&row.get::<_, String>(4)?).unwrap_or_default(),
-                multiple_intel: serde_json::from_str(&row.get::<_, String>(5)?).unwrap_or_default(),
-                emotional_profile: serde_json::from_str(&row.get::<_, String>(6)?).unwrap_or_default(),
-                confidence_score: row.get(7)?,
-            })
-        })?.collect::<Result<Vec<_>, _>>()?;
+        let snapshots = stmt
+            .query_map([user_id], |row| {
+                Ok(TraitSnapshot {
+                    id: row.get(0)?,
+                    user_id: user_id.to_string(),
+                    snapshot_date: row.get(1)?,
+                    item_bank_version: row.get(2)?,
+                    big_five: serde_json::from_str(&row.get::<_, String>(3)?).unwrap_or_default(),
+                    riasec: serde_json::from_str(&row.get::<_, String>(4)?).unwrap_or_default(),
+                    multiple_intel: serde_json::from_str(&row.get::<_, String>(5)?)
+                        .unwrap_or_default(),
+                    emotional_profile: serde_json::from_str(&row.get::<_, String>(6)?)
+                        .unwrap_or_default(),
+                    confidence_score: row.get(7)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
 
         Ok(snapshots)
     }
@@ -434,19 +459,21 @@ impl Database {
              WHERE human_review_status = 'pending'"
         )?;
 
-        let events = stmt.query_map([], |row| {
-            Ok(CrisisEvent {
-                id: row.get(0)?,
-                user_id: row.get(1)?,
-                detected_at: row.get(2)?,
-                severity: row.get(3)?,
-                human_review_status: row.get(4)?,
-                reviewer_id: row.get(5)?,
-                reviewer_credentials_ref: row.get(6)?,
-                decision: row.get(7)?,
-                teen_informed_at: row.get(8)?,
-            })
-        })?.collect::<Result<Vec<_>, _>>()?;
+        let events = stmt
+            .query_map([], |row| {
+                Ok(CrisisEvent {
+                    id: row.get(0)?,
+                    user_id: row.get(1)?,
+                    detected_at: row.get(2)?,
+                    severity: row.get(3)?,
+                    human_review_status: row.get(4)?,
+                    reviewer_id: row.get(5)?,
+                    reviewer_credentials_ref: row.get(6)?,
+                    decision: row.get(7)?,
+                    teen_informed_at: row.get(8)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
 
         Ok(events)
     }
@@ -457,7 +484,9 @@ impl Database {
             rusqlite::params![reviewer_id, event_id]
         )?;
         if updated == 0 {
-            return Err(anyhow::anyhow!("AlreadyAssigned or event does not exist / not pending"));
+            return Err(anyhow::anyhow!(
+                "AlreadyAssigned or event does not exist / not pending"
+            ));
         }
         Ok(())
     }
@@ -479,7 +508,16 @@ impl Database {
             WHERE id = ?4 AND reviewer_id = ?5 AND human_review_status = 'pending'
         ";
 
-        let updated = self.conn.execute(sql, rusqlite::params![reviewer_credentials_ref, decision, teen_informed_at, event_id, reviewer_id])?;
+        let updated = self.conn.execute(
+            sql,
+            rusqlite::params![
+                reviewer_credentials_ref,
+                decision,
+                teen_informed_at,
+                event_id,
+                reviewer_id
+            ],
+        )?;
         if updated == 0 {
             return Err(anyhow::anyhow!("FATAL STATE MACHINE EXCEPTION: Event is not pending, or not assigned to you, or does not exist."));
         }
@@ -488,7 +526,11 @@ impl Database {
 
     // === PARENT SHARING PREFERENCES ===
 
-    pub fn save_sharing_preferences(&self, user_id: &str, preferences: &crate::db::models::SharingPreferences) -> AnyhowResult<()> {
+    pub fn save_sharing_preferences(
+        &self,
+        user_id: &str,
+        preferences: &crate::db::models::SharingPreferences,
+    ) -> AnyhowResult<()> {
         let prefs_json = serde_json::to_string(preferences)?;
         let encrypted_prefs = self.encrypt_field(&prefs_json)?;
 
@@ -504,14 +546,20 @@ impl Database {
         Ok(())
     }
 
-    pub fn get_sharing_preferences(&self, user_id: &str) -> AnyhowResult<Option<crate::db::models::SharingPreferences>> {
-        let mut stmt = self.conn.prepare("SELECT preferences FROM parent_sharing_preferences WHERE user_id = ?1")?;
+    pub fn get_sharing_preferences(
+        &self,
+        user_id: &str,
+    ) -> AnyhowResult<Option<crate::db::models::SharingPreferences>> {
+        let mut stmt = self
+            .conn
+            .prepare("SELECT preferences FROM parent_sharing_preferences WHERE user_id = ?1")?;
         let mut rows = stmt.query(params![user_id])?;
 
         if let Some(row) = rows.next()? {
             let encrypted_prefs: String = row.get(0)?;
             let decrypted_prefs = self.decrypt_field(&encrypted_prefs)?;
-            let prefs: crate::db::models::SharingPreferences = serde_json::from_str(&decrypted_prefs)?;
+            let prefs: crate::db::models::SharingPreferences =
+                serde_json::from_str(&decrypted_prefs)?;
             Ok(Some(prefs))
         } else {
             Ok(None)
@@ -521,8 +569,8 @@ impl Database {
     // === UTILITY METHODS ===
 
     fn encrypt_field(&self, plaintext: &str) -> AnyhowResult<String> {
-        use aes_gcm::{Aes256Gcm, Key, Nonce};
         use aes_gcm::aead::{Aead, KeyInit};
+        use aes_gcm::{Aes256Gcm, Key, Nonce};
 
         let key = Self::get_or_create_key()?;
         let mut key_bytes = hex::decode(&*key)?;
@@ -533,7 +581,8 @@ impl Database {
         let nonce_bytes = rand::random::<[u8; 12]>();
         let nonce = Nonce::from_slice(&nonce_bytes);
 
-        let ciphertext = cipher.encrypt(nonce, plaintext.as_bytes())
+        let ciphertext = cipher
+            .encrypt(nonce, plaintext.as_bytes())
             .map_err(|e| anyhow::anyhow!("Encryption failed: {}", e))?;
 
         let mut result = nonce_bytes.to_vec();
@@ -543,8 +592,8 @@ impl Database {
     }
 
     fn decrypt_field(&self, ciphertext: &str) -> AnyhowResult<String> {
-        use aes_gcm::{Aes256Gcm, Key, Nonce};
         use aes_gcm::aead::{Aead, KeyInit};
+        use aes_gcm::{Aes256Gcm, Key, Nonce};
 
         let key = Self::get_or_create_key()?;
         let mut key_bytes = hex::decode(&*key)?;
@@ -553,7 +602,8 @@ impl Database {
         key_bytes.zeroize();
 
         use base64::Engine;
-        let data = base64::engine::general_purpose::STANDARD.decode(ciphertext)
+        let data = base64::engine::general_purpose::STANDARD
+            .decode(ciphertext)
             .map_err(|e| anyhow::anyhow!("Base64 decode failed: {}", e))?;
         if data.len() < 12 {
             return Err(anyhow::anyhow!("Invalid ciphertext"));
@@ -562,15 +612,16 @@ impl Database {
         let (nonce_bytes, encrypted) = data.split_at(12);
         let nonce = Nonce::from_slice(nonce_bytes);
 
-        let plaintext = cipher.decrypt(nonce, encrypted)
+        let plaintext = cipher
+            .decrypt(nonce, encrypted)
             .map_err(|e| anyhow::anyhow!("Decryption failed: {}", e))?;
 
-        String::from_utf8(plaintext)
-            .map_err(|e| anyhow::anyhow!("Invalid UTF-8: {}", e))
+        String::from_utf8(plaintext).map_err(|e| anyhow::anyhow!("Invalid UTF-8: {}", e))
     }
 
     pub fn export_user_data(&self, user_id: &str) -> AnyhowResult<UserDataExport> {
-        let user = self.get_user(user_id)?
+        let user = self
+            .get_user(user_id)?
             .ok_or_else(|| anyhow::anyhow!("User not found"))?;
 
         let sessions = self.get_user_sessions(user_id)?;
@@ -585,16 +636,33 @@ impl Database {
     }
 
     pub fn delete_user_data(&self, user_id: &str) -> AnyhowResult<()> {
-        self.conn.execute("DELETE FROM micro_interactions WHERE user_id = ?1", [user_id])?;
-        self.conn.execute("DELETE FROM trait_snapshots WHERE user_id = ?1", [user_id])?;
-        self.conn.execute("DELETE FROM sessions WHERE user_id = ?1", [user_id])?;
-        self.conn.execute("DELETE FROM recommendations WHERE user_id = ?1", [user_id])?;
+        self.conn.execute(
+            "DELETE FROM micro_interactions WHERE user_id = ?1",
+            [user_id],
+        )?;
+        self.conn
+            .execute("DELETE FROM trait_snapshots WHERE user_id = ?1", [user_id])?;
+        self.conn
+            .execute("DELETE FROM sessions WHERE user_id = ?1", [user_id])?;
+        self.conn
+            .execute("DELETE FROM recommendations WHERE user_id = ?1", [user_id])?;
         // T9: Fix deletion completeness
-        self.conn.execute("DELETE FROM crisis_events WHERE user_id = ?1", [user_id])?;
-        self.conn.execute("DELETE FROM parent_teen_relationships WHERE teen_user_id = ?1 OR parent_user_id = ?1", [user_id])?;
-        self.conn.execute("DELETE FROM parent_sharing_preferences WHERE user_id = ?1", [user_id])?;
-        self.conn.execute("DELETE FROM audit_log WHERE details LIKE '%' || ?1 || '%'", [user_id])?;
-        self.conn.execute("DELETE FROM users WHERE id = ?1", [user_id])?;
+        self.conn
+            .execute("DELETE FROM crisis_events WHERE user_id = ?1", [user_id])?;
+        self.conn.execute(
+            "DELETE FROM parent_teen_relationships WHERE teen_user_id = ?1 OR parent_user_id = ?1",
+            [user_id],
+        )?;
+        self.conn.execute(
+            "DELETE FROM parent_sharing_preferences WHERE user_id = ?1",
+            [user_id],
+        )?;
+        self.conn.execute(
+            "DELETE FROM audit_log WHERE details LIKE '%' || ?1 || '%'",
+            [user_id],
+        )?;
+        self.conn
+            .execute("DELETE FROM users WHERE id = ?1", [user_id])?;
 
         info!("Deleted all data for user {}", user_id);
         Ok(())
@@ -613,7 +681,9 @@ impl Database {
 
 fn get_db_path(app_handle: &tauri::AppHandle) -> AnyhowResult<PathBuf> {
     use tauri::Manager;
-    let app_dir = app_handle.path().app_data_dir()
+    let app_dir = app_handle
+        .path()
+        .app_data_dir()
         .context("Failed to get app data directory")?;
     Ok(app_dir.join("prerna_encrypted.db"))
 }
@@ -664,29 +734,94 @@ mod tests {
         ).unwrap();
 
         // 3. Verify data exists
-        let count_users: i64 = db.conn.query_row("SELECT COUNT(*) FROM users WHERE id = ?1", [user_id], |row| row.get(0)).unwrap();
+        let count_users: i64 = db
+            .conn
+            .query_row(
+                "SELECT COUNT(*) FROM users WHERE id = ?1",
+                [user_id],
+                |row| row.get(0),
+            )
+            .unwrap();
         assert_eq!(count_users, 1);
-        let count_sessions: i64 = db.conn.query_row("SELECT COUNT(*) FROM sessions WHERE user_id = ?1", [user_id], |row| row.get(0)).unwrap();
+        let count_sessions: i64 = db
+            .conn
+            .query_row(
+                "SELECT COUNT(*) FROM sessions WHERE user_id = ?1",
+                [user_id],
+                |row| row.get(0),
+            )
+            .unwrap();
         assert_eq!(count_sessions, 1);
 
         // 4. Trigger deletion
-        db.delete_user_data(user_id).expect("Delete operation failed");
+        db.delete_user_data(user_id)
+            .expect("Delete operation failed");
 
         // 5. Hard Audit: Verify NO data remains for this user
-        let count_users_after: i64 = db.conn.query_row("SELECT COUNT(*) FROM users WHERE id = ?1", [user_id], |row| row.get(0)).unwrap();
-        assert_eq!(count_users_after, 0, "Zero-knowledge violation: User record remained");
+        let count_users_after: i64 = db
+            .conn
+            .query_row(
+                "SELECT COUNT(*) FROM users WHERE id = ?1",
+                [user_id],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(
+            count_users_after, 0,
+            "Zero-knowledge violation: User record remained"
+        );
 
-        let count_sessions_after: i64 = db.conn.query_row("SELECT COUNT(*) FROM sessions WHERE user_id = ?1", [user_id], |row| row.get(0)).unwrap();
-        assert_eq!(count_sessions_after, 0, "Zero-knowledge violation: Sessions remained");
+        let count_sessions_after: i64 = db
+            .conn
+            .query_row(
+                "SELECT COUNT(*) FROM sessions WHERE user_id = ?1",
+                [user_id],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(
+            count_sessions_after, 0,
+            "Zero-knowledge violation: Sessions remained"
+        );
 
-        let count_traits_after: i64 = db.conn.query_row("SELECT COUNT(*) FROM trait_snapshots WHERE user_id = ?1", [user_id], |row| row.get(0)).unwrap();
-        assert_eq!(count_traits_after, 0, "Zero-knowledge violation: Traits remained");
+        let count_traits_after: i64 = db
+            .conn
+            .query_row(
+                "SELECT COUNT(*) FROM trait_snapshots WHERE user_id = ?1",
+                [user_id],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(
+            count_traits_after, 0,
+            "Zero-knowledge violation: Traits remained"
+        );
 
-        let count_interactions_after: i64 = db.conn.query_row("SELECT COUNT(*) FROM micro_interactions WHERE user_id = ?1", [user_id], |row| row.get(0)).unwrap();
-        assert_eq!(count_interactions_after, 0, "Zero-knowledge violation: Interactions remained");
+        let count_interactions_after: i64 = db
+            .conn
+            .query_row(
+                "SELECT COUNT(*) FROM micro_interactions WHERE user_id = ?1",
+                [user_id],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(
+            count_interactions_after, 0,
+            "Zero-knowledge violation: Interactions remained"
+        );
 
-        let count_crisis_after: i64 = db.conn.query_row("SELECT COUNT(*) FROM crisis_events WHERE user_id = ?1", [user_id], |row| row.get(0)).unwrap();
-        assert_eq!(count_crisis_after, 0, "Zero-knowledge violation (T9): Crisis events remained");
+        let count_crisis_after: i64 = db
+            .conn
+            .query_row(
+                "SELECT COUNT(*) FROM crisis_events WHERE user_id = ?1",
+                [user_id],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(
+            count_crisis_after, 0,
+            "Zero-knowledge violation (T9): Crisis events remained"
+        );
     }
 
     #[test]
@@ -709,7 +844,14 @@ mod tests {
         assert_eq!(db.check_parent_teen_link("p1", "t1").unwrap(), false);
 
         // Prove row is retained for audit
-        let status: String = db.conn.query_row("SELECT status FROM parent_teen_relationships WHERE id = '1'", [], |r| r.get(0)).unwrap();
+        let status: String = db
+            .conn
+            .query_row(
+                "SELECT status FROM parent_teen_relationships WHERE id = '1'",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
         assert_eq!(status, "revoked");
     }
 
@@ -750,7 +892,7 @@ mod tests {
             "doc_123",
             "lcsw_ref",
             "GuardianNotified",
-            Some(1620000000)
+            Some(1620000000),
         );
         assert!(resolve_res.is_ok(), "Should resolve successfully");
 
@@ -764,9 +906,12 @@ mod tests {
             "doc_123",
             "lcsw_ref",
             "GuardianNotified",
-            Some(1620000000)
+            Some(1620000000),
         );
-        assert!(resolve_res_2.is_err(), "FATAL STATE MACHINE EXCEPTION: Should not resolve an already resolved event");
+        assert!(
+            resolve_res_2.is_err(),
+            "FATAL STATE MACHINE EXCEPTION: Should not resolve an already resolved event"
+        );
     }
 
     #[test]
@@ -796,7 +941,8 @@ mod tests {
         db.create_crisis_event(&event).unwrap();
 
         // Reviewer A claims the event
-        db.claim_crisis_event("synthetic_crisis_01", "doc_123").unwrap();
+        db.claim_crisis_event("synthetic_crisis_01", "doc_123")
+            .unwrap();
 
         // Negative Path A: Unclaimed Reviewer (Reviewer B tries to resolve Reviewer A's event)
         let negative_a_res = db.resolve_crisis_event(
@@ -804,9 +950,12 @@ mod tests {
             "doc_456",
             "lcsw_ref_456",
             "Dismissed",
-            None
+            None,
         );
-        assert!(negative_a_res.is_err(), "Negative Path A failed: Reviewer B could resolve Reviewer A's event");
+        assert!(
+            negative_a_res.is_err(),
+            "Negative Path A failed: Reviewer B could resolve Reviewer A's event"
+        );
 
         // Negative Path B: Guardian Notification Before Teen Notification
         // First we check PolicyEngine directly, as that's where the domain logic lives (in commands, this is checked before calling db)
@@ -816,15 +965,16 @@ mod tests {
         let teen_informed_at: Option<i64> = None;
         let policy_check = crate::policy::PolicyEngine::enforce_guardian_notification_invariant(
             &crate::db::models::CrisisDecision::GuardianNotified,
-            teen_informed_at
+            teen_informed_at,
         );
         assert!(policy_check.is_err(), "Negative Path B failed: PolicyEngine allowed guardian notification without teen informed");
 
         // Positive Path Resolution
-        let policy_check_pass = crate::policy::PolicyEngine::enforce_guardian_notification_invariant(
-            &crate::db::models::CrisisDecision::GuardianNotified,
-            Some(1620001000)
-        );
+        let policy_check_pass =
+            crate::policy::PolicyEngine::enforce_guardian_notification_invariant(
+                &crate::db::models::CrisisDecision::GuardianNotified,
+                Some(1620001000),
+            );
         assert!(policy_check_pass.is_ok());
 
         let resolve_res = db.resolve_crisis_event(
@@ -832,7 +982,7 @@ mod tests {
             "doc_123",
             "lcsw_ref_123",
             "GuardianNotified",
-            Some(1620001000)
+            Some(1620001000),
         );
         assert!(resolve_res.is_ok(), "Positive path failed");
 
@@ -842,9 +992,12 @@ mod tests {
             "doc_123",
             "lcsw_ref_123",
             "GuardianNotified",
-            Some(1620001000)
+            Some(1620001000),
         );
-        assert!(duplicate_res.is_err(), "Negative Path E failed: Allowed duplicate resolution");
+        assert!(
+            duplicate_res.is_err(),
+            "Negative Path E failed: Allowed duplicate resolution"
+        );
     }
 
     #[test]
@@ -878,14 +1031,19 @@ mod tests {
 
         // 2. Pending Event -> Reviewer Claim
         let _claim_clock = base_clock + 1000;
-        db.claim_crisis_event("synthetic_crisis_sla_01", "doc_sla").unwrap();
+        db.claim_crisis_event("synthetic_crisis_sla_01", "doc_sla")
+            .unwrap();
 
         // 3. Test Invalid Transition (Resolution without Teen Notification for GuardianNotification)
-        let policy_check_reject = crate::policy::PolicyEngine::enforce_guardian_notification_invariant(
-            &crate::db::models::CrisisDecision::GuardianNotified,
-            None
+        let policy_check_reject =
+            crate::policy::PolicyEngine::enforce_guardian_notification_invariant(
+                &crate::db::models::CrisisDecision::GuardianNotified,
+                None,
+            );
+        assert!(
+            policy_check_reject.is_err(),
+            "Must reject guardian notification if teen not informed"
         );
-        assert!(policy_check_reject.is_err(), "Must reject guardian notification if teen not informed");
 
         // 4. Test Invalid Reviewer
         let resolve_wrong_reviewer = db.resolve_crisis_event(
@@ -893,24 +1051,39 @@ mod tests {
             "doc_wrong",
             "lcsw_ref_456",
             "Dismissed",
-            None
+            None,
         );
-        assert!(resolve_wrong_reviewer.is_err(), "Must reject resolution by unclaimed reviewer");
+        assert!(
+            resolve_wrong_reviewer.is_err(),
+            "Must reject resolution by unclaimed reviewer"
+        );
 
         // 5. Test SLA Breach
         let late_resolution_clock = base_clock + 8000; // 8000 > 7200
-        let sla_breach_res = crate::policy::PolicyEngine::enforce_sla_timing(base_clock, late_resolution_clock, sla_limit);
-        assert!(sla_breach_res.is_err(), "Must reject or record SLA breach if time exceeds limit");
+        let sla_breach_res = crate::policy::PolicyEngine::enforce_sla_timing(
+            base_clock,
+            late_resolution_clock,
+            sla_limit,
+        );
+        assert!(
+            sla_breach_res.is_err(),
+            "Must reject or record SLA breach if time exceeds limit"
+        );
 
         // 6. Valid sequence within SLA -> succeeds
         let valid_resolution_clock = base_clock + 5000; // 5000 < 7200
-        let sla_valid_res = crate::policy::PolicyEngine::enforce_sla_timing(base_clock, valid_resolution_clock, sla_limit);
+        let sla_valid_res = crate::policy::PolicyEngine::enforce_sla_timing(
+            base_clock,
+            valid_resolution_clock,
+            sla_limit,
+        );
         assert!(sla_valid_res.is_ok(), "Must pass SLA timing");
 
-        let policy_check_pass = crate::policy::PolicyEngine::enforce_guardian_notification_invariant(
-            &crate::db::models::CrisisDecision::GuardianNotified,
-            Some(valid_resolution_clock)
-        );
+        let policy_check_pass =
+            crate::policy::PolicyEngine::enforce_guardian_notification_invariant(
+                &crate::db::models::CrisisDecision::GuardianNotified,
+                Some(valid_resolution_clock),
+            );
         assert!(policy_check_pass.is_ok());
 
         let resolve_res = db.resolve_crisis_event(
@@ -918,8 +1091,11 @@ mod tests {
             "doc_sla",
             "lcsw_ref_123",
             "GuardianNotified",
-            Some(valid_resolution_clock)
+            Some(valid_resolution_clock),
         );
-        assert!(resolve_res.is_ok(), "Valid end-to-end synthetic drill failed");
+        assert!(
+            resolve_res.is_ok(),
+            "Valid end-to-end synthetic drill failed"
+        );
     }
 }

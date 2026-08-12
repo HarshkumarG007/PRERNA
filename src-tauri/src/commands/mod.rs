@@ -2,40 +2,35 @@
 pub mod ai;
 pub mod security_tests;
 
-use tauri::State;
-use crate::db::{DbState};
+use crate::consent::ConsentService;
 use crate::db::models::*;
+use crate::db::DbState;
 use crate::policy::PolicyEngine;
 use crate::ActiveSession;
-use crate::consent::ConsentService;
 use aes_gcm::{
     aead::{Aead, AeadCore, KeyInit, OsRng as AeadOsRng},
     Aes256Gcm, Nonce,
 };
-use base64::{engine::general_purpose::STANDARD as b64, Engine};
 use argon2::{
-    password_hash::{
-        rand_core::OsRng,
-        PasswordHash, PasswordHasher, PasswordVerifier, SaltString
-    },
-    Argon2
+    password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
+    Argon2,
 };
+use base64::{engine::general_purpose::STANDARD as b64, Engine};
+use tauri::State;
 
-use totp_rs::{Algorithm, Secret, TOTP};
-use qrcode::QrCode;
 use qrcode::render::svg;
+use qrcode::QrCode;
+use totp_rs::{Algorithm, Secret, TOTP};
 
 // === USER COMMANDS ===
 
 #[tauri::command]
-pub fn create_user(
-    state: State<DbState>,
-    mut user: NewUser,
-) -> Result<String, String> {
+pub fn create_user(state: State<DbState>, mut user: NewUser) -> Result<String, String> {
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
 
-    let password_hash = argon2.hash_password(user.password_hash.as_bytes(), &salt)
+    let password_hash = argon2
+        .hash_password(user.password_hash.as_bytes(), &salt)
         .map_err(|e| e.to_string())?
         .to_string();
 
@@ -52,9 +47,10 @@ pub fn authenticate_user(
     username: String,
     password_input: String,
 ) -> Result<Option<serde_json::Value>, String> {
-
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    let user_opt = db.authenticate_user_raw(&username).map_err(|e| e.to_string())?;
+    let user_opt = db
+        .authenticate_user_raw(&username)
+        .map_err(|e| e.to_string())?;
 
     if let Some(mut user) = user_opt {
         let mut is_valid = false;
@@ -62,10 +58,12 @@ pub fn authenticate_user(
 
         if user.password_hash.starts_with("$argon2") {
             let parsed_hash = PasswordHash::new(&user.password_hash).map_err(|e| e.to_string())?;
-            is_valid = Argon2::default().verify_password(password_input.as_bytes(), &parsed_hash).is_ok();
+            is_valid = Argon2::default()
+                .verify_password(password_input.as_bytes(), &parsed_hash)
+                .is_ok();
         } else {
             // Legacy SHA-256 fallback (T4 migration path)
-            use sha2::{Sha256, Digest};
+            use sha2::{Digest, Sha256};
             let mut hasher = Sha256::new();
             hasher.update(password_input.as_bytes());
             let hashed_pw = hex::encode(hasher.finalize());
@@ -84,10 +82,12 @@ pub fn authenticate_user(
                     .map_err(|e| e.to_string())?
                     .to_string();
 
-                db.conn.execute(
-                    "UPDATE users SET password_hash = ?1 WHERE id = ?2",
-                    rusqlite::params![new_hash, user.id]
-                ).map_err(|e| e.to_string())?;
+                db.conn
+                    .execute(
+                        "UPDATE users SET password_hash = ?1 WHERE id = ?2",
+                        rusqlite::params![new_hash, user.id],
+                    )
+                    .map_err(|e| e.to_string())?;
                 user.password_hash = new_hash;
             }
 
@@ -123,10 +123,7 @@ pub fn get_user(
 }
 
 #[tauri::command]
-pub fn revoke_consent(
-    state: State<DbState>,
-    session: State<ActiveSession>,
-) -> Result<(), String> {
+pub fn revoke_consent(state: State<DbState>, session: State<ActiveSession>) -> Result<(), String> {
     let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
 
@@ -136,8 +133,11 @@ pub fn revoke_consent(
         rusqlite::params![chrono::Utc::now().to_rfc3339(), user_id]
     ).map_err(|e| e.to_string())?;
 
-    db.insert_audit_log("CONSENT_REVOKED", &format!("Consent revoked for user {}", user_id))
-        .map_err(|e| e.to_string())?;
+    db.insert_audit_log(
+        "CONSENT_REVOKED",
+        &format!("Consent revoked for user {}", user_id),
+    )
+    .map_err(|e| e.to_string())?;
     Ok(())
 }
 
@@ -161,8 +161,9 @@ pub fn submit_consent_token(
     let relationship_id = uuid::Uuid::new_v4().to_string();
     let consent_record_id = uuid::Uuid::new_v4().to_string();
 
-    db.conn.execute(
-        "INSERT INTO parent_teen_relationships (
+    db.conn
+        .execute(
+            "INSERT INTO parent_teen_relationships (
             id, parent_user_id, teen_user_id, established_at, consent_record_id, relationship_id,
             verification_method, status, issued_at, expires_at, verified_at, provider_reference
         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
@@ -175,24 +176,31 @@ pub fn submit_consent_token(
             verified_at = excluded.verified_at,
             consent_record_id = excluded.consent_record_id
         ",
-        rusqlite::params![
-            relationship_id,
-            parent_user_id,
-            teen_user_id,
-            record.issued_at,
-            consent_record_id,
-            relationship_id,
-            record.verification_method,
-            record.status,
-            record.issued_at,
-            record.expires_at.unwrap_or_default(),
-            record.issued_at, // verified_at
-            record.provider_reference
-        ]
-    ).map_err(|e| format!("Database error: {}", e))?;
+            rusqlite::params![
+                relationship_id,
+                parent_user_id,
+                teen_user_id,
+                record.issued_at,
+                consent_record_id,
+                relationship_id,
+                record.verification_method,
+                record.status,
+                record.issued_at,
+                record.expires_at.unwrap_or_default(),
+                record.issued_at, // verified_at
+                record.provider_reference
+            ],
+        )
+        .map_err(|e| format!("Database error: {}", e))?;
 
-    db.insert_audit_log("CONSENT_VERIFIED", &format!("Consent verified for parent {} and teen {}", parent_user_id, teen_user_id))
-        .map_err(|e| e.to_string())?;
+    db.insert_audit_log(
+        "CONSENT_VERIFIED",
+        &format!(
+            "Consent verified for parent {} and teen {}",
+            parent_user_id, teen_user_id
+        ),
+    )
+    .map_err(|e| e.to_string())?;
 
     Ok(())
 }
@@ -226,7 +234,10 @@ pub fn generate_mfa_secret(
 ) -> Result<MfaSetupResponse, String> {
     let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
+    let user = db
+        .get_user(&user_id)
+        .map_err(|e| e.to_string())?
+        .ok_or("User not found")?;
 
     let secret = Secret::generate_secret();
     let totp = TOTP::new(
@@ -237,18 +248,24 @@ pub fn generate_mfa_secret(
         secret.to_bytes().unwrap(),
         Some("PRERNA".to_string()),
         user.username.clone(),
-    ).map_err(|e| e.to_string())?;
+    )
+    .map_err(|e| e.to_string())?;
 
     let url = totp.get_url();
     let code = QrCode::new(url).map_err(|e| e.to_string())?;
-    let svg = code.render()
+    let svg = code
+        .render()
         .min_dimensions(200, 200)
         .dark_color(svg::Color("#6d28d9"))
         .light_color(svg::Color("#ffffff"))
         .build();
 
     // Save secret to DB temporarily or permanently (but not enabled yet)
-    db.conn.execute("UPDATE users SET mfa_secret = ?1 WHERE id = ?2", rusqlite::params![secret.to_string(), user_id])
+    db.conn
+        .execute(
+            "UPDATE users SET mfa_secret = ?1 WHERE id = ?2",
+            rusqlite::params![secret.to_string(), user_id],
+        )
         .map_err(|e| e.to_string())?;
 
     Ok(MfaSetupResponse {
@@ -265,17 +282,32 @@ pub fn verify_mfa_setup(
 ) -> Result<bool, String> {
     let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
+    let user = db
+        .get_user(&user_id)
+        .map_err(|e| e.to_string())?
+        .ok_or("User not found")?;
 
     let secret_str = user.mfa_secret.ok_or("MFA secret not set")?;
     let secret = Secret::Encoded(secret_str);
-    let totp = TOTP::new(Algorithm::SHA1, 6, 1, 30, secret.to_bytes().unwrap(), None, "".to_string())
-        .map_err(|e| e.to_string())?;
+    let totp = TOTP::new(
+        Algorithm::SHA1,
+        6,
+        1,
+        30,
+        secret.to_bytes().unwrap(),
+        None,
+        "".to_string(),
+    )
+    .map_err(|e| e.to_string())?;
 
     let is_valid = totp.check_current(&token).unwrap_or(false);
 
     if is_valid {
-        db.conn.execute("UPDATE users SET mfa_enabled = 1 WHERE id = ?1", rusqlite::params![user_id])
+        db.conn
+            .execute(
+                "UPDATE users SET mfa_enabled = 1 WHERE id = ?1",
+                rusqlite::params![user_id],
+            )
             .map_err(|e| e.to_string())?;
         Ok(true)
     } else {
@@ -292,7 +324,10 @@ pub fn verify_login_mfa(
     let user_id = session.get_pending_mfa_user()?;
 
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
+    let user = db
+        .get_user(&user_id)
+        .map_err(|e| e.to_string())?
+        .ok_or("User not found")?;
 
     if !user.mfa_enabled {
         return Err("MFA not enabled".to_string());
@@ -308,7 +343,8 @@ pub fn verify_login_mfa(
         Secret::Encoded(secret.to_string()).to_bytes().unwrap(),
         Some("PRERNA".to_string()),
         user.username.clone(),
-    ).map_err(|e| e.to_string())?;
+    )
+    .map_err(|e| e.to_string())?;
 
     if totp.check_current(&token).unwrap_or(false) {
         // MFA passed â€” fully commit the session now
@@ -332,9 +368,11 @@ pub fn save_session(
     let user_id = session_state.get_user_id()?;
 
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
+    let user = db
+        .get_user(&user_id)
+        .map_err(|e| e.to_string())?
+        .ok_or("User not found")?;
     PolicyEngine::enforce_under_18_tracking_invariant(&user.age_range, false)?;
-
 
     let full_session = AssessmentSession {
         id: String::new(), // Will be generated
@@ -366,7 +404,10 @@ pub fn save_skill_session(
     let user_id = session_state.get_user_id()?;
 
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
+    let user = db
+        .get_user(&user_id)
+        .map_err(|e| e.to_string())?
+        .ok_or("User not found")?;
     PolicyEngine::enforce_under_18_tracking_invariant(&user.age_range, false)?;
 
     let session = crate::db::models::AssessmentSession {
@@ -392,12 +433,15 @@ pub fn save_unified_profile(
 ) -> Result<String, String> {
     let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
+    let user = db
+        .get_user(&user_id)
+        .map_err(|e| e.to_string())?
+        .ok_or("User not found")?;
     PolicyEngine::enforce_under_18_tracking_invariant(&user.age_range, false)?;
 
     // Parse and validate
-    let profile: serde_json::Value = serde_json::from_str(&profile_data)
-        .map_err(|e| format!("Invalid profile data: {}", e))?;
+    let profile: serde_json::Value =
+        serde_json::from_str(&profile_data).map_err(|e| format!("Invalid profile data: {}", e))?;
 
     // Extract trait snapshot from unified profile
     let snapshot = crate::db::models::TraitSnapshot {
@@ -406,26 +450,37 @@ pub fn save_unified_profile(
         snapshot_date: chrono::Utc::now().to_rfc3339(),
         item_bank_version: "v2-ipip-onet-2026".to_string(),
         big_five: serde_json::from_value(
-            profile.get("personality").and_then(|p| p.get("bigFive")).cloned()
-                .unwrap_or(serde_json::json!({}))
-        ).unwrap_or_default(),
+            profile
+                .get("personality")
+                .and_then(|p| p.get("bigFive"))
+                .cloned()
+                .unwrap_or(serde_json::json!({})),
+        )
+        .unwrap_or_default(),
         riasec: serde_json::from_value(
-            profile.get("personality").and_then(|p| p.get("riasec")).cloned()
-                .unwrap_or(serde_json::json!({}))
-        ).unwrap_or_default(),
+            profile
+                .get("personality")
+                .and_then(|p| p.get("riasec"))
+                .cloned()
+                .unwrap_or(serde_json::json!({})),
+        )
+        .unwrap_or_default(),
         multiple_intel: serde_json::json!({}),
-        emotional_profile: profile.get("personality")
+        emotional_profile: profile
+            .get("personality")
             .and_then(|p| p.get("emotional"))
             .cloned()
             .unwrap_or(serde_json::json!({})),
         // T11: Renamed from confidence_score â€” this is questionnaire completion
         // fraction, not a validated statistical confidence measure.
-        confidence_score: profile.get("archetypeConfidence")
+        confidence_score: profile
+            .get("archetypeConfidence")
             .and_then(|v| v.as_f64())
             .unwrap_or(0.0) as f32, // Defaults to 0 (incomplete), not 0.5 (fake midpoint)
     };
 
-    let snapshot_id = db.save_trait_snapshot(&snapshot)
+    let snapshot_id = db
+        .save_trait_snapshot(&snapshot)
         .map_err(|e| e.to_string())?;
 
     // Also save as session for history
@@ -433,14 +488,14 @@ pub fn save_unified_profile(
         id: String::new(),
         user_id,
         session_type: "unified_profile".to_string(),
-        started_at: profile.get("generatedAt")
+        started_at: profile
+            .get("generatedAt")
             .and_then(|v| v.as_str())
             .unwrap_or("")
             .to_string(),
         completed_at: Some(chrono::Utc::now().to_rfc3339()),
         raw_choices: profile_data,
-        derived_traits: serde_json::to_string(&profile.get("archetype"))
-            .unwrap_or_default(),
+        derived_traits: serde_json::to_string(&profile.get("archetype")).unwrap_or_default(),
         disclosure_version: "system_generated".to_string(),
         disclosure_shown_at: chrono::Utc::now().timestamp(),
     };
@@ -460,7 +515,9 @@ pub fn get_unified_profile(
 
     let sessions = db.get_user_sessions(&user_id).map_err(|e| e.to_string())?;
 
-    let profile_session = sessions.into_iter().find(|s| s.session_type == "unified_profile");
+    let profile_session = sessions
+        .into_iter()
+        .find(|s| s.session_type == "unified_profile");
 
     if let Some(session) = profile_session {
         let profile: serde_json::Value = serde_json::from_str(&session.raw_choices)
@@ -515,7 +572,8 @@ pub fn get_parent_view(
 
     // A parent can only access their own linked teen's data.
     // They cannot access arbitrary teen IDs by guessing.
-    let is_authorized = db.check_parent_teen_link(&parent_id, &request.teen_id)
+    let is_authorized = db
+        .check_parent_teen_link(&parent_id, &request.teen_id)
         .map_err(|e| e.to_string())?;
 
     if let Err(_) = PolicyEngine::enforce_parental_authorization(is_authorized) {
@@ -526,26 +584,40 @@ pub fn get_parent_view(
         });
     }
 
-    let profile = db.get_latest_snapshot(&request.teen_id)
+    let profile = db
+        .get_latest_snapshot(&request.teen_id)
         .map_err(|e| e.to_string())?;
 
     // Load sharing preferences, fallback to restrictive defaults
-    let prefs = db.get_sharing_preferences(&request.teen_id)
+    let prefs = db
+        .get_sharing_preferences(&request.teen_id)
         .map_err(|e| e.to_string())?;
 
     let parent_safe = profile.map(|p| {
         let mut map = serde_json::Map::new();
-        map.insert("last_active".to_string(), serde_json::json!(p.snapshot_date));
+        map.insert(
+            "last_active".to_string(),
+            serde_json::json!(p.snapshot_date),
+        );
 
         if let Some(ref preferences) = prefs {
             if preferences.shares.wellbeing_score {
-                map.insert("wellbeing_score".to_string(), serde_json::json!(calculate_wellbeing_score(&p)));
+                map.insert(
+                    "wellbeing_score".to_string(),
+                    serde_json::json!(calculate_wellbeing_score(&p)),
+                );
             }
             if preferences.shares.career_interests {
-                map.insert("career_interests".to_string(), serde_json::json!(extract_career_interests(&p)));
+                map.insert(
+                    "career_interests".to_string(),
+                    serde_json::json!(extract_career_interests(&p)),
+                );
             }
             if preferences.shares.strengths {
-                map.insert("strengths".to_string(), serde_json::json!(extract_strengths(&p)));
+                map.insert(
+                    "strengths".to_string(),
+                    serde_json::json!(extract_strengths(&p)),
+                );
             }
         }
 
@@ -560,7 +632,8 @@ pub fn get_parent_view(
 }
 
 fn calculate_wellbeing_score(profile: &crate::db::models::TraitSnapshot) -> i32 {
-    let emotional = profile.emotional_profile
+    let emotional = profile
+        .emotional_profile
         .get("resilience")
         .and_then(|v| v.as_f64())
         .unwrap_or(0.5);
@@ -605,8 +678,8 @@ pub struct EncryptedExportEnvelope {
     pub version: String,
     pub kdf: String,
     pub alg: String,
-    pub salt: String, // Base64
-    pub nonce: String, // Base64
+    pub salt: String,       // Base64
+    pub nonce: String,      // Base64
     pub ciphertext: String, // Base64
 }
 
@@ -629,14 +702,23 @@ pub fn export_user_data(
 
     let pwd = password.ok_or_else(|| "Password required for export".to_string())?;
 
-    let user = db.get_user(&user_id).map_err(|e| e.to_string())?.ok_or("User not found")?;
+    let user = db
+        .get_user(&user_id)
+        .map_err(|e| e.to_string())?
+        .ok_or("User not found")?;
     let sessions = db.get_user_sessions(&user_id).map_err(|e| e.to_string())?;
     let snapshots = db.get_user_snapshots(&user_id).map_err(|e| e.to_string())?;
 
     let package = ExportPackage {
         user: serde_json::to_value(user).unwrap(),
-        sessions: sessions.into_iter().map(|s| serde_json::to_value(s).unwrap()).collect(),
-        snapshots: snapshots.into_iter().map(|s| serde_json::to_value(s).unwrap()).collect(),
+        sessions: sessions
+            .into_iter()
+            .map(|s| serde_json::to_value(s).unwrap())
+            .collect(),
+        snapshots: snapshots
+            .into_iter()
+            .map(|s| serde_json::to_value(s).unwrap())
+            .collect(),
         preferences: serde_json::json!({}),
     };
 
@@ -647,14 +729,18 @@ pub fn export_user_data(
     rand::thread_rng().fill_bytes(&mut salt);
 
     let mut key = [0u8; 32];
-    Argon2::default().hash_password_into(pwd.as_bytes(), &salt, &mut key).map_err(|e| e.to_string())?;
+    Argon2::default()
+        .hash_password_into(pwd.as_bytes(), &salt, &mut key)
+        .map_err(|e| e.to_string())?;
 
     let cipher = Aes256Gcm::new(aes_gcm::Key::<Aes256Gcm>::from_slice(&key));
     let mut nonce_bytes = [0u8; 12];
     rand::thread_rng().fill_bytes(&mut nonce_bytes);
     let nonce = Nonce::from_slice(&nonce_bytes);
 
-    let ciphertext = cipher.encrypt(nonce, plaintext.as_ref()).map_err(|e| format!("Encryption failed: {}", e))?;
+    let ciphertext = cipher
+        .encrypt(nonce, plaintext.as_ref())
+        .map_err(|e| format!("Encryption failed: {}", e))?;
 
     Ok(EncryptedExportEnvelope {
         version: "v1".to_string(),
@@ -679,26 +765,34 @@ pub fn import_user_data(
 
     let salt = base64::decode(&envelope.salt).map_err(|_| "Invalid salt".to_string())?;
     let nonce_bytes = base64::decode(&envelope.nonce).map_err(|_| "Invalid nonce".to_string())?;
-    let ciphertext = base64::decode(&envelope.ciphertext).map_err(|_| "Invalid ciphertext".to_string())?;
+    let ciphertext =
+        base64::decode(&envelope.ciphertext).map_err(|_| "Invalid ciphertext".to_string())?;
 
     let mut key = [0u8; 32];
-    Argon2::default().hash_password_into(pwd.as_bytes(), &salt, &mut key).map_err(|_| "Key derivation failed".to_string())?;
+    Argon2::default()
+        .hash_password_into(pwd.as_bytes(), &salt, &mut key)
+        .map_err(|_| "Key derivation failed".to_string())?;
 
     let cipher = Aes256Gcm::new(aes_gcm::Key::<Aes256Gcm>::from_slice(&key));
     let nonce = Nonce::from_slice(&nonce_bytes);
 
-    let plaintext = cipher.decrypt(nonce, ciphertext.as_ref()).map_err(|_| "Invalid password or corrupted export".to_string())?;
+    let plaintext = cipher
+        .decrypt(nonce, ciphertext.as_ref())
+        .map_err(|_| "Invalid password or corrupted export".to_string())?;
 
-    let data: ExportPackage = serde_json::from_slice(&plaintext).map_err(|_| "Invalid export schema".to_string())?;
+    let data: ExportPackage =
+        serde_json::from_slice(&plaintext).map_err(|_| "Invalid export schema".to_string())?;
 
     let db = state.0.lock().map_err(|e| e.to_string())?;
 
-    let mut user: crate::db::models::User = serde_json::from_value(data.user)
-        .map_err(|_| "Invalid user data in export".to_string())?;
+    let mut user: crate::db::models::User =
+        serde_json::from_value(data.user).map_err(|_| "Invalid user data in export".to_string())?;
     user.id = caller_id.clone();
 
     // TRANSACTIONAL IMPORT
-    db.conn.execute("BEGIN TRANSACTION", []).map_err(|e| e.to_string())?;
+    db.conn
+        .execute("BEGIN TRANSACTION", [])
+        .map_err(|e| e.to_string())?;
 
     let result: Result<(), String> = (|| {
         match db.get_user(&user.id).map_err(|e| e.to_string())? {
@@ -710,20 +804,23 @@ pub fn import_user_data(
                     age_range: user.age_range,
                     region: user.region,
                     language: user.language,
-                }).map_err(|e| e.to_string())?;
+                })
+                .map_err(|e| e.to_string())?;
             }
         }
 
         for session_json in data.sessions {
-            let session: crate::db::models::AssessmentSession = serde_json::from_value(session_json)
-                .map_err(|e| format!("Invalid session: {}", e))?;
+            let session: crate::db::models::AssessmentSession =
+                serde_json::from_value(session_json)
+                    .map_err(|e| format!("Invalid session: {}", e))?;
             db.save_session(&session).map_err(|e| e.to_string())?;
         }
 
         for snapshot_json in data.snapshots {
             let snapshot: crate::db::models::TraitSnapshot = serde_json::from_value(snapshot_json)
                 .map_err(|e| format!("Invalid snapshot: {}", e))?;
-            db.save_trait_snapshot(&snapshot).map_err(|e| e.to_string())?;
+            db.save_trait_snapshot(&snapshot)
+                .map_err(|e| e.to_string())?;
         }
         Ok(())
     })();
@@ -771,7 +868,8 @@ pub fn save_trait_snapshot(
         confidence_score: snapshot.confidence_score,
     };
 
-    db.save_trait_snapshot(&full_snapshot).map_err(|e| e.to_string())
+    db.save_trait_snapshot(&full_snapshot)
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -804,7 +902,8 @@ pub fn log_interaction(
         timestamp: chrono::Utc::now().to_rfc3339(),
     };
 
-    db.log_micro_interaction(&full_interaction).map_err(|e| e.to_string())
+    db.log_micro_interaction(&full_interaction)
+        .map_err(|e| e.to_string())
 }
 
 // === CRISIS PROTOCOL COMMANDS ===
@@ -844,7 +943,7 @@ pub fn get_pending_crisis_events(
     let reviewer_id = session_state.get_user_id()?;
 
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    
+
     // T2/T5: Verify caller is authorized
     if !db.is_educator(&reviewer_id) {
         return Err("Unauthorized: Must be an authorized reviewer".to_string());
@@ -866,7 +965,8 @@ pub fn claim_crisis_event(
         return Err("Unauthorized: Must be a clinical reviewer".to_string());
     }
 
-    db.claim_crisis_event(&event_id, &reviewer_id).map_err(|e| e.to_string())
+    db.claim_crisis_event(&event_id, &reviewer_id)
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -898,12 +998,22 @@ pub fn resolve_crisis_event(
         CrisisDecision::GuardianNotified => {
             // P0.1 FIX: This is the ONLY place in the system where guardian notification is executed.
             // It is strictly gated by the Rust backend after authorization and validation.
-            log::info!("MOCK GUARDIAN NOTIFICATION EXECUTED: Sent alert to guardian for crisis event {}", event_id);
+            log::info!(
+                "MOCK GUARDIAN NOTIFICATION EXECUTED: Sent alert to guardian for crisis event {}",
+                event_id
+            );
             "GuardianNotified"
-        },
+        }
     };
 
-    db.resolve_crisis_event(&event_id, &reviewer_id, &reviewer_credentials_ref, decision_str, teen_informed_at).map_err(|e| e.to_string())
+    db.resolve_crisis_event(
+        &event_id,
+        &reviewer_id,
+        &reviewer_credentials_ref,
+        decision_str,
+        teen_informed_at,
+    )
+    .map_err(|e| e.to_string())
 }
 
 // === DATA MANAGEMENT COMMANDS ===
@@ -941,13 +1051,15 @@ pub fn get_health_metrics(
         return Err("Unauthorized: Must be an authorized reviewer to view metrics".to_string());
     }
 
-    let total_users: i64 = db.conn.query_row(
-        "SELECT COUNT(*) FROM users", [], |r| r.get(0)
-    ).map_err(|e| e.to_string())?;
+    let total_users: i64 = db
+        .conn
+        .query_row("SELECT COUNT(*) FROM users", [], |r| r.get(0))
+        .map_err(|e| e.to_string())?;
 
-    let total_sessions: i64 = db.conn.query_row(
-        "SELECT COUNT(*) FROM sessions", [], |r| r.get(0)
-    ).map_err(|e| e.to_string())?;
+    let total_sessions: i64 = db
+        .conn
+        .query_row("SELECT COUNT(*) FROM sessions", [], |r| r.get(0))
+        .map_err(|e| e.to_string())?;
 
     Ok(HealthMetrics {
         total_users,
@@ -968,7 +1080,6 @@ pub fn insert_audit_log(
     let _user_id = session_state.get_user_id()?;
 
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    db.insert_audit_log(&action, &details).map_err(|e| e.to_string())
+    db.insert_audit_log(&action, &details)
+        .map_err(|e| e.to_string())
 }
-
-

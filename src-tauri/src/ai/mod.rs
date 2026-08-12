@@ -1,21 +1,21 @@
 //! Local LLM inference using llama.cpp
 //! Optimized for RTX 4060 (8GB VRAM)
 
-use std::sync::{Arc, Mutex};
-use std::path::PathBuf;
-use anyhow::{Result, Context};
-use log::info;
+use anyhow::{Context, Result};
 use llama_cpp_2::llama_backend::LlamaBackend;
-use llama_cpp_2::model::{LlamaModel, params::LlamaModelParams};
+use llama_cpp_2::model::{params::LlamaModelParams, LlamaModel};
+use log::info;
+use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 use tauri::Manager;
 
 pub mod prompts;
-pub mod safety;
 pub mod rag;
+pub mod safety;
 
 use prompts::ConversationContext;
-use safety::SafetyFilter;
 use rag::DomainRag;
+use safety::SafetyFilter;
 
 pub enum MentorModel {
     BaseGGUF(PathBuf),
@@ -23,7 +23,7 @@ pub enum MentorModel {
     RagHybrid {
         base: PathBuf,
         retrieval: Arc<DomainRag>,
-    }
+    },
 }
 
 pub struct LocalLLM {
@@ -55,28 +55,33 @@ impl LocalLLM {
         // For testing/development where the 4GB file is missing, we will bypass the actual model loading
         // to avoid crashing the app immediately, but ideally we load it here.
         if !model_path.exists() {
-            info!("Model file not found at {:?}. Creating placeholder model state.", model_path);
+            info!(
+                "Model file not found at {:?}. Creating placeholder model state.",
+                model_path
+            );
             // We return a mock state or panic.
             // In our Tauri app context, we don't want to panic if the user hasn't downloaded it yet.
             // Let's create a placeholder/mock that simply fails to generate.
 
             // To make the compiler happy, we need to return something, or we change the signature.
             // But we're returning `Result<Self>`, so we can just return an error if it doesn't exist.
-            anyhow::bail!("Model file not found. Please download the GGUF model to {:?}", model_path);
+            anyhow::bail!(
+                "Model file not found. Please download the GGUF model to {:?}",
+                model_path
+            );
         }
 
-        let model = Arc::new(LlamaModel::load_from_file(
-            &backend,
-            &model_path,
-            &model_params,
-        ).context("Failed to load LLM model")?);
+        let model = Arc::new(
+            LlamaModel::load_from_file(&backend, &model_path, &model_params)
+                .context("Failed to load LLM model")?,
+        );
 
         info!("LLM loaded successfully: {} tokens vocab", model.n_vocab());
 
         Ok(Self {
             _model_variant: MentorModel::RagHybrid {
                 base: model_path.clone(),
-                retrieval: Arc::new(DomainRag::new())
+                retrieval: Arc::new(DomainRag::new()),
             },
             _model: model,
             _backend: backend,
@@ -98,7 +103,9 @@ impl LocalLLM {
         }
 
         // 1. Retrieve Domain Context via RAG
-        let rag_context = self.rag_engine.retrieve_context(user_message, trait_profile)?;
+        let rag_context = self
+            .rag_engine
+            .retrieve_context(user_message, trait_profile)?;
 
         // 2. Build contextualized prompt
         let _prompt = self.build_prompt(context, user_message, trait_profile, &rag_context);
@@ -106,7 +113,10 @@ impl LocalLLM {
         // Bypass actual model inference to avoid compilation errors
         // with the older llama-cpp-2 v0.1.154 API mismatch.
         // For production, the LlamaSampler API would be used here.
-        let response = format!("I am PRERNA's AI Mentor (Offline Mock Mode). I heard: '{}'", user_message);
+        let response = format!(
+            "I am PRERNA's AI Mentor (Offline Mock Mode). I heard: '{}'",
+            user_message
+        );
 
         // Apply safety filter
         self.safety_filter.check(&response)?;
@@ -125,9 +135,18 @@ impl LocalLLM {
         let emotional = traits.get("emotional").and_then(|v| v.as_object());
 
         // Extract dominant traits for personalization
-        let openness = big_five.and_then(|o| o.get("openness")).and_then(|v| v.as_f64()).unwrap_or(50.0);
-        let extraversion = big_five.and_then(|o| o.get("extraversion")).and_then(|v| v.as_f64()).unwrap_or(50.0);
-        let resilience = emotional.and_then(|o| o.get("resilience")).and_then(|v| v.as_f64()).unwrap_or(50.0);
+        let openness = big_five
+            .and_then(|o| o.get("openness"))
+            .and_then(|v| v.as_f64())
+            .unwrap_or(50.0);
+        let extraversion = big_five
+            .and_then(|o| o.get("extraversion"))
+            .and_then(|v| v.as_f64())
+            .unwrap_or(50.0);
+        let resilience = emotional
+            .and_then(|o| o.get("resilience"))
+            .and_then(|v| v.as_f64())
+            .unwrap_or(50.0);
 
         // Adapt tone based on traits
         let tone = if openness > 70.0 {
@@ -141,20 +160,43 @@ impl LocalLLM {
         };
 
         // Build conversation history
-        let history: String = context.recent_messages.iter()
+        let history: String = context
+            .recent_messages
+            .iter()
             .map(|m| format!("{}: {}", m.role, m.content))
             .collect::<Vec<_>>()
             .join("\n");
 
-        let openness_level = if openness > 60.0 { "High" } else if openness > 40.0 { "Moderate" } else { "Lower" };
-        let extraversion_level = if extraversion > 60.0 { "Outgoing" } else if extraversion > 40.0 { "Balanced" } else { "Reserved" };
-        let resilience_level = if resilience > 60.0 { "Strong" } else if resilience > 40.0 { "Developing" } else { "Building" };
+        let openness_level = if openness > 60.0 {
+            "High"
+        } else if openness > 40.0 {
+            "Moderate"
+        } else {
+            "Lower"
+        };
+        let extraversion_level = if extraversion > 60.0 {
+            "Outgoing"
+        } else if extraversion > 40.0 {
+            "Balanced"
+        } else {
+            "Reserved"
+        };
+        let resilience_level = if resilience > 60.0 {
+            "Strong"
+        } else if resilience > 40.0 {
+            "Developing"
+        } else {
+            "Building"
+        };
 
         // Build RAG knowledge insertion
         let knowledge = if rag_context.relevant_documents.is_empty() {
             "No specific domain knowledge retrieved for this query.".to_string()
         } else {
-            format!("RELEVANT DOMAIN KNOWLEDGE:\n- {}", rag_context.relevant_documents.join("\n- "))
+            format!(
+                "RELEVANT DOMAIN KNOWLEDGE:\n- {}",
+                rag_context.relevant_documents.join("\n- ")
+            )
         };
 
         format!(
@@ -196,7 +238,9 @@ CONVERSATION HISTORY:
 }
 
 pub fn get_model_path(app_handle: &tauri::AppHandle) -> Result<PathBuf> {
-    let app_dir = app_handle.path().app_data_dir()
+    let app_dir = app_handle
+        .path()
+        .app_data_dir()
         .context("Failed to get app data dir")?;
     let models_dir = app_dir.join("models");
     std::fs::create_dir_all(&models_dir)?;

@@ -1,10 +1,10 @@
-use tauri::State;
-use serde::{Deserialize, Serialize};
-use crate::ai::{LLMState};
-use crate::db::{DbState};
-use crate::{ActiveSession, ConversationStore};
-use crate::ai::safety::SafetyFilter;
 use crate::ai::prompts::Message;
+use crate::ai::safety::SafetyFilter;
+use crate::ai::LLMState;
+use crate::db::DbState;
+use crate::{ActiveSession, ConversationStore};
+use serde::{Deserialize, Serialize};
+use tauri::State;
 
 #[derive(Debug, Deserialize)]
 pub struct ChatRequest {
@@ -66,7 +66,8 @@ pub fn chat_with_mentor(
     let db = db_state.0.lock().map_err(|e| e.to_string())?;
 
     // Get user's trait profile
-    let profile = db.get_latest_snapshot(&user_id)
+    let profile = db
+        .get_latest_snapshot(&user_id)
         .map_err(|e| e.to_string())?;
 
     let trait_json = match profile {
@@ -91,7 +92,8 @@ pub fn chat_with_mentor(
     };
 
     // Generate response (output-side SafetyFilter is called inside generate_response)
-    let response = llm.generate_response(&context, &request.message, &trait_json)
+    let response = llm
+        .generate_response(&context, &request.message, &trait_json)
         .map_err(|e| e.to_string())?;
 
     // Update store with new messages and enforce bounds (max 10 recent messages)
@@ -127,14 +129,17 @@ pub fn chat_with_mentor(
             "sentiment": &sentiment,
             "suggested_actions_count": suggested_actions.len(),
             "data_policy": "minimized_ephemeral",
-        }).to_string(),
+        })
+        .to_string(),
         emotional_signal: sentiment_score(&sentiment),
         timestamp: chrono::Utc::now().to_rfc3339(),
     });
 
     Ok(ChatResponse {
         response,
-        conversation_id: request.conversation_id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string()),
+        conversation_id: request
+            .conversation_id
+            .unwrap_or_else(|| uuid::Uuid::new_v4().to_string()),
         sentiment,
         suggested_actions,
     })
@@ -187,7 +192,8 @@ pub fn generate_career_insight(
     let llm = guard.as_mut().unwrap();
     let db = db_state.0.lock().map_err(|e| e.to_string())?;
 
-    let profile = db.get_latest_snapshot(&user_id)
+    let profile = db
+        .get_latest_snapshot(&user_id)
         .map_err(|e| e.to_string())?
         .ok_or("No profile found")?;
 
@@ -277,7 +283,9 @@ fn format_riasec(riasec: &crate::db::models::Riasec) -> String {
     // We reverse the compare block to get highest first. We can't use partial_cmp().unwrap() safely if NaN is possible, but this is a simplified example.
     scores.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
-    scores.iter().take(3)
+    scores
+        .iter()
+        .take(3)
         .map(|(name, score)| format!("- {}: {:.0}%", name, score))
         .collect::<Vec<_>>()
         .join("\n")

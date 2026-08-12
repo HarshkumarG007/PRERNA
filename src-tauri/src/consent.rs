@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::time::{SystemTime, UNIX_EPOCH};
-use sha2::{Sha256, Digest};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConsentRecord {
@@ -35,7 +35,10 @@ impl GuardianVerificationAdapter for MockEmailVerificationAdapter {
         hasher.update(token.as_bytes());
         let provider_reference = format!("{:x}", hasher.finalize());
 
-        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
         let expires = now + 365 * 24 * 60 * 60; // 1 year expiry
 
         Ok(ConsentRecord {

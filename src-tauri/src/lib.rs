@@ -1,15 +1,15 @@
-pub mod db;
-pub mod commands;
-pub mod policy;
 pub mod ai;
-pub mod school_api;
+pub mod commands;
 pub mod consent;
+pub mod db;
+pub mod policy;
+pub mod school_api;
 
-use tauri::Manager;
 use log::{info, warn};
+use tauri::Manager;
 
+use ai::{LLMState, LocalLLM};
 use db::{Database, DbState};
-use ai::{LocalLLM, LLMState};
 use std::sync::{Arc, Mutex};
 
 /// Backend-owned authenticated session state.
@@ -28,7 +28,7 @@ impl ActiveSession {
     pub fn get_user_id(&self) -> Result<String, String> {
         match &*self.0.lock().map_err(|e| e.to_string())? {
             AuthStatus::Authenticated(id) => Ok(id.clone()),
-            _ => Err("Unauthorized: No active session".to_string())
+            _ => Err("Unauthorized: No active session".to_string()),
         }
     }
     pub fn set_pending_mfa(&self, id: String) -> Result<(), String> {
@@ -46,14 +46,16 @@ impl ActiveSession {
     pub fn get_pending_mfa_user(&self) -> Result<String, String> {
         match &*self.0.lock().map_err(|e| e.to_string())? {
             AuthStatus::PendingMFA(id) => Ok(id.clone()),
-            _ => Err("Unauthorized: No pending MFA session".to_string())
+            _ => Err("Unauthorized: No pending MFA session".to_string()),
         }
     }
 }
 
 /// T7b: Backend-Owned Conversation History.
 /// Bounded history keyed by user_id to prevent frontend injection.
-pub struct ConversationStore(pub Mutex<std::collections::HashMap<String, Vec<crate::ai::prompts::Message>>>);
+pub struct ConversationStore(
+    pub Mutex<std::collections::HashMap<String, Vec<crate::ai::prompts::Message>>>,
+);
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -165,7 +167,10 @@ mod tests {
         session.set_pending_mfa("user_A".to_string()).unwrap();
 
         // 3. PendingMFA state should STILL reject get_user_id (RED-001/MFA bypass)
-        assert!(session.get_user_id().is_err(), "CRITICAL: PendingMFA must not be treated as Authenticated");
+        assert!(
+            session.get_user_id().is_err(),
+            "CRITICAL: PendingMFA must not be treated as Authenticated"
+        );
 
         // 4. PendingMFA should allow get_pending_mfa
         assert_eq!(session.get_pending_mfa_user().unwrap(), "user_A");

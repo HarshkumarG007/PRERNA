@@ -15,7 +15,7 @@ mod tests {
 
         let ipc_result = PolicyEngine::enforce_guardian_notification_invariant(
             &malicious_decision,
-            missing_teen_informed_at
+            missing_teen_informed_at,
         );
 
         // The audit MUST prove this returns an error at the Rust boundary, failing the IPC command
@@ -49,10 +49,8 @@ mod tests {
         let age = "13-15";
         let force_enable_tracking = true;
 
-        let ipc_result = PolicyEngine::enforce_under_18_tracking_invariant(
-            age,
-            force_enable_tracking
-        );
+        let ipc_result =
+            PolicyEngine::enforce_under_18_tracking_invariant(age, force_enable_tracking);
 
         assert!(
             ipc_result.is_err(),
@@ -63,22 +61,26 @@ mod tests {
     #[test]
     fn test_t6_safety_filter_output() {
         let filter = crate::ai::safety::SafetyFilter::new();
-        
+
         // 1. Diagnostics should be caught
         assert!(
             filter.check("You are suffering from ADHD.").is_err(),
             "VULNERABILITY (T6): Filter failed to catch unauthorized diagnostic claim"
         );
-        
+
         // 2. Claims of humanity should be caught
         assert!(
-            filter.check("I am a living being who understands you.").is_err(),
+            filter
+                .check("I am a living being who understands you.")
+                .is_err(),
             "VULNERABILITY (T6): Filter failed to catch AI overclaiming humanity"
         );
 
         // 3. Normal response should pass
         assert!(
-            filter.check("I hear what you're saying, that sounds difficult.").is_ok(),
+            filter
+                .check("I hear what you're saying, that sounds difficult.")
+                .is_ok(),
             "FALSE POSITIVE (T6): Filter rejected an innocent response"
         );
     }
@@ -86,14 +88,14 @@ mod tests {
     #[test]
     fn test_t10_crisis_detection_robustness() {
         let filter = crate::ai::safety::SafetyFilter::new();
-        
+
         // Explicit Tier 1 statements
         assert!(filter.detect_crisis("I want to die"));
         assert!(filter.detect_crisis("mai mar jaana chahta hoon")); // Hinglish check
-        
+
         // Broadened Tier 2 statements
         assert!(filter.detect_crisis("I can't go on anymore"));
-        
+
         // Innocent statements shouldn't flag (conservative thresholds)
         assert!(!filter.detect_crisis("I had a bad day"));
     }

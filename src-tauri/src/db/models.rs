@@ -32,7 +32,7 @@ pub struct AssessmentSession {
     pub session_type: String,
     pub started_at: String,
     pub completed_at: Option<String>,
-    pub raw_choices: String, // JSON
+    pub raw_choices: String,    // JSON
     pub derived_traits: String, // JSON
     pub disclosure_version: String,
     pub disclosure_shown_at: i64,

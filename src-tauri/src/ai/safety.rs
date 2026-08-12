@@ -1,6 +1,6 @@
 //! Safety guardrails for adolescent AI interactions
 
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 
 pub struct SafetyFilter;
 
