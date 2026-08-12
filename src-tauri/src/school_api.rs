@@ -34,7 +34,10 @@ pub fn generate_school_report(
     // RED-009 Amendment: Fail-closed tenant boundary
     for student_id in &student_ids {
         if !db.check_educator_tenant_access(&caller_id, student_id) {
-            return Err("Unauthorized: Cannot request data for a student outside your tenant (or student does not exist)".to_string());
+            return Err(
+                "Unauthorized: Cannot request data for a student outside your tenant (or student does not exist)"
+                    .to_string(),
+            );
         }
     }
 
