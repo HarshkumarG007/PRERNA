@@ -1,0 +1,20 @@
+[
+  {
+    "item_id": "IPIP_50_E1",
+    "domain": "Extraversion",
+    "keyed": "positive",
+    "original_english": "Am the life of the party.",
+    "adapted_english": "I am usually the life of the party and enjoy being around people.",
+    "adapted_hindi": "मैं अक्सर पार्टी की जान होता हूँ और लोगों के बीच रहना पसंद करता हूँ।",
+    "source": "IPIP Big-Five Factor Markers (50-item)"
+  },
+  {
+    "item_id": "IPIP_50_E2",
+    "domain": "Extraversion",
+    "keyed": "negative",
+    "original_english": "Don't talk a lot.",
+    "adapted_english": "I usually don't talk very much.",
+    "adapted_hindi": "मैं आमतौर पर बहुत ज्यादा बात नहीं करता।",
+    "source": "IPIP Big-Five Factor Markers (50-item)"
+  }
+]

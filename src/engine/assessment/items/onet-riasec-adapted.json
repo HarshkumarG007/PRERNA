@@ -1,0 +1,18 @@
+[
+  {
+    "item_id": "ONET_60_R1",
+    "domain": "Realistic",
+    "original_english": "Build kitchen cabinets",
+    "adapted_english": "Build or repair wooden furniture like cabinets or tables.",
+    "adapted_hindi": "कैबिनेट या टेबल जैसे लकड़ी के फर्नीचर बनाना या उनकी मरम्मत करना।",
+    "source": "O*NET Interest Profiler Short Form (60-item)"
+  },
+  {
+    "item_id": "ONET_60_I1",
+    "domain": "Investigative",
+    "original_english": "Develop a new medicine",
+    "adapted_english": "Develop a new medicine or research cures for diseases.",
+    "adapted_hindi": "एक नई दवा विकसित करना या बीमारियों के इलाज पर शोध करना।",
+    "source": "O*NET Interest Profiler Short Form (60-item)"
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "documents": [
+    {
+      "filename": "cognitive-development-summary.md",
+      "topic": "Cognitive Development in Adolescence",
+      "author": "PRERNA Project (Original Summary)",
+      "sources": [
+        "Piaget's Theory of Cognitive Development (General Academic Consensus)",
+        "NIH Adolescent Brain Cognitive Development (ABCD) Study (Public Domain findings)"
+      ],
+      "license": "PRERNA Proprietary / CC BY-NC-SA Compatible",
+      "status": "approved"
+    }
+  ]
+}

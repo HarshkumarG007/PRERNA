@@ -1,0 +1,14 @@
+{
+  "documents": [
+    {
+      "filename": "plh-positive-parenting-summary.md",
+      "topic": "Positive Parenting Core Concepts",
+      "author": "PRERNA Project (Original Summary)",
+      "sources": [
+        "WHO/UNICEF Parenting for Lifelong Health (PLH) framework"
+      ],
+      "license": "PRERNA Proprietary / CC BY-NC-SA Compatible",
+      "status": "approved"
+    }
+  ]
+}
