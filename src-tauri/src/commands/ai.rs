@@ -336,31 +336,14 @@ pub(crate) fn handle_crisis_detection(
 mod tests {
     use super::*;
     use crate::db::Database;
-    use std::sync::Mutex;
+    use std::sync::{Arc, Mutex};
     use std::collections::HashMap;
 
     fn setup_test_env(authenticated_user: Option<&str>) -> (LLMState, DbState, crate::ActiveSession, ConversationStore) {
-        let db = Database::new_in_memory().unwrap();
-        // Ensure schemas exist
-        db.conn
-            .execute(
-                "CREATE TABLE crisis_events (
-                    id TEXT PRIMARY KEY,
-                    user_id TEXT NOT NULL,
-                    detected_at INTEGER NOT NULL,
-                    severity TEXT NOT NULL,
-                    human_review_status TEXT NOT NULL,
-                    reviewer_id TEXT,
-                    reviewer_credentials_ref TEXT,
-                    decision TEXT,
-                    teen_informed_at INTEGER
-                )",
-                [],
-            )
-            .unwrap();
-            
+        let db = Database::new_in_memory("test_secret").unwrap();
+        
         let db_state = DbState(Mutex::new(db));
-        let llm_state = LLMState(Mutex::new(None)); // Model not loaded
+        let llm_state = LLMState(Arc::new(Mutex::new(None))); // Model not loaded
         
         // Mock session
         let auth_status = match authenticated_user {
@@ -449,26 +432,15 @@ mod tests {
         // Ensure user profile exists for the non-crisis path to fetch it
         {
             let db_lock = db_state.0.lock().unwrap();
-            db_lock.conn.execute(
-                "CREATE TABLE user_snapshots (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, version INTEGER NOT NULL, snapshot_data TEXT NOT NULL, created_at INTEGER NOT NULL)",
-                [],
-            ).unwrap();
-            db_lock.conn.execute(
-                "CREATE TABLE micro_interactions (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, interaction_type TEXT NOT NULL, metadata TEXT NOT NULL, emotional_signal INTEGER NOT NULL, timestamp TEXT NOT NULL)",
-                [],
-            ).unwrap();
             
             // Insert empty profile
-            let profile = crate::db::models::UserSnapshot {
+            let profile = crate::db::models::TraitSnapshot {
                 id: "snap_1".to_string(),
                 user_id: "USER_A".to_string(),
-                version: 1,
-                big_five: serde_json::json!({}),
-                riasec: serde_json::json!({}),
-                emotional_profile: serde_json::json!({}),
-                created_at: chrono::Utc::now().timestamp(),
+                snapshot_date: chrono::Utc::now().to_rfc3339(),
+                ..Default::default()
             };
-            db_lock.save_snapshot(&profile).unwrap();
+            db_lock.save_trait_snapshot(&profile).unwrap();
         }
 
         let request = ChatRequest {
