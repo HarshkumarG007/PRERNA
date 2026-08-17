@@ -1031,10 +1031,24 @@ pub fn execute_resolve_crisis_event(
         CrisisDecision::NoAction => "NoAction",
         CrisisDecision::ResourcesOnly => "ResourcesOnly",
         CrisisDecision::GuardianNotified => {
-            // P0.1 FIX: This is the ONLY place in the system where guardian notification is executed.
-            // It is strictly gated by the Rust backend after authorization and validation.
-            log::info!(
-                "MOCK GUARDIAN NOTIFICATION EXECUTED: Sent alert to guardian for crisis event {}",
+            // ============================================================
+            // GUARDIAN NOTIFICATION — STATUS: NOT IMPLEMENTED
+            // ============================================================
+            // This decision records that the reviewing clinician chose to
+            // notify the guardian. The notification delivery mechanism
+            // (push notification, SMS, email, or in-app alert) has NOT
+            // been implemented. No notification is actually delivered.
+            //
+            // The evidence matrix MUST NOT claim this as a functional
+            // safety notification until a real delivery channel exists.
+            //
+            // TODO(P0-safety): Implement real notification delivery before
+            // any production deployment. See: docs/security-evidence-matrix.md
+            // ============================================================
+            log::warn!(
+                "GUARDIAN NOTIFICATION — NOT IMPLEMENTED: \
+                 Decision recorded for event '{}' but no notification was delivered. \
+                 A real delivery mechanism must be implemented before production.",
                 event_id
             );
             "GuardianNotified"
@@ -1104,17 +1118,11 @@ pub fn get_health_metrics(
     })
 }
 
-// === AUDIT LOG ===
-#[tauri::command]
-pub fn insert_audit_log(
-    state: State<DbState>,
-    session_state: State<ActiveSession>,
-    action: String,
-    details: String,
-) -> Result<(), String> {
-    let _user_id = session_state.get_user_id()?;
-
-    let db = state.0.lock().map_err(|e| e.to_string())?;
-    db.insert_audit_log(&action, &details)
-        .map_err(|e| e.to_string())
-}
+// === AUDIT LOG (INTERNAL ONLY) ===
+// SECURITY: This is intentionally NOT a #[tauri::command].
+// The audit trail must be server-authoritative: only backend Rust code
+// may write to it. Rendering-controlled action or details strings
+// would allow an authenticated user to forge audit entries.
+//
+// Callers: use `db.insert_audit_log(action, details)` directly from
+// Rust command implementations.

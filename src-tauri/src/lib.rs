@@ -136,7 +136,6 @@ pub fn run() {
             // Data management
             commands::delete_user_data,
             commands::get_health_metrics,
-            commands::insert_audit_log,
 
             // AI Commands
             commands::ai::chat_with_mentor,

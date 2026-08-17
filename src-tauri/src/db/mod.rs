@@ -32,7 +32,9 @@ impl Database {
         let key = Self::get_or_create_key()?;
 
         // Enable SQLCipher encryption
-        conn.execute_batch(&format!("PRAGMA key = '{}';", key.as_str()))
+        // T4-SEC: Use pragma_update instead of string formatting to avoid any
+        // risk of SQL injection through the key value.
+        conn.pragma_update(None, "key", key.as_str())
             .context("Failed to set SQLCipher encryption key")?;
 
         // Verify encryption is working
@@ -81,7 +83,7 @@ impl Database {
     #[cfg(test)]
     pub fn new_in_memory(key: &str) -> AnyhowResult<Self> {
         let conn = Connection::open_in_memory()?;
-        conn.execute_batch(&format!("PRAGMA key = '{}';", key))
+        conn.pragma_update(None, "key", key)
             .context("Failed to set SQLCipher encryption key")?;
         let mut db = Self { conn };
         db.init_schema()?;

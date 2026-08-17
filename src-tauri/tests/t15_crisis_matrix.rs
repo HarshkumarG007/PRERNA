@@ -191,9 +191,9 @@ fn test_t15_7_cross_user_isolation() {
         setup_test_env(AuthStatus::Authenticated("USER_A".to_string()));
     let session_b = ActiveSession(Mutex::new(AuthStatus::Authenticated("USER_B".to_string())));
 
-    // User A generates an event
+    // User A generates an event — use a phrase matching SafetyFilter tier-1 keywords
     let req_a = ChatRequest {
-        message: "crisis!".to_string(),
+        message: "I want to end it all".to_string(), // matches "end it all" in detect_crisis
         conversation_id: None,
     };
     let _ = execute_mentor_chat(&llm_state, &db_state, &session_a, &store, req_a);

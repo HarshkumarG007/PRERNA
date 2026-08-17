@@ -24,3 +24,21 @@ dist-ssr
 *.sw?
 
 *.exe
+
+# Rust / Tauri build outputs
+src-tauri/target/
+*.pdb
+
+# CI investigation / debug artifacts — never commit these
+jobs.json
+jobs_*.json
+runs.json
+runs_*.json
+artifacts.json
+windows_log.txt
+ci-logs.txt
+fix.py
+
+# Python
+__pycache__/
+*.py[cod]
