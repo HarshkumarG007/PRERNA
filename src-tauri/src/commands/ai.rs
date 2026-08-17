@@ -39,10 +39,10 @@ pub fn chat_with_mentor(
     store: State<ConversationStore>,
     request: ChatRequest,
 ) -> Result<ChatResponse, String> {
-    chat_with_mentor_inner(&llm_state, &db_state, &session, &store, request)
+    execute_mentor_chat(&llm_state, &db_state, &session, &store, request)
 }
 
-pub(crate) fn chat_with_mentor_inner(
+pub fn execute_mentor_chat(
     llm_state: &LLMState,
     db_state: &DbState,
     session: &ActiveSession,
@@ -368,7 +368,7 @@ mod tests {
             conversation_id: None,
         };
 
-        let result = chat_with_mentor_inner(&llm_state, &db_state, &session, &store, request);
+        let result = execute_mentor_chat(&llm_state, &db_state, &session, &store, request);
 
         // Verify response is a crisis response
         assert!(result.is_ok());
@@ -401,7 +401,7 @@ mod tests {
             conversation_id: Some("conv_123".to_string()),
         };
 
-        let _ = chat_with_mentor_inner(&llm_state, &db_state, &session, &store, request);
+        let _ = execute_mentor_chat(&llm_state, &db_state, &session, &store, request);
 
         let db_lock = db_state.0.lock().unwrap();
         let events = db_lock.get_pending_crisis_events().unwrap();
@@ -433,7 +433,7 @@ mod tests {
         };
 
         // The command must propagate the DB failure and NOT return a successful ChatResponse
-        let result = chat_with_mentor_inner(&llm_state, &db_state, &session, &store, request);
+        let result = execute_mentor_chat(&llm_state, &db_state, &session, &store, request);
         assert!(result.is_err(), "Persistence failure must not be swallowed");
     }
 
@@ -460,7 +460,7 @@ mod tests {
             conversation_id: None,
         };
 
-        let result = chat_with_mentor_inner(&llm_state, &db_state, &session, &store, request);
+        let result = execute_mentor_chat(&llm_state, &db_state, &session, &store, request);
 
         // We assert on the primary invariant: NO crisis event is created.
         {

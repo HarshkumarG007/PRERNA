@@ -961,6 +961,14 @@ pub fn claim_crisis_event(
     session_state: State<ActiveSession>,
     event_id: String,
 ) -> Result<(), String> {
+    execute_claim_crisis_event(&state, &session_state, event_id)
+}
+
+pub fn execute_claim_crisis_event(
+    state: &DbState,
+    session_state: &ActiveSession,
+    event_id: String,
+) -> Result<(), String> {
     let reviewer_id = session_state.get_user_id()?;
 
     let db = state.0.lock().map_err(|e| e.to_string())?;
@@ -977,6 +985,24 @@ pub fn claim_crisis_event(
 pub fn resolve_crisis_event(
     state: State<DbState>,
     session_state: State<ActiveSession>,
+    event_id: String,
+    reviewer_credentials_ref: String,
+    decision: CrisisDecision,
+    teen_informed_at: Option<i64>,
+) -> Result<(), String> {
+    execute_resolve_crisis_event(
+        &state,
+        &session_state,
+        event_id,
+        reviewer_credentials_ref,
+        decision,
+        teen_informed_at,
+    )
+}
+
+pub fn execute_resolve_crisis_event(
+    state: &DbState,
+    session_state: &ActiveSession,
     event_id: String,
     reviewer_credentials_ref: String,
     decision: CrisisDecision,
