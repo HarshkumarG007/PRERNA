@@ -165,6 +165,12 @@ impl SafetyFilter {
     }
 }
 
+impl Default for SafetyFilter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

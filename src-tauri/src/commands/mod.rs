@@ -580,7 +580,7 @@ pub fn get_parent_view(
         .check_parent_teen_link(&parent_id, &request.target_teen_id)
         .map_err(|e| e.to_string())?;
 
-    if let Err(_) = PolicyEngine::enforce_parental_authorization(is_authorized) {
+    if PolicyEngine::enforce_parental_authorization(is_authorized).is_err() {
         return Ok(ParentViewResponse {
             has_access: false,
             profile: None,

@@ -99,3 +99,9 @@ impl ConsentService {
         self.adapter.verify_token(token)
     }
 }
+
+impl Default for ConsentService {
+    fn default() -> Self {
+        Self::new()
+    }
+}

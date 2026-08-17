@@ -75,7 +75,7 @@ impl Database {
         use rand::RngCore;
         let mut key_bytes = [0u8; 32];
         rand::thread_rng().fill_bytes(&mut key_bytes);
-        let key_str = Zeroizing::new(hex::encode(&key_bytes));
+        let key_str = Zeroizing::new(hex::encode(key_bytes));
         key_bytes.zeroize();
         Ok(key_str)
     }

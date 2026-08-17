@@ -55,7 +55,7 @@ pub fn execute_mentor_chat(
     // T6 & T15: Input-side SafetyFilter check.
     // If the user's message contains crisis-level language, route to crisis
     // protocol path, explicitly persisting the CrisisEvent.
-    if let Some(response) = handle_crisis_detection(&db_state, &user_id, &request)? {
+    if let Some(response) = handle_crisis_detection(db_state, &user_id, &request)? {
         return Ok(response);
     }
 
