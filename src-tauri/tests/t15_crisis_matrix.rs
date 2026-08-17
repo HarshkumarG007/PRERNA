@@ -20,7 +20,7 @@ fn setup_test_env(
     db.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('REV_B', 'rev_b', 'hash', '0', 'reviewer')", ()).unwrap();
 
     let db_state = DbState(Mutex::new(db));
-    let llm_state = LLMState(Arc::new(Mutex::new(None))); // Model not loaded
+    let llm_state = LLMState(Arc::new(Mutex::new(None)));
     let session = ActiveSession(Mutex::new(auth_status));
     let store = ConversationStore(Mutex::new(HashMap::new()));
 
