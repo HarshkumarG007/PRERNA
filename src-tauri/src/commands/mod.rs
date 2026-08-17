@@ -8,7 +8,7 @@ use crate::db::DbState;
 use crate::policy::PolicyEngine;
 use crate::ActiveSession;
 use aes_gcm::{
-    aead::{Aead, AeadCore, KeyInit, OsRng as AeadOsRng},
+    aead::{Aead, KeyInit},
     Aes256Gcm, Nonce,
 };
 use argon2::{

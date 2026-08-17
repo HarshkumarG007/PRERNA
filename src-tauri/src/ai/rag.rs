@@ -45,7 +45,15 @@ impl DomainRag {
             ]
         }
     }
+}
 
+impl Default for DomainRag {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl DomainRag {
     pub fn retrieve_context(
         &self,
         query: &str,
@@ -106,7 +114,6 @@ impl DomainRag {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::db::models::{BigFive, Riasec, TraitSnapshot};
 
     #[test]
     fn test_rag_retrieval_profile_filtering() {

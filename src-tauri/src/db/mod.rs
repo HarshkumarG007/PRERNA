@@ -1052,7 +1052,7 @@ mod tests {
 
     #[test]
     fn test_revoke_consent_audit_trail() {
-        let mut db = Database::new_in_memory("test_secret").unwrap();
+        let db = Database::new_in_memory("test_secret").unwrap();
 
         // Insert users first to satisfy foreign keys
         db.conn.execute("INSERT INTO users (id, role, name, email, password_hash, created_at) VALUES ('p1', 'parent', 'Parent 1', 'p1@test.com', 'hash', 'now')", []).unwrap();
@@ -1193,7 +1193,7 @@ mod tests {
         // First we check PolicyEngine directly, as that's where the domain logic lives (in commands, this is checked before calling db)
         // Since db just saves it, in the real app `commands::resolve_crisis_event` calls `PolicyEngine::enforce_guardian_notification_invariant`.
         // Let's simulate the command layer logic:
-        let decision_str = "GuardianNotified";
+        let _decision_str = "GuardianNotified";
         let teen_informed_at: Option<i64> = None;
         let policy_check = crate::policy::PolicyEngine::enforce_guardian_notification_invariant(
             &crate::db::models::CrisisDecision::GuardianNotified,
@@ -1518,7 +1518,7 @@ mod tests {
 
     #[test]
     fn test_migration_rollback_failure() {
-        let mut db = Database {
+        let db = Database {
             conn: Connection::open_in_memory().unwrap(),
         };
         db.conn
