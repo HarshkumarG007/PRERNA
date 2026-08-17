@@ -6,7 +6,7 @@ pub struct User {
     pub username: String,
     pub password_hash: String,
     pub created_at: String,
-    pub age_range: String,
+    pub age_range: AgeBand,
     pub region: String,
     pub language: String,
     pub encryption_key_hash: String,
@@ -16,11 +16,83 @@ pub struct User {
     pub tenant_id: Option<String>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PublicUser {
+    pub id: String,
+    pub username: String,
+    pub created_at: String,
+    pub age_range: AgeBand,
+    pub region: String,
+    pub language: String,
+    pub mfa_enabled: bool,
+    pub role: String,
+    pub tenant_id: Option<String>,
+}
+
+impl From<&User> for PublicUser {
+    fn from(user: &User) -> Self {
+        Self {
+            id: user.id.clone(),
+            username: user.username.clone(),
+            created_at: user.created_at.clone(),
+            age_range: user.age_range.clone(),
+            region: user.region.clone(),
+            language: user.language.clone(),
+            mfa_enabled: user.mfa_enabled,
+            role: user.role.clone(),
+            tenant_id: user.tenant_id.clone(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub enum AgeBand {
+    #[serde(rename = "13-15")]
+    Teen13To15,
+    #[serde(rename = "16-17")]
+    Teen16To17,
+    #[serde(rename = "18+")]
+    Adult18Plus,
+}
+
+impl AgeBand {
+    pub fn from_age(age: u8) -> Self {
+        match age {
+            0..=15 => AgeBand::Teen13To15,
+            16..=17 => AgeBand::Teen16To17,
+            _ => AgeBand::Adult18Plus,
+        }
+    }
+}
+
+impl rusqlite::ToSql for AgeBand {
+    fn to_sql(&self) -> rusqlite::Result<rusqlite::types::ToSqlOutput<'_>> {
+        let s = match self {
+            AgeBand::Teen13To15 => "13-15",
+            AgeBand::Teen16To17 => "16-17",
+            AgeBand::Adult18Plus => "18+",
+        };
+        Ok(rusqlite::types::ToSqlOutput::from(s))
+    }
+}
+
+impl rusqlite::types::FromSql for AgeBand {
+    fn column_result(value: rusqlite::types::ValueRef<'_>) -> rusqlite::types::FromSqlResult<Self> {
+        let s = value.as_str()?;
+        match s {
+            "13-15" => Ok(AgeBand::Teen13To15),
+            "16-17" => Ok(AgeBand::Teen16To17),
+            "18+" => Ok(AgeBand::Adult18Plus),
+            _ => Err(rusqlite::types::FromSqlError::InvalidType),
+        }
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct NewUser {
     pub username: String,
     pub password_hash: String,
-    pub age_range: String,
+    pub age_range: AgeBand,
     pub region: String,
     pub language: String,
 }
@@ -107,12 +179,13 @@ pub struct NewMicroInteraction {
     pub emotional_signal: f32,
 }
 
-#[derive(Debug, Serialize)]
-pub struct UserDataExport {
-    pub user: User,
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PortableUserData {
+    pub profile: PublicUser,
     pub sessions: Vec<AssessmentSession>,
     pub latest_snapshot: Option<TraitSnapshot>,
     pub export_timestamp: String,
+    pub version: u32,
 }
 
 #[derive(Debug, Serialize)]

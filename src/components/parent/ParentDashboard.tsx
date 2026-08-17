@@ -9,11 +9,10 @@ import { ParentingGuide } from './ParentingGuide';
 import { ParentGuideView } from './ParentGuideView';
 
 interface ParentDashboardProps {
-  teenId: string; // The teen being viewed
   onExit: () => void;
 }
 
-export const ParentDashboard: React.FC<ParentDashboardProps> = ({ teenId, onExit }) => {
+export const ParentDashboard: React.FC<ParentDashboardProps> = ({ onExit }) => {
   const [profile, setProfile] = useState<ParentSafeProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'conversations' | 'settings'>('overview');
@@ -22,13 +21,11 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ teenId, onExit
 
   useEffect(() => {
     loadParentView();
-  }, [teenId]);
+  }, []);
 
   const loadParentView = async () => {
     try {
-      const response: any = await invoke('get_parent_view', { 
-        request: { target_teen_id: teenId }
-      });
+      const response: any = await invoke('get_parent_view');
 
       if (response.has_access && response.profile) {
         // Hydrate with permission-based starters

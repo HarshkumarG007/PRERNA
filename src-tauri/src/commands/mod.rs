@@ -100,7 +100,8 @@ pub fn authenticate_user(
                 // RED-001/020: Only commit session if MFA is not required
                 session.set_authenticated(user.id.clone())?;
 
-                Ok(Some(serde_json::to_value(user).map_err(|e| e.to_string())?))
+                let public_user = PublicUser::from(&user);
+                Ok(Some(serde_json::to_value(public_user).map_err(|e| e.to_string())?))
             }
         } else {
             // Password mismatch
@@ -115,11 +116,12 @@ pub fn authenticate_user(
 pub fn get_user(
     state: State<DbState>,
     session: State<ActiveSession>,
-) -> Result<Option<User>, String> {
+) -> Result<Option<PublicUser>, String> {
     // Read user_id exclusively from the backend session â€” never trust the renderer
     let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    db.get_user(&user_id).map_err(|e| e.to_string())
+    let user_opt = db.get_user(&user_id).map_err(|e| e.to_string())?;
+    Ok(user_opt.map(|u| PublicUser::from(&u)))
 }
 
 #[tauri::command]
@@ -418,10 +420,10 @@ pub fn save_skill_session(
     let session = crate::db::models::AssessmentSession {
         id: String::new(),
         user_id,
-        session_type: format!("skill_{}", game_type),
+        session_type: "skill_arena".to_string(),
         started_at: chrono::Utc::now().to_rfc3339(),
         completed_at: Some(chrono::Utc::now().to_rfc3339()),
-        raw_choices: serde_json::json!({ "score": score }).to_string(),
+        raw_choices: serde_json::json!({ "score": score, "game_type": game_type }).to_string(),
         derived_traits: cognitive_data,
         disclosure_version,
         disclosure_shown_at,
@@ -533,10 +535,6 @@ pub fn get_unified_profile(
     }
 }
 
-#[derive(Debug, serde::Deserialize)]
-pub struct ParentViewRequest {
-    pub target_teen_id: String,
-}
 
 #[derive(Debug, serde::Serialize)]
 pub struct ParentViewResponse {
@@ -566,19 +564,23 @@ pub fn update_sharing_preferences(
 pub fn get_parent_view(
     state: State<DbState>,
     session_state: State<ActiveSession>,
-    request: ParentViewRequest,
 ) -> Result<ParentViewResponse, String> {
     let db = state.0.lock().map_err(|e| e.to_string())?;
 
-    // T3 FIX: Real parent-teen relationship check.
-    // Verify that the requesting authenticated parent has an established link to the teen.
     let parent_id = session_state.get_user_id()?;
 
-    // A parent can only access their own linked teen's data.
-    // They cannot access arbitrary teen IDs by guessing.
-    let is_authorized = db
-        .check_parent_teen_link(&parent_id, &request.target_teen_id)
-        .map_err(|e| e.to_string())?;
+    // The backend autonomously resolves the authorized teen relationship
+    let target_teen_id: Option<String> = db
+        .conn
+        .query_row(
+            "SELECT teen_user_id FROM parent_teen_relationships WHERE parent_user_id = ?1 AND status = 'active' LIMIT 1",
+            rusqlite::params![parent_id],
+            |row| row.get(0),
+        )
+        .ok();
+
+    let is_authorized = target_teen_id.is_some();
+    let target_teen_id = target_teen_id.unwrap_or_default();
 
     if PolicyEngine::enforce_parental_authorization(is_authorized).is_err() {
         return Ok(ParentViewResponse {
@@ -589,12 +591,12 @@ pub fn get_parent_view(
     }
 
     let profile = db
-        .get_latest_snapshot(&request.target_teen_id)
+        .get_latest_snapshot(&target_teen_id)
         .map_err(|e| e.to_string())?;
 
     // Load sharing preferences, fallback to restrictive defaults
     let prefs = db
-        .get_sharing_preferences(&request.target_teen_id)
+        .get_sharing_preferences(&target_teen_id)
         .map_err(|e| e.to_string())?;
 
     let parent_safe = profile.map(|p| {
@@ -687,13 +689,6 @@ pub struct EncryptedExportEnvelope {
     pub ciphertext: String, // Base64
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
-pub struct ExportPackage {
-    pub user: serde_json::Value,
-    pub sessions: Vec<serde_json::Value>,
-    pub snapshots: Vec<serde_json::Value>,
-    pub preferences: serde_json::Value,
-}
 
 #[tauri::command]
 pub fn export_user_data(
@@ -706,27 +701,9 @@ pub fn export_user_data(
 
     let pwd = password.ok_or_else(|| "Password required for export".to_string())?;
 
-    let user = db
-        .get_user(&user_id)
-        .map_err(|e| e.to_string())?
-        .ok_or("User not found")?;
-    let sessions = db.get_user_sessions(&user_id).map_err(|e| e.to_string())?;
-    let snapshots = db.get_user_snapshots(&user_id).map_err(|e| e.to_string())?;
+    let portable_data = db.export_user_data(&user_id).map_err(|e| e.to_string())?;
 
-    let package = ExportPackage {
-        user: serde_json::to_value(user).unwrap(),
-        sessions: sessions
-            .into_iter()
-            .map(|s| serde_json::to_value(s).unwrap())
-            .collect(),
-        snapshots: snapshots
-            .into_iter()
-            .map(|s| serde_json::to_value(s).unwrap())
-            .collect(),
-        preferences: serde_json::json!({}),
-    };
-
-    let plaintext = serde_json::to_vec(&package).map_err(|e| e.to_string())?;
+    let plaintext = serde_json::to_vec(&portable_data).map_err(|e| e.to_string())?;
 
     use rand::RngCore;
     let mut salt = [0u8; 16];
@@ -789,13 +766,12 @@ pub fn import_user_data(
         .decrypt(nonce, ciphertext.as_ref())
         .map_err(|_| "Invalid password or corrupted export".to_string())?;
 
-    let data: ExportPackage =
+    let data: crate::db::models::PortableUserData =
         serde_json::from_slice(&plaintext).map_err(|_| "Invalid export schema".to_string())?;
 
     let db = state.0.lock().map_err(|e| e.to_string())?;
 
-    let mut user: crate::db::models::User =
-        serde_json::from_value(data.user).map_err(|_| "Invalid user data in export".to_string())?;
+    let mut user = data.profile;
     user.id = caller_id.clone();
 
     // TRANSACTIONAL IMPORT
@@ -818,16 +794,13 @@ pub fn import_user_data(
             }
         }
 
-        for session_json in data.sessions {
-            let session: crate::db::models::AssessmentSession =
-                serde_json::from_value(session_json)
-                    .map_err(|e| format!("Invalid session: {}", e))?;
+        for mut session in data.sessions {
+            session.user_id = caller_id.clone();
             db.save_session(&session).map_err(|e| e.to_string())?;
         }
 
-        for snapshot_json in data.snapshots {
-            let snapshot: crate::db::models::TraitSnapshot = serde_json::from_value(snapshot_json)
-                .map_err(|e| format!("Invalid snapshot: {}", e))?;
+        if let Some(mut snapshot) = data.latest_snapshot {
+            snapshot.user_id = caller_id.clone();
             db.save_trait_snapshot(&snapshot)
                 .map_err(|e| e.to_string())?;
         }

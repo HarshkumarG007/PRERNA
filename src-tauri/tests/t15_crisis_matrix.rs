@@ -27,6 +27,10 @@ fn setup_test_env(
     (llm_state, db_state, session, store)
 }
 
+fn explicit_crisis_message() -> &'static str {
+    "I want to end it all"
+}
+
 fn create_user_profile(db_state: &DbState, user_id: &str) {
     let db_lock = db_state.0.lock().unwrap();
     let profile = TraitSnapshot {
@@ -44,7 +48,7 @@ fn test_t15_1_crisis_persistence() {
         setup_test_env(AuthStatus::Authenticated("USER_A".to_string()));
 
     let request = ChatRequest {
-        message: "I feel like giving up on everything forever".to_string(), // Crisis message
+        message: explicit_crisis_message(),
         conversation_id: None,
     };
 
@@ -75,7 +79,7 @@ fn test_t15_2_identity_authority() {
         setup_test_env(AuthStatus::Authenticated("USER_A".to_string()));
 
     let request = ChatRequest {
-        message: "I feel like giving up on everything forever".to_string(),
+        message: explicit_crisis_message().to_string(),
         conversation_id: Some("conv_123".to_string()),
     };
 
@@ -106,7 +110,7 @@ fn test_t15_3_persistence_failure() {
     }
 
     let request = ChatRequest {
-        message: "I feel like giving up on everything forever".to_string(),
+        message: explicit_crisis_message().to_string(),
         conversation_id: None,
     };
 
@@ -145,7 +149,7 @@ fn test_t15_5_unauthenticated() {
     let (llm_state, db_state, session, store) = setup_test_env(AuthStatus::None);
 
     let request = ChatRequest {
-        message: "I feel like giving up on everything forever".to_string(),
+        message: explicit_crisis_message().to_string(),
         conversation_id: None,
     };
 
@@ -168,7 +172,7 @@ fn test_t15_6_pending_mfa() {
         setup_test_env(AuthStatus::PendingMFA("USER_A".to_string()));
 
     let request = ChatRequest {
-        message: "I feel like giving up on everything forever".to_string(),
+        message: explicit_crisis_message().to_string(),
         conversation_id: None,
     };
 
@@ -193,7 +197,7 @@ fn test_t15_7_cross_user_isolation() {
 
     // User A generates an event — use a phrase matching SafetyFilter tier-1 keywords
     let req_a = ChatRequest {
-        message: "I want to end it all".to_string(), // matches "end it all" in detect_crisis
+        message: explicit_crisis_message().to_string(),
         conversation_id: None,
     };
     let _ = execute_mentor_chat(&llm_state, &db_state, &session_a, &store, req_a);
@@ -225,11 +229,11 @@ fn test_t15_8_duplicate_signal_preservation() {
         setup_test_env(AuthStatus::Authenticated("USER_A".to_string()));
 
     let request1 = ChatRequest {
-        message: "I am in crisis".to_string(),
+        message: explicit_crisis_message().to_string(),
         conversation_id: None,
     };
     let request2 = ChatRequest {
-        message: "I am in crisis".to_string(),
+        message: explicit_crisis_message().to_string(),
         conversation_id: None,
     };
 

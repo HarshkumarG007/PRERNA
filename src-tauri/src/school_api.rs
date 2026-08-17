@@ -31,8 +31,11 @@ pub fn generate_school_report(
         );
     }
 
+    use std::collections::HashSet;
+    let unique_student_ids: HashSet<String> = student_ids.into_iter().collect();
+
     // RED-009 Amendment: Fail-closed tenant boundary
-    for student_id in &student_ids {
+    for student_id in &unique_student_ids {
         if !db.check_educator_tenant_access(&caller_id, student_id) {
             return Err(
                 "Unauthorized: Cannot request data for a student outside your tenant (or student does not exist)"
@@ -43,9 +46,9 @@ pub fn generate_school_report(
 
     // K-Anonymity Guard: Refuse to process cohorts smaller than 5
     let k_threshold = 5;
-    if student_ids.len() < k_threshold {
+    if unique_student_ids.len() < k_threshold {
         return Ok(SchoolAnalyticsReport {
-            cohort_size: student_ids.len(),
+            cohort_size: unique_student_ids.len(),
             average_wellbeing: 0,
             top_career_clusters: vec![],
             top_cognitive_strengths: vec![],
@@ -56,7 +59,7 @@ pub fn generate_school_report(
     let mut all_snapshots = Vec::new();
 
     // Fetch latest snapshot for each student
-    for id in &student_ids {
+    for id in &unique_student_ids {
         if let Ok(Some(snapshot)) = db.get_latest_snapshot(id) {
             all_snapshots.push(snapshot);
         }

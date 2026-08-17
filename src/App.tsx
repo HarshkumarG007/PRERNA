@@ -122,7 +122,7 @@ function App() {
             </button>
           </div>
         </header>
-        <ParentDashboard teenId="demo-teen-id" onExit={logout} />
+        <ParentDashboard onExit={logout} />
       </div>
     );
   }
@@ -213,7 +213,7 @@ function App() {
           <Route path="/mentor" element={<div className="max-w-7xl mx-auto"><AiMentorChat userId={user.id} /></div>} />
           <Route path="/dashboard" element={<TeenProfileView />} />
           <Route path="/profile" element={<TeenProfileView />} />
-          <Route path="/parent-dash" element={<ParentDashboard teenId={user.id} onExit={() => window.location.href='/'} />} />
+          <Route path="/parent-dash" element={<ParentDashboard onExit={() => window.location.href='/'} />} />
           <Route path="/school-dash" element={<SchoolDashboard />} />
           <Route path="/clinician-portal" element={
             !clinicianAuthed ? 

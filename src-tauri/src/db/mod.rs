@@ -842,7 +842,7 @@ impl Database {
         String::from_utf8(plaintext).map_err(|e| anyhow::anyhow!("Invalid UTF-8: {}", e))
     }
 
-    pub fn export_user_data(&self, user_id: &str) -> AnyhowResult<UserDataExport> {
+    pub fn export_user_data(&self, user_id: &str) -> AnyhowResult<PortableUserData> {
         let user = self
             .get_user(user_id)?
             .ok_or_else(|| anyhow::anyhow!("User not found"))?;
@@ -850,11 +850,12 @@ impl Database {
         let sessions = self.get_user_sessions(user_id)?;
         let snapshot = self.get_latest_snapshot(user_id)?;
 
-        Ok(UserDataExport {
-            user,
+        Ok(PortableUserData {
+            profile: crate::db::models::PublicUser::from(&user),
             sessions,
             latest_snapshot: snapshot,
             export_timestamp: chrono::Utc::now().to_rfc3339(),
+            version: 1,
         })
     }
 
