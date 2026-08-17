@@ -291,6 +291,7 @@ fn format_riasec(riasec: &crate::db::models::Riasec) -> String {
         .iter()
         .take(3)
         .map(|(name, score)| format!("- {}: {:.0}%", name, score))
+        .collect::<Vec<_>>()
         .join("\n")
 }
 

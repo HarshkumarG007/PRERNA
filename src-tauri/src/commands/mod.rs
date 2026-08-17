@@ -750,9 +750,9 @@ pub fn export_user_data(
         version: "v1".to_string(),
         kdf: "argon2id".to_string(),
         alg: "aes-256-gcm".to_string(),
-        salt: base64::encode(salt),
-        nonce: base64::encode(nonce_bytes),
-        ciphertext: base64::encode(ciphertext),
+        salt: b64.encode(salt),
+        nonce: b64.encode(nonce_bytes),
+        ciphertext: b64.encode(ciphertext),
     })
 }
 
@@ -767,10 +767,15 @@ pub fn import_user_data(
 
     let pwd = password.ok_or_else(|| "Password required for import".to_string())?;
 
-    let salt = base64::decode(&envelope.salt).map_err(|_| "Invalid salt".to_string())?;
-    let nonce_bytes = base64::decode(&envelope.nonce).map_err(|_| "Invalid nonce".to_string())?;
-    let ciphertext =
-        base64::decode(&envelope.ciphertext).map_err(|_| "Invalid ciphertext".to_string())?;
+    let salt = b64
+        .decode(&envelope.salt)
+        .map_err(|_| "Invalid salt".to_string())?;
+    let nonce_bytes = b64
+        .decode(&envelope.nonce)
+        .map_err(|_| "Invalid nonce".to_string())?;
+    let ciphertext = b64
+        .decode(&envelope.ciphertext)
+        .map_err(|_| "Invalid ciphertext".to_string())?;
 
     let mut key = [0u8; 32];
     Argon2::default()
