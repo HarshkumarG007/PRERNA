@@ -14,10 +14,10 @@ fn setup_test_env(
     let db = Database::new_in_memory("test_secret").unwrap();
 
     // Pre-populate users so foreign keys (e.g. from crisis_events) don't fail
-    db.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('USER_A', 'user_a', 'hash', '0', 'teen')", []).unwrap();
-    db.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('USER_B', 'user_b', 'hash', '0', 'teen')", []).unwrap();
-    db.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('REV_A', 'rev_a', 'hash', '0', 'reviewer')", []).unwrap();
-    db.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('REV_B', 'rev_b', 'hash', '0', 'reviewer')", []).unwrap();
+    db.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('USER_A', 'user_a', 'hash', '0', 'teen')", ()).unwrap();
+    db.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('USER_B', 'user_b', 'hash', '0', 'teen')", ()).unwrap();
+    db.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('REV_A', 'rev_a', 'hash', '0', 'reviewer')", ()).unwrap();
+    db.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('REV_B', 'rev_b', 'hash', '0', 'reviewer')", ()).unwrap();
 
     let db_state = DbState(Mutex::new(db));
     let llm_state = LLMState(Arc::new(Mutex::new(None))); // Model not loaded
