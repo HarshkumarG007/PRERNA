@@ -251,9 +251,10 @@ fn test_t15_9_reviewer_ownership() {
     {
         let db_lock = db_state.0.lock().unwrap();
         // Make REV_A and REV_B reviewers
-        db_lock.conn.execute("INSERT INTO internal_users (id, role, name, clinical_credentials_ref, is_active, created_at) VALUES ('REV_A', 'reviewer', 'Rev A', 'ref', 1, 0)", []).unwrap();
-        db_lock.conn.execute("INSERT INTO internal_users (id, role, name, clinical_credentials_ref, is_active, created_at) VALUES ('REV_B', 'reviewer', 'Rev B', 'ref', 1, 0)", []).unwrap();
-
+        db_lock.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('REV_A', 'rev_a', 'hash', '0', 'reviewer')", []).unwrap();
+        db_lock.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('REV_B', 'rev_b', 'hash', '0', 'reviewer')", []).unwrap();
+        
+        db_lock.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('USER_A', 'user_a', 'hash', '0', 'teen')", []).unwrap();
         db_lock.conn.execute("INSERT INTO crisis_events (id, user_id, detected_at, severity, human_review_status) VALUES (?, 'USER_A', 0, 'high', 'pending')", [&event_id]).unwrap();
     }
 
@@ -298,7 +299,8 @@ fn test_t15_10_notification_ordering() {
     let event_id = "event_456".to_string();
     {
         let db_lock = db_state.0.lock().unwrap();
-        db_lock.conn.execute("INSERT INTO internal_users (id, role, name, clinical_credentials_ref, is_active, created_at) VALUES ('REV_A', 'reviewer', 'Rev A', 'ref', 1, 0)", []).unwrap();
+        db_lock.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('REV_A', 'rev_a', 'hash', '0', 'reviewer')", []).unwrap();
+        db_lock.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('USER_A', 'user_a', 'hash', '0', 'teen')", []).unwrap();
         db_lock.conn.execute("INSERT INTO crisis_events (id, user_id, detected_at, severity, human_review_status) VALUES (?, 'USER_A', 0, 'high', 'pending')", [&event_id]).unwrap();
     }
 
