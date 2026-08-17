@@ -111,19 +111,17 @@ mod tests {
                 role: "teen".to_string(),
                 tenant_id: None,
             },
-            sessions: vec![
-                AssessmentSession {
-                    id: "sess_1".to_string(),
-                    user_id: "victim_user_id".to_string(),
-                    session_type: "skill_arena".to_string(),
-                    started_at: "now".to_string(),
-                    completed_at: None,
-                    raw_choices: "{}".to_string(),
-                    derived_traits: "{}".to_string(),
-                    disclosure_version: "v1".to_string(),
-                    disclosure_shown_at: 0,
-                }
-            ],
+            sessions: vec![AssessmentSession {
+                id: "sess_1".to_string(),
+                user_id: "victim_user_id".to_string(),
+                session_type: "skill_arena".to_string(),
+                started_at: "now".to_string(),
+                completed_at: None,
+                raw_choices: "{}".to_string(),
+                derived_traits: "{}".to_string(),
+                disclosure_version: "v1".to_string(),
+                disclosure_shown_at: 0,
+            }],
             latest_snapshot: Some(TraitSnapshot {
                 id: "snap_1".to_string(),
                 user_id: "victim_user_id".to_string(),
@@ -139,22 +137,29 @@ mod tests {
         };
 
         let caller_id = "caller_123".to_string();
-        
+
         // This is what import_user_data does
         let mut user = data.profile;
         user.id = caller_id.clone();
-        
+
         for session in &mut data.sessions {
             session.user_id = caller_id.clone();
         }
-        
+
         if let Some(mut snapshot) = data.latest_snapshot.as_mut() {
             snapshot.user_id = caller_id.clone();
         }
 
         assert_eq!(user.id, "caller_123");
-        assert_eq!(data.sessions[0].user_id, "caller_123", "SECURITY VULNERABILITY: Imported session ownership was not normalized!");
-        assert_eq!(data.latest_snapshot.unwrap().user_id, "caller_123", "SECURITY VULNERABILITY: Imported snapshot ownership was not normalized!");
+        assert_eq!(
+            data.sessions[0].user_id, "caller_123",
+            "SECURITY VULNERABILITY: Imported session ownership was not normalized!"
+        );
+        assert_eq!(
+            data.latest_snapshot.unwrap().user_id,
+            "caller_123",
+            "SECURITY VULNERABILITY: Imported snapshot ownership was not normalized!"
+        );
     }
 
     #[test]
@@ -178,7 +183,7 @@ mod tests {
         for (input, expected_allowed) in test_cases {
             let unique_student_ids: HashSet<&str> = input.into_iter().collect();
             let is_allowed = unique_student_ids.len() >= k_threshold;
-            
+
             assert_eq!(
                 is_allowed, expected_allowed,
                 "SECURITY VULNERABILITY: k-anonymity deduplication failed!"
@@ -201,20 +206,32 @@ mod tests {
     fn test_ipc_session_type_schema_enforcement() {
         // According to the DB schema, session_type must be in:
         // 'life_quest', 'skill_arena', 'mood_mirror', 'social_compass', 'body_clock', 'unified_profile'
-        
+
         let valid_types = vec![
-            "life_quest", "skill_arena", "mood_mirror", "social_compass", "body_clock", "unified_profile"
+            "life_quest",
+            "skill_arena",
+            "mood_mirror",
+            "social_compass",
+            "body_clock",
+            "unified_profile",
         ];
-        
-        let invalid_types = vec![
-            "skill_memory", "skill_reaction", "unknown_game"
-        ];
-        
+
+        let invalid_types = vec!["skill_memory", "skill_reaction", "unknown_game"];
+
         // This is a unit test assertion simulating the application layer contract.
         // It ensures developers map game modes to valid schema constants.
-        assert!(valid_types.contains(&"skill_arena"), "SECURITY VULNERABILITY: Valid type not present in check list");
-        assert!(!invalid_types.contains(&"skill_arena"), "SECURITY VULNERABILITY: Valid type is in invalid list");
-        assert!(!valid_types.contains(&"skill_memory"), "SECURITY VULNERABILITY: Invalid type mapped to valid!");
+        assert!(
+            valid_types.contains(&"skill_arena"),
+            "SECURITY VULNERABILITY: Valid type not present in check list"
+        );
+        assert!(
+            !invalid_types.contains(&"skill_arena"),
+            "SECURITY VULNERABILITY: Valid type is in invalid list"
+        );
+        assert!(
+            !valid_types.contains(&"skill_memory"),
+            "SECURITY VULNERABILITY: Invalid type mapped to valid!"
+        );
     }
 
     #[test]

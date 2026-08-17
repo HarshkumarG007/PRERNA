@@ -250,7 +250,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ onExit }) => {
         )}
         {activeTab === 'conversations' && <ConversationsTab profile={profile} />}
         {activeTab === 'settings' && (
-          <SettingsTab teenId={teenId} onRequestAccess={requestMoreAccess} />
+          <SettingsTab onRequestAccess={requestMoreAccess} />
         )}
       </div>
 
@@ -339,7 +339,6 @@ const ConversationsTab: React.FC<{ profile: ParentSafeProfile }> = ({ profile })
 );
 
 const SettingsTab: React.FC<{
-  teenId: string;
   onRequestAccess: (type: string) => void;
 }> = ({ onRequestAccess }) => (
   <div className="space-y-8 max-w-3xl">

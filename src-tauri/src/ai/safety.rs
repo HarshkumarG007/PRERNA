@@ -201,12 +201,24 @@ mod tests {
         let filter = SafetyFilter::new();
 
         // Tier 1/2 explicitly modeled crisis language should trigger True
-        assert!(filter.detect_crisis("I want to end it all"), "Canonical explicit phrase should be detected");
-        assert!(filter.detect_crisis("i'm done with everything"), "Canonical indirect phrase should be detected");
+        assert!(
+            filter.detect_crisis("I want to end it all"),
+            "Canonical explicit phrase should be detected"
+        );
+        assert!(
+            filter.detect_crisis("i'm done with everything"),
+            "Canonical indirect phrase should be detected"
+        );
 
         // Currently outside the heuristic's modeled trigger set.
         // These cases should be evaluated separately during safety tuning.
-        assert!(!filter.detect_crisis("I feel like giving up on everything forever"), "Currently undetected false-negative / out-of-bounds phrase");
-        assert!(!filter.detect_crisis("I am in crisis"), "Currently undetected explicit keyword phrase");
+        assert!(
+            !filter.detect_crisis("I feel like giving up on everything forever"),
+            "Currently undetected false-negative / out-of-bounds phrase"
+        );
+        assert!(
+            !filter.detect_crisis("I am in crisis"),
+            "Currently undetected explicit keyword phrase"
+        );
     }
 }

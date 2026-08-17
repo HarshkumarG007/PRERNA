@@ -332,5 +332,3 @@ pub(crate) fn handle_crisis_detection(
     }
     Ok(None)
 }
-
-

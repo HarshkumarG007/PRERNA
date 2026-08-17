@@ -101,10 +101,18 @@ mod tests {
     #[test]
     fn test_under_18_tracking_blocked() {
         use crate::db::models::AgeBand;
-        assert!(PolicyEngine::enforce_under_18_tracking_invariant(&AgeBand::Teen13To15, true).is_err());
-        assert!(PolicyEngine::enforce_under_18_tracking_invariant(&AgeBand::Teen16To17, true).is_err());
-        assert!(PolicyEngine::enforce_under_18_tracking_invariant(&AgeBand::Adult18Plus, true).is_ok());
-        assert!(PolicyEngine::enforce_under_18_tracking_invariant(&AgeBand::Teen13To15, false).is_ok());
+        assert!(
+            PolicyEngine::enforce_under_18_tracking_invariant(&AgeBand::Teen13To15, true).is_err()
+        );
+        assert!(
+            PolicyEngine::enforce_under_18_tracking_invariant(&AgeBand::Teen16To17, true).is_err()
+        );
+        assert!(
+            PolicyEngine::enforce_under_18_tracking_invariant(&AgeBand::Adult18Plus, true).is_ok()
+        );
+        assert!(
+            PolicyEngine::enforce_under_18_tracking_invariant(&AgeBand::Teen13To15, false).is_ok()
+        );
     }
 
     #[test]

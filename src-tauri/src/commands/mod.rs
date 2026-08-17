@@ -101,7 +101,9 @@ pub fn authenticate_user(
                 session.set_authenticated(user.id.clone())?;
 
                 let public_user = PublicUser::from(&user);
-                Ok(Some(serde_json::to_value(public_user).map_err(|e| e.to_string())?))
+                Ok(Some(
+                    serde_json::to_value(public_user).map_err(|e| e.to_string())?,
+                ))
             }
         } else {
             // Password mismatch
@@ -535,7 +537,6 @@ pub fn get_unified_profile(
     }
 }
 
-
 #[derive(Debug, serde::Serialize)]
 pub struct ParentViewResponse {
     pub has_access: bool,
@@ -688,7 +689,6 @@ pub struct EncryptedExportEnvelope {
     pub nonce: String,      // Base64
     pub ciphertext: String, // Base64
 }
-
 
 #[tauri::command]
 pub fn export_user_data(
