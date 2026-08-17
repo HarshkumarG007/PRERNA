@@ -329,7 +329,7 @@ pub fn verify_login_mfa(
     state: State<DbState>,
     session: State<ActiveSession>,
     token: String,
-) -> Result<Option<User>, String> {
+) -> Result<Option<PublicUser>, String> {
     let user_id = session.get_pending_mfa_user()?;
 
     let db = state.0.lock().map_err(|e| e.to_string())?;
@@ -358,7 +358,7 @@ pub fn verify_login_mfa(
     if totp.check_current(&token).unwrap_or(false) {
         // MFA passed â€” fully commit the session now
         session.set_authenticated(user.id.clone())?;
-        Ok(Some(user))
+        Ok(Some(user.into()))
     } else {
         Err("Invalid token".to_string())
     }

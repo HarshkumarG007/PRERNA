@@ -97,6 +97,53 @@ mod tests {
     }
 
     #[test]
+    fn test_portable_user_data_serialization_no_leak() {
+        let internal_user = User {
+            id: "user_123".to_string(),
+            username: "testuser".to_string(),
+            password_hash: "$argon2id$v=19$m=19456,t=2,p=1$SALT$HASH".to_string(),
+            created_at: "now".to_string(),
+            age_range: "13-15".to_string(),
+            region: "IN".to_string(),
+            language: "en".to_string(),
+            encryption_key_hash: "ekh".to_string(),
+            mfa_secret: Some("SUPER_SECRET_MFA".to_string()),
+            mfa_enabled: true,
+            role: "teen".to_string(),
+            tenant_id: None,
+        };
+
+        let public_user = PublicUser::from(&internal_user);
+        let portable_data = crate::db::models::PortableUserData {
+            profile: public_user,
+            sessions: vec![],
+            latest_snapshot: None,
+            conversations: vec![],
+        };
+
+        let exported = serde_json::to_value(&portable_data).unwrap();
+
+        assert!(
+            exported.get("password_hash").is_none(),
+            "SECURITY VULNERABILITY: PortableUserData leaked password_hash"
+        );
+        assert!(
+            exported.get("mfa_secret").is_none(),
+            "SECURITY VULNERABILITY: PortableUserData leaked mfa_secret"
+        );
+
+        let profile_val = exported.get("profile").unwrap();
+        assert!(
+            profile_val.get("password_hash").is_none(),
+            "SECURITY VULNERABILITY: PortableUserData.profile leaked password_hash"
+        );
+        assert!(
+            profile_val.get("mfa_secret").is_none(),
+            "SECURITY VULNERABILITY: PortableUserData.profile leaked mfa_secret"
+        );
+    }
+
+    #[test]
     fn test_ipc_import_ownership_normalization() {
         // Simulating an imported session/snapshot that belongs to someone else
         let mut data = PortableUserData {
