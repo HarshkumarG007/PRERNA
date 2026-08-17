@@ -333,30 +333,4 @@ pub(crate) fn handle_crisis_detection(
     Ok(None)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::db::Database;
-    use std::collections::HashMap;
-    use std::sync::{Arc, Mutex};
 
-    fn setup_test_env(
-        authenticated_user: Option<&str>,
-    ) -> (LLMState, DbState, crate::ActiveSession, ConversationStore) {
-        let db = Database::new_in_memory("test_secret").unwrap();
-
-        let db_state = DbState(Mutex::new(db));
-        let llm_state = LLMState(Arc::new(Mutex::new(None))); // Model not loaded
-
-        // Mock session
-        let auth_status = match authenticated_user {
-            Some(id) => crate::AuthStatus::Authenticated(id.to_string()),
-            None => crate::AuthStatus::None,
-        };
-        let session = crate::ActiveSession(Mutex::new(auth_status));
-
-        let store = ConversationStore(Mutex::new(HashMap::new()));
-
-        (llm_state, db_state, session, store)
-    }
-}
