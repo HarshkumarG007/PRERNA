@@ -12,6 +12,13 @@ fn setup_test_env(
     auth_status: AuthStatus,
 ) -> (LLMState, DbState, ActiveSession, ConversationStore) {
     let db = Database::new_in_memory("test_secret").unwrap();
+    
+    // Pre-populate users so foreign keys (e.g. from crisis_events) don't fail
+    db.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('USER_A', 'user_a', 'hash', '0', 'teen')", []).unwrap();
+    db.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('USER_B', 'user_b', 'hash', '0', 'teen')", []).unwrap();
+    db.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('REV_A', 'rev_a', 'hash', '0', 'reviewer')", []).unwrap();
+    db.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('REV_B', 'rev_b', 'hash', '0', 'reviewer')", []).unwrap();
+
     let db_state = DbState(Mutex::new(db));
     let llm_state = LLMState(Arc::new(Mutex::new(None))); // Model not loaded
     let session = ActiveSession(Mutex::new(auth_status));
@@ -250,11 +257,6 @@ fn test_t15_9_reviewer_ownership() {
     let event_id = "event_123".to_string();
     {
         let db_lock = db_state.0.lock().unwrap();
-        // Make REV_A and REV_B reviewers
-        db_lock.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('REV_A', 'rev_a', 'hash', '0', 'reviewer')", []).unwrap();
-        db_lock.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('REV_B', 'rev_b', 'hash', '0', 'reviewer')", []).unwrap();
-        
-        db_lock.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('USER_A', 'user_a', 'hash', '0', 'teen')", []).unwrap();
         db_lock.conn.execute("INSERT INTO crisis_events (id, user_id, detected_at, severity, human_review_status) VALUES (?, 'USER_A', 0, 'high', 'pending')", [&event_id]).unwrap();
     }
 
@@ -299,8 +301,6 @@ fn test_t15_10_notification_ordering() {
     let event_id = "event_456".to_string();
     {
         let db_lock = db_state.0.lock().unwrap();
-        db_lock.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('REV_A', 'rev_a', 'hash', '0', 'reviewer')", []).unwrap();
-        db_lock.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('USER_A', 'user_a', 'hash', '0', 'teen')", []).unwrap();
         db_lock.conn.execute("INSERT INTO crisis_events (id, user_id, detected_at, severity, human_review_status) VALUES (?, 'USER_A', 0, 'high', 'pending')", [&event_id]).unwrap();
     }
 
