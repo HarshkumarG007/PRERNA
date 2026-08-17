@@ -336,15 +336,17 @@ pub(crate) fn handle_crisis_detection(
 mod tests {
     use super::*;
     use crate::db::Database;
-    use std::sync::{Arc, Mutex};
     use std::collections::HashMap;
+    use std::sync::{Arc, Mutex};
 
-    fn setup_test_env(authenticated_user: Option<&str>) -> (LLMState, DbState, crate::ActiveSession, ConversationStore) {
+    fn setup_test_env(
+        authenticated_user: Option<&str>,
+    ) -> (LLMState, DbState, crate::ActiveSession, ConversationStore) {
         let db = Database::new_in_memory("test_secret").unwrap();
-        
+
         let db_state = DbState(Mutex::new(db));
         let llm_state = LLMState(Arc::new(Mutex::new(None))); // Model not loaded
-        
+
         // Mock session
         let auth_status = match authenticated_user {
             Some(id) => crate::AuthStatus::Authenticated(id.to_string()),
@@ -353,73 +355,83 @@ mod tests {
         let session = crate::ActiveSession(Mutex::new(auth_status));
 
         let store = ConversationStore(Mutex::new(HashMap::new()));
-        
+
         (llm_state, db_state, session, store)
     }
 
     #[test]
     fn test_t15_1_command_level_crisis_persistence() {
         let (llm_state, db_state, session, store) = setup_test_env(Some("USER_A"));
-        
+
         let request = ChatRequest {
             message: "I feel like giving up on everything forever".to_string(), // crisis message
             conversation_id: None,
         };
-        
+
         let result = chat_with_mentor_inner(&llm_state, &db_state, &session, &store, request);
-        
+
         // Verify response is a crisis response
         assert!(result.is_ok());
         let response = result.unwrap();
         assert_eq!(response.sentiment, "crisis");
-        
+
         // Verify it was actually persisted in the DB
         let db_lock = db_state.0.lock().unwrap();
         let events = db_lock.get_pending_crisis_events().unwrap();
-        
+
         // Exactly one event, authenticated user owns it, high severity, pending
-        assert_eq!(events.len(), 1, "Exactly one crisis event should be created");
+        assert_eq!(
+            events.len(),
+            1,
+            "Exactly one crisis event should be created"
+        );
         assert_eq!(events[0].user_id, "USER_A");
         assert_eq!(events[0].severity, "high");
         assert_eq!(events[0].human_review_status, "pending");
     }
 
     #[test]
-    fn test_t15_2_authenticated_identity_cannot_be_spoofed() {
+    fn test_t15_2_authenticated_identity_is_derived_from_session() {
         let (llm_state, db_state, session, store) = setup_test_env(Some("USER_A"));
-        
+
         let request = ChatRequest {
             message: "I feel like giving up on everything forever".to_string(), // crisis message
-            // Even if the client somehow controlled a user_id payload, our struct 
+            // Even if the client somehow controlled a user_id payload, our struct
             // drops it or doesn't have it, and the backend relies solely on `session`.
-            conversation_id: Some("conv_123".to_string()), 
+            conversation_id: Some("conv_123".to_string()),
         };
-        
+
         let _ = chat_with_mentor_inner(&llm_state, &db_state, &session, &store, request);
-        
+
         let db_lock = db_state.0.lock().unwrap();
         let events = db_lock.get_pending_crisis_events().unwrap();
-        
+
         // The event must belong to USER_A, ignoring any other identity assumptions
         assert_eq!(events.len(), 1);
-        assert_eq!(events[0].user_id, "USER_A", "Ownership must be derived from ActiveSession");
+        assert_eq!(
+            events[0].user_id, "USER_A",
+            "Ownership must be derived from ActiveSession"
+        );
     }
 
     #[test]
     fn test_t15_3_persistence_failure() {
         let (llm_state, db_state, session, store) = setup_test_env(Some("USER_A"));
-        
+
         // Drop the table to simulate infrastructure fault
         {
             let db_lock = db_state.0.lock().unwrap();
-            db_lock.conn.execute("DROP TABLE crisis_events", []).unwrap();
+            db_lock
+                .conn
+                .execute("DROP TABLE crisis_events", [])
+                .unwrap();
         }
-        
+
         let request = ChatRequest {
             message: "I feel like giving up on everything forever".to_string(), // crisis message
             conversation_id: None,
         };
-        
+
         // The command must propagate the DB failure and NOT return a successful ChatResponse
         let result = chat_with_mentor_inner(&llm_state, &db_state, &session, &store, request);
         assert!(result.is_err(), "Persistence failure must not be swallowed");
@@ -428,11 +440,11 @@ mod tests {
     #[test]
     fn test_t15_4_non_crisis_regression() {
         let (llm_state, db_state, session, store) = setup_test_env(Some("USER_A"));
-        
+
         // Ensure user profile exists for the non-crisis path to fetch it
         {
             let db_lock = db_state.0.lock().unwrap();
-            
+
             // Insert empty profile
             let profile = crate::db::models::TraitSnapshot {
                 id: "snap_1".to_string(),
@@ -447,16 +459,20 @@ mod tests {
             message: "Hello, how are you?".to_string(), // Benign message
             conversation_id: None,
         };
-        
+
         let result = chat_with_mentor_inner(&llm_state, &db_state, &session, &store, request);
-        
+
         // We assert on the primary invariant: NO crisis event is created.
         {
             let db_lock = db_state.0.lock().unwrap();
             let events = db_lock.get_pending_crisis_events().unwrap();
-            assert_eq!(events.len(), 0, "Benign message must not create a crisis event");
+            assert_eq!(
+                events.len(),
+                0,
+                "Benign message must not create a crisis event"
+            );
         }
-        
+
         // The test allows the subsequent error (AI model not loaded) to happen,
         // proving the crisis detector didn't short-circuit it into a "successful" crisis response.
         assert!(result.is_err());
