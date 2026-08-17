@@ -780,18 +780,9 @@ pub fn import_user_data(
         .map_err(|e| e.to_string())?;
 
     let result: Result<(), String> = (|| {
-        match db.get_user(&user.id).map_err(|e| e.to_string())? {
-            Some(_) => {}
-            None => {
-                db.create_user(&crate::db::models::NewUser {
-                    username: user.username,
-                    password_hash: user.password_hash,
-                    age_range: user.age_range,
-                    region: user.region,
-                    language: user.language,
-                })
-                .map_err(|e| e.to_string())?;
-            }
+        let user_exists = db.get_user(&user.id).map_err(|e| e.to_string())?;
+        if user_exists.is_none() {
+            return Err("Cannot import data: target user account does not exist.".to_string());
         }
 
         for mut session in data.sessions {
