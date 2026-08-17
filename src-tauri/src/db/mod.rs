@@ -80,7 +80,6 @@ impl Database {
         Ok(key_str)
     }
 
-    #[cfg(test)]
     pub fn new_in_memory(key: &str) -> AnyhowResult<Self> {
         let conn = Connection::open_in_memory()?;
         conn.pragma_update(None, "key", key)

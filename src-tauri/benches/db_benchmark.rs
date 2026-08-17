@@ -17,6 +17,8 @@ fn setup_benchmark_db() -> Database {
 fn bench_session_save(c: &mut Criterion) {
     let db = setup_benchmark_db();
     let user = NewUser {
+        username: "bench_user".to_string(),
+        password_hash: "hash".to_string(),
         age_range: "13-15".to_string(),
         region: "Delhi".to_string(),
         language: "en".to_string(),
