@@ -1054,8 +1054,8 @@ mod tests {
         let db = Database::new_in_memory("test_secret").unwrap();
 
         // Insert users first to satisfy foreign keys
-        db.conn.execute("INSERT INTO users (id, role, name, email, password_hash, created_at) VALUES ('p1', 'parent', 'Parent 1', 'p1@test.com', 'hash', 'now')", []).unwrap();
-        db.conn.execute("INSERT INTO users (id, role, name, email, password_hash, created_at) VALUES ('t1', 'teen', 'Teen 1', 't1@test.com', 'hash', 'now')", []).unwrap();
+        db.conn.execute("INSERT INTO users (id, role, username, password_hash, created_at) VALUES ('p1', 'parent', 'Parent1', 'hash', 'now')", []).unwrap();
+        db.conn.execute("INSERT INTO users (id, role, username, password_hash, created_at) VALUES ('t1', 'teen', 'Teen1', 'hash', 'now')", []).unwrap();
 
         db.conn.execute(
             "INSERT INTO parent_teen_relationships (id, parent_user_id, teen_user_id, established_at, status) VALUES ('1', 'p1', 't1', 'now', 'active')",
