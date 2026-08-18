@@ -893,12 +893,14 @@ pub fn create_crisis_event(
     let user_id = session.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
 
-    let event = CrisisEvent {
+    let event = crate::db::models::CrisisEvent {
         id: uuid::Uuid::new_v4().to_string(),
         user_id,
         detected_at,
         severity,
-        human_review_status: "pending".to_string(),
+        state: crate::db::models::CrisisState::SignalDetected,
+        origin: crate::db::models::CrisisOrigin::EXTERNAL,
+        cognitive_decision_id: None,
         reviewer_id: None,
         reviewer_credentials_ref: None,
         decision: None,

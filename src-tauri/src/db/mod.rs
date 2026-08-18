@@ -658,15 +658,19 @@ impl Database {
     // === CRISIS OPERATIONS ===
 
     pub fn create_crisis_event(&self, event: &CrisisEvent) -> AnyhowResult<String> {
+        let state_str = format!("{:?}", event.state);
+        let origin_str = format!("{:?}", event.origin);
         self.conn.execute(
-            "INSERT INTO crisis_events (id, user_id, detected_at, severity, human_review_status, reviewer_id, decision, teen_informed_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            "INSERT INTO crisis_events (id, user_id, detected_at, severity, state, origin, cognitive_decision_id, reviewer_id, decision, teen_informed_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
             params![
                 &event.id,
                 &event.user_id,
                 event.detected_at,
                 &event.severity,
-                &event.human_review_status,
+                &state_str,
+                &origin_str,
+                &event.cognitive_decision_id,
                 &event.reviewer_id,
                 &event.decision,
                 &event.teen_informed_at
@@ -677,23 +681,48 @@ impl Database {
 
     pub fn get_pending_crisis_events(&self) -> AnyhowResult<Vec<CrisisEvent>> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, user_id, detected_at, severity, human_review_status, reviewer_id, reviewer_credentials_ref, decision, teen_informed_at
+            "SELECT id, user_id, detected_at, severity, state, origin, cognitive_decision_id, reviewer_id, reviewer_credentials_ref, decision, teen_informed_at
              FROM crisis_events
-             WHERE human_review_status = 'pending'"
+             WHERE state = 'HumanReview'"
         )?;
 
         let events = stmt
             .query_map([], |row| {
+                let state_str: String = row.get(4)?;
+                let origin_str: String = row.get(5)?;
+
+                let state = match state_str.as_str() {
+                    "SignalDetected" => crate::db::models::CrisisState::SignalDetected,
+                    "AssessmentPending" => crate::db::models::CrisisState::AssessmentPending,
+                    "HumanReview" => crate::db::models::CrisisState::HumanReview,
+                    "Cleared" => crate::db::models::CrisisState::Cleared,
+                    "Monitor" => crate::db::models::CrisisState::Monitor,
+                    "Escalate" => crate::db::models::CrisisState::Escalate,
+                    "NotificationPending" => crate::db::models::CrisisState::NotificationPending,
+                    "Notified" => crate::db::models::CrisisState::Notified,
+                    _ => crate::db::models::CrisisState::HumanReview,
+                };
+
+                let origin = match origin_str.as_str() {
+                    "AI" => crate::db::models::CrisisOrigin::AI,
+                    "HUMAN" => crate::db::models::CrisisOrigin::HUMAN,
+                    "SYSTEM" => crate::db::models::CrisisOrigin::SYSTEM,
+                    "EXTERNAL" => crate::db::models::CrisisOrigin::EXTERNAL,
+                    _ => crate::db::models::CrisisOrigin::SYSTEM,
+                };
+
                 Ok(CrisisEvent {
                     id: row.get(0)?,
                     user_id: row.get(1)?,
                     detected_at: row.get(2)?,
                     severity: row.get(3)?,
-                    human_review_status: row.get(4)?,
-                    reviewer_id: row.get(5)?,
-                    reviewer_credentials_ref: row.get(6)?,
-                    decision: row.get(7)?,
-                    teen_informed_at: row.get(8)?,
+                    state,
+                    origin,
+                    cognitive_decision_id: row.get(6)?,
+                    reviewer_id: row.get(7)?,
+                    reviewer_credentials_ref: row.get(8)?,
+                    decision: row.get(9)?,
+                    teen_informed_at: row.get(10)?,
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?;
@@ -703,7 +732,7 @@ impl Database {
 
     pub fn claim_crisis_event(&self, event_id: &str, reviewer_id: &str) -> AnyhowResult<()> {
         let updated = self.conn.execute(
-            "UPDATE crisis_events SET reviewer_id = ?1 WHERE id = ?2 AND reviewer_id IS NULL AND human_review_status = 'pending'",
+            "UPDATE crisis_events SET reviewer_id = ?1 WHERE id = ?2 AND reviewer_id IS NULL AND state = 'HumanReview'",
             rusqlite::params![reviewer_id, event_id]
         )?;
         if updated == 0 {
@@ -724,11 +753,11 @@ impl Database {
     ) -> AnyhowResult<()> {
         let sql = "
             UPDATE crisis_events
-            SET human_review_status = 'resolved',
+            SET state = 'Cleared',
                 reviewer_credentials_ref = ?1,
                 decision = ?2,
                 teen_informed_at = ?3
-            WHERE id = ?4 AND reviewer_id = ?5 AND human_review_status = 'pending'
+            WHERE id = ?4 AND reviewer_id = ?5 AND state = 'HumanReview'
         ";
 
         let updated = self.conn.execute(
@@ -1104,7 +1133,9 @@ mod tests {
             user_id: user_id.to_string(),
             detected_at: 1620000000,
             severity: "high".to_string(),
-            human_review_status: "pending".to_string(),
+            state: crate::db::models::CrisisState::HumanReview,
+            origin: crate::db::models::CrisisOrigin::SYSTEM,
+            cognitive_decision_id: None,
             reviewer_id: None,
             reviewer_credentials_ref: None,
             decision: None,
@@ -1164,7 +1195,9 @@ mod tests {
             user_id: user_id.to_string(),
             detected_at: 1620000000,
             severity: "high".to_string(),
-            human_review_status: "pending".to_string(),
+            state: crate::db::models::CrisisState::HumanReview,
+            origin: crate::db::models::CrisisOrigin::SYSTEM,
+            cognitive_decision_id: None,
             reviewer_id: None,
             reviewer_credentials_ref: None,
             decision: None,
@@ -1253,7 +1286,9 @@ mod tests {
             user_id: user_id.to_string(),
             detected_at: base_clock,
             severity: "high".to_string(),
-            human_review_status: "pending".to_string(),
+            state: crate::db::models::CrisisState::HumanReview,
+            origin: crate::db::models::CrisisOrigin::SYSTEM,
+            cognitive_decision_id: None,
             reviewer_id: None,
             reviewer_credentials_ref: None,
             decision: None,
