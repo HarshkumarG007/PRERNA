@@ -248,3 +248,166 @@ pub struct SharingPreferences {
     #[serde(rename = "requiresApproval")]
     pub requires_approval: SharingRequiresApproval,
 }
+
+// === Phase 2 Cognitive Architecture Models ===
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub enum RetentionClass {
+    SessionEphemeral,
+    ShortTerm,
+    LongTerm,
+    RequiredRecord,
+    UserControlled,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Provenance {
+    pub source_type: String,
+    pub source_id: String,
+    pub observed_at: String,
+    pub collector_version: String,
+    pub disclosure_scope: String,
+    pub transformation_chain: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct RawEvidence {
+    pub id: String,
+    pub subject_id: String,
+    pub source: String,
+    pub observed_at: String,
+    pub content: String, // Note: Encrypted at rest
+    pub disclosure_scope: String,
+    pub provenance: Provenance,
+    pub retention_class: RetentionClass,
+    pub expires_at: Option<String>,
+    pub deletion_reason: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub enum InferenceStatus {
+    Valid,
+    Stale,
+    Revoked,
+    Expired,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DerivedInference {
+    pub id: String,
+    pub subject_id: String,
+    pub evidence_ids: Vec<String>,
+    pub inference: String, // Note: Encrypted at rest
+    pub confidence: f64,
+    pub model_version: String,
+    pub status: InferenceStatus,
+    pub created_at: String,
+    pub expires_at: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Hypothesis {
+    pub id: String,
+    pub subject_id: String,
+    pub inference_ids: Vec<String>,
+    pub claim: String, // Note: Encrypted at rest
+    pub alternatives: Vec<String>, // Note: Encrypted at rest
+    pub assumptions: Vec<String>, // Note: Encrypted at rest
+    pub confidence: f64,
+    pub reasoning_trace_metadata: Option<serde_json::Value>,
+    pub created_at: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Critique {
+    pub contradictions: Vec<String>,
+    pub unsupported_claims: Vec<String>,
+    pub missing_evidence: Vec<String>,
+    pub alternative_explanations: Vec<String>,
+    pub safety_concerns: Vec<String>,
+    pub policy_violations: Vec<String>,
+    pub confidence_adjustment: f64,
+    pub verdict: CritiqueVerdict,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub enum CritiqueVerdict {
+    Pass,
+    Fail,
+    NeedsRevision,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub enum GateStatus {
+    Pass,
+    Fail,
+    NotEvaluated,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub enum AuthorizationStatus {
+    Allowed,
+    Denied,
+    RequiresHumanReview,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Decision {
+    pub id: String,
+    pub subject_id: String,
+    pub hypothesis_ids: Vec<String>,
+    pub critic_result: Critique,
+    pub evidence_validation: GateStatus,
+    pub safety_result: GateStatus,
+    pub policy_result: GateStatus,
+    pub authorization: AuthorizationStatus,
+    pub action: String,
+    pub created_at: String,
+    pub audit_id: Option<String>,
+}
+
+impl Decision {
+    /// The only way to construct a Decision is if all gates PASS and Authorization is ALLOWED.
+    pub fn new_authorized(
+        id: String,
+        subject_id: String,
+        hypothesis_ids: Vec<String>,
+        critic_result: Critique,
+        evidence_validation: GateStatus,
+        safety_result: GateStatus,
+        policy_result: GateStatus,
+        authorization: AuthorizationStatus,
+        action: String,
+        audit_id: Option<String>,
+    ) -> Result<Self, &'static str> {
+        if critic_result.verdict != CritiqueVerdict::Pass {
+            return Err("Cannot authorize decision: Critique did not pass");
+        }
+        if evidence_validation != GateStatus::Pass {
+            return Err("Cannot authorize decision: Evidence validation failed");
+        }
+        if safety_result != GateStatus::Pass {
+            return Err("Cannot authorize decision: Safety gate failed");
+        }
+        if policy_result != GateStatus::Pass {
+            return Err("Cannot authorize decision: Policy gate failed");
+        }
+        if authorization != AuthorizationStatus::Allowed {
+            return Err("Cannot authorize decision: Action not authorized");
+        }
+
+        Ok(Self {
+            id,
+            subject_id,
+            hypothesis_ids,
+            critic_result,
+            evidence_validation,
+            safety_result,
+            policy_result,
+            authorization,
+            action,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            audit_id,
+        })
+    }
+}

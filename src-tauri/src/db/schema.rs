@@ -146,4 +146,60 @@ CREATE TABLE IF NOT EXISTS orphaned_relationships (
     reason TEXT,
     schema_version INTEGER
 );
+
+-- Phase 2 Cognitive Architecture: Evidence & Provenance
+CREATE TABLE IF NOT EXISTS raw_evidence (
+    id TEXT PRIMARY KEY,
+    subject_id TEXT NOT NULL,
+    source TEXT NOT NULL,
+    observed_at TEXT NOT NULL,
+    content TEXT NOT NULL, -- encrypted payload
+    disclosure_scope TEXT NOT NULL,
+    provenance TEXT NOT NULL, -- JSON
+    retention_class TEXT NOT NULL,
+    expires_at TEXT,
+    deletion_reason TEXT,
+    FOREIGN KEY (subject_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS derived_inferences (
+    id TEXT PRIMARY KEY,
+    subject_id TEXT NOT NULL,
+    evidence_ids TEXT NOT NULL, -- JSON array
+    inference TEXT NOT NULL, -- encrypted payload
+    confidence REAL NOT NULL,
+    model_version TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'VALID',
+    created_at TEXT NOT NULL,
+    expires_at TEXT,
+    FOREIGN KEY (subject_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS hypotheses (
+    id TEXT PRIMARY KEY,
+    subject_id TEXT NOT NULL,
+    inference_ids TEXT NOT NULL, -- JSON array
+    claim TEXT NOT NULL, -- encrypted payload
+    alternatives TEXT NOT NULL, -- encrypted JSON array
+    assumptions TEXT NOT NULL, -- encrypted JSON array
+    confidence REAL NOT NULL,
+    reasoning_trace_metadata TEXT, -- JSON
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (subject_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS decisions (
+    id TEXT PRIMARY KEY,
+    subject_id TEXT NOT NULL,
+    hypothesis_ids TEXT NOT NULL, -- JSON array
+    critic_result TEXT NOT NULL, -- encrypted JSON
+    evidence_validation TEXT NOT NULL, -- JSON
+    safety_result TEXT NOT NULL, -- JSON
+    policy_result TEXT NOT NULL, -- JSON
+    authorization TEXT NOT NULL,
+    action TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    audit_id TEXT,
+    FOREIGN KEY (subject_id) REFERENCES users(id) ON DELETE CASCADE
+);
 "#;

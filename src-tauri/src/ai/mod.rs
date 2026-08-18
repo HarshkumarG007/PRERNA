@@ -12,6 +12,7 @@ use tauri::Manager;
 pub mod prompts;
 pub mod rag;
 pub mod safety;
+pub mod cognitive;
 
 use prompts::ConversationContext;
 use rag::DomainRag;
