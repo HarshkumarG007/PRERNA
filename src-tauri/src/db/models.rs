@@ -217,30 +217,33 @@ pub enum CrisisState {
 }
 
 impl CrisisState {
-    pub fn transition_to(&self, new_state: &CrisisState, actor_role: &CrisisOrigin) -> Result<(), &'static str> {
+    pub fn transition_to(
+        &self,
+        new_state: &CrisisState,
+        actor_role: &CrisisOrigin,
+    ) -> Result<(), &'static str> {
         match (self, new_state) {
             // Initial AI/System transitions
             (CrisisState::SignalDetected, CrisisState::AssessmentPending) => Ok(()),
             (CrisisState::AssessmentPending, CrisisState::HumanReview) => Ok(()),
-            
+
             // AI is NEVER allowed to authorize CLEARED, MONITOR, or ESCALATE.
-            (CrisisState::HumanReview, CrisisState::Cleared) |
-            (CrisisState::HumanReview, CrisisState::Monitor) |
-            (CrisisState::HumanReview, CrisisState::Escalate) => {
+            (CrisisState::HumanReview, CrisisState::Cleared)
+            | (CrisisState::HumanReview, CrisisState::Monitor)
+            | (CrisisState::HumanReview, CrisisState::Escalate) => {
                 if *actor_role == CrisisOrigin::AI {
                     return Err("AI cannot authorize state transition out of HUMAN_REVIEW");
                 }
                 Ok(())
-            },
+            }
 
             // System transition to Notification Subsystem
             (CrisisState::Escalate, CrisisState::NotificationPending) => Ok(()),
-            
+
             // Dispatcher successful delivery
             (CrisisState::NotificationPending, CrisisState::Notified) => Ok(()),
-            
+
             // Retries are handled by the Dispatcher while staying in NotificationPending.
-            
             _ => Err("Invalid state transition"),
         }
     }
@@ -386,9 +389,9 @@ pub struct Hypothesis {
     pub id: String,
     pub subject_id: String,
     pub inference_ids: Vec<String>,
-    pub claim: String, // Note: Encrypted at rest
+    pub claim: String,             // Note: Encrypted at rest
     pub alternatives: Vec<String>, // Note: Encrypted at rest
-    pub assumptions: Vec<String>, // Note: Encrypted at rest
+    pub assumptions: Vec<String>,  // Note: Encrypted at rest
     pub confidence: f64,
     pub reasoning_trace_metadata: Option<serde_json::Value>,
     pub created_at: String,

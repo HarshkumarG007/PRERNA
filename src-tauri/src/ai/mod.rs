@@ -9,11 +9,11 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use tauri::Manager;
 
+pub mod cognitive;
+pub mod crisis;
 pub mod prompts;
 pub mod rag;
 pub mod safety;
-pub mod cognitive;
-pub mod crisis;
 
 use prompts::ConversationContext;
 use rag::DomainRag;

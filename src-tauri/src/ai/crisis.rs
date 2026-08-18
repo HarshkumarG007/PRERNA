@@ -1,4 +1,4 @@
-use crate::db::models::{CrisisEvent, CrisisState, CrisisOrigin};
+use crate::db::models::{CrisisEvent, CrisisOrigin, CrisisState};
 use anyhow::Result;
 
 pub struct CrisisManager;
@@ -22,11 +22,14 @@ impl CrisisManager {
         actor: CrisisOrigin,
     ) -> Result<()> {
         // Enforce state transition rules
-        event.state.transition_to(&new_state, &actor).map_err(|e| anyhow::anyhow!("{}", e))?;
-        
+        event
+            .state
+            .transition_to(&new_state, &actor)
+            .map_err(|e| anyhow::anyhow!("{}", e))?;
+
         // Apply transition
         event.state = new_state;
-        
+
         Ok(())
     }
 }
@@ -55,10 +58,10 @@ mod tests {
     fn test_valid_human_escalation() {
         let mut evt = dummy_event();
         evt.state = CrisisState::HumanReview;
-        
+
         let mgr = CrisisManager::new();
         let res = mgr.transition_crisis(&mut evt, CrisisState::Escalate, CrisisOrigin::HUMAN);
-        
+
         assert!(res.is_ok());
         assert_eq!(evt.state, CrisisState::Escalate);
     }
@@ -67,12 +70,15 @@ mod tests {
     fn test_ai_cannot_escalate_from_human_review() {
         let mut evt = dummy_event();
         evt.state = CrisisState::HumanReview;
-        
+
         let mgr = CrisisManager::new();
         let res = mgr.transition_crisis(&mut evt, CrisisState::Escalate, CrisisOrigin::AI);
-        
+
         assert!(res.is_err());
-        assert!(res.unwrap_err().to_string().contains("AI cannot authorize state transition"));
+        assert!(res
+            .unwrap_err()
+            .to_string()
+            .contains("AI cannot authorize state transition"));
         assert_eq!(evt.state, CrisisState::HumanReview); // State unchanged
     }
 
@@ -80,11 +86,14 @@ mod tests {
     fn test_ai_cannot_clear_crisis() {
         let mut evt = dummy_event();
         evt.state = CrisisState::HumanReview;
-        
+
         let mgr = CrisisManager::new();
         let res = mgr.transition_crisis(&mut evt, CrisisState::Cleared, CrisisOrigin::AI);
-        
+
         assert!(res.is_err());
-        assert!(res.unwrap_err().to_string().contains("AI cannot authorize state transition"));
+        assert!(res
+            .unwrap_err()
+            .to_string()
+            .contains("AI cannot authorize state transition"));
     }
 }

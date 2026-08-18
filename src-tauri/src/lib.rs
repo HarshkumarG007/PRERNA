@@ -2,9 +2,9 @@ pub mod ai;
 pub mod commands;
 pub mod consent;
 pub mod db;
+pub mod notifications;
 pub mod policy;
 pub mod school_api;
-pub mod notifications;
 
 use log::{info, warn};
 use tauri::Manager;

@@ -18,16 +18,22 @@ pub struct NotificationDispatcher<'a> {
 }
 
 impl<'a> NotificationDispatcher<'a> {
-    pub fn new(resolver: &'a dyn RecipientResolver, provider: &'a dyn NotificationProvider) -> Self {
+    pub fn new(
+        resolver: &'a dyn RecipientResolver,
+        provider: &'a dyn NotificationProvider,
+    ) -> Self {
         Self { resolver, provider }
     }
 
-    /// Dispatches a notification. Rejects if not authorized. 
+    /// Dispatches a notification. Rejects if not authorized.
     /// Does NOT revert state on failure; sets status to RetryableFailure or PermanentFailure.
     pub fn dispatch(&self, crisis: &CrisisEvent, content: &str) -> Result<Vec<DeliveryRecord>> {
         // Enforce the critical invariant: No notification without authorized escalation
-        if crisis.state != CrisisState::NotificationPending && crisis.state != CrisisState::Notified {
-             return Err(anyhow::anyhow!("Invariant Violation: Notification attempted without authorized ESCALATE state"));
+        if crisis.state != CrisisState::NotificationPending && crisis.state != CrisisState::Notified
+        {
+            return Err(anyhow::anyhow!(
+                "Invariant Violation: Notification attempted without authorized ESCALATE state"
+            ));
         }
 
         let recipients = self.resolver.resolve(crisis)?;
@@ -37,8 +43,12 @@ impl<'a> NotificationDispatcher<'a> {
             // Note: In a real system, the DB insertion would happen BEFORE provider.send as PENDING,
             // then IN_FLIGHT, and finally updated to DELIVERED or RETRYABLE_FAILURE.
             // This is mocked for demonstration of the strict state retention.
-            let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_nanos().to_string();
-            
+            let timestamp = SystemTime::now()
+                .duration_since(SystemTime::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+                .to_string();
+
             match self.provider.send(&recipient, content) {
                 Ok(reference) => {
                     records.push(DeliveryRecord {
@@ -70,7 +80,7 @@ impl<'a> NotificationDispatcher<'a> {
                 }
             }
         }
-        
+
         Ok(records)
     }
 }
@@ -123,26 +133,33 @@ mod tests {
         // Test that dispatching a notification for a crisis still in HUMAN_REVIEW is rejected
         let evt = dummy_event(CrisisState::HumanReview);
         let resolver = MockResolver;
-        let provider = MockProvider { fail_next: std::cell::Cell::new(false) };
+        let provider = MockProvider {
+            fail_next: std::cell::Cell::new(false),
+        };
         let dispatcher = NotificationDispatcher::new(&resolver, &provider);
 
         let res = dispatcher.dispatch(&evt, "Alert");
         assert!(res.is_err());
-        assert!(res.unwrap_err().to_string().contains("without authorized ESCALATE state"));
+        assert!(res
+            .unwrap_err()
+            .to_string()
+            .contains("without authorized ESCALATE state"));
     }
 
     #[test]
     fn test_retryable_failure_retains_state() {
         let evt = dummy_event(CrisisState::NotificationPending);
         let resolver = MockResolver;
-        let provider = MockProvider { fail_next: std::cell::Cell::new(true) };
+        let provider = MockProvider {
+            fail_next: std::cell::Cell::new(true),
+        };
         let dispatcher = NotificationDispatcher::new(&resolver, &provider);
 
         // First attempt fails
         let records = dispatcher.dispatch(&evt, "Alert").unwrap();
         assert_eq!(records.len(), 1);
         assert_eq!(records[0].status, NotificationStatus::RetryableFailure);
-        
+
         // Ensure event state would NOT be reverted (dispatcher doesn't even have mut access)
         assert_eq!(evt.state, CrisisState::NotificationPending);
 

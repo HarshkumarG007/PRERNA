@@ -1,6 +1,6 @@
 use crate::db::models::{
-    AuthorizationStatus, Critique, CritiqueVerdict, Decision, DerivedInference, GateStatus, Hypothesis,
-    InferenceStatus, RawEvidence,
+    AuthorizationStatus, Critique, CritiqueVerdict, Decision, DerivedInference, GateStatus,
+    Hypothesis, InferenceStatus, RawEvidence,
 };
 use anyhow::Result;
 
@@ -8,9 +8,12 @@ use anyhow::Result;
 pub trait EvidenceStore {
     fn get_raw_evidence(&self, ids: &[String]) -> Result<Vec<RawEvidence>>;
     fn get_derived_inferences(&self, ids: &[String]) -> Result<Vec<DerivedInference>>;
-    
+
     /// Checks if any evidence underlying an inference is expired/deleted.
-    fn validate_inference_provenance(&self, inference: &DerivedInference) -> Result<InferenceStatus>;
+    fn validate_inference_provenance(
+        &self,
+        inference: &DerivedInference,
+    ) -> Result<InferenceStatus>;
 }
 
 /// Builds the necessary context for the AI generators based on strict provenance.
@@ -80,7 +83,7 @@ impl DecisionEngine {
         let evidence_validation = validator.validate(store, &hypothesis)?;
         let safety_result = safety_gate.evaluate(&hypothesis, &critique)?;
         let policy_result = policy_gate.evaluate(&hypothesis, &critique)?;
-        
+
         let authorization = if critique.verdict == CritiqueVerdict::Pass
             && evidence_validation == GateStatus::Pass
             && safety_result == GateStatus::Pass
@@ -139,14 +142,21 @@ mod tests {
         fn get_derived_inferences(&self, _ids: &[String]) -> Result<Vec<DerivedInference>> {
             Ok(vec![])
         }
-        fn validate_inference_provenance(&self, _inference: &DerivedInference) -> Result<InferenceStatus> {
+        fn validate_inference_provenance(
+            &self,
+            _inference: &DerivedInference,
+        ) -> Result<InferenceStatus> {
             Ok(InferenceStatus::Expired)
         }
     }
 
     struct MockStrictValidator;
     impl EvidenceValidator for MockStrictValidator {
-        fn validate(&self, store: &dyn EvidenceStore, _hypothesis: &Hypothesis) -> Result<GateStatus> {
+        fn validate(
+            &self,
+            store: &dyn EvidenceStore,
+            _hypothesis: &Hypothesis,
+        ) -> Result<GateStatus> {
             let dummy = DerivedInference {
                 id: "".into(),
                 subject_id: "".into(),
@@ -228,7 +238,10 @@ mod tests {
             None,
         );
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Evidence validation failed"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Evidence validation failed"));
     }
 
     #[test]
@@ -257,7 +270,10 @@ mod tests {
             None,
         );
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Safety gate failed"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Safety gate failed"));
     }
 
     #[test]
@@ -269,9 +285,9 @@ mod tests {
                 Ok(GateStatus::Pass)
             }
         }
-        let store = MockExpiredStore; 
+        let store = MockExpiredStore;
         let pass_gate = MockGate(GateStatus::Pass);
-        let critic = MockCritic(CritiqueVerdict::Fail); 
+        let critic = MockCritic(CritiqueVerdict::Fail);
 
         let result = engine.process(
             "user1",
@@ -285,6 +301,9 @@ mod tests {
             None,
         );
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Critique did not pass"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Critique did not pass"));
     }
 }
