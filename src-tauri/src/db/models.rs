@@ -196,17 +196,93 @@ pub struct HealthMetrics {
     pub encryption_status: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub enum CrisisOrigin {
+    AI,
+    HUMAN,
+    SYSTEM,
+    EXTERNAL,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub enum CrisisState {
+    SignalDetected,
+    AssessmentPending,
+    HumanReview,
+    Cleared,
+    Monitor,
+    Escalate,
+    NotificationPending,
+    Notified,
+}
+
+impl CrisisState {
+    pub fn transition_to(&self, new_state: &CrisisState, actor_role: &CrisisOrigin) -> Result<(), &'static str> {
+        match (self, new_state) {
+            // Initial AI/System transitions
+            (CrisisState::SignalDetected, CrisisState::AssessmentPending) => Ok(()),
+            (CrisisState::AssessmentPending, CrisisState::HumanReview) => Ok(()),
+            
+            // AI is NEVER allowed to authorize CLEARED, MONITOR, or ESCALATE.
+            (CrisisState::HumanReview, CrisisState::Cleared) |
+            (CrisisState::HumanReview, CrisisState::Monitor) |
+            (CrisisState::HumanReview, CrisisState::Escalate) => {
+                if *actor_role == CrisisOrigin::AI {
+                    return Err("AI cannot authorize state transition out of HUMAN_REVIEW");
+                }
+                Ok(())
+            },
+
+            // System transition to Notification Subsystem
+            (CrisisState::Escalate, CrisisState::NotificationPending) => Ok(()),
+            
+            // Dispatcher successful delivery
+            (CrisisState::NotificationPending, CrisisState::Notified) => Ok(()),
+            
+            // Retries are handled by the Dispatcher while staying in NotificationPending.
+            
+            _ => Err("Invalid state transition"),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CrisisEvent {
     pub id: String,
     pub user_id: String,
     pub detected_at: i64,
     pub severity: String,
-    pub human_review_status: String,
+    pub state: CrisisState,
+    pub origin: CrisisOrigin,
+    pub cognitive_decision_id: Option<String>,
     pub reviewer_id: Option<String>,
     pub reviewer_credentials_ref: Option<String>,
     pub decision: Option<String>,
     pub teen_informed_at: Option<i64>,
+}
+
+#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
+pub enum NotificationStatus {
+    Pending,
+    InFlight,
+    Delivered,
+    RetryableFailure,
+    PermanentFailure,
+    Cancelled,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DeliveryRecord {
+    pub id: String,
+    pub crisis_event_id: String,
+    pub recipient_id: String,
+    pub notification_type: String,
+    pub status: NotificationStatus,
+    pub provider: String,
+    pub provider_reference: Option<String>,
+    pub created_at: String,
+    pub updated_at: String,
+    pub error_message: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq)]

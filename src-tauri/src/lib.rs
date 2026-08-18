@@ -4,6 +4,7 @@ pub mod consent;
 pub mod db;
 pub mod policy;
 pub mod school_api;
+pub mod notifications;
 
 use log::{info, warn};
 use tauri::Manager;

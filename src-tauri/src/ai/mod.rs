@@ -13,6 +13,7 @@ pub mod prompts;
 pub mod rag;
 pub mod safety;
 pub mod cognitive;
+pub mod crisis;
 
 use prompts::ConversationContext;
 use rag::DomainRag;

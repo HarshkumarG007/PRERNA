@@ -60,13 +60,15 @@ CREATE TABLE IF NOT EXISTS recommendations (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Crisis Events (Pending Human Review)
+-- Crisis Events (State Machine Governed)
 CREATE TABLE IF NOT EXISTS crisis_events (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
     detected_at INTEGER NOT NULL,
     severity TEXT NOT NULL,
-    human_review_status TEXT DEFAULT 'pending',
+    state TEXT NOT NULL DEFAULT 'SIGNAL_DETECTED',
+    origin TEXT NOT NULL, -- 'AI', 'HUMAN', 'SYSTEM', 'EXTERNAL'
+    cognitive_decision_id TEXT, -- Optional, references decision.id if AI
     reviewer_id TEXT,
     reviewer_credentials_ref TEXT,
     decision TEXT,
@@ -75,9 +77,25 @@ CREATE TABLE IF NOT EXISTS crisis_events (
     resolved_at TEXT,
     notes TEXT, -- encrypted JSON
     -- P1 - POLICY DECISION REQUIRED: ON DELETE CASCADE currently forces hard-deletion pending ethics review on de-identified retention.
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (cognitive_decision_id) REFERENCES decisions(id) ON DELETE SET NULL
 );
 
+-- Notification Subsystem Delivery Records
+CREATE TABLE IF NOT EXISTS delivery_records (
+    id TEXT PRIMARY KEY,
+    crisis_event_id TEXT NOT NULL,
+    recipient_id TEXT NOT NULL,
+    notification_type TEXT NOT NULL,
+    status TEXT NOT NULL, -- PENDING, IN_FLIGHT, DELIVERED, RETRYABLE_FAILURE, PERMANENT_FAILURE, CANCELLED
+    provider TEXT NOT NULL,
+    provider_reference TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    error_message TEXT,
+    FOREIGN KEY (crisis_event_id) REFERENCES crisis_events(id) ON DELETE CASCADE,
+    UNIQUE(crisis_event_id, recipient_id, notification_type)
+);
 -- Daily Check-ins (gamified data)
 CREATE TABLE IF NOT EXISTS micro_interactions (
     id TEXT PRIMARY KEY,
