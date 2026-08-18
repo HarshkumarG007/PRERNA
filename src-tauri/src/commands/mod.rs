@@ -358,7 +358,7 @@ pub fn verify_login_mfa(
     if totp.check_current(&token).unwrap_or(false) {
         // MFA passed â€” fully commit the session now
         session.set_authenticated(user.id.clone())?;
-        Ok(Some(user.into()))
+        Ok(Some((&user).into()))
     } else {
         Err("Invalid token".to_string())
     }
