@@ -447,6 +447,7 @@ pub struct Decision {
 
 impl Decision {
     /// The only way to construct a Decision is if all gates PASS and Authorization is ALLOWED.
+    #[allow(clippy::too_many_arguments)]
     pub fn new_authorized(
         id: String,
         subject_id: String,
