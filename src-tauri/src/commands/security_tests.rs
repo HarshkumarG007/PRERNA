@@ -195,7 +195,7 @@ mod tests {
             session.user_id = caller_id.clone();
         }
 
-        if let Some(mut snapshot) = data.latest_snapshot.as_mut() {
+        if let Some(snapshot) = data.latest_snapshot.as_mut() {
             snapshot.user_id = caller_id.clone();
         }
 

@@ -48,7 +48,7 @@ fn test_t15_1_crisis_persistence() {
         setup_test_env(AuthStatus::Authenticated("USER_A".to_string()));
 
     let request = ChatRequest {
-        message: explicit_crisis_message(),
+        message: explicit_crisis_message().to_string(),
         conversation_id: None,
     };
 
@@ -70,7 +70,7 @@ fn test_t15_1_crisis_persistence() {
     );
     assert_eq!(events[0].user_id, "USER_A");
     assert_eq!(events[0].severity, "high");
-    assert_eq!(events[0].human_review_status, "pending");
+    assert_eq!(events[0].state, app_lib::db::models::CrisisState::SignalDetected);
 }
 
 #[test]
