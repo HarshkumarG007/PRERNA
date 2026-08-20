@@ -256,7 +256,7 @@ mod tests {
         // According to the DB schema, session_type must be in:
         // 'life_quest', 'skill_arena', 'mood_mirror', 'social_compass', 'body_clock', 'unified_profile'
 
-        let valid_types = vec![
+        let valid_types = [
             "life_quest",
             "skill_arena",
             "mood_mirror",
@@ -265,7 +265,7 @@ mod tests {
             "unified_profile",
         ];
 
-        let invalid_types = vec!["skill_memory", "skill_reaction", "unknown_game"];
+        let invalid_types = ["skill_memory", "skill_reaction", "unknown_game"];
 
         // This is a unit test assertion simulating the application layer contract.
         // It ensures developers map game modes to valid schema constants.

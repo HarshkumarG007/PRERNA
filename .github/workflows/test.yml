@@ -70,14 +70,23 @@ jobs:
       - name: Cargo Check
         working-directory: ./src-tauri
         run: cargo check --locked
+        env:
+          LIBCLANG_PATH: 'C:\Program Files\LLVM\bin'
+          CMAKE_GENERATOR: 'Visual Studio 17 2022'
         
       - name: Cargo Clippy
         working-directory: ./src-tauri
         run: cargo clippy --locked --all-targets --all-features -- -D warnings
+        env:
+          LIBCLANG_PATH: 'C:\Program Files\LLVM\bin'
+          CMAKE_GENERATOR: 'Visual Studio 17 2022'
         
       - name: Cargo Test
         working-directory: ./src-tauri
         run: cargo test --locked
+        env:
+          LIBCLANG_PATH: 'C:\Program Files\LLVM\bin'
+          CMAKE_GENERATOR: 'Visual Studio 17 2022'
         
       - name: Cargo Audit
         working-directory: ./src-tauri

@@ -261,7 +261,7 @@ fn test_t15_9_reviewer_ownership() {
     let event_id = "event_123".to_string();
     {
         let db_lock = db_state.0.lock().unwrap();
-        db_lock.conn.execute("INSERT INTO crisis_events (id, user_id, detected_at, severity, human_review_status) VALUES (?, 'USER_A', 0, 'high', 'pending')", rusqlite::params![event_id]).unwrap();
+        db_lock.conn.execute("INSERT INTO crisis_events (id, user_id, detected_at, severity, state, origin) VALUES (?, 'USER_A', 0, 'high', 'HumanReview', 'SYSTEM')", rusqlite::params![event_id]).unwrap();
     }
 
     // Rev A claims
@@ -305,7 +305,7 @@ fn test_t15_10_notification_ordering() {
     let event_id = "event_456".to_string();
     {
         let db_lock = db_state.0.lock().unwrap();
-        db_lock.conn.execute("INSERT INTO crisis_events (id, user_id, detected_at, severity, human_review_status) VALUES (?, 'USER_A', 0, 'high', 'pending')", rusqlite::params![event_id]).unwrap();
+        db_lock.conn.execute("INSERT INTO crisis_events (id, user_id, detected_at, severity, state, origin) VALUES (?, 'USER_A', 0, 'high', 'HumanReview', 'SYSTEM')", rusqlite::params![event_id]).unwrap();
     }
 
     // Pending state -> Guardian notification -> DENY
