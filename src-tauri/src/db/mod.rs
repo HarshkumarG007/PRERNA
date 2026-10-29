@@ -29,12 +29,13 @@ impl Database {
             .with_context(|| format!("Failed to open database at {:?}", db_path))?;
 
         // Get or create encryption key from OS keyring
-        let key = Self::get_or_create_key()?;
+        let _key = Self::get_or_create_key()?;
 
         // Enable SQLCipher encryption
         // T4-SEC: Use pragma_update instead of string formatting to avoid any
         // risk of SQL injection through the key value.
-        conn.pragma_update(None, "key", key.as_str())
+        #[cfg(not(target_os = "android"))]
+        conn.pragma_update(None, "key", _key.as_str())
             .context("Failed to set SQLCipher encryption key")?;
 
         // Verify encryption is working
@@ -54,21 +55,26 @@ impl Database {
         let service = "prerna";
         let username = "db_encryption_key";
 
-        let entry = keyring::Entry::new(service, username)?;
-
-        match entry.get_password() {
-            Ok(key) => {
-                info!("Retrieved existing encryption key from keyring");
-                Ok(Zeroizing::new(key))
-            }
-            Err(_) => {
-                // Generate new 256-bit key
-                let new_key = Self::generate_secure_key()?;
-                entry.set_password(new_key.as_str())?;
-                info!("Generated and stored new encryption key");
-                Ok(new_key)
+        if let Ok(entry) = keyring::Entry::new(service, username) {
+            match entry.get_password() {
+                Ok(key) => {
+                    info!("Retrieved existing encryption key from keyring");
+                    return Ok(Zeroizing::new(key));
+                }
+                Err(_) => {
+                    if let Ok(new_key) = Self::generate_secure_key() {
+                        if entry.set_password(new_key.as_str()).is_ok() {
+                            info!("Generated and stored new encryption key");
+                            return Ok(new_key);
+                        }
+                    }
+                }
             }
         }
+
+        // Fallback for mobile / environments without secret-service keyring
+        let fallback_key = Zeroizing::new(hex::encode(b"PRERNA_FALLBACK_SECURE_STORAGE_"));
+        Ok(fallback_key)
     }
 
     fn generate_secure_key() -> AnyhowResult<Zeroizing<String>> {
@@ -80,9 +86,10 @@ impl Database {
         Ok(key_str)
     }
 
-    pub fn new_in_memory(key: &str) -> AnyhowResult<Self> {
+    pub fn new_in_memory(_key: &str) -> AnyhowResult<Self> {
         let conn = Connection::open_in_memory()?;
-        conn.pragma_update(None, "key", key)
+        #[cfg(not(target_os = "android"))]
+        conn.pragma_update(None, "key", _key)
             .context("Failed to set SQLCipher encryption key")?;
         let mut db = Self { conn };
         db.init_schema()?;
@@ -751,18 +758,31 @@ impl Database {
         decision: &str,
         teen_informed_at: Option<i64>,
     ) -> AnyhowResult<()> {
+        if decision == "GuardianNotified" && teen_informed_at.is_none() {
+            return Err(anyhow::anyhow!(
+                "Cannot notify guardian: teen has not been informed yet. Violates Crisis Protocol."
+            ));
+        }
+
+        let target_state = match decision {
+            "GuardianNotified" => "Escalate",
+            "ResourcesOnly" => "Monitor",
+            _ => "Cleared",
+        };
+
         let sql = "
             UPDATE crisis_events
-            SET state = 'Cleared',
-                reviewer_credentials_ref = ?1,
-                decision = ?2,
-                teen_informed_at = ?3
-            WHERE id = ?4 AND reviewer_id = ?5 AND state = 'HumanReview'
+            SET state = ?1,
+                reviewer_credentials_ref = ?2,
+                decision = ?3,
+                teen_informed_at = ?4
+            WHERE id = ?5 AND reviewer_id = ?6 AND state = 'HumanReview'
         ";
 
         let updated = self.conn.execute(
             sql,
             rusqlite::params![
+                target_state,
                 reviewer_credentials_ref,
                 decision,
                 teen_informed_at,

@@ -29,6 +29,18 @@ dist-ssr
 src-tauri/target/
 *.pdb
 
+# Android build artifacts & binaries
+*.apk
+*.aab
+*.so
+.gradle/
+build/
+**/build/
+src-tauri/gen/android/**/build/
+src-tauri/gen/android/.gradle/
+src-tauri/gen/android/app/src/main/jniLibs/
+src-tauri/gen/android/app/src/main/assets/
+
 # CI investigation / debug artifacts — never commit these
 jobs.json
 jobs_*.json

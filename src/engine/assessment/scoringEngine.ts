@@ -11,6 +11,14 @@
  */
 
 import { QUESTIONNAIRE_ITEMS, TraitKey } from './questionnaireData';
+import {
+  IPIP_BIG_FIVE_NORMS,
+  ONET_RIASEC_NORMS,
+  EMOTIONAL_INTELLIGENCE_NORMS,
+  calculatePercentile,
+  getScoreBand,
+  ScoreBand,
+} from '../../data/psychometrics/ipipNorms';
 
 export interface RawResponse {
   questionId: string;
@@ -37,6 +45,9 @@ export interface ScoredProfile {
   impulseControl: number;
   emotionalAwareness: number;
   socialIntuition: number;
+  // Normative empirical calibrations (OpenPsychometrics 1M+ IPIP & O*NET standards)
+  percentiles?: Partial<Record<TraitKey, number>>;
+  bands?: Partial<Record<TraitKey, ScoreBand>>;
 }
 
 export interface PersonalityArchetype {
@@ -73,6 +84,32 @@ export function scoreQuestionnaire(responses: RawResponse[]): ScoredProfile {
     weights[item.trait] += item.weight;
   }
 
+  // Compute empirical normative distributions (Percentiles & Bands)
+  const allNorms: Record<string, { mean: number; stdDev: number }> = {
+    ...IPIP_BIG_FIVE_NORMS,
+    ...ONET_RIASEC_NORMS,
+    ...EMOTIONAL_INTELLIGENCE_NORMS,
+  };
+
+  const traits: TraitKey[] = [
+    'openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism',
+    'realistic', 'investigative', 'artistic', 'social', 'enterprising', 'conventional',
+    'empathy', 'resilience', 'impulseControl', 'emotionalAwareness', 'socialIntuition',
+  ];
+
+  const percentiles: Partial<Record<TraitKey, number>> = {};
+  const bands: Partial<Record<TraitKey, ScoreBand>> = {};
+
+  for (const trait of traits) {
+    const avg = weights[trait] > 0 ? sums[trait] / weights[trait] : 3.0;
+    const norm = allNorms[trait];
+    if (norm) {
+      const pct = calculatePercentile(avg, norm.mean, norm.stdDev);
+      percentiles[trait] = pct;
+      bands[trait] = getScoreBand(pct);
+    }
+  }
+
   // Normalise: weighted avg is in [1..5], rescale to [0..100]
   const normalise = (trait: TraitKey): number => {
     if (weights[trait] === 0) return 50; // Default if no items answered
@@ -98,6 +135,8 @@ export function scoreQuestionnaire(responses: RawResponse[]): ScoredProfile {
     impulseControl: normalise('impulseControl'),
     emotionalAwareness: normalise('emotionalAwareness'),
     socialIntuition: normalise('socialIntuition'),
+    percentiles,
+    bands,
   };
 }
 

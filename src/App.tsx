@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
-import { LogOut } from 'lucide-react';
+import { Routes, Route, Link, Navigate } from 'react-router-dom';
+import { LogOut, HeartHandshake } from 'lucide-react';
 import { useI18n, LANGUAGE_NAMES, Language } from './engine/localization/i18n';
 
 import { BetaOnboardingNotice } from './components/consent/BetaOnboardingNotice';
 import { LifeQuests } from './components/activities/LifeQuests';
-import { SkillArena } from './components/activities/SkillArena';
+import { SkillArena } from './components/skills/SkillArena';
 import { MoodMirror } from './components/activities/MoodMirror';
 import { SocialCompass } from './components/activities/SocialCompass';
 import { AiMentorChat } from './components/mentor/AiMentorChat';
 import { TeenProfileView } from './components/dashboard/TeenProfileView';
 import { Dashboard } from './components/dashboard/Dashboard';
+import { SharedDashboardView } from './components/dashboard/SharedDashboardView';
+import { ResourceSurface } from './components/crisis/ResourceSurface';
 import { WelcomeScreen } from './components/welcome/WelcomeScreen';
 import { LoadingScreen } from './components/common/LoadingScreen';
 import { ParentDashboard } from './components/parent/ParentDashboard';
@@ -25,7 +27,7 @@ import { useAppStore } from './store';
 // No mock context needed anymore
 
 function App() {
-  const { language, setLanguage } = useI18n();
+  const { language, setLanguage, t } = useI18n();
   const { isAuthenticated, isLoading, login, logout, user, updateRole } = useAppStore();
   const [parentLinked, setParentLinked] = useState(false);
   const [clinicianAuthed, setClinicianAuthed] = useState(false);
@@ -81,6 +83,15 @@ function App() {
               bigFive: { openness: 50, conscientiousness: 50, extraversion: 50, agreeableness: 50, neuroticism: 50 },
               riasec: { realistic: 50, investigative: 50, artistic: 50, social: 50, enterprising: 50, conventional: 50 },
               emotional: { resilience: 50, empathy: 50, emotionalAwareness: 50, impulseControl: 50, socialIntuition: 50 },
+            },
+            cognition: {
+              logicalReasoning: 50,
+              verbalFluency: 50,
+              spatialIntelligence: 50,
+              creativeDivergence: 50,
+              processingSpeed: 50,
+              workingMemory: 50,
+              learningStyle: 'mixed',
             },
             archetype: {
               name: 'The Explorer',
@@ -162,17 +173,24 @@ function App() {
               </Link>
               <nav className="hidden md:flex space-x-6 text-sm font-semibold">
                 <Link to="/beta" className="text-slate-600 hover:text-indigo-600 transition-colors">Beta Consent</Link>
-                <Link to="/quests" className="text-slate-600 hover:text-indigo-600 transition-colors">Life Quests</Link>
-                <Link to="/arena" className="text-slate-600 hover:text-indigo-600 transition-colors">Skill Arena</Link>
-                <Link to="/mood" className="text-slate-600 hover:text-indigo-600 transition-colors">Mood Mirror</Link>
-                <Link to="/social" className="text-slate-600 hover:text-indigo-600 transition-colors">Social Compass</Link>
-                <Link to="/mentor" className="text-slate-600 hover:text-indigo-600 transition-colors">AI Mentor</Link>
-                <Link to="/profile" className="text-slate-600 hover:text-indigo-600 transition-colors">Teen Dash</Link>
-                <Link to="/parent-dash" className="text-slate-600 hover:text-indigo-600 transition-colors">Parent Dash</Link>
-                <Link to="/school-dash" className="text-slate-600 hover:text-indigo-600 transition-colors">School Dash</Link>
+                <Link to="/quests" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.life_quests', 'Life Quests')}</Link>
+                <Link to="/arena" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.skill_arena', 'Skill Arena')}</Link>
+                <Link to="/mood" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.mood_mirror', 'Mood Mirror')}</Link>
+                <Link to="/social" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.social_compass', 'Social Compass')}</Link>
+                <Link to="/mentor" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.ai_mentor', 'AI Mentor')}</Link>
+                <Link to="/profile" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.profile', 'Teen Dash')}</Link>
+                <Link to="/support" className="text-rose-600 hover:text-rose-700 transition-colors font-bold">{t('nav.support', 'Helplines')}</Link>
               </nav>
             </div>
           <div className="flex items-center gap-3">
+            <Link
+              to="/support"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors shadow-sm"
+              title="Always-on confidential helplines and calming tools"
+            >
+              <HeartHandshake size={14} className="text-rose-600" />
+              <span>{t('nav.support', 'Helplines')}</span>
+            </Link>
             <div className="relative group">
               <select
                 value={language}
@@ -195,7 +213,7 @@ function App() {
               className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors border border-transparent hover:border-red-100"
             >
               <LogOut size={16} />
-              <span className="hidden md:inline">Log out</span>
+              <span className="hidden md:inline">{t('nav.logout', 'Log out')}</span>
             </button>
           </div>
         </div>
@@ -213,8 +231,10 @@ function App() {
           <Route path="/mentor" element={<div className="max-w-7xl mx-auto"><AiMentorChat userId={user.id} /></div>} />
           <Route path="/dashboard" element={<TeenProfileView />} />
           <Route path="/profile" element={<TeenProfileView />} />
-          <Route path="/parent-dash" element={<ParentDashboard onExit={() => window.location.href='/'} />} />
-          <Route path="/school-dash" element={<SchoolDashboard />} />
+          <Route path="/shared-dashboard" element={<div className="max-w-7xl mx-auto"><SharedDashboardView /></div>} />
+          <Route path="/support" element={<div className="max-w-7xl mx-auto"><ResourceSurface mode="page" /></div>} />
+          <Route path="/parent-dash" element={user.role === 'parent' ? <ParentDashboard onExit={() => window.location.href='/'} /> : <Navigate to="/" replace />} />
+          <Route path="/school-dash" element={user.role === 'educator' ? <SchoolDashboard /> : <Navigate to="/" replace />} />
           <Route path="/clinician-portal" element={
             !clinicianAuthed ? 
               <ClinicianLogin onSuccess={() => setClinicianAuthed(true)} /> : 

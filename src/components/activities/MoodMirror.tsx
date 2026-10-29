@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CURRENT_DISCLOSURES } from '../../engine/assessment/disclosures';
 import { validateSessionCreation } from '../../engine/consent/sessionGate';
-import { checkForCrisisIndicators } from '../../engine/crisis/escalationRouter';
+import { detectCrisisSignals } from '../../engine/crisis/patternDetection';
 import { ResourceSurface } from '../crisis/ResourceSurface';
 import { TrustedAdultConnector } from '../crisis/TrustedAdultConnector';
 import { useI18n } from '../../engine/localization/i18n';
@@ -76,17 +76,28 @@ export const MoodMirror: React.FC<MoodMirrorProps> = ({ userId }) => {
       setTimeout(() => setIsBreathing(false), 6000);
     }
 
+    const currentSessions = useAppStore.getState().sessions;
+    const moodSessions = currentSessions.filter(s => s.type === 'mood_mirror');
+    const recentScores = [...moodSessions.map(s => Number(s.score) || 50), score];
+
     await recordSession({
       type: 'mood_mirror',
       completedAt: new Date().toISOString(),
       score: score,
-      metadata: { sentiment, detailedScore: score }
+      metadata: {
+        sentiment,
+        detailedScore: score,
+        disclosure_version: disclosure.id,
+        disclosure_shown_at: Date.now(),
+      }
     });
     
-    await checkForCrisisIndicators({
+    // Check both text and longitudinal mood trajectory
+    await detectCrisisSignals({
       userId: userId || 'guest',
       content: `Logged mood score: ${score} (${sentiment})`,
-      sentiment: sentiment as any
+      sentiment: sentiment as any,
+      recentMoodScores: recentScores,
     });
   };
 

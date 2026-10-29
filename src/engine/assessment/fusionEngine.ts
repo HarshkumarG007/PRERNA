@@ -1,6 +1,12 @@
 import ipipItems from './items/ipip-bigfive-adapted.json';
 import onetItems from './items/onet-riasec-adapted.json';
 import { z } from 'zod';
+import {
+  IPIP_BIG_FIVE_NORMS,
+  ONET_RIASEC_NORMS,
+  calculatePercentile,
+  getScoreBand,
+} from '../../data/psychometrics/ipipNorms';
 
 export type TraitSnapshot = z.infer<typeof FusionSchema>;
 export interface FusionItem {
@@ -116,6 +122,24 @@ export function scoreFusionProfile(responses: RawFusionResponse[], oldProfileFal
     return Math.round(Math.max(0, Math.min(100, scaled)));
   };
 
+  // Compute normative percentiles from 1M+ IPIP & O*NET participants
+  const allNorms: Record<string, { mean: number; stdDev: number }> = {
+    ...IPIP_BIG_FIVE_NORMS,
+    ...ONET_RIASEC_NORMS,
+  };
+
+  const percentiles: Record<string, number> = {};
+  const scoreBands: Record<string, string> = {};
+
+  for (const [domain, count] of Object.entries(counts)) {
+    if (count > 0 && allNorms[domain]) {
+      const avg = sums[domain] / count;
+      const pct = calculatePercentile(avg, allNorms[domain].mean, allNorms[domain].stdDev);
+      percentiles[domain] = pct;
+      scoreBands[domain] = getScoreBand(pct);
+    }
+  }
+
   const rawSnapshot = {
     id: "generated-id",
     user_id: "user",
@@ -137,7 +161,10 @@ export function scoreFusionProfile(responses: RawFusionResponse[], oldProfileFal
       conventional: normalise('conventional'),
     },
     multiple_intel: {},
-    emotional_profile: {},
+    emotional_profile: {
+      percentiles,
+      scoreBands,
+    },
     confidence_score: 0.9,
   };
 

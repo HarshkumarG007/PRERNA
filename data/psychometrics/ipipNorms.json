@@ -1,0 +1,26 @@
+{
+  "source": "OpenPsychometrics 1M+ IPIP-NEO & O*NET Empirical Norms",
+  "bigFive": {
+    "openness": { "mean": 3.82, "stdDev": 0.65, "sampleSize": "1,015,342" },
+    "conscientiousness": { "mean": 3.38, "stdDev": 0.72, "sampleSize": "1,015,342" },
+    "extraversion": { "mean": 3.12, "stdDev": 0.84, "sampleSize": "1,015,342" },
+    "agreeableness": { "mean": 3.76, "stdDev": 0.68, "sampleSize": "1,015,342" },
+    "neuroticism": { "mean": 3.02, "stdDev": 0.81, "sampleSize": "1,015,342" }
+  },
+  "riasec": {
+    "realistic": { "mean": 2.45, "stdDev": 0.88, "sampleSize": "180,000+" },
+    "investigative": { "mean": 3.18, "stdDev": 0.86, "sampleSize": "180,000+" },
+    "artistic": { "mean": 2.92, "stdDev": 0.94, "sampleSize": "180,000+" },
+    "social": { "mean": 3.42, "stdDev": 0.82, "sampleSize": "180,000+" },
+    "enterprising": { "mean": 3.08, "stdDev": 0.85, "sampleSize": "180,000+" },
+    "conventional": { "mean": 2.86, "stdDev": 0.84, "sampleSize": "180,000+" }
+  },
+  "emotionalIntelligence": {
+    "empathy": { "mean": 3.80, "stdDev": 0.65, "sampleSize": "45,000" },
+    "resilience": { "mean": 3.40, "stdDev": 0.75, "sampleSize": "45,000" },
+    "impulseControl": { "mean": 3.25, "stdDev": 0.78, "sampleSize": "45,000" },
+    "emotionalAwareness": { "mean": 3.55, "stdDev": 0.70, "sampleSize": "45,000" },
+    "socialIntuition": { "mean": 3.45, "stdDev": 0.72, "sampleSize": "45,000" }
+  }
+}
+

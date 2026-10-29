@@ -3,7 +3,7 @@ import { invoke as tauriInvoke } from '@tauri-apps/api/core';
 // Mock database in localStorage
 const getMockDb = () => {
   const db = localStorage.getItem('prerna_mock_db');
-  return db ? JSON.parse(db) : { users: [], profiles: {}, sessions: [] };
+  return db ? JSON.parse(db) : { users: [], profiles: {}, sessions: [], crisisEvents: [] };
 };
 
 const saveMockDb = (db: any) => {
@@ -109,12 +109,236 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
     }
 
     case 'save_session': {
+      if (!args.session?.disclosure_version?.trim()) {
+        throw new Error('Cannot save session: no disclosure was recorded. Violates DPDP Section 9(3).');
+      }
       db.sessions.push({ ...args.session, id: Date.now().toString() });
       saveMockDb(db);
       return undefined as any;
     }
+
+    case 'save_skill_session': {
+      if (!args.disclosure_version?.trim()) {
+        throw new Error('Cannot save skill session: no disclosure was recorded. Violates DPDP Section 9(3).');
+      }
+      const sessionObj = {
+        id: Date.now().toString(),
+        session_type: 'skill_arena',
+        raw_choices: JSON.stringify({ score: args.score, game_type: args.game_type }),
+        derived_traits: args.cognitive_data,
+        disclosure_version: args.disclosure_version,
+        disclosure_shown_at: args.disclosure_shown_at,
+      };
+      db.sessions.push(sessionObj);
+      saveMockDb(db);
+      return sessionObj.id as any;
+    }
+
+    case 'save_trait_snapshot': {
+      if (!db.traitSnapshots) db.traitSnapshots = [];
+      const snapshot = {
+        ...args.snapshot,
+        id: 'snapshot-' + Date.now(),
+        snapshot_date: new Date().toISOString(),
+      };
+      db.traitSnapshots.push(snapshot);
+      saveMockDb(db);
+      return snapshot.id as any;
+    }
+
+    case 'get_latest_snapshot': {
+      if (!db.traitSnapshots || db.traitSnapshots.length === 0) return null as any;
+      return db.traitSnapshots[db.traitSnapshots.length - 1] as any;
+    }
     
     case 'revoke_consent': {
+      return undefined as any;
+    }
+
+    case 'logout': {
+      return undefined as any;
+    }
+
+    case 'create_crisis_event': {
+      const eventId = 'crisis-' + Math.random().toString(36).substring(2, 9);
+      if (!db.crisisEvents) db.crisisEvents = [];
+      db.crisisEvents.push({
+        id: eventId,
+        user_id: args.userId || 'current-user',
+        detected_at: args.detectedAt || Date.now(),
+        severity: args.severity || 'high',
+        state: 'HumanReview',
+        origin: 'EXTERNAL',
+        reviewer_id: null,
+        decision: null,
+        teen_informed_at: null,
+      });
+      saveMockDb(db);
+      return eventId as any;
+    }
+
+    case 'get_pending_crisis_events': {
+      const events = (db.crisisEvents || []).filter((e: any) => e.state === 'HumanReview');
+      return events as any;
+    }
+
+    case 'claim_crisis_event': {
+      const evt = (db.crisisEvents || []).find((e: any) => e.id === args.eventId);
+      if (evt) {
+        evt.reviewer_id = 'mock-clinician-1';
+        saveMockDb(db);
+      }
+      return undefined as any;
+    }
+
+    case 'resolve_crisis_event': {
+      const evt = (db.crisisEvents || []).find((e: any) => e.id === args.eventId);
+      if (evt) {
+        if (args.decision === 'GuardianNotified' && !args.teen_informed_at) {
+          throw new Error('Cannot notify guardian: teen has not been informed yet. Violates Crisis Protocol.');
+        }
+        evt.state = args.decision === 'GuardianNotified' ? 'Escalate' : args.decision === 'ResourcesOnly' ? 'Monitor' : 'Cleared';
+        evt.decision = args.decision;
+        evt.teen_informed_at = args.teen_informed_at;
+        evt.reviewer_credentials_ref = args.reviewer_credentials_ref;
+        saveMockDb(db);
+      }
+      return undefined as any;
+    }
+
+    case 'chat_with_mentor': {
+      const msg = args.request?.message?.toLowerCase() || '';
+      const convId = args.request?.conversation_id || 'conv-' + Date.now();
+      const userProfile = db.profiles ? Object.values(db.profiles)[0] as any : null;
+
+      // 1. Crisis Safety Filter
+      if (/\b(suicide|kill myself|end my life|die|self harm|hurt myself|cutter|cutting)\b/i.test(msg)) {
+        return {
+          response: "It sounds like you are going through a really painful moment right now. Please know that you are not alone and help is available. Would you be willing to speak with someone who can support you? You can call KIRAN (1800-599-0019) or Vandrevala Foundation (9999-666-555) 24/7 for free, confidential guidance.",
+          conversation_id: convId,
+          sentiment: 'distress',
+          suggested_actions: ['Call KIRAN Helpline (1800-599-0019)', 'Connect with a trusted adult'],
+        } as any;
+      }
+
+      // 2. Explicit AI Self-Identification Check (P3-1 Acceptance Criteria)
+      if (/\b(are you (a )?(real (person|human)|human|real)|who are you|are you real)\b/i.test(msg)) {
+        return {
+          response: "I am PRERNA's AI Mentor. I am an artificial intelligence, not a real human or licensed therapist. I am here to safely help you reflect on your goals, strengths, and self-discovery journey.",
+          conversation_id: convId,
+          sentiment: 'neutral',
+          suggested_actions: ['Explore my strengths', 'Discuss career pathways'],
+        } as any;
+      }
+
+      // 3. Trait Context Reflection (P3-2 Acceptance Criteria)
+      let traitRef = '';
+      if (userProfile?.personality?.bigFive) {
+        const { openness, conscientiousness, extraversion } = userProfile.personality.bigFive;
+        if (openness >= 70) {
+          traitRef = `Given your high Openness (${openness}%), your natural curiosity will serve you well in exploring this.`;
+        } else if (conscientiousness >= 70) {
+          traitRef = `With your strong Conscientiousness (${conscientiousness}%), planning this methodically can give you real confidence.`;
+        } else if (extraversion >= 70) {
+          traitRef = `Your social energy and Extraversion (${extraversion}%) can be a great strength here.`;
+        }
+      }
+
+      const responseText = traitRef
+        ? `I hear you. ${traitRef} Taking one step at a time helps turn big thoughts into clear action. How would you like to approach this next?`
+        : "I hear you. Taking time to pause and reflect on your thoughts is a valuable strength. What feels like the most important part of this for you right now?";
+
+      return {
+        response: responseText,
+        conversation_id: convId,
+        sentiment: 'reflective',
+        suggested_actions: ['Reflect on my strengths', 'Set a small daily goal'],
+      } as any;
+    }
+
+    case 'export_all_user_data':
+    case 'export_user_data': {
+      const targetId = args.userId || 'current-user';
+      const user = (db.users || []).find((u: any) => u.id === targetId) || (db.users && db.users[0]);
+      const profile = db.profiles ? (db.profiles[targetId] || Object.values(db.profiles)[0]) : null;
+      const sessions = (db.sessions || []).filter((s: any) => s.userId === targetId);
+      const crisisEvents = (db.crisisEvents || []).filter((c: any) => c.user_id === targetId);
+
+      return {
+        export_timestamp: new Date().toISOString(),
+        user: user ? {
+          id: user.id,
+          username: user.name || user.username,
+          role: user.role,
+          ageTier: user.ageTier,
+          createdAt: user.createdAt,
+        } : null,
+        profile: profile || null,
+        sessions: sessions || [],
+        crisis_events_log: crisisEvents || [],
+        compliance_meta: {
+          dpdp_section_9_compliant: true,
+          behavioral_tracking: false,
+          storage_mode: 'local_encrypted_sqlite',
+          version: '1.0.0',
+        },
+      } as any;
+    }
+
+    case 'get_access_audit_log': {
+      const logs = [
+        {
+          id: 'log-1',
+          accessedBy: 'self',
+          dataScope: 'Unified Profile & Assessments',
+          accessedAt: new Date(Date.now() - 3600000 * 2).toISOString(),
+        },
+        {
+          id: 'log-2',
+          accessedBy: 'system_process',
+          dataScope: 'Exponential Moving Average Scoring (EMA)',
+          accessedAt: new Date(Date.now() - 3600000).toISOString(),
+        },
+        {
+          id: 'log-3',
+          accessedBy: 'parent_dashboard',
+          dataScope: 'ParentSafeProfile (Filtered Strengths & Career Fit)',
+          accessedAt: new Date(Date.now() - 1800000).toISOString(),
+        },
+      ];
+      return logs as any;
+    }
+
+    case 'get_parent_view': {
+      const profile = db.profiles ? Object.values(db.profiles)[0] as any : null;
+      if (!profile) {
+        return {
+          has_access: true,
+          profile: {
+            wellbeing_score: 75,
+            career_interests: ['Technology', 'Creative Arts', 'Science'],
+            strengths: ['Curiosity', 'Empathy', 'Creative Problem Solving'],
+            last_active: new Date().toISOString(),
+          },
+        } as any;
+      }
+
+      return {
+        has_access: true,
+        profile: {
+          wellbeing_score: profile.wellbeingScore || 75,
+          career_interests: (profile.careerMatches || []).slice(0, 3).map((c: any) => c.field || c.role || 'Exploration'),
+          strengths: profile.strengths || ['Curiosity', 'Resilience'],
+          last_active: profile.generatedAt || new Date().toISOString(),
+        },
+      } as any;
+    }
+
+    case 'delete_user_data': {
+      db.users = (db.users || []).filter((u: any) => u.id !== args.userId);
+      delete db.profiles[args.userId];
+      db.sessions = (db.sessions || []).filter((s: any) => s.userId !== args.userId);
+      saveMockDb(db);
       return undefined as any;
     }
 

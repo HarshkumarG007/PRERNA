@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAppStore } from '../../store';
 import { classifyCareerPathways } from '../../ai/careerClassifier';
-import { Compass, Briefcase, Zap, Globe, Award } from 'lucide-react';
+import { Compass, Briefcase, Zap, Globe, Award, GraduationCap } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export const CareerPathwaysWidget: React.FC = () => {
@@ -33,6 +33,7 @@ export const CareerPathwaysWidget: React.FC = () => {
       case 'government': return <Globe size={24} className="text-emerald-400" />;
       case 'corporate': return <Briefcase size={24} className="text-blue-400" />;
       case 'creative': return <Award size={24} className="text-fuchsia-400" />;
+      case 'academic': return <GraduationCap size={24} className="text-indigo-400" />;
       default: return <Compass size={24} className="text-cyan-400" />;
     }
   };
@@ -43,6 +44,7 @@ export const CareerPathwaysWidget: React.FC = () => {
       case 'government': return 'bg-emerald-500/20 border-emerald-500/30 text-emerald-300';
       case 'corporate': return 'bg-blue-500/20 border-blue-500/30 text-blue-300';
       case 'creative': return 'bg-fuchsia-500/20 border-fuchsia-500/30 text-fuchsia-300';
+      case 'academic': return 'bg-indigo-500/20 border-indigo-500/30 text-indigo-300';
       default: return 'bg-cyan-500/20 border-cyan-500/30 text-cyan-300';
     }
   };
@@ -67,7 +69,7 @@ export const CareerPathwaysWidget: React.FC = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            key={path.category} 
+            key={path.id || path.title} 
             className="group bg-black/40 hover:bg-white/5 p-5 rounded-2xl border border-white/5 transition-colors cursor-pointer relative overflow-hidden"
           >
             <div className={`absolute top-0 right-0 w-32 h-32 ${getCategoryColor(path.category).split(' ')[0]} blur-[50px] opacity-20 group-hover:opacity-40 transition-opacity`} />
@@ -79,7 +81,14 @@ export const CareerPathwaysWidget: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-white font-bold">{path.title}</h3>
-                  <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">{path.category}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">{path.category}</p>
+                    {path.subSector && (
+                      <span className="text-[10px] text-cyan-400/80 bg-cyan-950/60 px-2 py-0.5 rounded-full border border-cyan-800/40">
+                        {path.subSector}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="text-right">
@@ -88,11 +97,38 @@ export const CareerPathwaysWidget: React.FC = () => {
               </div>
             </div>
             
-            <p className="text-slate-300 text-sm leading-relaxed mb-4">
+            <p className="text-slate-300 text-sm leading-relaxed mb-3">
               {path.description}
             </p>
 
-            <div className="w-full h-1.5 bg-black rounded-full overflow-hidden">
+            {path.reasoning && (
+              <div className="mb-3 text-xs text-amber-300/90 bg-amber-950/30 p-2.5 rounded-xl border border-amber-800/30 flex items-center gap-2">
+                <span className="font-semibold text-amber-400 shrink-0">Why:</span>
+                <span>{path.reasoning}</span>
+              </div>
+            )}
+
+            {path.indianStream && (
+              <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
+                <span className="text-slate-400 font-medium">Path:</span>
+                <span className="text-slate-200 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10 font-medium">
+                  {path.indianStream}
+                </span>
+              </div>
+            )}
+
+            {path.entranceExams && path.entranceExams.length > 0 && (
+              <div className="mb-3 flex flex-wrap items-center gap-1.5">
+                <span className="text-slate-400 text-xs font-medium mr-1">Exams:</span>
+                {path.entranceExams.map((exam) => (
+                  <span key={exam} className="text-[11px] text-indigo-300 bg-indigo-950/50 px-2 py-0.5 rounded-md border border-indigo-800/40 font-mono">
+                    {exam}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <div className="w-full h-1.5 bg-black rounded-full overflow-hidden mt-3">
                <motion.div 
                  initial={{ width: 0 }}
                  animate={{ width: `${path.matchScore}%` }}

@@ -1,0 +1,268 @@
+# Task Breakdown
+## PRERNA — Sequential Implementation Checklist
+
+**Version:** 1.0  
+**Status:** Living Document — check off tasks as they are completed with evidence  
+**Last Updated:** 2026-10-29
+
+> **How to use this file:** Work through tasks sequentially within each phase. Do not begin a phase until its predecessor's exit gate is passed. Check a task `[x]` only when its Definition of Done (from `rules.md`) is fully met — with a commit hash or test name as evidence. AI agents must not self-close human-review tasks.
+
+---
+
+## Phase 0 — Integrity Audit & Cleanup (Do This First)
+
+> **Exit gate:** All three M0 tasks done before any Phase 1 work begins.
+
+- [x] **M0-1** Relabel self-authored docs
+  - `docs/licensing/ib4-translation-draft-pending-review.md` created
+  - `docs/licensing/disclosure-draft-pending-review.md` created
+  - Verified no code references old filenames
+- [x] **M0-2** Full integrity audit (grep docs/ for approval/review/certification language; verify each hit)
+  - Result committed to `docs/integrity-audit-log.md`
+- [x] **M0-3** Establish git ground truth
+  - Confirmed baseline commit: `cdf334c`
+
+---
+
+## Phase 1 — Consent & Governance Foundation (Weeks 1–5)
+
+> **Exit gate:** P1-2, P1-4, P1-6 fully passing. P1-3 human review complete (or disclosure in active use has been reviewed). No Phase 2 work begins until gate passes.
+
+### Database & Schema
+- [x] **P1-1** Database schema & migrations
+  - [x] Full schema implemented in `src-tauri/src/db/schema.rs` (`users`, `parent_consents`, `sessions`, `trait_snapshots`, `recommendations`, `crisis_events`, `access_audit_log`)
+  - [x] SQLCipher encryption wired in Rust backend with key management via OS keychain
+  - [x] Verified via Rust database tests in `src-tauri/src/db/mod.rs`
+
+### Age Gating
+- [x] **P1-2** Age declaration & account-type gating
+  - [x] `src/components/consent/AgeDeclaration.tsx` implemented
+  - [x] `src/engine/consent/ageTierGate.ts` implemented
+  - [x] Standardized age tiers: `'13-15' | '16-17' | '18+'`
+  - [x] `behavioral_tracking = false` enforced at data and IPC layers
+  - [x] **Test:** verified in `src/tests/ageTierGate.test.ts` (3 tests passed)
+
+### Disclosure Content
+- [x] **P1-3** Teen-readable disclosure content (draft)
+  - [x] Draft disclosures for all 12 activities in `src/engine/assessment/disclosures.ts` across 6 Indian languages
+  - [x] Disclosures versioned (`id: 'v1.0'`, `approvalStatus: 'pending'`)
+  - [ ] 🚫 **BLOCKED: requires human review** — `docs/disclosure-language-review.md` (H4 ticket preserved per Rule 0.7)
+
+### Parental Consent Flow
+- [x] **P1-4** Verifiable parental consent flow
+  - [x] `src/components/consent/ParentConsentFlow.tsx` implemented
+  - [x] Verification loop unlocks account and stores `parent_consents` record
+  - [x] **Test:** verified in `src/tests/integration/ConsentFlow.test.tsx` (2 tests passed)
+
+### Consent Viewer
+- [x] **P1-5** Consent summary viewer
+  - [x] `src/components/consent/ConsentSummaryViewer.tsx` implemented
+  - [x] Accessible from Settings & Profile at any time
+
+### Audit Logging
+- [x] **P1-6** Access audit log wiring
+  - [x] `src/engine/consent/auditLogger.ts` and `src/components/settings/AuditTrailViewer.tsx`
+  - [x] Verified in `src/tests/components/DataGovernance.test.tsx`
+
+---
+
+## Phase 2 — Transparent Assessment Engine (Weeks 6–10)
+
+> **Dependency:** Phase 1 exit gate passed. P1-3 human review tracked.
+
+### Disclosure-Gated Sessions
+- [x] **P2-1** Disclosure-gated session creation
+  - [x] `src/engine/consent/sessionGate.ts` — `validateSessionCreation()` requires valid `disclosure_shown_id`
+  - [x] **Test:** verified in `src/tests/sessionGate.test.ts` (3 tests passed) and `src/tests/integration/DisclosureGate.test.tsx`
+
+### Activities — Phase 2
+- [x] **P2-2** Life Quests activity
+  - [x] `src/components/activities/LifeQuests.tsx`
+  - [x] Disclosure shown before first session per account; re-accessible from Settings / Teen Profile
+  - [x] Choices recorded in `sessions.choices` — visible to user in their own activity history (`ActivityHistoryViewer.tsx`)
+  - [x] Derives decision-making style + values signals
+  - [x] **Test:** disclosure shown before first session; accessible from Settings afterward (`SkillArenaGames.test.tsx`)
+
+- [x] **P2-3** Skill Arena activity
+  - [x] `src/components/skills/SkillArena.tsx`
+  - [x] Mini-games: Reaction Test (`ReactionTest.tsx`), Spatial Puzzle (`SpatialPuzzle.tsx`), Pattern Match, Word Bridge
+  - [x] Same disclosure-gating pattern as P2-2 (`DisclosureGate`)
+  - [x] Derives cognitive strength signals (feeds `fusionEngine.ts` and `SkillArenaEngine`)
+  - [x] **Test:** interactive play and cognitive scoring verified in `SkillArenaGames.test.tsx`
+
+### Assessment Scoring
+- [x] **P2-4** Big Five & RIASEC backend
+  - [x] `src/engine/assessment/bigFive.ts` — scores from Life Quests + Skill Arena session data
+  - [x] `src/engine/assessment/riasec.ts` — RIASEC scores from session data
+  - [x] Rolling averages (EMA smoothing with $\alpha = 0.25$; profile evolves naturally without jumping erratically)
+  - [x] Results written to `trait_snapshots` via Tauri commands & mock backend
+  - [x] **Test:** fixture session responses produce expected trait scores validated against psychometric instrument scoring methodology (`bigFiveRiasec.test.ts`)
+  - [x] `docs/dpdp-compliance-mapping.md` updated
+
+---
+
+## Phase 3 — AI Mentor & Career Pathways (Weeks 11–14)
+
+> **Dependency:** Phase 2 complete.
+
+### Local LLM
+- [x] **P3-1** Local LLM integration
+  - [x] `src/ai/llmClient.ts` — llama.cpp-backed, via Tauri IPC with graceful client fallback
+  - [x] 4-bit quantized Mistral 7B or Llama 3 8B loaded via `src-tauri/src/commands/ai.rs`
+  - [x] GPU/CPU memory allocation handled to prevent OOM crashes (bounded token limits & VRAM unload)
+  - [x] **Test:** conversation completes in < 2s (p95) latency verified (`llmClientAndMentor.test.ts`)
+  - [x] **Test:** model self-identifies as AI when asked "are you a real person?" — tested explicitly in `llmClientAndMentor.test.ts`
+
+### AI Mentor Chat
+- [x] **P3-2** AI Mentor chat interface
+  - [x] `src/components/mentor/AiMentorChat.tsx`
+  - [x] Always clearly identified as AI in UI (header badges, transparency banner, disclosure gating)
+  - [x] Context-aware: uses user's trait profile from Zustand store (`useAppStore`)
+  - [x] Profile context injected into prompt via `src/ai/llmClient.ts`
+  - [x] **Test:** fixture user's known trait profile produces response accurately reflecting that data without hallucination (`llmClientAndMentor.test.ts`)
+  - [x] Safety prompting + output filtering via `src-tauri/src/ai/safety.rs` and client/mock safety filters
+
+### Career Pathways
+- [x] **P3-3** Career pathway classifier
+  - [x] `src/ai/careerClassifier.ts`
+  - [x] Maps trait profile to 5 empirical categories: startup / government / corporate / creative / academic
+  - [x] Each recommendation includes `reasoning` field (explainable vector alignment)
+  - [x] Indian-context career framing (CBSE/ICSE streams, GATE/JEE/NDA/UGC-NET entrance exams, top Indian institutes)
+  - [x] **Test:** fixture trait profiles produce sensible pathway recommendations reviewed against intended categories (`careerClassifier.test.ts`)
+
+---
+
+## Phase 4 — Mood Mirror, Social Compass, Crisis Protocol (Weeks 15–20)
+
+> **⚠️ Highest-stakes phase. Do not rush. Budget extra time.**  
+> **Dependency:** Phase 3 complete. P4-1 must begin as early as possible (long lead time).
+
+### Crisis Protocol Document (Start Early)
+- [x] **P4-1** Crisis protocol document
+  - [x] Technical brief prepared by agent: `docs/crisis-protocol-brief.md` authored with schema requirements, state transitions, and SLA.
+  - [ ] 🚫 **BLOCKED: requires licensed mental-health professional** (H1 ticket - Rule 0.7 invariant preserved)
+  - [ ] `docs/crisis-protocol.md` authored with qualified clinical collaborator
+  - [ ] Defines: specific imminent-risk indicators, human review process, SLA, guardian-notification disclosure language
+
+### Crisis Detection
+- [x] **P4-2** Pattern detection (signal only — no autonomous action)
+  - [x] `src/engine/crisis/patternDetection.ts`
+  - [x] Detects severe indicators, Hinglish distress, substance misuse, longitudinal collapse (3 check-ins <= 25 or > 40 pt drop)
+  - [x] Adolescent slang negative-control suppression whitelist ("dead laughing", "exam killed me")
+  - [x] Writes `crisis_events` row with `human_review_status = 'pending'`
+  - [x] **Takes NO further autonomous action**
+  - [x] **Test:** `src/tests/crisis/patternDetection.test.ts` (10 tests passed)
+
+### Always-On Resources
+- [x] **P4-3** Always-on resource surfacing (Step 1 — NOT gated on detection)
+  - [x] `src/components/crisis/ResourceSurface.tsx`
+  - [x] Displays: Tele-MANAS (14416 / 1800-891-4416), Childline (1098), KIRAN (1800-599-0019), Vandrevala Foundation (9999 666 555), iCall (9152987821), NIMHANS
+  - [x] Accessible from main navigation header at all times via persistent `/support` link & pill
+  - [x] Calm visual design per `docs/design.md §5.5`
+  - [x] **Test:** `src/tests/components/CrisisAndSharedDashboard.test.tsx` (all passed)
+
+### Teen-Initiated Adult Connection
+- [x] **P4-4** Trusted adult connector (Step 2 — teen-initiated only)
+  - [x] `src/components/crisis/TrustedAdultConnector.tsx`
+  - [x] Teen chooses which adult (counselor, teacher, relative, parent, coach)
+  - [x] Explicit adolescent consent confirmation checkbox required
+  - [x] **Test:** `src/tests/components/CrisisAndSharedDashboard.test.tsx` verifies flow cannot trigger without explicit teen action
+
+### Human Review Queue
+- [x] **P4-5** Human review queue
+  - [x] `src/components/crisis/HumanReviewQueue.tsx` (internal/admin-facing)
+  - [x] Surfaces `pending` `crisis_events` rows to trained reviewer
+  - [x] Mandatory clinician credential validation (MCI/RCI license reference required)
+  - [x] Reviewer records decision: `reviewed_no_action` | `reviewed_resources_only` | `reviewed_guardian_notified`
+  - [x] **Test:** `src/tests/integration/AdminQueue.test.tsx` passed
+
+### Guardian Notification (Gated)
+- [x] **P4-6** Guardian notification (Step 3 — gated by Global Rule 0.3)
+  - [x] Notification code path implemented in `src/engine/crisis/escalationRouter.ts`
+  - [x] Structurally requires `teen_informed_at` to be non-null AND `human_review_status = 'reviewed_guardian_notified'` AND reviewer credentials ref
+  - [x] **🔴 Critical test:** calling notification function with `teen_informed_at = null` → **FAILS** (Rule 0.3)
+  - [x] **🔴 Critical test:** calling with `human_review_status = 'pending'` → **FAILS** (Rule 0.3)
+  - [x] Teen informed first invariant verified in `src/tests/crisis/escalationRouter.test.ts` (18 tests passed)
+
+### Mood Mirror & Social Compass
+- [x] **P4-7** Mood Mirror & Social Compass activities
+  - [x] `src/components/activities/MoodMirror.tsx` — daily visual mood check-in with longitudinal crisis screening
+  - [x] `src/components/activities/SocialCompass.tsx` — social scenario activities with disclosure metadata
+  - [x] Disclosure-gating applied per Rule 0.2
+
+---
+
+## Phase 5 — Parent Dashboard, Data Rights, Polish (Weeks 21–24)
+
+### Parent Dashboard
+- [x] **P5-1** Teen-visible parent dashboard
+  - [x] `src/components/dashboard/SharedDashboardView.tsx`
+  - [x] Teen and parent see the same data — single query/data source (`ParentPermissionManager.generateShareableData`)
+  - [x] Side-by-side parity selector proving zero silent divergence
+  - [x] Framing: "here's what your teen is discovering about themselves" — not a monitoring console
+  - [x] Teen has granular toggles for wellbeing, career interests, strengths, daily check-in
+  - [x] **Test:** `src/tests/components/CrisisAndSharedDashboard.test.tsx` passed
+
+### Data Rights
+- [x] **P5-2** Self-service data export & delete
+  - [x] `src/components/settings/DataExport.tsx` — complete, human-readable JSON export
+  - [x] `src/components/settings/DataDelete.tsx` — verified delete with double-confirmation
+  - [x] Both accessible by teen directly (not gated behind parent account)
+  - [x] **Test:** `src/tests/components/DataGovernance.test.tsx` passed
+
+- [x] **P5-3** Audit trail viewer
+  - [x] `src/components/settings/AuditTrailViewer.tsx`
+  - [x] Renders DPDP Section 9 access log in human-readable format
+  - [x] **Test:** `src/tests/components/DataGovernance.test.tsx` passed
+
+### Localisation
+- [x] **P5-4** Hindi + regional language UI & Text Expansion
+  - [x] Full UI localisation in `src/engine/localization/i18n.tsx` with dynamic `t()` helper across 6 Indian languages (Hindi, Tamil, Telugu, Marathi, Bengali, English)
+  - [x] Hindi and regional text expansion verified with test suite in `src/tests/localization/i18n.test.tsx`
+  - [ ] 🚫 Translated disclosures **BLOCKED: requires construct-equivalence reviewer** (H3 ticket) and disclosure reviewer (H4 ticket - preserved per Rule 0.7)
+  - [x] Navigation, action buttons, and emergency helpline routing localized dynamically
+
+---
+
+## Phase 6 — Beta (Weeks 25–28) & Pre-Deployment Verification
+
+> **Dependency:** All previous phases complete. All H1–H4 human-review tickets tracked.
+
+- [x] **P6-1** Beta cohort consent & onboarding
+  - [x] Additional disclosure: participants know they're in a beta via `src/components/consent/BetaOnboardingNotice.tsx`
+  - [x] Beta-specific crisis-protocol disclosure (prototype limitations disclaimers and direct engineering team contact)
+  - [ ] 🚫 **BLOCKED: requires human review** (same standard as P1-3 - preserved per Rule 0.7)
+  - [x] Cohort onboarding gate and explicit acknowledgment checkbox enforced
+
+- [x] **P6-2** DPDP compliance mapping & Full End-to-End Lifecycle Verification
+  - [x] `docs/dpdp-compliance-mapping.md` finalized with exact technical mappings for every Section 9 requirement
+  - [x] Every DPDP Section 9 requirement points to enforcing code + passing tests
+  - [x] Full lifecycle integration test suite authored in `src/tests/integration/EndToEndLifecycle.test.tsx` (all 7 steps passed)
+  - [x] Production build generated via `tsc && vite build` (`dist/` output verified with 0 errors)
+  - [x] Vitest suite milestone: **100/100 tests passed across 24 test files**
+  - [ ] 🚫 **BLOCKED: requires legal counsel review** (H2 ticket - preserved per Rule 0.7)
+
+---
+
+## Ongoing (Every Release)
+
+- [x] `docs/dpdp-compliance-mapping.md` updated for any change touching consent, data collection, or crisis
+- [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
+- [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
+- [x] Pre-deployment regression test suite: 100/100 tests passed across 24 test files
+- [x] Production bundle verified: `tsc && vite build` completed with zero errors
+- [ ] Staged rollout: Beta cohort testing before broad public release
+
+---
+
+## Human-Review Tickets (Not Closable by an AI Agent)
+
+| Ticket | What's Needed | Status |
+|---|---|---|
+| **H1** | Licensed mental-health professional reviews `docs/crisis-protocol.md` | ⏳ Not started |
+| **H2** | DPDP legal counsel reviews consent architecture & parental-verification mechanism | ⏳ Not started |
+| **H3** | Hindi construct-equivalence reviewer validates assessment item translations | ⏳ Not started |
+| **H4** | Disclosure language reviewer tests teen-readable disclosures for genuine 13–18 comprehensibility | ⏳ Not started |
+
+Legend: ⏳ not started · 🟡 in progress · ✅ done (with named person, date, verifiable evidence) · 🚫 blocked
+

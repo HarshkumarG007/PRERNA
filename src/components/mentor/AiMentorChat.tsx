@@ -4,12 +4,12 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { CURRENT_DISCLOSURES } from '../../engine/assessment/disclosures';
 import { validateSessionCreation, SessionConfig } from '../../engine/consent/sessionGate';
-import { sendMessageToLLM, ChatMessage } from '../../ai/llmClient';
+import { checkForCrisisIndicators } from '../../engine/crisis/escalationRouter';
+import { sendMessageToLLM, ChatMessage, UserContext } from '../../ai/llmClient';
 import { useI18n } from '../../engine/localization/i18n';
-import { Mic, Square, Sparkles, Send, Bot, User as UserIcon, AlertTriangle, ArrowRight } from 'lucide-react';
+import { useAppStore } from '../../store';
+import { Mic, Square, Sparkles, Send, Bot, User as UserIcon, AlertTriangle, ArrowRight, ShieldCheck } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
-
-
 
 interface AiMentorChatProps {
   userId: string;
@@ -24,10 +24,9 @@ const QUICK_ACTIONS = [
 
 export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
   const { language } = useI18n();
-  // const { profile } = useAppStore(); // Profile not needed in mock mode
-  
+  const { profile, user, recordSession } = useAppStore();
 
-
+  const [conversationId] = useState(() => 'conv-' + crypto.randomUUID());
   const [disclosureAccepted, setDisclosureAccepted] = useState(false);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -83,14 +82,44 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
     setInput('');
     setIsTyping(true);
 
+    // Asynchronously screen for safety crisis signals per Global Rule 0.1-3
+    checkForCrisisIndicators({
+      userId,
+      content: text,
+    }).catch(err => console.error("Crisis check failed", err));
+
     try {
       // Pass the last 5 messages as context to prevent context window overflow
-      // Filter out system messages or introductory bot greetings if needed, but for now we pass the raw history
       const recentContext = messages.slice(-5);
       
-      const chatResponse = await sendMessageToLLM(userMsg.content, recentContext);
+      const userContext: UserContext = {
+        bigFive: profile?.personality?.bigFive,
+        riasec: profile?.personality?.riasec,
+        name: (user as any)?.name || 'Learner',
+        archetype: profile?.archetype?.name,
+      };
+
+      const chatResponse = await sendMessageToLLM(
+        userMsg.content,
+        recentContext,
+        conversationId,
+        userContext
+      );
+
       const aiMsg: ChatMessage = { role: 'assistant', content: chatResponse.response };
       setMessages([...newHistory, aiMsg]);
+
+      // Record ephemeral session interaction for audit trail
+      recordSession({
+        type: 'ai_chat',
+        completedAt: new Date().toISOString(),
+        metadata: {
+          message_count: newHistory.length + 1,
+          conversation_id: conversationId,
+          disclosure_version: disclosure.id,
+          disclosure_shown_at: Date.now(),
+        },
+      }).catch(err => console.warn('Ephemeral chat session log skipped:', err));
     } catch (err) {
       console.error("Failed to get response from AI Mentor", err);
       setMessages([...newHistory, { role: 'assistant', content: 'Sorry, my neural pathways are a bit congested right now. Could we try again later?' }]);
@@ -186,10 +215,26 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
             <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full border-2 border-[#020617]"></div>
           </div>
           <div>
-            <h2 className="text-white font-bold tracking-wide">PRERNA Mentor</h2>
-            <p className="text-xs text-emerald-400 font-medium tracking-widest uppercase">Local AI Active</p>
+            <div className="flex items-center gap-2">
+              <h2 className="text-white font-bold tracking-wide">PRERNA Mentor</h2>
+              <span className="text-[10px] font-mono uppercase tracking-wider bg-violet-500/20 text-violet-300 border border-violet-500/30 px-2 py-0.5 rounded-full">
+                AI Assistant
+              </span>
+            </div>
+            <p className="text-xs text-emerald-400 font-medium tracking-wide">
+              Local Inference Active • Not a Human or Medical Doctor
+            </p>
           </div>
         </div>
+      </div>
+
+      {/* AI Transparency Banner */}
+      <div className="relative z-10 bg-violet-950/40 border-b border-violet-500/20 px-6 py-2.5 flex items-center justify-between text-xs text-violet-200">
+        <span className="flex items-center gap-2">
+          <ShieldCheck size={14} className="text-violet-400 flex-shrink-0" />
+          <span>I am an artificial intelligence designed for self-reflection. I do not provide clinical therapy or medical advice.</span>
+        </span>
+        <span className="text-[10px] font-mono text-violet-400/80 hidden sm:inline">Offline & Private</span>
       </div>
       
       {/* Chat Area */}

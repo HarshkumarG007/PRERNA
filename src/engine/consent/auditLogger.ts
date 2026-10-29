@@ -12,13 +12,14 @@ export async function logDataAccess(
   accessedBy: 'self' | 'parent_dashboard' | 'system_process',
   dataScope: string
 ): Promise<void> {
+  const now = new Date();
   const entry: Omit<AuditLogEntry, 'id'> = {
     accessedBy,
     dataScope,
-    accessedAt: new Date(),
+    accessedAt: now,
   };
   
-  console.log(`[AUDIT LOG] User ${userId} data scope '${dataScope}' accessed by ${accessedBy} at ${entry.accessedAt.toISOString()}`);
+  console.log(`[AUDIT LOG] User ${userId} data scope '${entry.dataScope}' accessed by ${entry.accessedBy} at ${now.toISOString()}`);
   
   try {
     await invoke('insert_audit_log', { 

@@ -104,6 +104,7 @@ pub fn run() {
             commands::create_user,
             commands::authenticate_user,
             commands::get_user,
+            commands::logout,
             commands::revoke_consent,
             commands::submit_consent_token,
             commands::generate_mfa_secret,

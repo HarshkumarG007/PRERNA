@@ -75,11 +75,38 @@ export const SocialCompass: React.FC<SocialCompassProps> = ({ userId }) => {
     } else {
       // All done — save session
       await recordSession({
-        type: 'life_quest', // closest type available in union
+        type: 'social_compass',
         completedAt: new Date().toISOString(),
         score: Math.round((newTraits.agreeableness + newTraits.extraversion + newTraits.conscientiousness) / 3),
-        metadata: { module: 'social_compass', choices: newAnswers, traits: newTraits }
+        metadata: {
+          module: 'social_compass',
+          choices: newAnswers,
+          traits: newTraits,
+          disclosure_version: disclosure.id,
+          disclosure_shown_at: Date.now(),
+        }
       });
+
+      // Synchronize with store profile
+      try {
+        const currentProfile = useAppStore.getState().profile;
+        if (currentProfile?.personality) {
+          useAppStore.getState().updateProfile({
+            personality: {
+              ...currentProfile.personality,
+              bigFive: {
+                ...currentProfile.personality.bigFive,
+                agreeableness: Math.round((currentProfile.personality.bigFive.agreeableness * 0.75) + (newTraits.agreeableness * 0.25)),
+                extraversion: Math.round((currentProfile.personality.bigFive.extraversion * 0.75) + (newTraits.extraversion * 0.25)),
+                conscientiousness: Math.round((currentProfile.personality.bigFive.conscientiousness * 0.75) + (newTraits.conscientiousness * 0.25)),
+              }
+            }
+          });
+        }
+      } catch (err) {
+        console.warn('Could not update profile from Social Compass:', err);
+      }
+
       setCompleted(true);
     }
   };

@@ -5,7 +5,7 @@ import { safeInvoke as invoke } from '../utils/mockBackend';
 // Types
 export interface User {
   id: string;
-  ageRange: '13-15' | '16-18' | '19-22';
+  ageRange: '13-15' | '16-17' | '18+';
   region: string;
   language: string;
   role?: 'teen' | 'parent' | 'educator';
@@ -73,7 +73,7 @@ export interface UnifiedProfile {
 
 export interface Session {
   id: string;
-  type: 'life_quest' | 'skill_arena' | 'mood_mirror' | 'ai_chat';
+  type: 'life_quest' | 'skill_arena' | 'mood_mirror' | 'social_compass' | 'ai_chat';
   completedAt: string;
   score?: number;
   metadata: Record<string, unknown>;
@@ -224,6 +224,9 @@ export const useAppStore = create<AppState>()(
         
         // Clear last user from localStorage
         localStorage.removeItem('prerna_last_user');
+
+        // Invoke backend logout to clear active session and conversation history
+        invoke('logout').catch(() => {});
       },
 
       updateRole: (role) => {
@@ -264,8 +267,7 @@ export const useAppStore = create<AppState>()(
             },
           });
           
-          // Store PIN locally (hashed in production)
-          localStorage.setItem(`prerna_pin_${userId}`, data.pin);
+          // Remember last authenticated user ID (never store PINs or credentials in localStorage)
           localStorage.setItem('prerna_last_user', userId);
           
           // Auto-login
@@ -354,12 +356,17 @@ export const useAppStore = create<AppState>()(
           ...sessionData,
           id: crypto.randomUUID(),
         };
+
+        const disclosureVersion = (sessionData.metadata?.disclosure_version as string) || '1.0';
+        const disclosureShownAt = (sessionData.metadata?.disclosure_shown_at as number) || Date.now();
         
         await invoke('save_session', {
           session: {
             session_type: session.type,
             raw_choices: JSON.stringify(session.metadata),
-            derived_traits: JSON.stringify(session.score ? { score: session.score } : {})
+            derived_traits: JSON.stringify(session.metadata?.derived_traits || (session.score ? { score: session.score } : {})),
+            disclosure_version: disclosureVersion,
+            disclosure_shown_at: disclosureShownAt,
           }
         });
         
@@ -382,10 +389,8 @@ export const useAppStore = create<AppState>()(
     {
       name: 'prerna-storage',
       storage: createJSONStorage(() => localStorage),
-      // Only persist non-sensitive data
+      // Only persist non-sensitive UI and streak preferences
       partialize: (state) => ({
-        user: state.user,
-        isAuthenticated: state.isAuthenticated,
         streak: state.streak,
         activeView: state.activeView,
       }),

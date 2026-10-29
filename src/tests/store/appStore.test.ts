@@ -8,7 +8,7 @@ vi.mock('../../utils/mockBackend', () => ({
       if (args.userId === 'valid-user') {
         return {
           id: 'valid-user',
-          ageRange: '16-18',
+          ageRange: '16-17',
           region: 'north',
           language: 'en',
           createdAt: new Date().toISOString()
@@ -47,7 +47,7 @@ describe('AppStore', () => {
 
   it('handles logout by clearing sensitive data', () => {
     useAppStore.setState({
-      user: { id: 'test', ageRange: '16-18', region: 'north', language: 'en', createdAt: '' },
+      user: { id: 'test', ageRange: '16-17', region: 'north', language: 'en', createdAt: '' },
       isAuthenticated: true,
       profile: { userId: 'test' } as any
     });
@@ -91,7 +91,7 @@ describe('AppStore', () => {
 
   it('revokes consent and logs out', async () => {
     useAppStore.setState({
-      user: { id: 'test', ageRange: '16-18', region: 'north', language: 'en', createdAt: '' },
+      user: { id: 'test', ageRange: '16-17', region: 'north', language: 'en', createdAt: '' },
       isAuthenticated: true,
       profile: { userId: 'test' } as any
     });

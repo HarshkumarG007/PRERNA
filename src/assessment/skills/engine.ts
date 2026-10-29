@@ -94,10 +94,17 @@ export class SkillArenaEngine {
   private calcSpeedScore(results: GameResult[]): number {
     if (results.length === 0) return 50;
     const avgSpeed = results.reduce((sum, r) => sum + r.speed, 0) / results.length;
-    // Faster = higher score (inverse relationship). Map 2s -> 100, 12s -> 0
+    if (avgSpeed <= 0) return 50;
+    // Millisecond-range reaction test (< 2000ms)
+    if (avgSpeed < 2000) {
+      // 200ms or lower -> 100, 500ms -> 70, 800ms -> 40, 1200ms -> 10
+      const score = 100 - Math.max(0, (avgSpeed - 200) / 10);
+      return Math.max(10, Math.min(100, Math.round(score)));
+    }
+    // Slower puzzle actions (> 2s)
     const speedInSeconds = avgSpeed / 1000;
     const score = 100 - Math.max(0, (speedInSeconds - 2) * 10);
-    return Math.max(0, Math.min(100, score));
+    return Math.max(0, Math.min(100, Math.round(score)));
   }
   
   private calcMemoryScore(results: GameResult[]): number {

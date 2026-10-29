@@ -13,6 +13,7 @@ import { DisclosureGate } from '../consent/DisclosureGate';
 import { CareerPathwaysWidget } from './CareerPathwaysWidget';
 import { RadarChart } from './RadarChart';
 import { BadgeCabinet } from './BadgeCabinet';
+import { ActivityHistoryViewer } from './ActivityHistoryViewer';
 
 import { useAppStore } from '../../store';
 
@@ -283,6 +284,9 @@ export const TeenProfileView: React.FC = () => {
           <div className="h-[500px]">
              <CareerPathwaysWidget />
           </div>
+
+          {/* Activity History & Transparent Recorded Choices */}
+          <ActivityHistoryViewer />
 
           <div className="bg-[#0f172a]/80 backdrop-blur-xl p-8 rounded-[2rem] border border-cyan-500/30 shadow-[0_0_30px_rgba(6,182,212,0.1)] relative overflow-hidden">
              <div className="absolute -top-20 -right-20 w-64 h-64 bg-cyan-500/10 rounded-full blur-[60px] pointer-events-none" />

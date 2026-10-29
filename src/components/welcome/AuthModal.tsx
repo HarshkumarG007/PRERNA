@@ -407,7 +407,7 @@ const SignupFlow: React.FC<{
               const dob = e.target.value;
               // Auto-calculate age range
               const age = new Date().getFullYear() - new Date(dob).getFullYear();
-              const ageRange = age <= 15 ? '13-15' : age <= 18 ? '16-18' : '19-22';
+              const ageRange = age <= 15 ? '13-15' : age <= 17 ? '16-17' : '18+';
               setFormData({ ...formData, dateOfBirth: dob, ageRange });
             }}
             className={inputCls}

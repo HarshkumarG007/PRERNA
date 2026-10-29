@@ -25,7 +25,9 @@ This document maps the non-negotiable requirements of the DPDP Act (specifically
 
 **Implementation**:
 - `src/engine/assessment/disclosures.ts`: Central registry containing plain-language texts (in English and Hindi).
-- `src/engine/consent/sessionGate.ts`: The `validateSessionCreation` function is the gatekeeper. **Global Rule 0.1-2** ensures that no component (e.g., `LifeQuests.tsx`, `SkillArena.tsx`, `MoodMirror.tsx`) can start an assessment session without providing a matching `disclosureShownId`. 
+- `src/engine/consent/sessionGate.ts`: The `validateSessionCreation` function is the gatekeeper. **Global Rule 0.1-2** ensures that no component (e.g., `LifeQuests.tsx`, `SkillArena.tsx`, `MoodMirror.tsx`) can start an assessment session without providing a matching `disclosureShownId`.
+- `src/components/dashboard/ActivityHistoryViewer.tsx`: Directly empowers the adolescent to review every recorded assessment choice, timestamp, and active disclosure version, ensuring full transparency of processed data.
+- `src-tauri/src/commands/mod.rs` & `src/store/index.ts`: Invariant enforcement requiring `disclosure_version` and `disclosure_shown_at` on every `save_session` call. Unrecorded disclosures result in immediate session rejection. 
 
 ## 4. Safety Escalation & Teen Transparency
 

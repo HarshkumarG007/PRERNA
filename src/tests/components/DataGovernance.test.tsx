@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { DataDelete } from '../../components/settings/DataDelete';
 import { DataExport } from '../../components/settings/DataExport';
+import { AuditTrailViewer } from '../../components/settings/AuditTrailViewer';
 import { ToastProvider } from '../../components/common/Toast';
 import { useAppStore } from '../../store';
-import { waitFor } from '@testing-library/react';
 
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn().mockResolvedValue({ user: {}, sessions: [], snapshots: [] })
@@ -75,6 +75,33 @@ describe('DataGovernance UI Components', () => {
         expect(window.URL.createObjectURL).toHaveBeenCalled();
         expect(window.URL.revokeObjectURL).toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('AuditTrailViewer', () => {
+    it('renders audit entries correctly with roles and scopes', () => {
+      const mockLogs = [
+        {
+          id: 'log-test-1',
+          accessedBy: 'self' as const,
+          dataScope: 'Psychological Construct Profile',
+          accessedAt: new Date('2026-10-28T12:00:00Z'),
+        },
+        {
+          id: 'log-test-2',
+          accessedBy: 'parent_dashboard' as const,
+          dataScope: 'ParentSafeProfile (Strengths)',
+          accessedAt: new Date('2026-10-28T13:00:00Z'),
+        },
+      ];
+
+      render(<AuditTrailViewer logs={mockLogs} />);
+
+      expect(screen.getByTestId('audit-trail-viewer')).toBeInTheDocument();
+      expect(screen.getByText('Psychological Construct Profile')).toBeInTheDocument();
+      expect(screen.getByText('ParentSafeProfile (Strengths)')).toBeInTheDocument();
+      expect(screen.getByText('self')).toBeInTheDocument();
+      expect(screen.getByText('parent dashboard')).toBeInTheDocument();
     });
   });
 });

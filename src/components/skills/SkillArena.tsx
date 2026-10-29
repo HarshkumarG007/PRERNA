@@ -2,15 +2,18 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PatternMatch } from './PatternMatch';
 import { WordBridge } from './WordBridge';
+import { ReactionTest } from './ReactionTest';
+import { SpatialPuzzle } from './SpatialPuzzle';
 import { SkillArenaEngine, CognitiveProfile, GameResult } from '../../assessment/skills/engine';
 import { useDatabase } from '../../hooks/useDatabase';
+import { useAppStore } from '../../store';
 import { ArrowLeft, Gamepad2, BrainCircuit, Sparkles, CheckCircle2 } from 'lucide-react';
 
 import { DisclosureGate } from '../consent/DisclosureGate';
 
 type GameType = 'pattern' | 'word' | 'spatial' | 'reaction' | 'creative';
 
-export const SkillArena: React.FC<{ onExit: () => void }> = ({ onExit }) => {
+export const SkillArena: React.FC<{ onExit?: () => void; userId?: string }> = ({ onExit = () => window.history.back() }) => {
   return (
     <DisclosureGate activityType="skill_arena" onDecline={onExit}>
       <SkillArenaInner onExit={onExit} />
@@ -29,8 +32,8 @@ const SkillArenaInner: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   const games = [
     { id: 'pattern' as GameType, name: 'Pattern Match', icon: '🧩', desc: 'Visual memory & logic', color: 'from-blue-500 to-indigo-600', shadow: 'shadow-indigo-500/30' },
     { id: 'word' as GameType, name: 'Word Bridge', icon: '🔗', desc: 'Language & connections', color: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-500/30' },
-    { id: 'spatial' as GameType, name: 'Spatial Spin', icon: '🎯', desc: 'Mental rotation (Coming Soon)', color: 'from-purple-500 to-pink-600', shadow: 'shadow-pink-500/30' },
-    { id: 'reaction' as GameType, name: 'Quick Draw', icon: '⚡', desc: 'Speed & reflexes (Coming Soon)', color: 'from-orange-500 to-red-600', shadow: 'shadow-orange-500/30' },
+    { id: 'spatial' as GameType, name: 'Spatial Spin', icon: '🎯', desc: 'Mental rotation & 3D space', color: 'from-purple-500 to-pink-600', shadow: 'shadow-pink-500/30' },
+    { id: 'reaction' as GameType, name: 'Quick Draw', icon: '⚡', desc: 'Speed & reflexes', color: 'from-orange-500 to-red-600', shadow: 'shadow-orange-500/30' },
     { id: 'creative' as GameType, name: 'Idea Chain', icon: '💡', desc: 'Divergent thinking (Coming Soon)', color: 'from-yellow-500 to-amber-600', shadow: 'shadow-yellow-500/30' },
   ];
 
@@ -52,13 +55,37 @@ const SkillArenaInner: React.FC<{ onExit: () => void }> = ({ onExit }) => {
       setProfile(cognitiveProfile);
       setShowResults(true);
       
+      const disclosureVersion = '1.0';
+      const disclosureShownAt = Date.now();
+
       await saveSession({
         session_type: 'skill_arena',
         raw_choices: engine.exportData(),
         derived_traits: JSON.stringify(cognitiveProfile),
-        disclosure_version: '1.0',
-        disclosure_shown_at: Date.now(),
+        disclosure_version: disclosureVersion,
+        disclosure_shown_at: disclosureShownAt,
       });
+
+      // Synchronize with Zustand store & profile
+      try {
+        await useAppStore.getState().recordSession({
+          type: 'skill_arena',
+          completedAt: new Date().toISOString(),
+          score: result.score,
+          metadata: {
+            raw_choices: engine.exportData(),
+            derived_traits: cognitiveProfile,
+            disclosure_version: disclosureVersion,
+            disclosure_shown_at: disclosureShownAt,
+          }
+        });
+
+        useAppStore.getState().updateProfile({
+          cognition: cognitiveProfile
+        });
+      } catch (err) {
+        console.warn('Failed to update store session:', err);
+      }
     }
   };
 
@@ -84,6 +111,18 @@ const SkillArenaInner: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-teal-600/20 rounded-full blur-[120px]" />
              </>
            )}
+           {activeGame === 'spatial' && (
+             <>
+               <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-[120px]" />
+               <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-pink-600/20 rounded-full blur-[120px]" />
+             </>
+           )}
+           {activeGame === 'reaction' && (
+             <>
+               <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-orange-600/20 rounded-full blur-[120px]" />
+               <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-red-600/20 rounded-full blur-[120px]" />
+             </>
+           )}
         </div>
 
         <div className="relative z-10 flex flex-col h-full">
@@ -99,6 +138,8 @@ const SkillArenaInner: React.FC<{ onExit: () => void }> = ({ onExit }) => {
           <div className="flex-1 p-4 flex items-center justify-center">
              {activeGame === 'pattern' && <PatternMatch onComplete={(r) => handleGameComplete('pattern', r)} />}
              {activeGame === 'word' && <WordBridge onComplete={(r) => handleGameComplete('word', r)} />}
+             {activeGame === 'spatial' && <SpatialPuzzle onComplete={(r) => handleGameComplete('spatial', r)} />}
+             {activeGame === 'reaction' && <ReactionTest onComplete={(r) => handleGameComplete('reaction', r)} />}
           </div>
         </div>
       </div>
@@ -140,7 +181,7 @@ const SkillArenaInner: React.FC<{ onExit: () => void }> = ({ onExit }) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {games.map((game, i) => {
-            const isPlayable = game.id === 'pattern' || game.id === 'word';
+            const isPlayable = game.id === 'pattern' || game.id === 'word' || game.id === 'spatial' || game.id === 'reaction';
             const isCompleted = completedGames.has(game.id);
 
             return (

@@ -2,7 +2,9 @@
 //! Optimized for RTX 4060 (8GB VRAM)
 
 use anyhow::{Context, Result};
+#[cfg(not(target_os = "android"))]
 use llama_cpp_2::llama_backend::LlamaBackend;
+#[cfg(not(target_os = "android"))]
 use llama_cpp_2::model::{params::LlamaModelParams, LlamaModel};
 use log::info;
 use std::path::PathBuf;
@@ -30,7 +32,9 @@ pub enum MentorModel {
 
 pub struct LocalLLM {
     _model_variant: MentorModel,
+    #[cfg(not(target_os = "android"))]
     _model: Arc<LlamaModel>,
+    #[cfg(not(target_os = "android"))]
     _backend: Arc<LlamaBackend>,
     safety_filter: SafetyFilter,
     rag_engine: Arc<DomainRag>,
@@ -40,10 +44,27 @@ pub struct LocalLLM {
 
 impl LocalLLM {
     /// Initialize local LLM with quantized model
-    pub fn new(app_handle: &tauri::AppHandle) -> Result<Self> {
+    pub fn new(_app_handle: &tauri::AppHandle) -> Result<Self> {
         info!("Initializing local LLM...");
 
-        let backend = Arc::new(LlamaBackend::init()?);
+        #[cfg(target_os = "android")]
+        {
+            info!("Android platform: running AI in mobile mock/RAG mode");
+            return Ok(Self {
+                _model_variant: MentorModel::RagHybrid {
+                    base: PathBuf::new(),
+                    retrieval: Arc::new(DomainRag::new()),
+                },
+                safety_filter: SafetyFilter::new(),
+                rag_engine: Arc::new(DomainRag::new()),
+                _max_tokens: 512,
+                mock_mode: true,
+            });
+        }
+
+        #[cfg(not(target_os = "android"))]
+        {
+            let backend = Arc::new(LlamaBackend::init()?);
 
         // Model path - will download on first run
         let model_path = get_model_path(app_handle)?;
@@ -92,6 +113,7 @@ impl LocalLLM {
             _max_tokens: 512, // Keep responses concise for teens
             mock_mode: true,
         })
+        }
     }
 
     pub fn generate_response(

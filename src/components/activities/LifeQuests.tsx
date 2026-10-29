@@ -102,6 +102,9 @@ export const LifeQuests: React.FC<LifeQuestsProps> = ({ userId }) => {
       setProfile(finalProfile);
       setShowResults(true);
       
+      const disclosureVersion = CURRENT_DISCLOSURES.life_quests.id;
+      const disclosureShownAt = Date.now();
+
       await recordSession({
         type: 'life_quest',
         completedAt: new Date().toISOString(),
@@ -109,8 +112,23 @@ export const LifeQuests: React.FC<LifeQuestsProps> = ({ userId }) => {
         metadata: {
           raw_choices: engine.exportData(),
           derived_traits: finalProfile,
+          disclosure_version: disclosureVersion,
+          disclosure_shown_at: disclosureShownAt,
         }
       });
+
+      // Update store profile so radar charts and mentor context update in real time
+      try {
+        useAppStore.getState().updateProfile({
+          personality: {
+            bigFive: finalProfile.bigFive,
+            riasec: finalProfile.riasec,
+            emotional: finalProfile.emotional,
+          }
+        });
+      } catch (err) {
+        console.warn('Failed to update store profile:', err);
+      }
     }
   }, [engine, scenes, currentSceneIndex, recordSession]);
 
