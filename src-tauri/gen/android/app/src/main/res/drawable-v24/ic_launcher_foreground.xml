@@ -4,27 +4,88 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">
+
+    <!-- Sanctuary Orbit Ring -->
+    <path
+        android:pathData="M54,16 A38,38 0 1,1 53.9,16"
+        android:strokeWidth="1"
+        android:strokeColor="#40818CF8" />
+
+    <!-- Left Lotus Guidance Wing -->
+    <path
+        android:pathData="M54,80 C44,80 28,71 24,52 C21,38 30,27 41,30 C48,32 51,41 54,48 C51,40 46,36 41,35 C33,34 27,42 29,53 C31,67 45,74 54,75 Z">
         <aapt:attr name="android:fillColor">
             <gradient
-                android:endX="85.84757"
-                android:endY="92.4963"
-                android:startX="42.9492"
-                android:startY="49.59793"
+                android:startX="24"
+                android:startY="30"
+                android:endX="54"
+                android:endY="80"
                 android:type="linear">
-                <item
-                    android:color="#44000000"
-                    android:offset="0.0" />
-                <item
-                    android:color="#00000000"
-                    android:offset="1.0" />
+                <item android:color="#FF818CF8" android:offset="0.0" />
+                <item android:color="#FFA855F7" android:offset="0.5" />
+                <item android:color="#FFEC4899" android:offset="1.0" />
             </gradient>
         </aapt:attr>
     </path>
+
+    <!-- Right Lotus Guidance Wing (Mirrored) -->
     <path
-        android:fillColor="#FFFFFF"
-        android:fillType="nonZero"
-        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"
-        android:strokeWidth="1"
-        android:strokeColor="#00000000" />
+        android:pathData="M54,80 C64,80 80,71 84,52 C87,38 78,27 67,30 C60,32 57,41 54,48 C57,40 62,36 67,35 C75,34 81,42 79,53 C77,67 63,74 54,75 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="84"
+                android:startY="30"
+                android:endX="54"
+                android:endY="80"
+                android:type="linear">
+                <item android:color="#FF818CF8" android:offset="0.0" />
+                <item android:color="#FFA855F7" android:offset="0.5" />
+                <item android:color="#FFF43F5E" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Lower Harmony Cradle -->
+    <path
+        android:pathData="M40,68 C47,77 61,77 68,68 C72,73 67,82 54,83 C41,82 36,73 40,68 Z"
+        android:fillColor="#80A855F7" />
+
+    <!-- Cardinal Spire (Vertical Path of Purpose) -->
+    <path
+        android:pathData="M54,20 L55.5,50 L54,54 L52.5,50 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="54"
+                android:startY="20"
+                android:endX="54"
+                android:endY="54"
+                android:type="linear">
+                <item android:color="#FFFFFFFF" android:offset="0.0" />
+                <item android:color="#FFFDE047" android:offset="0.6" />
+                <item android:color="#FFF59E0B" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Central Flame of Prerna (Diya Spark) -->
+    <path
+        android:pathData="M54,35 C56.5,43 60,49 60,55 C60,58 57.3,61 54,61 C50.7,61 48,58 48,55 C48,49 51.5,43 54,35 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="54"
+                android:startY="35"
+                android:endX="54"
+                android:endY="61"
+                android:type="linear">
+                <item android:color="#FFFFFFFF" android:offset="0.0" />
+                <item android:color="#FFFDE047" android:offset="0.5" />
+                <item android:color="#FFF59E0B" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Core Radiant Bindu -->
+    <path
+        android:pathData="M54,54 A2.2,2.2 0 1,1 53.9,54"
+        android:fillColor="#FFFFFFFF" />
 </vector>

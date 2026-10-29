@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ArrowRight, LogIn, ChevronDown, Star, Heart, Brain } from 'lucide-react';
+import { ArrowRight, LogIn, ChevronDown, Star, Heart, Brain } from 'lucide-react';
 import { AuthModal } from './AuthModal';
+import { PrernaLogo, PrernaEmblem } from '../common/PrernaLogo';
 
 interface WelcomeScreenProps {
   onAuthenticated: (userId: string) => void;
@@ -56,14 +57,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onAuthenticated })
           transition={{ duration: 0.8, ease: 'easeOut' }}
           className="flex items-center justify-between px-6 py-6 md:px-12"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-              <Sparkles className="text-white" size={20} />
-            </div>
-            <span className="text-2xl font-black bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
-              PRERNA
-            </span>
-          </div>
+          <PrernaLogo variant="compact" size="md" animate={true} />
           
           <button
             onClick={openFullLogin}
@@ -194,9 +188,12 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onAuthenticated })
                   color="from-amber-500/20 to-orange-500/20"
                 />
 
-                {/* Central Glow */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-[400px] h-[400px] rounded-full bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 blur-3xl animate-pulse" />
+                {/* Central PRERNA Emblem Sanctuary Orbit */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-[420px] h-[420px] rounded-full bg-gradient-to-r from-violet-600/20 via-fuchsia-600/15 to-rose-600/20 blur-3xl animate-pulse" />
+                  <div className="relative z-0 p-8 rounded-full border border-white/10 bg-slate-900/40 backdrop-blur-md shadow-2xl shadow-purple-500/10">
+                    <PrernaEmblem size={170} animate={true} />
+                  </div>
                 </div>
               </div>
             </motion.div>

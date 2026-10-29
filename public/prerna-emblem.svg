@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <!-- Background Glow -->
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.25"/>
+      <stop offset="60%" stop-color="#4F46E5" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Main Prism Gradient (Twilight to Rose) -->
+    <linearGradient id="prernaGradient" x1="15%" y1="10%" x2="85%" y2="90%">
+      <stop offset="0%" stop-color="#818CF8"/>
+      <stop offset="35%" stop-color="#A855F7"/>
+      <stop offset="70%" stop-color="#EC4899"/>
+      <stop offset="100%" stop-color="#F43F5E"/>
+    </linearGradient>
+
+    <!-- Inner Core Spark (Dawn Gold to White) -->
+    <linearGradient id="coreSpark" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="40%" stop-color="#FDE047"/>
+      <stop offset="85%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+
+    <!-- Calming Turquoise Accent -->
+    <linearGradient id="calmAura" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#06B6D4" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#3B82F6" stop-opacity="0.2"/>
+    </linearGradient>
+
+    <!-- Soft Drop Shadow for Depth -->
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <filter id="emblemShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#7C3AED" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Ambient Radiant Back-Glow -->
+  <circle cx="256" cy="256" r="230" fill="url(#bgGlow)"/>
+
+  <!-- Sanctuary Perimeter Circle (Subtle Orbit of Privacy & Safety) -->
+  <circle cx="256" cy="256" r="195" stroke="url(#prernaGradient)" stroke-width="2.5" stroke-opacity="0.35" stroke-dasharray="6 8"/>
+  <circle cx="256" cy="256" r="215" stroke="url(#calmAura)" stroke-width="1.5" stroke-opacity="0.25"/>
+
+  <!-- Orbiting Constellation Anchors (The 4 Pillars: Identity, Wellbeing, Career, Sanctuary) -->
+  <circle cx="256" cy="41" r="5" fill="#818CF8" opacity="0.8"/>
+  <circle cx="471" cy="256" r="5" fill="#EC4899" opacity="0.8"/>
+  <circle cx="256" cy="471" r="5" fill="#F43F5E" opacity="0.8"/>
+  <circle cx="41" cy="256" r="5" fill="#06B6D4" opacity="0.8"/>
+
+  <!-- Outer Lotus Guidance Wings (Ascending Embrace) -->
+  <g filter="url(#emblemShadow)">
+    <!-- Left Wing -->
+    <path d="M256 380 C210 380 135 340 115 250 C100 180 145 130 195 145 C230 155 245 195 256 230 C242 190 220 170 195 168 C160 165 130 200 138 255 C150 320 215 350 256 355 Z" 
+          fill="url(#prernaGradient)" opacity="0.95"/>
+    
+    <!-- Right Wing (Mirrored) -->
+    <path d="M256 380 C302 380 377 340 397 250 C412 180 367 130 317 145 C282 155 267 195 256 230 C270 190 292 170 317 168 C352 165 382 200 374 255 C362 320 297 350 256 355 Z" 
+          fill="url(#prernaGradient)" opacity="0.95"/>
+
+    <!-- Harmonizing Lower Cradle (Safe Foundation) -->
+    <path d="M190 320 C225 365 287 365 322 320 C340 345 315 390 256 395 C197 390 172 345 190 320 Z" 
+          fill="url(#prernaGradient)" opacity="0.75"/>
+  </g>
+
+  <!-- Central Radiant Compass & Spark (Dhruva Tara / North Star) -->
+  <g filter="url(#softGlow)">
+    <!-- Cardinal Compass Rays -->
+    <!-- Vertical Spire (Trajectory & Self-Realization) -->
+    <path d="M256 95 L263 235 L256 256 L249 235 Z" fill="url(#coreSpark)"/>
+    <path d="M256 415 L263 277 L256 256 L249 277 Z" fill="url(#prernaGradient)" opacity="0.8"/>
+
+    <!-- Horizontal Horizon (Inner Balance) -->
+    <path d="M95 256 L235 249 L256 256 L235 263 Z" fill="url(#prernaGradient)" opacity="0.85"/>
+    <path d="M415 256 L277 249 L256 256 L277 263 Z" fill="url(#prernaGradient)" opacity="0.85"/>
+
+    <!-- Diagonal Soft Rays -->
+    <path d="M145 145 L242 245 L256 256 L245 242 Z" fill="url(#calmAura)"/>
+    <path d="M367 145 L270 245 L256 256 L267 242 Z" fill="url(#calmAura)"/>
+    <path d="M145 367 L242 267 L256 256 L245 270 Z" fill="url(#prernaGradient)" opacity="0.6"/>
+    <path d="M367 367 L270 267 L256 256 L267 270 Z" fill="url(#prernaGradient)" opacity="0.6"/>
+
+    <!-- Central Flame of Prerna (Diya Spark) -->
+    <path d="M256 165 C268 205 284 235 284 260 C284 275 271 288 256 288 C241 288 228 275 228 260 C228 235 244 205 256 165 Z" 
+          fill="url(#coreSpark)"/>
+
+    <!-- Inner Core Diamond Star (Bindu / Core Essence) -->
+    <polygon points="256,220 266,256 302,256 272,268 283,300 256,278 229,300 240,268 210,256 246,256" 
+             fill="#FFFFFF" opacity="0.95"/>
+    <circle cx="256" cy="256" r="7" fill="#FFFFFF"/>
+    <circle cx="256" cy="256" r="3" fill="#FDE047"/>
+  </g>
+</svg>

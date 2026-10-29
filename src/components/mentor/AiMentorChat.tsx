@@ -8,7 +8,8 @@ import { checkForCrisisIndicators } from '../../engine/crisis/escalationRouter';
 import { sendMessageToLLM, ChatMessage, UserContext } from '../../ai/llmClient';
 import { useI18n } from '../../engine/localization/i18n';
 import { useAppStore } from '../../store';
-import { Mic, Square, Sparkles, Send, Bot, User as UserIcon, AlertTriangle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { PrernaEmblem } from '../common/PrernaLogo';
+import { Mic, Square, Send, Bot, User as UserIcon, AlertTriangle, ArrowRight, ShieldCheck } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 
 interface AiMentorChatProps {
@@ -209,8 +210,8 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
       <div className="relative z-10 p-5 bg-white/5 border-b border-white/10 backdrop-blur-md flex justify-between items-center">
         <div className="flex items-center gap-4">
           <div className="relative">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg">
-              <Bot size={20} className="text-white" />
+            <div className="w-11 h-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-lg shadow-purple-500/20 backdrop-blur-md">
+              <PrernaEmblem size={34} animate={true} />
             </div>
             <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full border-2 border-[#020617]"></div>
           </div>
@@ -250,8 +251,8 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
             >
               <div className="flex items-end gap-2 max-w-[85%]">
                 {msg.role === 'assistant' && (
-                  <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 mb-1">
-                    <Sparkles size={14} className="text-violet-400" />
+                  <div className="w-8 h-8 rounded-full bg-violet-500/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0 mb-1 overflow-hidden shadow-sm">
+                    <PrernaEmblem size={22} animate={false} />
                   </div>
                 )}
                 
@@ -285,8 +286,8 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
             animate={{ opacity: 1, y: 0 }}
             className="flex justify-start items-end gap-2"
           >
-            <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 mb-1">
-              <Sparkles size={14} className="text-violet-400" />
+            <div className="w-8 h-8 rounded-full bg-violet-500/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0 mb-1 overflow-hidden shadow-sm">
+              <PrernaEmblem size={22} animate={false} />
             </div>
             <div className="bg-white/5 border border-white/10 p-4 rounded-2xl rounded-bl-sm backdrop-blur-md flex gap-1.5 items-center h-12">
               <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0 }} className="w-2 h-2 rounded-full bg-violet-400" />

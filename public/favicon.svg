@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="prernaFaviconGrad" x1="15%" y1="10%" x2="85%" y2="90%">
+      <stop offset="0%" stop-color="#818CF8"/>
+      <stop offset="35%" stop-color="#A855F7"/>
+      <stop offset="70%" stop-color="#EC4899"/>
+      <stop offset="100%" stop-color="#F43F5E"/>
+    </linearGradient>
+    <linearGradient id="coreSpark" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="40%" stop-color="#FDE047"/>
+      <stop offset="85%" stop-color="#F59E0B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background Squircle for high contrast on light/dark browser tabs -->
+  <rect width="512" height="512" rx="128" fill="#0B0F1E"/>
+  <rect width="504" height="504" x="4" y="4" rx="124" stroke="url(#prernaFaviconGrad)" stroke-width="8" stroke-opacity="0.4"/>
+
+  <!-- Sanctuary Perimeter Circle -->
+  <circle cx="256" cy="256" r="180" stroke="url(#prernaFaviconGrad)" stroke-width="6" stroke-opacity="0.3" stroke-dasharray="12 12"/>
+
+  <!-- Wings -->
+  <path d="M256 380 C210 380 135 340 115 250 C100 180 145 130 195 145 C230 155 245 195 256 230 C242 190 220 170 195 168 C160 165 130 200 138 255 C150 320 215 350 256 355 Z" 
+        fill="url(#prernaFaviconGrad)"/>
+  <path d="M256 380 C302 380 377 340 397 250 C412 180 367 130 317 145 C282 155 267 195 256 230 C270 190 292 170 317 168 C352 165 382 200 374 255 C362 320 297 350 256 355 Z" 
+        fill="url(#prernaFaviconGrad)"/>
+
+  <!-- Spire & Spark -->
+  <path d="M256 95 L263 235 L256 256 L249 235 Z" fill="url(#coreSpark)"/>
+  <path d="M256 165 C268 205 284 235 284 260 C284 275 271 288 256 288 C241 288 228 275 228 260 C228 235 244 205 256 165 Z" 
+        fill="url(#coreSpark)"/>
+  <circle cx="256" cy="256" r="14" fill="#FFFFFF"/>
+  <circle cx="256" cy="256" r="6" fill="#FDE047"/>
+</svg>

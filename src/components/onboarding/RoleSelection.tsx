@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { User, Users } from 'lucide-react';
+import { PrernaLogo, PrernaEmblem } from '../common/PrernaLogo';
 
 interface RoleSelectionProps {
   onSelectTeen: () => void;
@@ -11,6 +12,10 @@ interface RoleSelectionProps {
 export const RoleSelection: React.FC<RoleSelectionProps> = ({ onSelectTeen, onSelectParent, onSelectEducator }) => {
   return (
     <div className="fixed inset-0 flex flex-col md:flex-row bg-[#020617] overflow-hidden">
+      {/* Top Floating Brand Badge */}
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+        <PrernaLogo variant="badge" size="sm" animate={true} />
+      </div>
       {/* Teen Side (Dark gamified) */}
       <motion.div 
         initial={{ x: '-100%' }}
@@ -76,10 +81,10 @@ export const RoleSelection: React.FC<RoleSelectionProps> = ({ onSelectTeen, onSe
         </div>
       </motion.div>
 
-      {/* Center Divider / Logo */}
+      {/* Center Divider / PRERNA Emblem Orbit */}
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none hidden md:block">
-        <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center shadow-2xl border-4 border-slate-100">
-          <span className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-cyan-400 tracking-tighter">PR</span>
+        <div className="w-16 h-16 rounded-full bg-slate-950/90 flex items-center justify-center shadow-2xl border-2 border-white/20 backdrop-blur-md p-1">
+          <PrernaEmblem size={52} animate={true} />
         </div>
       </div>
     </div>

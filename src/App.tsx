@@ -15,6 +15,7 @@ import { SharedDashboardView } from './components/dashboard/SharedDashboardView'
 import { ResourceSurface } from './components/crisis/ResourceSurface';
 import { WelcomeScreen } from './components/welcome/WelcomeScreen';
 import { LoadingScreen } from './components/common/LoadingScreen';
+import { PrernaLogo } from './components/common/PrernaLogo';
 import { ParentDashboard } from './components/parent/ParentDashboard';
 import { SchoolDashboard } from './components/school/SchoolDashboard';
 import { RoleSelection } from './components/onboarding/RoleSelection';
@@ -122,9 +123,12 @@ function App() {
       <div className="min-h-screen bg-slate-50 flex flex-col relative overflow-hidden">
         <header className="sticky top-0 z-50 glass-panel !rounded-none !border-x-0 !border-t-0 shadow-sm transition-all duration-300">
           <div className="max-w-7xl mx-auto flex justify-between items-center p-4">
-            <h1 className="text-2xl font-black tracking-tight text-indigo-700 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
-              PRERNA Parent Hub
-            </h1>
+            <div className="flex items-center gap-3">
+              <PrernaLogo variant="compact" size="sm" />
+              <span className="text-xs uppercase font-extrabold tracking-widest px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">
+                Parent Hub
+              </span>
+            </div>
             <button
               onClick={logout}
               className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors border border-transparent hover:border-red-100"
@@ -144,10 +148,12 @@ function App() {
       <div className="min-h-screen bg-slate-50 flex flex-col relative overflow-hidden">
         <header className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
           <div className="max-w-7xl mx-auto flex justify-between items-center p-4">
-            <h1 className="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-3">
-              <div className="w-8 h-8 bg-slate-900 text-white flex items-center justify-center rounded">PR</div>
-              Enterprise Analytics
-            </h1>
+            <div className="flex items-center gap-3">
+              <PrernaLogo variant="compact" size="sm" />
+              <span className="text-xs uppercase font-extrabold tracking-widest px-2.5 py-1 rounded-full bg-slate-100 text-slate-800">
+                School Analytics
+              </span>
+            </div>
             <button
               onClick={logout}
               className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors"
@@ -166,10 +172,8 @@ function App() {
         <header className="sticky top-0 z-50 glass-panel !rounded-none !border-x-0 !border-t-0 shadow-sm transition-all duration-300">
           <div className="max-w-7xl mx-auto flex justify-between items-center p-4">
             <div className="flex items-center space-x-8">
-              <Link to="/">
-                <h1 className="text-2xl font-black tracking-tight text-indigo-700 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
-                  PRERNA
-                </h1>
+              <Link to="/" className="flex items-center gap-2 group">
+                <PrernaLogo variant="compact" size="md" />
               </Link>
               <nav className="hidden md:flex space-x-6 text-sm font-semibold">
                 <Link to="/beta" className="text-slate-600 hover:text-indigo-600 transition-colors">Beta Consent</Link>

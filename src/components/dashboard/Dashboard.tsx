@@ -24,6 +24,7 @@ import { InsightsCard } from './InsightsCard';
 import { WelcomeTour } from './WelcomeTour';
 import { InsightNarrativeView } from '../synthesis/InsightNarrativeView';
 import { DisclosureGate } from '../consent/DisclosureGate';
+import { PrernaEmblem } from '../common/PrernaLogo';
 import { useNetworkStatus } from '../../hooks/useNetworkStatus';
 import { useAppStore, useUser, useProfile } from '../../store';
 
@@ -69,8 +70,8 @@ export const Dashboard: React.FC = () => {
       <header className="relative z-10 px-6 py-8 md:px-12 md:pt-10">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/25">
-              <Sparkles className="text-white" size={28} />
+            <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-lg shadow-purple-500/20 backdrop-blur-md">
+              <PrernaEmblem size={44} animate={true} />
             </div>
             <div>
               <p className="text-white/60 font-medium text-sm mb-0.5">{greeting}</p>

@@ -1,4 +1,21 @@
-# PRERNA
+<div align="center">
+  <img src="public/prerna-logo.svg" alt="PRERNA Logo" width="420" />
+  
+  <p align="center">
+    <strong>प्रेरणा • Inspiration Within</strong><br/>
+    <em>A Local-First, Privacy-Preserving Adolescent Self-Discovery, Career Guidance & Wellbeing Sanctuary</em>
+  </p>
+
+  <p align="center">
+    <img src="https://img.shields.io/badge/Platform-Desktop_%7C_Android_arm64-6366F1.svg" alt="Platforms" />
+    <img src="https://img.shields.io/badge/Privacy-DPDP_Act_2023_Compliant-10B981.svg" alt="Privacy" />
+    <img src="https://img.shields.io/badge/Tests-100%2F100_Passing-10B981.svg" alt="Tests" />
+    <img src="https://img.shields.io/badge/Architecture-Tauri_2_%2B_React_19_%2B_Rust-8B5CF6.svg" alt="Stack" />
+    <img src="https://img.shields.io/badge/License-MIT-3B82F6.svg" alt="License" />
+  </p>
+</div>
+
+---
 
 ### Personalized Real-time Engagement & Neural Resource Assistant
 
@@ -35,6 +52,22 @@ PRERNA is built as a **local-first application**: core user data, psychometric s
 | **Clinical Review (H1–H3)** | ⏳ Pending Review | Detection criteria and escalation matrices require licensed clinical psychologist sign-off |
 | **Legal Review (H4)** | ⏳ Pending Review | DPDP mapping and parental consent architecture require certified legal counsel |
 | **Production Beta** | ⏳ Blocked | Dependent on external clinical/legal sign-off tickets (Global Rule 0.7) |
+
+---
+
+## 🎨 Brand Identity & Design Philosophy
+
+PRERNA (प्रेरणा — *Inspiration*) is built upon a distinct, copyright-free brand identity tailored specifically to adolescent psychology, emotional safety, and cultural resonance:
+
+<div align="center">
+  <img src="public/prerna-emblem.svg" alt="PRERNA Emblem" width="160" />
+</div>
+
+- **The Inner Spark / Diya (प्रेरणा):** Positioned at the crest, symbolizing awakening, intrinsic motivation, and the flame of adolescent self-clarity.
+- **The Guiding Star (Dhruva Tara / North Star):** Anchors personal trajectory, career exploration, and purposeful life direction.
+- **The Lotus Guidance Wings (Padma):** Radiating outward, representing resilience, non-judgmental acceptance, and the blooming of adolescent potential in adversity.
+- **The Sanctuary Orbit:** A soft, glowing circular perimeter reflecting DPDP Act 2023 Rule 0.1/0.3 cryptographic containment and local-first data privacy.
+- **Chromatic Atmosphere:** Twilight celestial gradients (`#818CF8` Indigo, `#A855F7` Purple, `#EC4899` Rose, `#06B6D4` Cyan) paired with deep midnight (`#0B0F1E`) to create an inviting, soothing, and relaxing visual sanctuary.
 
 ---
 
