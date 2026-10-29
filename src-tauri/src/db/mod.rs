@@ -38,8 +38,9 @@ impl Database {
         conn.pragma_update(None, "key", _key.as_str())
             .context("Failed to set SQLCipher encryption key")?;
 
-        // Verify encryption is working
-        conn.execute("SELECT count(*) FROM sqlite_master;", [])
+        // Verify database is working
+        let _: i64 = conn
+            .query_row("SELECT count(*) FROM sqlite_master;", [], |row| row.get(0))
             .context("Database encryption verification failed - wrong key or corrupted")?;
 
         info!("Database initialized successfully at {:?}", db_path);
