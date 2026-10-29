@@ -52,20 +52,23 @@ impl Database {
 
     /// Get encryption key from OS keyring or create new one
     fn get_or_create_key() -> AnyhowResult<Zeroizing<String>> {
-        let service = "prerna";
-        let username = "db_encryption_key";
+        #[cfg(not(target_os = "android"))]
+        {
+            let service = "prerna";
+            let username = "db_encryption_key";
 
-        if let Ok(entry) = keyring::Entry::new(service, username) {
-            match entry.get_password() {
-                Ok(key) => {
-                    info!("Retrieved existing encryption key from keyring");
-                    return Ok(Zeroizing::new(key));
-                }
-                Err(_) => {
-                    if let Ok(new_key) = Self::generate_secure_key() {
-                        if entry.set_password(new_key.as_str()).is_ok() {
-                            info!("Generated and stored new encryption key");
-                            return Ok(new_key);
+            if let Ok(entry) = keyring::Entry::new(service, username) {
+                match entry.get_password() {
+                    Ok(key) => {
+                        info!("Retrieved existing encryption key from keyring");
+                        return Ok(Zeroizing::new(key));
+                    }
+                    Err(_) => {
+                        if let Ok(new_key) = Self::generate_secure_key() {
+                            if entry.set_password(new_key.as_str()).is_ok() {
+                                info!("Generated and stored new encryption key");
+                                return Ok(new_key);
+                            }
                         }
                     }
                 }
@@ -77,6 +80,7 @@ impl Database {
         Ok(fallback_key)
     }
 
+    #[allow(dead_code)]
     fn generate_secure_key() -> AnyhowResult<Zeroizing<String>> {
         use rand::RngCore;
         let mut key_bytes = [0u8; 32];
@@ -954,10 +958,20 @@ impl Database {
 
 fn get_db_path(app_handle: &tauri::AppHandle) -> AnyhowResult<PathBuf> {
     use tauri::Manager;
-    let app_dir = app_handle
-        .path()
-        .app_data_dir()
-        .context("Failed to get app data directory")?;
+    let app_dir = match app_handle.path().app_data_dir() {
+        Ok(dir) => dir,
+        Err(e) => {
+            log::warn!("Failed to get app_data_dir: {}. Attempting fallback...", e);
+            #[cfg(target_os = "android")]
+            {
+                PathBuf::from("/data/data/com.lenovo.prerna/files")
+            }
+            #[cfg(not(target_os = "android"))]
+            {
+                return Err(e.into());
+            }
+        }
+    };
     Ok(app_dir.join("prerna_encrypted.db"))
 }
 

@@ -47,7 +47,7 @@ rusqlite = { version = "0.31", features = ["bundled"] }
 
 [features]
 default = ["custom-protocol"]
-custom-protocol = []
+custom-protocol = ["tauri/custom-protocol"]
 
 [dev-dependencies]
 criterion = "0.5"
