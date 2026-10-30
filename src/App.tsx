@@ -24,6 +24,7 @@ import { SelfDiscoveryJourney } from './components/assessment/SelfDiscoveryJourn
 import { deriveSixteenType } from './engine/assessment/sixteenPersonalities';
 import { SelfEvolutionSanctuary } from './components/growth/SelfEvolutionSanctuary';
 import { AtmaJnanaOriginModal } from './components/common/AtmaJnanaOriginModal';
+import { AboutDeveloperModal } from './components/common/AboutDeveloperModal';
 import { SomaticBreathingCompanion } from './components/growth/SomaticBreathingCompanion';
 import { LifeBlueprintExport } from './components/growth/LifeBlueprintExport';
 import { ClinicianLogin } from './components/clinical/ClinicianLogin';
@@ -40,6 +41,7 @@ function App() {
   });
   const [clinicianAuthed, setClinicianAuthed] = useState(false);
   const [showAtmaModal, setShowAtmaModal] = useState(false);
+  const [showDevModal, setShowDevModal] = useState(false);
 
   useEffect(() => {
     // Check for existing session
@@ -231,6 +233,14 @@ function App() {
             </div>
           <div className="flex items-center gap-3">
             <button
+              onClick={() => setShowDevModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors shadow-sm cursor-pointer"
+              title="Meet the Developer: Harsh Kumar Gupta"
+            >
+              <span>👨‍💻</span>
+              <span className="hidden xl:inline">Developer</span>
+            </button>
+            <button
               onClick={() => setShowAtmaModal(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors shadow-sm cursor-pointer"
               title="आत्मज्ञान: Origin, Foundational Dohas & Creator's Vision"
@@ -302,6 +312,8 @@ function App() {
           <Route path="/philosophy" element={<SelfEvolutionSanctuary initialTab="origin" />} />
           <Route path="/atma-jnana" element={<SelfEvolutionSanctuary initialTab="origin" />} />
           <Route path="/breathe" element={<div className="max-w-3xl mx-auto py-8 px-4"><SomaticBreathingCompanion isModal={false} /></div>} />
+          <Route path="/developer" element={<div className="max-w-4xl mx-auto py-8 px-4"><AboutDeveloperModal isOpen={true} onClose={() => window.history.back()} /></div>} />
+          <Route path="/about-developer" element={<div className="max-w-4xl mx-auto py-8 px-4"><AboutDeveloperModal isOpen={true} onClose={() => window.history.back()} /></div>} />
           <Route path="/blueprint" element={
             <div className="max-w-4xl mx-auto py-8 px-4">
               <LifeBlueprintExport 
@@ -332,6 +344,12 @@ function App() {
       <AtmaJnanaOriginModal
         isOpen={showAtmaModal}
         onClose={() => setShowAtmaModal(false)}
+      />
+
+      {/* Global About Developer Profile Modal */}
+      <AboutDeveloperModal
+        isOpen={showDevModal}
+        onClose={() => setShowDevModal(false)}
       />
     </div>
   );

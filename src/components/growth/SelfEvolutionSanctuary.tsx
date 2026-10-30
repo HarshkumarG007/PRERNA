@@ -43,6 +43,7 @@ import {
 import { deriveSixteenType } from '../../engine/assessment/sixteenPersonalities';
 import { MaslowNeedsCompass } from './MaslowNeedsCompass';
 import { AtmaJnanaOriginModal } from '../common/AtmaJnanaOriginModal';
+import { AboutDeveloperModal } from '../common/AboutDeveloperModal';
 import { SomaticBreathingCompanion } from './SomaticBreathingCompanion';
 import { LifeBlueprintExport } from './LifeBlueprintExport';
 
@@ -95,6 +96,7 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
   const [showAtmaModal, setShowAtmaModal] = useState(false);
   const [showBreathingModal, setShowBreathingModal] = useState(false);
   const [showBlueprintModal, setShowBlueprintModal] = useState(false);
+  const [showDeveloperModal, setShowDeveloperModal] = useState(false);
   
   // Strategy filter & mode
   const [managementMode, setManagementMode] = useState<'personalized' | 'all'>('personalized');
@@ -1878,6 +1880,67 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
                 </div>
               </div>
             </div>
+
+            {/* Meet the Architect & Lineage Showcase */}
+            <div className="bg-gradient-to-br from-indigo-950 via-slate-900 to-[#0c1124] rounded-3xl p-8 border border-indigo-500/30 text-white shadow-xl space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300 shadow-md">
+                    <span className="text-2xl font-black">HG</span>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                        Architect & Developer
+                      </span>
+                      <span className="text-xs text-slate-400">Varanasi, India</span>
+                    </div>
+                    <h3 className="text-2xl font-black text-white mt-1">
+                      Harsh Kumar Gupta
+                    </h3>
+                    <p className="text-xs text-indigo-300 font-medium">
+                      AI & Robotics Specialist • Yoga & Science of Living Scholar • Clinical Pharma Bridge
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowDeveloperModal(true)}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white font-bold text-xs shadow-lg transition-all flex items-center gap-2 cursor-pointer self-start sm:self-auto"
+                >
+                  <Sparkles size={14} />
+                  <span>View Full Developer Biography & 11 Google Badges →</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs text-slate-300">
+                <div className="p-4 rounded-xl bg-white/[0.03] border border-white/5 space-y-2">
+                  <span className="font-bold text-amber-300 uppercase tracking-wider block text-[11px]">
+                    Spiritual Lineage & Gratitude
+                  </span>
+                  <p className="leading-relaxed">
+                    Disciple of <strong>Shri Prem Rawat</strong> (recipient of the living Knowledge of breath and peace). First inspired by his <strong>Father</strong> (under whose name <em>"Dinesh Kumar Presents"</em> he dedicated 6+ years of visual storytelling).
+                  </p>
+                </div>
+                <div className="p-4 rounded-xl bg-white/[0.03] border border-white/5 space-y-2">
+                  <span className="font-bold text-indigo-300 uppercase tracking-wider block text-[11px]">
+                    Multi-Disciplinary Convergence
+                  </span>
+                  <p className="leading-relaxed">
+                    <strong>MCA (Grade A)</strong> + <strong>MA in Yoga & Science of Living</strong> + <strong>D.Pharm</strong> + <strong>B.Sc. (Maths/Physics)</strong>. Unites machine learning with somatic nervous-system regulation and clinical pharmaceutical boundaries.
+                  </p>
+                </div>
+                <div className="p-4 rounded-xl bg-white/[0.03] border border-white/5 space-y-2">
+                  <span className="font-bold text-emerald-300 uppercase tracking-wider block text-[11px]">
+                    Mindset & Divine Offering
+                  </span>
+                  <p className="leading-relaxed">
+                    Grounded in a <em>"Never Give Up"</em> ethos and relentless daily learning. PRERNA is offered as a humble token of gratitude to God for the abilities to make this world a safer, more conscious place for every seeker.
+                  </p>
+                </div>
+              </div>
+            </div>
+
           </div>
         )}
 
@@ -1887,6 +1950,12 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
       <AtmaJnanaOriginModal
         isOpen={showAtmaModal}
         onClose={() => setShowAtmaModal(false)}
+      />
+
+      {/* Dedicated About Developer Modal */}
+      <AboutDeveloperModal
+        isOpen={showDeveloperModal}
+        onClose={() => setShowDeveloperModal(false)}
       />
 
       {/* Somatic Breathing Modal */}

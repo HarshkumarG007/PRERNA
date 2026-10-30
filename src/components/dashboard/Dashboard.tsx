@@ -237,13 +237,22 @@ export const Dashboard: React.FC = () => {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => navigate('/origin')}
-                className="flex-shrink-0 px-4 py-2 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 text-amber-200 text-xs font-bold transition-all border border-amber-400/30 flex items-center gap-1.5 cursor-pointer shadow-sm"
-              >
-                <span>Read Genesis</span>
-                <ChevronRight size={14} className="text-amber-300" />
-              </button>
+              <div className="flex items-center gap-2 self-end md:self-auto flex-shrink-0">
+                <button
+                  onClick={() => navigate('/developer')}
+                  className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 text-xs font-bold transition-all border border-white/20 flex items-center gap-1.5 cursor-pointer shadow-sm"
+                  title="About Harsh Kumar Gupta"
+                >
+                  <span>👨‍💻 Developer</span>
+                </button>
+                <button
+                  onClick={() => navigate('/origin')}
+                  className="px-4 py-2 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 text-amber-200 text-xs font-bold transition-all border border-amber-400/30 flex items-center gap-1.5 cursor-pointer shadow-sm"
+                >
+                  <span>Read Genesis</span>
+                  <ChevronRight size={14} className="text-amber-300" />
+                </button>
+              </div>
             </div>
           </section>
 

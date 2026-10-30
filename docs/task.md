@@ -317,6 +317,14 @@
   - [x] Navigation route `/blueprint` and quick-launcher in Sanctuary, Dashboard, and Profile
   - [x] **Test:** verified in `src/tests/growth/somaticAndBlueprint.test.tsx` (7 tests passed; total 126/126 across 28 files)
 
+### Developer Journey & Spiritual Lineage
+- [x] **P7-10** Architect & Developer Profile Integration (Harsh Kumar Gupta)
+  - [x] Dedicated interactive modal and routes (`/developer`, `/about-developer`) in `src/components/common/AboutDeveloperModal.tsx`
+  - [x] Documented the 5-domain polymathic convergence: MCA (Grade A), MA in Yoga & Science of Living, D.Pharm (clinical & regulatory), B.Sc. Maths & Physics, 6+ years visual creator (*Dinesh Kumar Presents*)
+  - [x] Embedded verified credentials: 11 Google Professional Specializations, IndiaAI Mission (LLM for Young Developers), IBM Watsonx (NOVELia), HackerRank SQL, and public Credly wallet
+  - [x] Honored spiritual lineage: Disciple of **Shri Prem Rawat** (living Knowledge of breath and inner peace) and foundational reverence to his **Father**
+  - [x] Cross-linked into `AtmaJnanaOriginModal.tsx`, `SelfEvolutionSanctuary.tsx` Tab 5, `Dashboard.tsx`, header navigation, and `README.md`
+
 ---
 
 ## Ongoing (Every Release)

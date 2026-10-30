@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, Heart, Compass, BookOpen, Quote, Shield, Sun } from 'lucide-react';
+import { X, Sparkles, Heart, Compass, BookOpen, Quote, Shield, Sun, Award, User } from 'lucide-react';
 import { PrernaEmblem } from './PrernaLogo';
+import { AboutDeveloperModal } from './AboutDeveloperModal';
 
 interface AtmaJnanaOriginModalProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface AtmaJnanaOriginModalProps {
 
 export const AtmaJnanaOriginModal: React.FC<AtmaJnanaOriginModalProps> = ({ isOpen, onClose }) => {
   const [activeLang, setActiveLang] = useState<'both' | 'hi' | 'en'>('both');
+  const [showDevModal, setShowDevModal] = useState(false);
 
   if (!isOpen) return null;
 
@@ -252,13 +254,58 @@ export const AtmaJnanaOriginModal: React.FC<AtmaJnanaOriginModalProps> = ({ isOp
                 </p>
               </div>
             </div>
+
+            {/* Meet the Architect & Lineage Showcase Card */}
+            <div className="p-6 md:p-8 rounded-2xl bg-gradient-to-r from-amber-500/10 via-slate-900/80 to-indigo-950/60 border border-amber-400/30 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-400/20 border border-amber-400/30 flex items-center justify-center text-amber-300">
+                    <User size={24} />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                      Founding Architect
+                    </span>
+                    <h4 className="text-xl font-black text-white mt-0.5">
+                      Harsh Kumar Gupta
+                    </h4>
+                    <p className="text-xs text-indigo-300">
+                      Varanasi • AI & Robotics Specialist • Yoga & Science of Living Scholar
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowDevModal(true)}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+                >
+                  <Award size={14} />
+                  <span>Full Credentials & Story →</span>
+                </button>
+              </div>
+
+              <div className="space-y-2 text-xs text-slate-300 leading-relaxed pt-2 border-t border-white/5">
+                <p>
+                  <strong className="text-amber-300">Spiritual Lineage & Gratitude:</strong> Harsh is a disciple of <strong>Shri Prem Rawat</strong>, from whom he received the direct knowledge of inner peace and the breath of life. He first honors his <strong>Father</strong> (whose blessing inspired <em>"Dinesh Kumar Presents"</em> across 6+ years of visual storytelling).
+                </p>
+                <p>
+                  <strong className="text-indigo-300">The Polymathic Intersection:</strong> Holding an <strong>MCA (Grade A)</strong>, an <strong>MA in Yoga & Science of Living</strong>, a <strong>Diploma in Pharmacy (D.Pharm)</strong>, a <strong>B.Sc. in Maths & Physics</strong>, and <strong>11 Google Professional Certifications</strong>, PRERNA represents his lifelong mission: bridging artificial intelligence, yogic equilibrium, and clinical care as a humble offering to God to make the world a better place.
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Footer */}
           <div className="p-6 border-t border-white/10 bg-white/[0.02] flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2 text-xs text-slate-400">
+            <div className="flex items-center gap-3">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Dedicated to the eternal seekers • Founded by Harshkumar G.</span>
+              <span className="text-xs text-slate-400">Founded with gratefulness by Harsh Kumar Gupta</span>
+              <button
+                onClick={() => setShowDevModal(true)}
+                className="text-xs font-bold text-amber-400 hover:text-amber-300 underline underline-offset-2 ml-2 cursor-pointer"
+              >
+                About Developer
+              </button>
             </div>
             <button
               onClick={onClose}
@@ -268,6 +315,12 @@ export const AtmaJnanaOriginModal: React.FC<AtmaJnanaOriginModalProps> = ({ isOp
             </button>
           </div>
         </motion.div>
+
+        {/* Child Developer Profile Modal */}
+        <AboutDeveloperModal
+          isOpen={showDevModal}
+          onClose={() => setShowDevModal(false)}
+        />
       </div>
     </AnimatePresence>
   );

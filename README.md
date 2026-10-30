@@ -92,6 +92,114 @@ Every capability in PRERNA is deliberately architected to turn the adolescent mi
 
 ---
 
+## 👨‍💻 Meet the Architect & Developer: Harsh Kumar Gupta
+### *The Polymathic Convergence Behind PRERNA • वाराणसी, भारत (Varanasi, India)*
+
+<p align="center">
+  <a href="https://github.com/HarshkumarG007/PRERNA">
+    <img src="https://img.shields.io/badge/GitHub-PRERNA_Repository-181717?logo=github&logoColor=white" alt="GitHub" />
+  </a>
+  <a href="https://www.linkedin.com/in/harshkumarg/">
+    <img src="https://img.shields.io/badge/LinkedIn-Harsh_Kumar_Gupta-0A66C2?logo=linkedin&logoColor=white" alt="LinkedIn" />
+  </a>
+  <a href="https://www.credly.com/users/harshkumarg">
+    <img src="https://img.shields.io/badge/Credly-11_Verified_Badges-FF6B00?logo=credly&logoColor=white" alt="Credly" />
+  </a>
+  <a href="https://www.youtube.com/@DineshKumarPresents">
+    <img src="https://img.shields.io/badge/YouTube-Dinesh_Kumar_Presents-FF0000?logo=youtube&logoColor=white" alt="YouTube" />
+  </a>
+</p>
+
+> *"PRERNA is the culmination of a relentless, never-give-up mindset and an uncompromising dedication to learn something new, profound, and meaningful each and every single day forever. It is offered with deep humility as a token of gratefulness to God for bestowing the abilities, cross-domain knowledge, and perseverance to help make this world a safer, more conscious, and more peaceful place for young minds."*  
+> — **Harsh Kumar Gupta (हर्ष कुमार गुप्ता)**
+
+---
+
+### 🪷 Spiritual Lineage & Primary Inspiration (परम कृतज्ञता)
+
+Behind the code, algorithms, and psychometric instruments of PRERNA lies an enduring foundation of spiritual mentorship and familial reverence:
+1. **Disciple of Shri Prem Rawat:** Harsh received the timeless gift of **Knowledge (*Atma-Jnana*)** from **Shri Prem Rawat**, learning to experience the miracle of the living breath, cultivate unconditional inner tranquility, and anchor human life in the indwelling presence of the indestructible Divine Swan (*अलख पुरुष अविनाशी, सोई हंस तेरे घट माहि*).
+2. **Reverence for Father (Dinesh Kumar):** Before all worldly institutions, Harsh's primary earthly inspiration is his **Father**. In his honor and with his blessings, Harsh founded and ran the YouTube channel **"Dinesh Kumar Presents"** for over six continuous years (2016–2023), learning visual storytelling, empathy, perseverance, and the humble joy of dedicating creative effort to family and society.
+3. **The Core Ideology:** **"Self-Realisation is God's Realisation" (आत्म-साक्षात्कार ही ईश्वर-साक्षात्कार है)**. Every tool in PRERNA is engineered not to categorize or label, but to turn the adolescent mirror inward.
+
+---
+
+### 🔬 Why PRERNA is Unique: The Five-Domain Convergence
+
+PRERNA could not have been designed by a software engineer alone, nor by a traditional counselor in isolation. It required an uncommon convergence across five distinct disciplines:
+
+```text
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                       HARSH KUMAR GUPTA — POLYMATHIC MATRIX                     │
+├───────────────────┬───────────────────┬────────────────────┬────────────────────┤
+│   AI & COMPUTER   │   YOGA & SCIENCE  │   CLINICAL PHARMA  │   MATHS & PHYSICS  │
+│    APPLICATIONS   │     OF LIVING     │   & HEALTH ETHICS  │     FOUNDATIONS    │
+├───────────────────┼───────────────────┼────────────────────┼────────────────────┤
+│ • MCA (Grade A)   │ • MA in Yoga &    │ • D.Pharm (BTEUP)  │ • B.Sc. (Maths,    │
+│ • AI & Robotics   │   Science of      │ • Clinical Domain  │   Physics, Chem)   │
+│   Specialist      │   Living (JVBI)   │   Translation      │ • Gaussian Normal  │
+│   (Arque Tech)    │ • Dip. in Yoga &  │ • Healthcare Data  │   CDF Norms        │
+│ • IndiaAI Mission │   Naturopathy     │   Structures       │ • Web Audio 432 Hz │
+│   LLM Certified   │ • Somatic Vagal   │ • Rule 0.3 Crisis  │   Harmonic Wave    │
+│ • IBM Watsonx     │   Pacing & Vagus  │   Gate & Clinical  │   Oscillator Math  │
+│   NOVELia Bot     │   Regulation      │   Escalation Flow  │ • EMA Smoothing    │
+└───────────────────┴───────────────────┴────────────────────┴────────────────────┘
+                                        │
+                                        ▼
+                 [VISUAL STORYTELLING, EMPATHY & USER EXPERIENCE]
+          • 6+ Years Visual Creator (YouTube "Dinesh Kumar Presents")
+          • Google UX Design Professional • Youth India Foundation Head Video Editor
+          • Trauma-Informed, Destigmatizing, Empathetic Adolescent Interface
+```
+
+1. **AI, Machine Learning & Applied Computing (MCA, Grade A — Kashi Institute of Technology):**
+   - Professional **AI & Robotics Specialist** at Arque Technologies (Kathmandu, Nepal) and former **AI Trainer** (Fatehpur, UP).
+   - Deep hands-on experience in Large Language Model (LLM) architectures, local offline inference, RAG pipelines, prompt engineering, and machine learning data pipelines.
+   - Certified via the **India AI Mission** (*LLM for Young Developers*) and **IndiaAI / FutureSkills Prime** (*Yuva AI for All*).
+   - Developed **NOVELia**, an emotion-aware chatbot on **IBM Watsonx Assistant** during the IBM PBEL AI Virtual Internship.
+2. **Yogic Psychology & Science of Living (MA — Jain Vishva Bharati Institute):**
+   - Postgraduate mastery in **Yoga and the Science of Living (जीवन विज्ञान)**, behavioral balance, mental wellbeing, and applied holistic health.
+   - Certified **Yoga & Naturopathy Instructor / Therapist** (Mahayogi Gorakhnath Maharishi Patanjali Yog Sansthan).
+   - Former **Yoga Instructor & Fitness/Emotional Wellness Counselor** at FitnessMana.
+   - Architect of PRERNA's **432 Hz Somatic Breathing Companion** (4-7-8 Somatic Vagal Reset, Box Breathing, 3-Second Impulse Break, and Atma-Jnana Contemplative Breath).
+3. **Clinical Pharmacy & Regulatory Ethics (D.Pharm — Board of Technical Education, UP):**
+   - Foundational pharmaceutical science, clinical terminology, medical workflows, and drug safety compliance.
+   - Bridges the gap between clinical psychology and engineering teams.
+   - Embedded strict medical boundaries into PRERNA: preventing AI from diagnosing clinical disorders, enforcing the mandatory **Rule 0.3 gate** (no automated guardian alerts without human review), and ensuring absolute DPDP Act 2023 Section 9 local-first sovereignty.
+4. **Analytical Rigor & Physical Sciences (B.Sc. — Jagatpur P.G. College, Varanasi):**
+   - Core foundations in Mathematics, Physics, and Chemistry.
+   - Applied empirical statistical distributions (OpenPsychometrics 1M+ IPIP benchmarks), polynomial normal CDF percentile projections, and mathematical sound-wave synthesis formulas.
+5. **Human Empathy, UX & Visual Storytelling:**
+   - 6+ years creating digital media on YouTube (*Dinesh Kumar Presents*) and serving as Head Video Editor at **Youth India Foundation**.
+   - Holder of the **Google UX Design Professional Certificate** — creating welcoming, warm, and non-stigmatizing experiences that honor adolescent emotional vulnerability.
+
+---
+
+### 🏆 Verified Professional Credentials & Google Specializations
+
+Harsh Kumar Gupta has achieved **11 Google Professional Specializations** on Coursera and is recognized across the industry with **11 verified Credly badges**:
+
+| Category | Credential Name | Issuing Organization | Credential ID / Verification |
+| :--- | :--- | :--- | :--- |
+| **Data & AI** | Google Advanced Data Analytics Specialization | Google | [`5QSTRLXIOFH9`](https://www.coursera.org/account/accomplishments/specialization/5QSTRLXIOFH9) |
+| **Data & AI** | Google Data Analytics Specialization | Google | [`TG6QWR68V7UX`](https://www.coursera.org/account/accomplishments/specialization/TG6QWR68V7UX) |
+| **Data & AI** | Google Business Intelligence Specialization | Google | [`5S4CT26Z8LRP`](https://www.coursera.org/account/accomplishments/specialization/5S4CT26Z8LRP) |
+| **Security** | Google Cybersecurity Professional Specialization | Google | [`SN3N0XYDO00K`](https://www.coursera.org/account/accomplishments/specialization/SN3N0XYDO00K) |
+| **User Experience** | Google UX Design Professional Specialization | Google | [`6SU2TSZZ6QNH`](https://www.coursera.org/account/accomplishments/specialization/6SU2TSZZ6QNH) |
+| **Software & Ops** | Google IT Automation with Python Specialization | Google | [`FF8MNOPUAS8F`](https://www.coursera.org/account/accomplishments/specialization/FF8MNOPUAS8F) |
+| **Management** | Google Project Management Specialization | Google | [`LXNE3KDGPZVE`](https://www.coursera.org/account/accomplishments/specialization/LXNE3KDGPZVE) |
+| **Digital Growth** | Google Digital Marketing & E-Commerce Specialization | Google | [`5INWB48N6QP8`](https://www.coursera.org/account/accomplishments/specialization/5INWB48N6QP8) |
+| **Infrastructure** | Google IT Support Professional Specialization | Google | [`SI11IKP5G4XI`](https://www.coursera.org/account/accomplishments/specialization/SI11IKP5G4XI) |
+| **Generative AI** | Google AI Essentials & Prompting Essentials | Google | [`KO2DOGM9SUPT`](https://www.coursera.org/account/accomplishments/records/KO2DOGM9SUPT) |
+| **National AI** | LLM for Young Developers: Foundational Course | India AI Mission / FutureSkills Prime | [`231711-28547400-32914`](https://www.futureskillsprime.in/) |
+| **National AI** | Yuva AI for All | IndiaAI / FutureSkills Prime | [`231713-28547400-32914`](https://www.futureskillsprime.in/) |
+| **AI Internship** | IBM PBEL AI Virtual Internship (NOVELia Emotion Bot) | IBM SkillsBuild | [`98f8234ec1ee45d59750a9b563fb4994`](https://courses.ibmmooc.skillsnetwork.site/) |
+| **Faculty & Badges** | IBM SkillsBuild Faculty & 8 Badges (NLP, GenAI, ML) | IBM SkillsBuild | [Credly IBM Wallet](https://www.credly.com/users/harsh-kumar-gupta.03963a54/badges/credly) |
+| **Database** | HackerRank SQL (Basic) Skill Certificate | HackerRank | [`FB125F190852`](https://www.hackerrank.com/certificates/fb125f190852) |
+| **Public Wallet** | 11 Verified Digital Credentials | Credly | [credly.com/users/harshkumarg](https://www.credly.com/users/harshkumarg) |
+
+---
+
 ## 🎨 Brand Identity & Design Philosophy
 
 PRERNA (प्रेरणा — *Inspiration*) is built upon a distinct, copyright-free brand identity tailored specifically to adolescent psychology, emotional safety, and cultural resonance:
