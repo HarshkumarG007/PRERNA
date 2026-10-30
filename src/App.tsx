@@ -205,71 +205,109 @@ function App() {
     );
   }
 
+  // Helper for two-line stacked navigation labels (halves horizontal footprint)
+  const renderStackedNav = (fullText: string) => {
+    const parts = fullText.split(/[\s-]+/);
+    if (parts.length >= 2) {
+      return (
+        <span className="flex flex-col items-center justify-center leading-none text-center">
+          <span className="text-[11px] font-bold tracking-tight text-slate-700 group-hover:text-indigo-600">{parts[0]}</span>
+          <span className="text-[10px] font-semibold text-slate-500 group-hover:text-indigo-600 tracking-tight mt-0.5">{parts.slice(1).join(' ')}</span>
+        </span>
+      );
+    }
+    return <span className="text-xs font-bold text-slate-700 group-hover:text-indigo-600">{fullText}</span>;
+  };
+
   return (
     <div className="min-h-screen flex flex-col font-sans bg-slate-50">
         <header className="sticky top-0 z-50 glass-panel !rounded-none !border-x-0 !border-t-0 shadow-sm transition-all duration-300">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 px-3 py-2 md:px-6">
-            <div className="flex items-center gap-3 xl:gap-6 min-w-0">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 px-3 py-1.5 md:px-5">
+            {/* Left: Brand + Two-Line Stacked Nav */}
+            <div className="flex items-center gap-2.5 lg:gap-3.5 min-w-0">
               <Link to="/" className="flex items-center gap-2 group flex-shrink-0" title="PRERNA Sanctuary Home">
                 <PrernaLogo variant="compact" size="sm" />
               </Link>
-              <nav className="hidden lg:flex items-center gap-3 xl:gap-4 text-xs xl:text-sm font-semibold min-w-0">
-                <Link to="/quests" className="text-slate-600 hover:text-indigo-600 transition-colors whitespace-nowrap">{t('nav.life_quests', 'Life Quests')}</Link>
-                <Link to="/arena" className="text-slate-600 hover:text-indigo-600 transition-colors whitespace-nowrap">{t('nav.skill_arena', 'Skill Arena')}</Link>
-                <Link to="/mood" className="text-slate-600 hover:text-indigo-600 transition-colors whitespace-nowrap">{t('nav.mood_mirror', 'Mood Mirror')}</Link>
-                <Link to="/social" className="text-slate-600 hover:text-indigo-600 transition-colors whitespace-nowrap">{t('nav.social_compass', 'Social Compass')}</Link>
-                <Link to="/mentor" className="text-slate-600 hover:text-indigo-600 transition-colors whitespace-nowrap">{t('nav.ai_mentor', 'AI Mentor')}</Link>
-                <Link to="/evolution" className="text-slate-600 hover:text-indigo-600 transition-colors whitespace-nowrap">Self-Evolution</Link>
-                <Link to="/profile" className="text-slate-600 hover:text-indigo-600 transition-colors whitespace-nowrap">{t('nav.profile', 'Teen Dash')}</Link>
+              
+              <nav className="hidden lg:flex items-center gap-1 md:gap-1.5 min-w-0">
+                <Link to="/quests" className="px-2 py-1 rounded-xl hover:bg-slate-100/90 transition-colors group flex items-center justify-center flex-shrink-0" title="Life Quests">
+                  {renderStackedNav(t('nav.life_quests', 'Life Quests'))}
+                </Link>
+                <Link to="/arena" className="px-2 py-1 rounded-xl hover:bg-slate-100/90 transition-colors group flex items-center justify-center flex-shrink-0" title="Skill Arena">
+                  {renderStackedNav(t('nav.skill_arena', 'Skill Arena'))}
+                </Link>
+                <Link to="/mood" className="px-2 py-1 rounded-xl hover:bg-slate-100/90 transition-colors group flex items-center justify-center flex-shrink-0" title="Mood Mirror">
+                  {renderStackedNav(t('nav.mood_mirror', 'Mood Mirror'))}
+                </Link>
+                <Link to="/social" className="px-2 py-1 rounded-xl hover:bg-slate-100/90 transition-colors group flex items-center justify-center flex-shrink-0" title="Social Compass">
+                  {renderStackedNav(t('nav.social_compass', 'Social Compass'))}
+                </Link>
+                <Link to="/mentor" className="px-2 py-1 rounded-xl hover:bg-slate-100/90 transition-colors group flex items-center justify-center flex-shrink-0" title="AI Mentor">
+                  {renderStackedNav(t('nav.ai_mentor', 'AI Mentor'))}
+                </Link>
+                <Link to="/evolution" className="px-2 py-1 rounded-xl hover:bg-slate-100/90 transition-colors group flex items-center justify-center flex-shrink-0" title="Self-Evolution">
+                  <span className="flex flex-col items-center justify-center leading-none text-center">
+                    <span className="text-[11px] font-bold tracking-tight text-slate-700 group-hover:text-indigo-600">Self</span>
+                    <span className="text-[10px] font-semibold text-slate-500 group-hover:text-indigo-600 tracking-tight mt-0.5">Evolution</span>
+                  </span>
+                </Link>
+                <Link to="/profile" className="px-2 py-1 rounded-xl hover:bg-slate-100/90 transition-colors group flex items-center justify-center flex-shrink-0" title="Teen Dash">
+                  {renderStackedNav(t('nav.profile', 'Teen Dash'))}
+                </Link>
                 
-                {/* Fast Access Somatic Coherence Pacer */}
+                {/* Fast Access Somatic Coherence Pacer (Two-Line Stacked) */}
                 <Link 
                   to="/breathe" 
-                  className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors font-bold flex items-center gap-1 border border-emerald-200 text-xs shadow-2xs whitespace-nowrap flex-shrink-0"
+                  className="px-2 py-1 rounded-xl bg-emerald-50/80 hover:bg-emerald-100 text-emerald-800 transition-colors border border-emerald-200/80 shadow-2xs group flex flex-col items-center justify-center flex-shrink-0"
                   title="432 Hz Somatic Coherence Pacer"
                 >
-                  <span>🫁</span>
-                  <span>Breathe</span>
+                  <span className="text-[10px] font-bold leading-none flex items-center gap-0.5">
+                    <span>🫁</span>
+                    <span>432Hz</span>
+                  </span>
+                  <span className="text-[9px] font-bold text-emerald-700 leading-none mt-0.5">Breathe</span>
                 </Link>
               </nav>
             </div>
             
-            {/* Right-aligned action cluster: Genesis & Developer grouped together with guaranteed gap */}
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+            {/* Right: Actions, Language, Persona & Auth (Two-Line Stacked Compact Items) */}
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               {/* Atma-Jnana Vision & Creed */}
               <button
                 onClick={() => setShowAtmaModal(true)}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors shadow-2xs cursor-pointer whitespace-nowrap"
+                className="flex flex-col items-center justify-center px-2 py-1 rounded-xl text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors shadow-2xs cursor-pointer group"
                 title="आत्मज्ञान: Origin, Kabir's Creed & Vision"
               >
-                <span>🪷</span>
-                <span className="hidden xl:inline">आत्मज्ञान</span>
+                <span className="text-[11px] leading-none">🪷</span>
+                <span className="text-[9px] font-bold leading-tight text-amber-900 mt-0.5">आत्मज्ञान</span>
               </button>
 
               {/* Developer Profile */}
               <button
                 onClick={() => setShowDevModal(true)}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors shadow-2xs cursor-pointer whitespace-nowrap"
+                className="flex flex-col items-center justify-center px-2 py-1 rounded-xl text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors shadow-2xs cursor-pointer group"
                 title="Meet the Developer: Harsh Kumar Gupta"
               >
-                <span>👨‍💻</span>
-                <span className="hidden xl:inline">Developer</span>
+                <span className="text-[11px] leading-none">👨‍💻</span>
+                <span className="text-[9px] font-bold leading-tight text-indigo-900 mt-0.5">Developer</span>
               </button>
               
+              {/* Confidential Helplines */}
               <Link
                 to="/support"
-                className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors shadow-2xs whitespace-nowrap"
+                className="flex flex-col items-center justify-center px-2 py-1 rounded-xl text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors shadow-2xs group"
                 title="Always-on confidential helplines and calming tools"
               >
-                <HeartHandshake size={13} className="text-rose-600" />
-                <span className="hidden md:inline">{t('nav.support', 'Helplines')}</span>
+                <HeartHandshake size={12} className="text-rose-600" />
+                <span className="text-[9px] font-bold leading-tight text-rose-800 mt-0.5">{t('nav.support', 'Helplines')}</span>
               </Link>
               
+              {/* Language Selector */}
               <div className="relative">
                 <select
                   value={language}
                   onChange={(e) => setLanguage(e.target.value as Language)}
-                  className="appearance-none pl-2.5 pr-6 py-1 bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold transition-colors border border-indigo-200 cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="appearance-none pl-2 pr-5 py-1.5 bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 rounded-xl text-[11px] font-bold transition-colors border border-indigo-200 cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   title="Select language"
                 >
                   {Object.entries(LANGUAGE_NAMES).map(([code, name]) => (
@@ -278,28 +316,29 @@ function App() {
                     </option>
                   ))}
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-indigo-700">
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1 text-indigo-700">
                   <svg className="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                 </div>
               </div>
 
-              {/* Persona Switcher Pill */}
+              {/* Persona Switcher */}
               <button
                 onClick={() => updateRole(undefined as any)}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100 border border-indigo-200 transition-colors shadow-2xs cursor-pointer whitespace-nowrap"
+                className="flex flex-col items-center justify-center px-2 py-1 rounded-xl text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100 border border-indigo-200 transition-colors shadow-2xs cursor-pointer"
                 title="Click to switch persona (Teen, Parent, or Educator)"
               >
-                <span>👤 Teen</span>
-                <span className="text-[10px] text-indigo-500 font-normal hidden md:inline">(Switch)</span>
+                <span className="text-[10px] font-bold leading-none">👤 Teen</span>
+                <span className="text-[9px] text-indigo-500 font-normal leading-tight">(Switch)</span>
               </button>
 
+              {/* Log out */}
               <button
                 onClick={logout}
                 title="Log out"
-                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
                 aria-label="Log out"
               >
-                <LogOut size={16} />
+                <LogOut size={15} />
               </button>
             </div>
           </div>
