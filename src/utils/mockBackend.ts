@@ -42,11 +42,22 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
         gender: user.gender,
         dateOfBirth: user.date_of_birth,
         pin: user.pin,
+        role: user.role,
         hasCompletedQuestionnaire: false,
         createdAt: new Date().toISOString()
       });
       saveMockDb(db);
       return id as any;
+    }
+
+    case 'update_user_role': {
+      const targetId = args?.userId || localStorage.getItem('prerna_last_user');
+      const user = db.users.find((u: any) => u.id === targetId) || (db.users.length > 0 ? db.users[0] : null);
+      if (user) {
+        user.role = args.role;
+        saveMockDb(db);
+      }
+      return undefined as any;
     }
 
     case 'authenticate_pin': {

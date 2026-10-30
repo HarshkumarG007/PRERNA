@@ -292,9 +292,10 @@ export const SelfDiscoveryJourney: React.FC<SelfDiscoveryJourneyProps> = ({ onCo
           </div>
           <button 
             onClick={onComplete}
-            className="px-3 py-1.5 rounded-full text-xs font-bold text-white/40 hover:text-white/80 hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
+            className="px-3.5 py-1.5 rounded-full text-xs font-bold text-violet-200 bg-violet-600/30 hover:bg-violet-600/50 hover:text-white transition-all border border-violet-400/40 shadow-sm flex items-center gap-1.5 cursor-pointer"
+            title="Skip assessment and enter dashboard immediately"
           >
-            Skip for now
+            <span>Skip Assessment & Enter Dashboard →</span>
           </button>
         </div>
         <div className="text-right">

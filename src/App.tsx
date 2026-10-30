@@ -32,7 +32,9 @@ import { useAppStore } from './store';
 function App() {
   const { language, setLanguage, t } = useI18n();
   const { isAuthenticated, isLoading, login, logout, user, updateRole } = useAppStore();
-  const [parentLinked, setParentLinked] = useState(false);
+  const [parentLinked, setParentLinked] = useState(() => {
+    return localStorage.getItem('prerna_parent_linked') === 'true';
+  });
   const [clinicianAuthed, setClinicianAuthed] = useState(false);
 
   useEffect(() => {
@@ -82,28 +84,28 @@ function App() {
             userId: user.id,
             generatedAt: new Date().toISOString(),
             personality: {
-              bigFive: { openness: 50, conscientiousness: 50, extraversion: 50, agreeableness: 50, neuroticism: 50 },
-              riasec: { realistic: 50, investigative: 50, artistic: 50, social: 50, enterprising: 50, conventional: 50 },
-              emotional: { resilience: 50, empathy: 50, emotionalAwareness: 50, impulseControl: 50, socialIntuition: 50 },
+              bigFive: { openness: 68, conscientiousness: 72, extraversion: 64, agreeableness: 76, neuroticism: 38 },
+              riasec: { realistic: 48, investigative: 78, artistic: 70, social: 72, enterprising: 58, conventional: 52 },
+              emotional: { resilience: 74, empathy: 80, emotionalAwareness: 76, impulseControl: 70, socialIntuition: 72 },
             },
             cognition: {
-              logicalReasoning: 50,
-              verbalFluency: 50,
-              spatialIntelligence: 50,
-              creativeDivergence: 50,
-              processingSpeed: 50,
-              workingMemory: 50,
+              logicalReasoning: 78,
+              verbalFluency: 74,
+              spatialIntelligence: 68,
+              creativeDivergence: 82,
+              processingSpeed: 72,
+              workingMemory: 74,
               learningStyle: 'mixed',
             },
             archetype: {
-              name: 'The Explorer',
-              description: 'You are beginning your journey of self-discovery.',
-              traits: ['Curious', 'Adaptable']
+              name: 'The Navigator',
+              description: 'You are an insightful and empathetic explorer with an agile, curious mind.',
+              traits: ['Curious', 'Empathetic', 'Insightful']
             },
-            wellbeingScore: 70,
-            strengths: ['Curiosity', 'Adaptability'],
-            growthAreas: ['Focus', 'Planning'],
-            sixteenType: deriveSixteenType({ openness: 50, conscientiousness: 50, extraversion: 50, agreeableness: 50, neuroticism: 50 }),
+            wellbeingScore: 82,
+            strengths: ['Emotional Intuition', 'Creative Problem-Solving', 'Empathy'],
+            growthAreas: ['Focus Consistency', 'Boundary Setting'],
+            sixteenType: deriveSixteenType({ openness: 68, conscientiousness: 72, extraversion: 64, agreeableness: 76, neuroticism: 38 }),
           };
           if (!useAppStore.getState().profile) {
             useAppStore.getState().updateProfile(fallbackProfile as any);
@@ -115,7 +117,15 @@ function App() {
   }
 
   if (isAuthenticated && user && user.role === 'parent' && !parentLinked) {
-    return <ParentLinking onLinkSuccess={() => setParentLinked(true)} onBack={() => updateRole(undefined as any)} />;
+    return (
+      <ParentLinking 
+        onLinkSuccess={() => {
+          localStorage.setItem('prerna_parent_linked', 'true');
+          setParentLinked(true);
+        }} 
+        onBack={() => updateRole(undefined as any)} 
+      />
+    );
   }
 
   if (isAuthenticated && user && user.role === 'parent' && parentLinked) {
@@ -130,12 +140,22 @@ function App() {
                 Parent Hub
               </span>
             </div>
-            <button
-              onClick={logout}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors border border-transparent hover:border-red-100"
-            >
-              <LogOut size={16} /> Log out
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => updateRole(undefined as any)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-indigo-700 bg-indigo-100 hover:bg-indigo-200 border border-indigo-200 transition-colors shadow-sm cursor-pointer"
+                title="Switch persona to Teen or Educator"
+              >
+                <span>👨‍👩‍👧 Parent View</span>
+                <span className="text-[10px] text-indigo-500 font-normal">(Switch)</span>
+              </button>
+              <button
+                onClick={logout}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors border border-transparent hover:border-red-100"
+              >
+                <LogOut size={16} /> Log out
+              </button>
+            </div>
           </div>
         </header>
         <ParentDashboard onExit={logout} />
@@ -155,12 +175,22 @@ function App() {
                 School Analytics
               </span>
             </div>
-            <button
-              onClick={logout}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors"
-            >
-              <LogOut size={16} /> Log out
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => updateRole(undefined as any)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-colors shadow-sm cursor-pointer"
+                title="Switch persona to Teen or Parent"
+              >
+                <span>🎓 Educator View</span>
+                <span className="text-[10px] text-slate-500 font-normal">(Switch)</span>
+              </button>
+              <button
+                onClick={logout}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors"
+              >
+                <LogOut size={16} /> Log out
+              </button>
+            </div>
           </div>
         </header>
         <SchoolDashboard />
@@ -212,10 +242,19 @@ function App() {
                 <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
               </div>
             </div>
+            {/* Persona Switcher Pill */}
+            <button
+              onClick={() => updateRole(undefined as any)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors shadow-sm cursor-pointer"
+              title="Click to switch persona (Teen, Parent, or Educator)"
+            >
+              <span>👤 Teen</span>
+              <span className="text-[10px] text-indigo-500 font-normal">(Switch)</span>
+            </button>
             <button
               onClick={logout}
               title="Log out"
-              className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors border border-transparent hover:border-red-100"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors border border-transparent hover:border-red-100 cursor-pointer"
             >
               <LogOut size={16} />
               <span className="hidden md:inline">{t('nav.logout', 'Log out')}</span>

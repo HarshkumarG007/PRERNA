@@ -89,6 +89,23 @@ export const ParentLinking: React.FC<ParentLinkingProps> = ({ onLinkSuccess, onB
                 </>
               )}
             </button>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setCode('DEMO99');
+                  setStatus('linking');
+                  setTimeout(() => {
+                    setStatus('success');
+                    setTimeout(onLinkSuccess, 600);
+                  }, 800);
+                }}
+                className="w-full py-2.5 px-4 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold transition-colors border border-indigo-200 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>⚡ Quick Preview Mode (Explore Parent Hub Instantly)</span>
+              </button>
+            </div>
           </form>
 
           <div className="mt-8 pt-8 border-t border-slate-100 text-sm font-medium text-slate-400">

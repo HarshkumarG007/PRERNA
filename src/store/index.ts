@@ -200,8 +200,10 @@ export const useAppStore = create<AppState>()(
           }
           
           if (user) {
+            const savedRole = (localStorage.getItem('prerna_user_role') || undefined) as User['role'];
             const normalizedUser: User = {
               ...user,
+              role: user.role || savedRole,
               ageRange: user.ageRange || user.age_range,
               createdAt: user.createdAt || user.created_at,
               hasCompletedQuestionnaire: user.hasCompletedQuestionnaire ?? user.has_completed_questionnaire ?? false,
@@ -231,8 +233,10 @@ export const useAppStore = create<AppState>()(
         try {
           const user = await invoke<any>('authenticate_pin', { userId, pin });
           if (user) {
+            const savedRole = (localStorage.getItem('prerna_user_role') || undefined) as User['role'];
             const normalizedUser: User = {
               ...user,
+              role: user.role || savedRole,
               ageRange: user.ageRange || user.age_range,
               createdAt: user.createdAt || user.created_at,
               hasCompletedQuestionnaire: user.hasCompletedQuestionnaire ?? user.has_completed_questionnaire ?? false,
@@ -309,14 +313,25 @@ export const useAppStore = create<AppState>()(
           todaySessions: [],
         });
         
-        // Clear last user from localStorage
+        // Clear last user and role from localStorage
         localStorage.removeItem('prerna_last_user');
+        localStorage.removeItem('prerna_user_role');
+        localStorage.removeItem('prerna_parent_linked');
 
         // Invoke backend logout to clear active session and conversation history
         invoke('logout').catch(() => {});
       },
 
       updateRole: (role) => {
+        const { user } = get();
+        if (role) {
+          localStorage.setItem('prerna_user_role', role);
+        } else {
+          localStorage.removeItem('prerna_user_role');
+        }
+        if (user) {
+          invoke('update_user_role', { userId: user.id, role }).catch(() => {});
+        }
         set((state) => ({
           user: state.user ? { ...state.user, role } : null
         }));
