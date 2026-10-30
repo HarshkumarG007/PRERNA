@@ -136,36 +136,43 @@ function App() {
   }
 
   if (isAuthenticated && user && user.role === 'parent' && parentLinked) {
-    // Parents don't get the teen navigation bar!
+    // Parents get the dedicated Parent Sanctuary Hub with header & footer!
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col relative overflow-hidden">
+      <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
         <header className="sticky top-0 z-50 glass-panel !rounded-none !border-x-0 !border-t-0 shadow-sm transition-all duration-300">
           <div className="max-w-7xl mx-auto flex justify-between items-center px-4 py-2.5 md:px-6">
             <div className="flex items-center gap-3">
-              <PrernaLogo variant="compact" size="sm" />
-              <span className="text-xs uppercase font-extrabold tracking-widest px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">
-                Parent Hub
+              <Link to="/" className="flex items-center gap-2 group flex-shrink-0" title="PRERNA Sanctuary">
+                <PrernaLogo variant="compact" size="sm" />
+              </Link>
+              <span className="text-xs uppercase font-extrabold tracking-widest px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                Parent Sanctuary Hub
               </span>
             </div>
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => updateRole(undefined as any)}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-indigo-700 bg-indigo-100 hover:bg-indigo-200 border border-indigo-200 transition-colors shadow-sm cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors shadow-2xs cursor-pointer"
                 title="Switch persona to Teen or Educator"
               >
                 <span>👨‍👩‍👧 Parent View</span>
-                <span className="text-[10px] text-indigo-500 font-normal">(Switch)</span>
+                <span className="text-[10px] text-indigo-500 font-normal hidden sm:inline">(Switch)</span>
               </button>
               <button
                 onClick={logout}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors border border-transparent hover:border-red-100 cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
+                title="Log out"
+                aria-label="Log out"
               >
-                <LogOut size={14} /> Log out
+                <LogOut size={16} />
               </button>
             </div>
           </div>
         </header>
-        <ParentDashboard onExit={logout} />
+        <main className="flex-grow">
+          <ParentDashboard onExit={() => updateRole(undefined as any)} />
+        </main>
+        <SanctuaryFooter />
       </div>
     );
   }
