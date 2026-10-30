@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import { safeInvoke as invoke } from '../../utils/mockBackend';
 import { useAppStore } from '../../store';
 
 export const DataExport: React.FC = () => {

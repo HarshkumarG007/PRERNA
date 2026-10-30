@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Heart, Shield, MessageCircle, ArrowLeft, Settings, ChevronRight } from 'lucide-react';
 import { ParentSafeProfile, ParentPermissionManager } from '../../parent/permissions';
 import { DisclosureGate } from '../consent/DisclosureGate';
-import { invoke } from '@tauri-apps/api/core';
+import { safeInvoke as invoke } from '../../utils/mockBackend';
 import { ConversationGuides } from './ConversationGuides';
 import { ParentingGuide } from './ParentingGuide';
 import { ParentGuideView } from './ParentGuideView';

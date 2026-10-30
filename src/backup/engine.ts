@@ -3,7 +3,7 @@
  * Zero-knowledge encrypted export/import
  */
 
-import { invoke } from '@tauri-apps/api/core';
+import { safeInvoke as invoke } from '../utils/mockBackend';
 
 export interface SyncPayload {
   action: string;

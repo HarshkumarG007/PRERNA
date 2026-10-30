@@ -2,7 +2,7 @@
 
 import { BigFiveProfile } from '../engine/assessment/bigFive';
 import { RiasecProfile } from '../engine/assessment/riasec';
-import { invoke } from '@tauri-apps/api/core';
+import { safeInvoke as invoke } from '../utils/mockBackend';
 
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';

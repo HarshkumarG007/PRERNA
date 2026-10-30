@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import { safeInvoke as invoke } from '../utils/mockBackend';
 
 // Types matching Rust models
 export interface NewUser {

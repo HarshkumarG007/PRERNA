@@ -4,7 +4,7 @@
  */
 
 import { UnifiedProfile } from '../synthesis/fusionEngine';
-import { invoke } from '@tauri-apps/api/core';
+import { safeInvoke as invoke } from '../utils/mockBackend';
 
 export interface SharingPreferences {
   userId: string;
@@ -85,24 +85,24 @@ export class ParentPermissionManager {
 
     if (prefs.shares.wellbeingScore) {
       safe.wellbeing = {
-        score: fullProfile.wellbeingScore,
+        score: fullProfile.wellbeingScore ?? 70,
         trend: 'unavailable' as any, // P0.5 Fix: Never fabricate trend
-        interpretation: this.interpretWellbeing(fullProfile.wellbeingScore),
+        interpretation: this.interpretWellbeing(fullProfile.wellbeingScore ?? 70),
       };
     }
 
     if (prefs.shares.careerInterests) {
-      safe.careerInterests = fullProfile.careerMatches
+      safe.careerInterests = (fullProfile.careerMatches || [])
         .slice(0, 3)
         .map(c => ({
           field: c.field,
           role: c.role,
-          why: c.whyFit[0], // Single, positive reason
+          why: c.whyFit?.[0] || 'Matches your core natural strengths',
         }));
     }
 
     if (prefs.shares.strengths) {
-      safe.strengths = fullProfile.strengths.slice(0, 5);
+      safe.strengths = (fullProfile.strengths || []).slice(0, 5);
     }
 
     if (prefs.shares.dailyCheckIn) {
@@ -110,8 +110,8 @@ export class ParentPermissionManager {
       safe.checkInStreak = undefined; // P0.5 Fix: Never fabricate streak
     }
 
-    if (prefs.shares.concerns && fullProfile.riskFactors.length > 0) {
-      safe.concerns = fullProfile.riskFactors.map(r => ({
+    if (prefs.shares.concerns && (fullProfile.riskFactors || []).length > 0) {
+      safe.concerns = (fullProfile.riskFactors || []).map(r => ({
         category: r.category,
         severity: r.severity,
         suggestedAction: r.recommendedIntervention,
@@ -120,13 +120,13 @@ export class ParentPermissionManager {
 
     // Map safe personality dimensions (omit neuroticism and clinical markers)
     safe.bigFive = {
-      openness: fullProfile.personality?.bigFive?.openness || 0,
-      conscientiousness: fullProfile.personality?.bigFive?.conscientiousness || 0,
-      extraversion: fullProfile.personality?.bigFive?.extraversion || 0,
-      agreeableness: fullProfile.personality?.bigFive?.agreeableness || 0,
+      openness: fullProfile.personality?.bigFive?.openness ?? 50,
+      conscientiousness: fullProfile.personality?.bigFive?.conscientiousness ?? 50,
+      extraversion: fullProfile.personality?.bigFive?.extraversion ?? 50,
+      agreeableness: fullProfile.personality?.bigFive?.agreeableness ?? 50,
     };
 
-    safe.riasec = { ...fullProfile.personality?.riasec } as Record<string, number>;
+    safe.riasec = { ...(fullProfile.personality?.riasec || {}) } as Record<string, number>;
 
     // Generate conversation starters
     safe.conversationStarters = this.generateConversationStarters(fullProfile, prefs);
@@ -147,14 +147,14 @@ export class ParentPermissionManager {
   ): string[] {
     const starters: string[] = [];
 
-    if (prefs.shares.careerInterests && profile.careerMatches.length > 0) {
+    if (prefs.shares.careerInterests && (profile.careerMatches || []).length > 0) {
       const top = profile.careerMatches[0];
       starters.push(
         `I noticed you're interested in ${top.field}. Want to tell me more about what draws you to it?`
       );
     }
 
-    if (prefs.shares.strengths && profile.strengths.length > 0) {
+    if (prefs.shares.strengths && (profile.strengths || []).length > 0) {
       const strength = profile.strengths[0];
       starters.push(
         `I've seen how you exhibit ${strength.toLowerCase()}. That's a real gift. How do you feel about it?`

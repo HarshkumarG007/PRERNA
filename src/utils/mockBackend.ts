@@ -22,7 +22,10 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
   console.log(`[Mock Backend] Invoking ${cmd}`, args);
   const db = getMockDb();
 
-  await new Promise(resolve => setTimeout(resolve, 300)); // Simulate latency
+  const isTest = typeof process !== 'undefined' && (process.env?.NODE_ENV === 'test' || Boolean((process.env as any)?.VITEST));
+  if (!isTest) {
+    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate latency in dev
+  }
 
   switch (cmd) {
     case 'create_user': {
@@ -242,14 +245,15 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
 
     case 'resolve_crisis_event': {
       const evt = (db.crisisEvents || []).find((e: any) => e.id === args.eventId);
+      const teenInformed = args.teen_informed_at ?? args.teenInformedAt;
       if (evt) {
-        if (args.decision === 'GuardianNotified' && !args.teen_informed_at) {
+        if (args.decision === 'GuardianNotified' && !teenInformed) {
           throw new Error('Cannot notify guardian: teen has not been informed yet. Violates Crisis Protocol.');
         }
         evt.state = args.decision === 'GuardianNotified' ? 'Escalate' : args.decision === 'ResourcesOnly' ? 'Monitor' : 'Cleared';
         evt.decision = args.decision;
-        evt.teen_informed_at = args.teen_informed_at;
-        evt.reviewer_credentials_ref = args.reviewer_credentials_ref;
+        evt.teen_informed_at = teenInformed;
+        evt.reviewer_credentials_ref = args.reviewer_credentials_ref || args.reviewerCredentialsRef;
         saveMockDb(db);
       }
       return undefined as any;
@@ -259,6 +263,7 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
       const msg = args.request?.message?.toLowerCase() || '';
       const convId = args.request?.conversation_id || 'conv-' + Date.now();
       const userProfile = db.profiles ? Object.values(db.profiles)[0] as any : null;
+      const bigFive = args.request?.user_context?.bigFive || userProfile?.personality?.bigFive;
 
       // 1. Crisis Safety Filter
       if (/\b(suicide|kill myself|end my life|die|self harm|hurt myself|cutter|cutting)\b/i.test(msg)) {
@@ -282,8 +287,8 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
 
       // 3. Trait Context Reflection (P3-2 Acceptance Criteria)
       let traitRef = '';
-      if (userProfile?.personality?.bigFive) {
-        const { openness, conscientiousness, extraversion } = userProfile.personality.bigFive;
+      if (bigFive) {
+        const { openness, conscientiousness, extraversion } = bigFive;
         if (openness >= 70) {
           traitRef = `Given your high Openness (${openness}%), your natural curiosity will serve you well in exploring this.`;
         } else if (conscientiousness >= 70) {
@@ -356,6 +361,42 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
         },
       ];
       return logs as any;
+    }
+
+    case 'get_sharing_preferences': {
+      return {
+        userId: args?.userId || 'current-user',
+        lastUpdated: new Date().toISOString(),
+        shares: {
+          wellbeingScore: true,
+          careerInterests: true,
+          strengths: true,
+          dailyCheckIn: true,
+          concerns: false,
+        },
+        requiresApproval: {
+          fullProfile: true,
+          chatHistory: true,
+          riskAlerts: true,
+        },
+      } as any;
+    }
+
+    case 'update_sharing_preferences': {
+      return undefined as any;
+    }
+
+    case 'insert_audit_log': {
+      return undefined as any;
+    }
+
+    case 'get_model_status': {
+      return {
+        loaded: true,
+        model_name: 'PRERNA-Mentor-7B-Q4_K_M',
+        vram_usage_mb: 4120,
+        temperature: 0.7,
+      } as any;
     }
 
     case 'get_parent_view': {

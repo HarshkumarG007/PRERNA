@@ -4,7 +4,7 @@ import { UnifiedProfile, ProfileFusionEngine } from '../../synthesis/fusionEngin
 import { TraitProfile } from '../../assessment/engine';
 import { CognitiveProfile } from '../../assessment/skills/engine';
 import { Sparkles, Target, Brain, TrendingUp, AlertTriangle, BookOpen, Zap, Info } from 'lucide-react';
-import { invoke } from '@tauri-apps/api/core';
+import { safeInvoke as invoke } from '../../utils/mockBackend';
 import { ExplainabilityPanel } from '../dashboard/ExplainabilityPanel';
 
 interface ProfileDashboardProps {

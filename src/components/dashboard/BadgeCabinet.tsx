@@ -19,6 +19,10 @@ interface BadgeCabinetProps {
 export const BadgeCabinet: React.FC<BadgeCabinetProps> = ({ profile }) => {
   if (!profile) return null;
 
+  const bigFive = profile.personality?.bigFive;
+  const riasec = profile.personality?.riasec;
+  const emotional = profile.personality?.emotional;
+
   // Determine badges based on profile scores
   const badges: Badge[] = [
     {
@@ -27,7 +31,7 @@ export const BadgeCabinet: React.FC<BadgeCabinetProps> = ({ profile }) => {
       description: 'Awarded for demonstrating high Agreeableness and Emotional Empathy.',
       icon: Heart,
       color: 'pink',
-      isUnlocked: profile.personality.bigFive.agreeableness > 70 || profile.personality.emotional.empathy > 70
+      isUnlocked: (bigFive?.agreeableness ?? 0) > 70 || (emotional?.empathy ?? 0) > 70
     },
     {
       id: 'visionary',
@@ -35,7 +39,7 @@ export const BadgeCabinet: React.FC<BadgeCabinetProps> = ({ profile }) => {
       description: 'Awarded for high Openness to experience and creativity.',
       icon: Sparkles,
       color: 'indigo',
-      isUnlocked: profile.personality.bigFive.openness > 75
+      isUnlocked: (bigFive?.openness ?? 0) > 75
     },
     {
       id: 'strategist',
@@ -43,7 +47,7 @@ export const BadgeCabinet: React.FC<BadgeCabinetProps> = ({ profile }) => {
       description: 'Awarded for strong Investigative and Conscientiousness traits.',
       icon: Brain,
       color: 'violet',
-      isUnlocked: profile.personality.bigFive.conscientiousness > 75 || profile.personality.riasec.investigative > 70
+      isUnlocked: (bigFive?.conscientiousness ?? 0) > 75 || (riasec?.investigative ?? 0) > 70
     },
     {
       id: 'explorer',
@@ -59,7 +63,7 @@ export const BadgeCabinet: React.FC<BadgeCabinetProps> = ({ profile }) => {
       description: 'Awarded for high Extraversion and Enterprising drive.',
       icon: Zap,
       color: 'amber',
-      isUnlocked: profile.personality.bigFive.extraversion > 75 || profile.personality.riasec.enterprising > 70
+      isUnlocked: (bigFive?.extraversion ?? 0) > 75 || (riasec?.enterprising ?? 0) > 70
     },
     {
       id: 'resilient',
@@ -67,7 +71,7 @@ export const BadgeCabinet: React.FC<BadgeCabinetProps> = ({ profile }) => {
       description: 'Awarded for demonstrating strong Resilience and emotional stability.',
       icon: Shield,
       color: 'slate',
-      isUnlocked: profile.personality.emotional.resilience > 70 || profile.personality.bigFive.neuroticism < 40
+      isUnlocked: (emotional?.resilience ?? 0) > 70 || (bigFive?.neuroticism ?? 50) < 40
     }
   ];
 

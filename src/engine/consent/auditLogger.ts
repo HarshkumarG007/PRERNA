@@ -1,7 +1,7 @@
 // src/engine/consent/auditLogger.ts
 
 import { AuditLogEntry } from '../../components/settings/AuditTrailViewer';
-import { invoke } from '@tauri-apps/api/core';
+import { safeInvoke as invoke } from '../../utils/mockBackend';
 
 /**
  * Records an entry into the access_audit_log.

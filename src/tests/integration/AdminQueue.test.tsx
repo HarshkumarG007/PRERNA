@@ -1,9 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HumanReviewQueue } from '../../components/crisis/HumanReviewQueue';
 import { ToastProvider } from '../../components/common/Toast';
-import { vi } from 'vitest';
 
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn().mockResolvedValue('success')
@@ -42,6 +41,8 @@ describe('Integration: Admin Review Queue', () => {
     await user.click(notifyButton);
 
     // Case should be removed from the pending list
-    expect(screen.queryByText(/u123/i)).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText(/u123/i)).not.toBeInTheDocument();
+    });
   });
 });

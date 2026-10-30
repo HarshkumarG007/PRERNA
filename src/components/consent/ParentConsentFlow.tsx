@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import { safeInvoke as invoke } from '../../utils/mockBackend';
 import { CURRENT_DISCLOSURES } from '../../engine/assessment/disclosures';
 import { useI18n } from '../../engine/localization/i18n';
 import { BetaOnboardingNotice } from './BetaOnboardingNotice';

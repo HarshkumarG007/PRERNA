@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle, Brain, Compass, Sparkles, Shield, Database, LogOut, Bell, Link2, Check } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { AlertTriangle, Brain, Compass, Sparkles, Shield, Database, LogOut, Bell, Link2, Check, ArrowLeft } from 'lucide-react';
 import { DataExport } from '../settings/DataExport';
 import { DataDelete } from '../settings/DataDelete';
 import { AuditTrailViewer } from '../settings/AuditTrailViewer';
@@ -81,6 +82,7 @@ const RevokeConsentModal: React.FC<{ onConfirm: () => void; onCancel: () => void
 };
 
 export const TeenProfileView: React.FC = () => {
+  const navigate = useNavigate();
   const user = useAppStore(state => state.user);
   const profile = useAppStore(state => state.profile);
 
@@ -127,6 +129,16 @@ export const TeenProfileView: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#020617] w-full">
       <div className="max-w-6xl mx-auto p-6 md:p-8 space-y-12">
+      {/* Back button */}
+      <div>
+        <button
+          onClick={() => navigate('/')}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-sm font-bold transition-all"
+        >
+          <ArrowLeft size={16} /> Back to Sanctuary
+        </button>
+      </div>
+
       {/* Header */}
       <div className="relative">
         <div className="absolute -top-20 -left-20 w-[400px] h-[400px] bg-violet-600/20 rounded-full blur-[120px] pointer-events-none" />

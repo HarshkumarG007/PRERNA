@@ -10,7 +10,7 @@ import { useI18n } from '../../engine/localization/i18n';
 import { useAppStore } from '../../store';
 import { PrernaEmblem } from '../common/PrernaLogo';
 import { Mic, Square, Send, Bot, User as UserIcon, AlertTriangle, ArrowRight, ShieldCheck } from 'lucide-react';
-import { invoke } from '@tauri-apps/api/core';
+import { safeInvoke as invoke } from '../../utils/mockBackend';
 
 interface AiMentorChatProps {
   userId: string;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CrisisEvent } from '../../engine/crisis/patternDetection';
-import { invoke } from '@tauri-apps/api/core';
+import { safeInvoke as invoke } from '../../utils/mockBackend';
 import { useToast } from '../common/Toast';
 
 // Mock data for the queue

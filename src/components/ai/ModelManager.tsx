@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import { safeInvoke as invoke } from '../../utils/mockBackend';
 import { Download, Check, AlertTriangle, Cpu, WifiOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNetworkStatus } from '../../hooks/useNetworkStatus';
