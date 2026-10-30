@@ -70,7 +70,10 @@ fn test_t15_1_crisis_persistence() {
     );
     assert_eq!(events[0].user_id, "USER_A");
     assert_eq!(events[0].severity, "high");
-    assert_eq!(events[0].state, app_lib::db::models::CrisisState::SignalDetected);
+    assert_eq!(
+        events[0].state,
+        app_lib::db::models::CrisisState::SignalDetected
+    );
 }
 
 #[test]

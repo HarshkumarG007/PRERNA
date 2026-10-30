@@ -374,11 +374,22 @@ impl Database {
     }
 
     fn apply_migration_3(&mut self) -> AnyhowResult<()> {
-        let _ = self.conn.execute("ALTER TABLE users ADD COLUMN pin_hash TEXT", []);
-        let _ = self.conn.execute("ALTER TABLE users ADD COLUMN has_completed_questionnaire BOOLEAN DEFAULT 0", []);
-        let _ = self.conn.execute("ALTER TABLE users ADD COLUMN name TEXT", []);
-        let _ = self.conn.execute("ALTER TABLE users ADD COLUMN gender TEXT", []);
-        let _ = self.conn.execute("ALTER TABLE users ADD COLUMN date_of_birth TEXT", []);
+        let _ = self
+            .conn
+            .execute("ALTER TABLE users ADD COLUMN pin_hash TEXT", []);
+        let _ = self.conn.execute(
+            "ALTER TABLE users ADD COLUMN has_completed_questionnaire BOOLEAN DEFAULT 0",
+            [],
+        );
+        let _ = self
+            .conn
+            .execute("ALTER TABLE users ADD COLUMN name TEXT", []);
+        let _ = self
+            .conn
+            .execute("ALTER TABLE users ADD COLUMN gender TEXT", []);
+        let _ = self
+            .conn
+            .execute("ALTER TABLE users ADD COLUMN date_of_birth TEXT", []);
 
         let _ = self.conn.execute(
             "INSERT INTO schema_migrations (version, applied_at) VALUES (3, datetime('now'))",

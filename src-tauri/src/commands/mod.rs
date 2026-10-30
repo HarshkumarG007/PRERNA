@@ -74,10 +74,16 @@ pub fn authenticate_pin(
         .map_err(|e| e.to_string())?
         .ok_or_else(|| "User not found".to_string())?;
 
-    let pin_hash = user.pin_hash.as_deref().ok_or_else(|| "No PIN configured for user".to_string())?;
+    let pin_hash = user
+        .pin_hash
+        .as_deref()
+        .ok_or_else(|| "No PIN configured for user".to_string())?;
     let parsed_hash = PasswordHash::new(pin_hash).map_err(|e| e.to_string())?;
 
-    if Argon2::default().verify_password(pin.as_bytes(), &parsed_hash).is_ok() {
+    if Argon2::default()
+        .verify_password(pin.as_bytes(), &parsed_hash)
+        .is_ok()
+    {
         session.set_authenticated(user.id.clone())?;
         Ok(PublicUser::from(&user))
     } else {
