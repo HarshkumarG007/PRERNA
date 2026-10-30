@@ -11,7 +11,7 @@
     <img src="https://img.shields.io/badge/Privacy-DPDP_Act_2023_Compliant-10B981.svg" alt="Privacy" />
     <img src="https://img.shields.io/badge/Tests-126%2F126_Passing-10B981.svg" alt="Tests" />
     <img src="https://img.shields.io/badge/Architecture-Tauri_2_%2B_React_19_%2B_Rust-8B5CF6.svg" alt="Stack" />
-    <img src="https://img.shields.io/badge/License-MIT-3B82F6.svg" alt="License" />
+    <img src="https://img.shields.io/badge/License-All_Rights_Reserved-red.svg" alt="License" />
   </p>
 
   <p align="center">
@@ -551,4 +551,4 @@ PRERNA is **not** a healthcare provider, clinical diagnostic instrument, or emer
 **Foundational Creed:** *"Self Realisation is God's Realisation"* (आत्म-साक्षात्कार ही ईश्वर-साक्षात्कार है)  
 **Philosophical Roots:** Inspired by Sant Kabir Das & the timeless Indian Atma-Jnana tradition  
 **Repository:** [https://github.com/HarshkumarG007/PRERNA](https://github.com/HarshkumarG007/PRERNA)  
-**License:** Released under the [MIT License](LICENSE).
+**Copyright & License:** PRERNA™ © 2026 Harsh Kumar Gupta. All Rights Reserved. See [LICENSE](LICENSE) for details.

@@ -372,7 +372,7 @@ export const LifeBlueprintExport: React.FC<LifeBlueprintExportProps> = ({
                 <div>
                   <strong>PRERNA Verification Seal:</strong> Cryptographically logged on-device. No cloud telemetry collected.
                   <div className="text-[11px] text-slate-400 mt-0.5">
-                    Architected by Harsh Kumar Gupta (<a href="https://www.linkedin.com/in/harshkumarg/" target="_blank" rel="noreferrer" className="text-indigo-600 underline">LinkedIn</a>) • Free & Open-Source on GitHub
+                    PRERNA™ © 2026 Harsh Kumar Gupta. All Rights Reserved. • Architected by Harsh Kumar Gupta (<a href="https://www.linkedin.com/in/harshkumarg/" target="_blank" rel="noreferrer" className="text-indigo-600 underline">LinkedIn</a>)
                   </div>
                 </div>
                 <div className="font-mono text-slate-400">

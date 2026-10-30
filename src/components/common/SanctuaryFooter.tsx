@@ -130,7 +130,7 @@ export const SanctuaryFooter: React.FC = () => {
           {/* Col 3: Legal & Sovereignty */}
           <div className="space-y-2">
             <span className="font-black uppercase tracking-wider text-slate-800 text-[11px] block">
-              Data Sovereignty
+              Legal & Sovereignty
             </span>
             <div className="flex items-center gap-1.5 text-emerald-700 font-bold">
               <ShieldCheck size={14} />
@@ -139,18 +139,27 @@ export const SanctuaryFooter: React.FC = () => {
             <p className="text-[11px] text-slate-400 leading-snug">
               100% on-device cryptographic storage. Zero behavioral tracking, zero commercial advertising.
             </p>
+            <p className="text-[11px] font-semibold text-indigo-900 pt-0.5">
+              PRERNA™ is a trademark of Harsh Kumar Gupta.
+            </p>
           </div>
         </div>
 
-        {/* Bottom Line */}
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-400">
-          <div>
-            Dedicated with gratefulness to God • Disciple of Shri Prem Rawat • Honoring Father Dinesh Kumar
+        {/* Bottom Line: Formal Copyright & Spiritual Dedication */}
+        <div className="pt-6 flex flex-col md:flex-row items-center justify-between gap-3 text-[11px] text-slate-500">
+          <div className="font-black tracking-wide text-slate-800 bg-slate-100/80 px-3 py-1 rounded-lg border border-slate-200/80">
+            PRERNA™ © 2026 Harsh Kumar Gupta. All Rights Reserved.
           </div>
-          <div className="flex items-center gap-1 text-slate-400">
-            <span>Crafted with</span>
-            <Heart size={12} className="text-rose-500 fill-rose-500 inline" />
-            <span>for adolescents across Bharat & the world</span>
+          <div className="flex items-center gap-1.5 text-slate-400 flex-wrap justify-center md:justify-end text-[10px] sm:text-[11px]">
+            <span>Dedicated with gratefulness to God</span>
+            <span>•</span>
+            <span>Disciple of Shri Prem Rawat</span>
+            <span>•</span>
+            <span>Honoring Father Dinesh Kumar</span>
+            <span>•</span>
+            <span className="inline-flex items-center gap-1 text-slate-500 font-medium">
+              Crafted with <Heart size={11} className="text-rose-500 fill-rose-500 inline" /> for Bharat & the world
+            </span>
           </div>
         </div>
 
