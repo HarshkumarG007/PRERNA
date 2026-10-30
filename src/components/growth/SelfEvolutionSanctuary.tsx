@@ -39,9 +39,10 @@ import {
   GrowthJournalEntry 
 } from '../../engine/growth/selfEvolutionEngine';
 import { deriveSixteenType } from '../../engine/assessment/sixteenPersonalities';
+import { MaslowNeedsCompass } from './MaslowNeedsCompass';
 
 interface SelfEvolutionSanctuaryProps {
-  initialTab?: 'mirror' | 'journal' | 'mitigations';
+  initialTab?: 'mirror' | 'journal' | 'mitigations' | 'needs';
   onNavigateHome?: () => void;
 }
 
@@ -85,7 +86,7 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
     deleteCustomMitigation 
   } = useAppStore();
 
-  const [activeTab, setActiveTab] = useState<'mirror' | 'journal' | 'mitigations'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'mirror' | 'journal' | 'mitigations' | 'needs'>(initialTab);
   
   // Strategy filter & mode
   const [managementMode, setManagementMode] = useState<'personalized' | 'all'>('personalized');
@@ -343,7 +344,18 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
               }`}
             >
               <Zap size={16} />
-              <span>Evolution Toolkit (Strategies)</span>
+              <span>Self-Management (Tools)</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('needs')}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
+                activeTab === 'needs'
+                  ? 'bg-white text-indigo-950 shadow-md'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <ShieldCheck size={16} />
+              <span>Needs & Desires (Maslow Compass)</span>
             </button>
           </div>
         </div>
@@ -1601,6 +1613,13 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
             )}
 
           </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 4: MASLOW'S NEEDS & DESIRES COMPASS */}
+        {/* ========================================================================= */}
+        {activeTab === 'needs' && (
+          <MaslowNeedsCompass />
         )}
 
       </div>

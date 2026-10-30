@@ -237,6 +237,8 @@ function App() {
           <Route path="/evolution" element={<SelfEvolutionSanctuary />} />
           <Route path="/journal" element={<SelfEvolutionSanctuary initialTab="journal" />} />
           <Route path="/mitigations" element={<SelfEvolutionSanctuary initialTab="mitigations" />} />
+          <Route path="/needs" element={<SelfEvolutionSanctuary initialTab="needs" />} />
+          <Route path="/maslow" element={<SelfEvolutionSanctuary initialTab="needs" />} />
           <Route path="/dashboard" element={<TeenProfileView />} />
           <Route path="/profile" element={<TeenProfileView />} />
           <Route path="/shared-dashboard" element={<div className="max-w-7xl mx-auto"><SharedDashboardView /></div>} />

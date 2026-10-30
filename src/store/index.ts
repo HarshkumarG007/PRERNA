@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { safeInvoke as invoke } from '../utils/mockBackend';
 import { SixteenTypeResult, deriveSixteenType } from '../engine/assessment/sixteenPersonalities';
 import { GrowthJournalEntry, MitigationStrategy } from '../engine/growth/selfEvolutionEngine';
+import { TrackedNeedItem } from '../engine/growth/maslowNeedsEngine';
 
 // Types
 export interface User {
@@ -135,6 +136,12 @@ export interface AppState {
   toggleMitigation: (strategyId: string) => void;
   addCustomMitigation: (strategy: Omit<MitigationStrategy, 'id' | 'isCustom'>) => void;
   deleteCustomMitigation: (id: string) => void;
+
+  // Maslow's Needs & Desires Tracker (DPDP Act local storage only)
+  trackedNeeds: TrackedNeedItem[];
+  addTrackedNeed: (item: Omit<TrackedNeedItem, 'id' | 'createdAt'>) => void;
+  updateTrackedNeedStatus: (id: string, status: TrackedNeedItem['status'], userNotes?: string) => void;
+  deleteTrackedNeed: (id: string) => void;
 }
 
 export interface SignupData {
@@ -178,6 +185,7 @@ export const useAppStore = create<AppState>()(
       journalEntries: [],
       completedMitigations: {},
       customMitigations: [],
+      trackedNeeds: [],
 
       // Actions
       login: async (userId: string) => {
@@ -524,6 +532,33 @@ export const useAppStore = create<AppState>()(
           customMitigations: state.customMitigations.filter(s => s.id !== id)
         }));
       },
+
+      addTrackedNeed: (itemData) => {
+        const item: TrackedNeedItem = {
+          ...itemData,
+          id: `need_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          createdAt: new Date().toISOString(),
+        };
+        set(state => ({
+          trackedNeeds: [item, ...state.trackedNeeds]
+        }));
+      },
+
+      updateTrackedNeedStatus: (id, status, userNotes) => {
+        set(state => ({
+          trackedNeeds: state.trackedNeeds.map(item =>
+            item.id === id
+              ? { ...item, status, userNotes: userNotes !== undefined ? userNotes : item.userNotes }
+              : item
+          )
+        }));
+      },
+
+      deleteTrackedNeed: (id) => {
+        set(state => ({
+          trackedNeeds: state.trackedNeeds.filter(item => item.id !== id)
+        }));
+      },
     }),
     {
       name: 'prerna-storage',
@@ -535,6 +570,7 @@ export const useAppStore = create<AppState>()(
         journalEntries: state.journalEntries,
         completedMitigations: state.completedMitigations,
         customMitigations: state.customMitigations,
+        trackedNeeds: state.trackedNeeds,
       }),
     }
   )
@@ -549,3 +585,4 @@ export const useTodaySessions = () => useAppStore(state => state.todaySessions);
 export const useJournalEntries = () => useAppStore(state => state.journalEntries);
 export const useCompletedMitigations = () => useAppStore(state => state.completedMitigations);
 export const useCustomMitigations = () => useAppStore(state => state.customMitigations);
+export const useTrackedNeeds = () => useAppStore(state => state.trackedNeeds);

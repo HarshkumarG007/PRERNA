@@ -12,7 +12,8 @@ import {
   TrendingUp,
   WifiOff,
   Compass,
-  BookOpen
+  BookOpen,
+  ShieldCheck
 } from 'lucide-react';
 
 // Sub-components
@@ -158,19 +159,23 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* 3 feature badges */}
-              <div className="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6 pt-5 border-t border-white/10">
-                <div className="flex items-center gap-2.5 text-xs text-slate-200 bg-white/5 px-3 py-2 rounded-xl border border-white/10">
-                  <Compass size={15} className="text-indigo-400 flex-shrink-0" />
-                  <span>Mirror: Current vs Evolved</span>
+              {/* 4 feature badges */}
+              <div className="relative z-10 grid grid-cols-2 lg:grid-cols-4 gap-3 mt-6 pt-5 border-t border-white/10">
+                <div className="flex items-center gap-2 text-xs text-slate-200 bg-white/5 px-3 py-2 rounded-xl border border-white/10">
+                  <Compass size={14} className="text-indigo-400 flex-shrink-0" />
+                  <span>Actual vs Evolved</span>
                 </div>
-                <div className="flex items-center gap-2.5 text-xs text-slate-200 bg-white/5 px-3 py-2 rounded-xl border border-white/10">
-                  <BookOpen size={15} className="text-emerald-400 flex-shrink-0" />
-                  <span>Strengths & Friction Journal</span>
+                <div className="flex items-center gap-2 text-xs text-slate-200 bg-white/5 px-3 py-2 rounded-xl border border-white/10">
+                  <BookOpen size={14} className="text-emerald-400 flex-shrink-0" />
+                  <span>Strengths Journal</span>
                 </div>
-                <div className="flex items-center gap-2.5 text-xs text-slate-200 bg-white/5 px-3 py-2 rounded-xl border border-white/10">
-                  <Zap size={15} className="text-amber-400 flex-shrink-0" />
-                  <span>6 Behavioral Mitigation Tools</span>
+                <div className="flex items-center gap-2 text-xs text-slate-200 bg-white/5 px-3 py-2 rounded-xl border border-white/10">
+                  <Zap size={14} className="text-amber-400 flex-shrink-0" />
+                  <span>Self-Management</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-slate-200 bg-white/5 px-3 py-2 rounded-xl border border-white/10">
+                  <ShieldCheck size={14} className="text-rose-400 flex-shrink-0" />
+                  <span>Maslow Needs Compass</span>
                 </div>
               </div>
             </motion.div>

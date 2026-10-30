@@ -295,6 +295,16 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
         } as any;
       }
 
+      // 4. Maslow's Hierarchy, Wants vs. Needs & Distraction Guidance
+      if (/\b(maslow|want.*need|desire|distract|craving|urge|impulse|scroll|bedrock|belonging)\b/i.test(msg)) {
+        return {
+          response: "According to Maslow's Hierarchy of Needs, sudden urges to scroll, snack, or avoid work are rarely failures of willpower—they are usually disguised signals that your biological foundation (sleep, sensory rest) or emotional safety is starved. When you nourish the root need, fleeting distractions lose their power. Would you like to explore your Needs & Desires Compass?",
+          conversation_id: convId,
+          sentiment: 'empowering',
+          suggested_actions: ['Open Needs & Desires Compass', 'Check Maslow Foundation', 'Try 10-Minute Sensory Reset'],
+        } as any;
+      }
+
       // 3. Trait Context Reflection (P3-2 Acceptance Criteria)
       let traitRef = '';
       if (bigFive) {
