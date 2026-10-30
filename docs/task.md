@@ -325,6 +325,21 @@
   - [x] Honored spiritual lineage: Disciple of **Shri Prem Rawat** (living Knowledge of breath and inner peace) and foundational reverence to his **Father**
   - [x] Cross-linked into `AtmaJnanaOriginModal.tsx`, `SelfEvolutionSanctuary.tsx` Tab 5, `Dashboard.tsx`, header navigation, and `README.md`
 
+### Navigation, Parent Sanctuary & CI Hardening
+- [x] **P7-11** Bento-Grid Dashboard & Two-Line Stacked Header Navigation Overhaul
+  - [x] Implemented two-line stacked header navigation labels (`Life / Quests`, `Skill / Arena`, `Mood / Mirror`, `Social / Compass`, `AI / Mentor`, `Self / Evolution`, `Teen / Dash`) halving horizontal footprint.
+  - [x] Grouped `🪷 आत्मज्ञान` and `👨‍💻 Developer` into right-hand action cluster as compact vertical action pills with guaranteed gaps.
+  - [x] Streamlined Self-Evolution sanctuary tabs into single-line pills (`flex-nowrap overflow-x-auto hide-scrollbar`) preventing tab wrapping.
+- [x] **P7-12** Proprietary Legal & Trademark Protection (Option B)
+  - [x] Established formal copyright and trademark notice: `PRERNA™ © 2026 Harsh Kumar Gupta. All Rights Reserved.` across `LICENSE`, `README.md`, `SanctuaryFooter.tsx`, and `LifeBlueprintExport.tsx`.
+- [x] **P7-13** Parent Sanctuary Hub Modernization (`ParentDashboard.tsx`)
+  - [x] Replaced dark-mode takeover with cohesive light sanctuary theme.
+  - [x] Embedded Sant Kabir Das family wisdom (*"जैसे मृगा नाभि कस्तूरी, बन-बन फिरत उदासी..."*).
+  - [x] Integrated 432 Hz Parent Breath Reset, Life Blueprint A4 export, Socratic guides, DPDP Act 2023 §9 parity, and global `SanctuaryFooter`.
+- [x] **P7-14** Rust Backend Code Formatting & CI Pipeline Green
+  - [x] Formatted Rust backend code with `cargo fmt` across `src-tauri/src/ai/mod.rs`, `src-tauri/src/commands/mod.rs`, `src-tauri/src/db/mod.rs`, and `src-tauri/tests/t15_crisis_matrix.rs`.
+  - [x] Verified `cargo fmt --all -- --check` returns 0.
+
 ---
 
 ## Ongoing (Every Release)
