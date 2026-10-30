@@ -353,6 +353,17 @@
     - Tab 3: Movement & Smartband Sync (गति व स्पंदन) with 8k step tracker, Web Bluetooth (BLE) smartband sync, and zero-hardware 60-Second Pulse Tap Meter.
   - [x] Integrated into `App.tsx` (routes `/vitality`, `/sleep`, `/kaya`, `/health` & header nav) and `Dashboard.tsx` Bento Banner.
   - [x] **Test:** verified in `src/tests/vitality/vitalityEngine.test.ts` (11 tests passed; total 137/137 tests passing across 29 test files).
+- [x] **P7-16** Multi-Modal Persona Authentication & Role Switching Vault (`PersonaAuthModal.tsx`)
+  - [x] Eliminated unauthenticated role-switching bypass across Teen, Parent, and Educator views.
+  - [x] Created `src/components/security/PersonaAuthModal.tsx` providing multi-modal verification:
+    - WebAuthn Biometrics (Windows Hello, TouchID/FaceID, Fingerprint).
+    - Argon2id Local PIN with interactive secure on-screen keypad.
+    - 9-Dot Visual Pattern Lock with smooth touch/drag gesture capture.
+    - Password fallback with timing-safe hash verification.
+  - [x] Integrated upfront persona selection during Signup (Step 1) and Login in `src/components/welcome/AuthModal.tsx`.
+  - [x] Wired secure switching into `App.tsx` for Teen, Parent Sanctuary, and School Educator headers.
+  - [x] Added mobile responsive dropdown drawer (`lg:hidden`) for screens `< 1024px` guaranteeing zero navigation clipping across mobile, tablet, and desktop.
+  - [x] Verified full suite: **137/137 tests passing across 29 test files**; production build cleanly generated.
 
 ---
 
