@@ -23,6 +23,9 @@ import { RomanceAndHangoutStudio } from '../romance/RomanceAndHangoutStudio';
 import { SharedMemoriesAndJournal } from '../memories/SharedMemoriesAndJournal';
 import { PartnerPairingModal } from '../pairing/PartnerPairingModal';
 import { PartnersGateModal } from '../auth/PartnersGateModal';
+import { PartnerSubscriptionModal } from '../../subscription/PartnerSubscriptionModal';
+import { useSubscriptionStore } from '../../../store/subscriptionStore';
+import { Crown } from 'lucide-react';
 
 interface PartnersDashboardProps {
   onQuickExit: () => void;
@@ -40,8 +43,11 @@ export const PartnersDashboard: React.FC<PartnersDashboardProps> = ({ onQuickExi
     sharedMemories
   } = usePartnerStore();
 
+  const { partnerPlan, partnerTrialDaysRemaining } = useSubscriptionStore();
+
   const [activeTab, setActiveTab] = useState<'us' | 'companion' | 'communication' | 'romance' | 'memories' | 'safety'>('us');
   const [showPairingModal, setShowPairingModal] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
   const isLovers = profile.mode === 'lovers';
   const isPaired = connection.status === 'paired';
@@ -112,8 +118,39 @@ export const PartnersDashboard: React.FC<PartnersDashboardProps> = ({ onQuickExi
             </div>
           </div>
 
-          {/* Right: Quick Controls & Quick Exit */}
+          {/* Right: Quick Controls, Subscription & Quick Exit */}
           <div className="flex items-center gap-2">
+            {/* Subscription Status Pill */}
+            <button
+              onClick={() => {
+                somaticAudio.playSoftChime();
+                setShowSubscriptionModal(true);
+              }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs ${
+                partnerPlan === 'partner_lifetime'
+                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                  : partnerPlan === 'partner_pro_monthly' || partnerPlan === 'partner_pro_annual'
+                  ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                  : partnerPlan === 'trial'
+                  ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
+                  : 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-500/20'
+              }`}
+              title="Manage Partner Pro Subscription"
+            >
+              <Crown size={13} className={partnerPlan.includes('pro') || partnerPlan === 'partner_lifetime' ? 'text-amber-500' : ''} />
+              <span>
+                {partnerPlan === 'partner_lifetime'
+                  ? 'Lifetime Pass'
+                  : partnerPlan === 'partner_pro_annual'
+                  ? 'Partner Pro'
+                  : partnerPlan === 'partner_pro_monthly'
+                  ? 'Pro Monthly'
+                  : partnerPlan === 'trial'
+                  ? `Trial (${partnerTrialDaysRemaining}d)`
+                  : 'Upgrade Pro'}
+              </span>
+            </button>
+
             {!isPaired ? (
               <button
                 onClick={() => setShowPairingModal(true)}
@@ -394,6 +431,12 @@ export const PartnersDashboard: React.FC<PartnersDashboardProps> = ({ onQuickExi
       <PartnerPairingModal
         isOpen={showPairingModal}
         onClose={() => setShowPairingModal(false)}
+      />
+
+      {/* Partner Pro Subscription Modal */}
+      <PartnerSubscriptionModal
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
       />
 
     </div>

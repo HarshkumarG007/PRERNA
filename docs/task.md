@@ -434,6 +434,21 @@
     - Step-by-step interactive walkthrough showcasing all 4 personas (Teen Explorer, Parent Sanctuary, Adult & Partners Vault, School & Educator Hub).
     - Integrated across all headers with `✨ Ecosystem Tour` pill, footer link, and `/tour` direct route with 1-click persona switching.
   - [x] Verified full test suite: **158/158 tests passing across 31 test files**; production bundle compiled cleanly in 10.44s.
+- [x] **P7-22** Subscription & Licensing Architecture for Partners & Schools (`subscriptionStore.ts`, `PartnerSubscriptionModal.tsx`, `SchoolLicensingModal.tsx`)
+  - [x] Built cross-subsidizing subscription architecture protecting Teens & Parents as 100% Free Public Good:
+    - Zero advertising, zero microtransactions, and zero paywalls for adolescents and parents.
+    - Commercial monetization anchored in adult relationships (Partners B2C) and institutional licenses (Schools B2B).
+  - [x] Created `src/store/subscriptionStore.ts` with local encrypted persistence:
+    - B2C Partner tiers: `'trial' (7-day free trial)` | `'partner_pro_monthly' (₹299/mo)` | `'partner_pro_annual' (₹1,999/yr)` | `'partner_lifetime' (₹4,999 perpetual)`.
+    - B2B School tiers: `'pilot' (60-day campus pilot)` | `'campus_annual' (₹49,000/yr)` | `'district_annual' (₹1,49,000/yr)`.
+    - Instant upgrade, cancellation, and developer fast-testing simulator controls.
+  - [x] Created `src/components/subscription/PartnerSubscriptionModal.tsx`:
+    - Romantic relationship sanctuary theme, tier selectors, feature comparison grid, 1-click test checkout with audio chimes.
+  - [x] Created `src/components/subscription/SchoolLicensingModal.tsx`:
+    - Institutional VidyaPeeth Enterprise licensing, board deliverables, $k$-anonymity DPDP §9 guarantees, and official invoice activation.
+  - [x] Integrated status pills and modals across `PartnersDashboard.tsx`, `SchoolDashboard.tsx`, and `AdultDashboard.tsx`.
+  - [x] Added unit tests in `src/tests/subscription/subscriptionStore.test.ts` (7 tests passed).
+  - [x] Verified full test suite: **165/165 tests passing across 32 test files**; production bundle compiled in 8.14s.
 
 ---
 
@@ -442,8 +457,8 @@
 - [x] `docs/dpdp-compliance-mapping.md` updated for any change touching consent, data collection, or crisis
 - [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
 - [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
-- [x] Pre-deployment regression test suite: **158/158 tests passed across 31 test files**
-- [x] Production bundle verified: `tsc && vite build` completed with zero errors (10.44s build time)
+- [x] Pre-deployment regression test suite: **165/165 tests passed across 32 test files**
+- [x] Production bundle verified: `tsc && vite build` completed with zero errors (8.14s build time)
 - [ ] Staged rollout: Beta cohort testing before broad public release
 
 ---

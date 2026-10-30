@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useUser, useAppStore } from '../../store';
 import { usePartnerStore } from '../../store/partnerStore';
+import { useSubscriptionStore } from '../../store/subscriptionStore';
 import { somaticAudio } from '../../utils/audioSynthesis';
 import { PartnersGateModal } from '../partners/auth/PartnersGateModal';
 import { SomaticBreathingCompanion } from '../growth/SomaticBreathingCompanion';
@@ -28,6 +29,7 @@ export const AdultDashboard: React.FC<AdultDashboardProps> = ({
   const user = useUser();
   const profile = useAppStore((state) => state.profile);
   const { connection } = usePartnerStore();
+  const { partnerPlan, partnerTrialDaysRemaining } = useSubscriptionStore();
 
   const [showGateModal, setShowGateModal] = useState(false);
   const [showBreathingModal, setShowBreathingModal] = useState(false);
@@ -120,14 +122,25 @@ export const AdultDashboard: React.FC<AdultDashboardProps> = ({
           </button>
         </div>
 
-        <div className="mt-4 pt-4 border-t border-rose-200/50 flex items-center justify-between text-[11px] text-slate-500">
+        <div className="mt-4 pt-4 border-t border-rose-200/50 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
           <span className="flex items-center gap-1.5">
             <ShieldCheck size={14} className="text-emerald-600" />
             <span>DPDP Act 2023 §9 Zero-Cloud Privacy Guarantee</span>
           </span>
-          <span className="font-mono text-[10px] text-rose-700 font-bold hidden sm:inline">
-            {isPartnerActivated ? 'Vault Active & Protected' : 'Adult Opt-in Required'}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
+              {partnerPlan === 'partner_lifetime'
+                ? '👑 Lifetime Pass'
+                : partnerPlan === 'partner_pro_annual' || partnerPlan === 'partner_pro_monthly'
+                ? '✨ Partner Pro Active'
+                : partnerPlan === 'trial'
+                ? `⏳ Sacred Trial (${partnerTrialDaysRemaining}d)`
+                : 'Free Sanctuary'}
+            </span>
+            <span className="font-mono text-[10px] text-rose-700 font-bold hidden sm:inline">
+              {isPartnerActivated ? 'Vault Active & Protected' : 'Adult Opt-in Required'}
+            </span>
+          </div>
         </div>
       </div>
 

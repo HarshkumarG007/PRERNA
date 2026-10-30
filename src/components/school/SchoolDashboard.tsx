@@ -15,6 +15,8 @@ import {
 import { CohortAnalytics } from './CohortAnalytics';
 import { TeacherVitalityCorner } from './TeacherVitalityCorner';
 import { InstitutionalCareHub } from './InstitutionalCareHub';
+import { SchoolLicensingModal } from '../subscription/SchoolLicensingModal';
+import { useSubscriptionStore } from '../../store/subscriptionStore';
 import { somaticAudio } from '../../utils/audioSynthesis';
 
 interface SchoolDashboardProps {
@@ -23,6 +25,8 @@ interface SchoolDashboardProps {
 
 export const SchoolDashboard: React.FC<SchoolDashboardProps> = ({ onSwitchPersona }) => {
   const [activeTab, setActiveTab] = useState<'flourishing' | 'care' | 'teacher_vitality'>('flourishing');
+  const [showLicensingModal, setShowLicensingModal] = useState(false);
+  const { schoolLicense, schoolPilotDaysRemaining } = useSubscriptionStore();
 
   const handleExportBatchData = () => {
     somaticAudio.playStarBeaconChime();
@@ -79,6 +83,29 @@ export const SchoolDashboard: React.FC<SchoolDashboardProps> = ({ onSwitchPerson
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => {
+                  somaticAudio.playSoftChime();
+                  setShowLicensingModal(true);
+                }}
+                className={`px-5 py-3 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs border ${
+                  schoolLicense === 'district_annual'
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40 hover:bg-emerald-500/30'
+                    : schoolLicense === 'campus_annual'
+                    ? 'bg-indigo-500/20 text-indigo-300 border-indigo-400/40 hover:bg-indigo-500/30'
+                    : 'bg-amber-500/20 text-amber-300 border-amber-400/40 hover:bg-amber-500/30'
+                }`}
+                title="Manage Institutional VidyaPeeth License"
+              >
+                <GraduationCap size={16} />
+                <span>
+                  {schoolLicense === 'district_annual'
+                    ? 'District License Active'
+                    : schoolLicense === 'campus_annual'
+                    ? 'Campus License Active'
+                    : `Pilot: ${schoolPilotDaysRemaining}d remaining`}
+                </span>
+              </button>
               <button
                 onClick={handleExportBatchData}
                 className="px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-white/10 shadow-xs"
@@ -241,6 +268,12 @@ export const SchoolDashboard: React.FC<SchoolDashboardProps> = ({ onSwitchPerson
         </div>
 
       </div>
+
+      {/* Institutional School Licensing Modal */}
+      <SchoolLicensingModal
+        isOpen={showLicensingModal}
+        onClose={() => setShowLicensingModal(false)}
+      />
     </div>
   );
 };
