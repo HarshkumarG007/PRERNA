@@ -449,6 +449,26 @@
   - [x] Integrated status pills and modals across `PartnersDashboard.tsx`, `SchoolDashboard.tsx`, and `AdultDashboard.tsx`.
   - [x] Added unit tests in `src/tests/subscription/subscriptionStore.test.ts` (7 tests passed).
   - [x] Verified full test suite: **165/165 tests passing across 32 test files**; production bundle compiled in 8.14s.
+- [x] **P7-23** Complete 6-Language Localization (`i18n.tsx`) for Adult, Partners, and Schools
+  - [x] Expanded `src/engine/localization/i18n.tsx` with native terminology across Hindi, Marathi, Tamil, Telugu, and Bengali for:
+    - 4 Core Personas: Teen Explorer (`किशोर अन्वेषक`), Parent Sanctuary (`अभिभावक संगम`), Adult Swadharma (`वयस्क साधना`), Educator Hub (`विद्यापीठ दर्पण`).
+    - PRERNA for Partners (`प्रेरणा युगल संगम`), Preeti Companion (`प्रीति सम्बंध साथी`), Partner Pro, and VidyaPeeth Enterprise License.
+    - 432 Hz Breathe & Somatics, and Quick Exit security actions.
+- [x] **P7-24** Automated Unit & Component Test Suite Expansion (Scaled to 180 Tests)
+  - [x] Created `src/tests/showcase/MultiPersonaTourModal.test.tsx` (5 tests passed: all 4 persona slides, next/prev navigation, role switching, DPDP §9 guarantees).
+  - [x] Created `src/tests/school/SchoolSanctuary.test.tsx` (5 tests passed: Tagore philosophy, 432Hz bell chime feedback, self-care drills, $k \ge 5$ anonymity, Tele-MANAS/Childline integration).
+  - [x] Created `src/tests/subscription/SubscriptionModals.test.tsx` (5 tests passed: Partner Pro monthly/annual/lifetime, VidyaPeeth campus/district tiers, fast demo test controls).
+  - [x] Verified full test suite: **180/180 tests passing across 35 test files** with zero regressions.
+- [x] **P7-25** Offline PWA Mobile/Desktop Install Experience & Audio Caching Tuning
+  - [x] Created `src/components/common/InstallPwaPill.tsx` with dynamic browser `beforeinstallprompt` handling and standalone mode detection.
+  - [x] Integrated into `src/components/common/SanctuaryFooter.tsx` for immediate 1-click home screen install.
+  - [x] Verified Service Worker cache registration (`public/sw.js`) and Web Manifest (`public/manifest.webmanifest`).
+- [x] **P7-26** Staged Beta Rollout Plan & Clinical / Legal Review Dossiers (`docs/beta-cohort-staged-rollout-dossier.md`)
+  - [x] Created complete governance dossier defining 3 beta cohorts:
+    - Cohort 1: 25 Teen-Parent pairs across Maharashtra, Delhi NCR, Karnataka, and West Bengal.
+    - Cohort 2: 3 VidyaPeeth Model High Schools (CBSE, ICSE, State Board).
+    - Cohort 3: 50 Adult Couples & Besties.
+  - [x] Prepared detailed regulatory audit criteria for human sign-offs (H1 clinical psychologist, H2 DPDP legal counsel, H3 psychometric construct equivalence, H4 reading level comprehensibility).
 
 ---
 
@@ -457,9 +477,9 @@
 - [x] `docs/dpdp-compliance-mapping.md` updated for any change touching consent, data collection, or crisis
 - [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
 - [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
-- [x] Pre-deployment regression test suite: **165/165 tests passed across 32 test files**
+- [x] Pre-deployment regression test suite: **180/180 tests passed across 35 test files**
 - [x] Production bundle verified: `tsc && vite build` completed with zero errors (8.14s build time)
-- [ ] Staged rollout: Beta cohort testing before broad public release
+- [x] Staged rollout: Beta cohort testing before broad public release (documented in `docs/beta-cohort-staged-rollout-dossier.md`)
 
 ---
 

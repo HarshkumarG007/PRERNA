@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Star, Heart, ExternalLink, ShieldCheck, Sun, Sparkles, MessageSquareHeart } from 'lucide-react';
 import { somaticAudio } from '../../utils/audioSynthesis';
 import { PrernaEmblem } from './PrernaLogo';
+import { InstallPwaPill } from './InstallPwaPill';
 
 export interface SanctuaryFooterProps {
   onOpenBetaFeedback?: () => void;
@@ -155,6 +156,7 @@ export const SanctuaryFooter: React.FC<SanctuaryFooterProps> = ({
 
             {/* Quick Action Badges */}
             <div className="pt-1.5 flex flex-wrap items-center gap-2">
+              <InstallPwaPill />
               {onOpenPersonaTour && (
                 <button
                   onClick={() => {
