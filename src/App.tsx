@@ -180,34 +180,41 @@ function App() {
   if (isAuthenticated && user && user.role === 'educator') {
     // Educators get the enterprise School Dashboard
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col relative overflow-hidden">
-        <header className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
+      <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+        <header className="sticky top-0 z-50 glass-panel !rounded-none !border-x-0 !border-t-0 shadow-sm transition-all duration-300">
           <div className="max-w-7xl mx-auto flex justify-between items-center px-4 py-2.5 md:px-6">
             <div className="flex items-center gap-3">
-              <PrernaLogo variant="compact" size="sm" />
-              <span className="text-xs uppercase font-extrabold tracking-widest px-2.5 py-1 rounded-full bg-slate-100 text-slate-800">
+              <Link to="/" className="flex items-center gap-2 group flex-shrink-0" title="PRERNA Sanctuary">
+                <PrernaLogo variant="compact" size="sm" />
+              </Link>
+              <span className="text-xs uppercase font-extrabold tracking-widest px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-200">
                 School Analytics
               </span>
             </div>
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => updateRole(undefined as any)}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-colors shadow-sm cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-colors shadow-2xs cursor-pointer"
                 title="Switch persona to Teen or Parent"
               >
                 <span>🎓 Educator View</span>
-                <span className="text-[10px] text-slate-500 font-normal">(Switch)</span>
+                <span className="text-[10px] text-slate-500 font-normal hidden sm:inline">(Switch)</span>
               </button>
               <button
                 onClick={logout}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
+                title="Log out"
+                aria-label="Log out"
               >
-                <LogOut size={14} /> Log out
+                <LogOut size={16} />
               </button>
             </div>
           </div>
         </header>
-        <SchoolDashboard />
+        <main className="flex-grow">
+          <SchoolDashboard />
+        </main>
+        <SanctuaryFooter />
       </div>
     );
   }
