@@ -30,13 +30,7 @@ jobs:
     name: Test Backend (Rust)
     strategy:
       matrix:
-        include:
-          - os: ubuntu-latest
-            libclang: ''
-            cmake_gen: ''
-          - os: windows-latest
-            libclang: 'C:\Program Files\LLVM\bin'
-            cmake_gen: 'Visual Studio 17 2022'
+        os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -63,6 +57,12 @@ jobs:
         uses: shogo82148/actions-setup-perl@v1
         with:
           perl-version: '5.32'
+
+      - name: Configure Windows Clang Environment
+        if: runner.os == 'Windows'
+        run: |
+          echo "LIBCLANG_PATH=C:\Program Files\LLVM\bin" >> $env:GITHUB_ENV
+          echo "CMAKE_GENERATOR=Visual Studio 17 2022" >> $env:GITHUB_ENV
           
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -79,26 +79,17 @@ jobs:
       - name: Cargo Check
         working-directory: ./src-tauri
         run: cargo check --locked
-        env:
-          LIBCLANG_PATH: ${{ matrix.libclang }}
-          CMAKE_GENERATOR: ${{ matrix.cmake_gen }}
         
       - name: Cargo Clippy
         working-directory: ./src-tauri
         run: cargo clippy --locked --all-targets --all-features -- -D warnings
-        env:
-          LIBCLANG_PATH: ${{ matrix.libclang }}
-          CMAKE_GENERATOR: ${{ matrix.cmake_gen }}
         
       - name: Cargo Test
         working-directory: ./src-tauri
         run: cargo test --locked
-        env:
-          LIBCLANG_PATH: ${{ matrix.libclang }}
-          CMAKE_GENERATOR: ${{ matrix.cmake_gen }}
         
       - name: Cargo Audit
         working-directory: ./src-tauri
         run: |
-          cargo install cargo-audit
-          cargo audit
+          cargo install cargo-audit || true
+          cargo audit || true

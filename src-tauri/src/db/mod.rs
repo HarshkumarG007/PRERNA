@@ -1072,7 +1072,7 @@ mod tests {
         ).unwrap();
 
         db.conn.execute(
-            "INSERT INTO crisis_events (id, user_id, detected_at, severity) VALUES ('crisis1', ?1, 123456, 'High')",
+            "INSERT INTO crisis_events (id, user_id, detected_at, severity, origin) VALUES ('crisis1', ?1, 123456, 'High', 'SYSTEM')",
             [user_id]
         ).unwrap();
 
