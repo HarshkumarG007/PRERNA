@@ -3,9 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, Sparkles, GraduationCap, Award, Cpu, 
   Activity, Video, ExternalLink, ShieldCheck, Sun, 
-  Code, BookOpen, CheckCircle, Globe, Flame
+  Code, BookOpen, CheckCircle, Globe, Flame, Star
 } from 'lucide-react';
 import { PrernaEmblem } from './PrernaLogo';
+import { somaticAudio } from '../../utils/audioSynthesis';
 
 interface AboutDeveloperModalProps {
   isOpen: boolean;
@@ -253,6 +254,35 @@ export const AboutDeveloperModal: React.FC<AboutDeveloperModalProps> = ({ isOpen
                       </p>
                     </div>
                   </div>
+                </div>
+
+                {/* Altruistic Stewardship Card: Light a Star */}
+                <div className="p-6 rounded-3xl bg-gradient-to-r from-amber-500/15 via-indigo-950/60 to-purple-950/60 border border-amber-400/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                        दीपक से दीपक जले • Hold the Light
+                      </span>
+                      <span className="text-xs text-slate-400">No Paywalls • No Corporate Cloud</span>
+                    </div>
+                    <h4 className="text-lg font-black text-white">
+                      Become a Guardian of this Open-Source Sanctuary
+                    </h4>
+                    <p className="text-xs text-slate-300 leading-relaxed max-w-2xl">
+                      If this confluence of AI, Yogic calm, and clinical adolescent safety gifted you even a moment of peace, lighting a star on GitHub takes only two seconds. It acts as an open-source beacon, training the discovery algorithms to place PRERNA in front of a searching teen, stressed parent, or caring teacher tonight.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      somaticAudio.playStarBeaconChime();
+                      window.open('https://github.com/HarshkumarG007/PRERNA', '_blank', 'noopener,noreferrer');
+                    }}
+                    className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 hover:scale-105 transition-all flex items-center gap-2 cursor-pointer flex-shrink-0"
+                    title="Light a Star on GitHub"
+                  >
+                    <Star size={16} className="fill-slate-950" />
+                    <span>Light a Star on GitHub ⭐</span>
+                  </button>
                 </div>
               </div>
             )}
@@ -563,17 +593,20 @@ export const AboutDeveloperModal: React.FC<AboutDeveloperModalProps> = ({ isOpen
               <span>Created with gratitude to God • Dedicated to every adolescent seeker</span>
             </div>
             <div className="flex items-center gap-3">
-              <a
-                href="https://github.com/HarshkumarG007/PRERNA"
-                target="_blank"
-                rel="noreferrer"
-                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition-colors"
+              <button
+                onClick={() => {
+                  somaticAudio.playStarBeaconChime();
+                  window.open('https://github.com/HarshkumarG007/PRERNA', '_blank', 'noopener,noreferrer');
+                }}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-black text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                title="Star PRERNA on GitHub"
               >
-                GitHub Repo
-              </a>
+                <Star size={14} className="fill-slate-950" />
+                <span>Light a Star ⭐</span>
+              </button>
               <button
                 onClick={onClose}
-                className="px-6 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 font-black text-white text-xs transition-all shadow-lg shadow-indigo-600/20 cursor-pointer"
+                className="px-6 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 font-black text-white text-xs transition-all shadow-lg shadow-indigo-600/20 cursor-pointer"
               >
                 Return to Sanctuary
               </button>

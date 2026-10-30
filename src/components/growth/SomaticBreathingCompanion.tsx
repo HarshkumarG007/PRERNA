@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Pause, RotateCcw, Volume2, VolumeX, X, Heart } from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2, VolumeX, X, Heart, Star, Sparkles } from 'lucide-react';
 import { somaticAudio } from '../../utils/audioSynthesis';
 
 export type BreathingProtocolId = 'vagal-478' | 'box-4444' | 'active-pause-3' | 'atma-contemplation';
@@ -300,6 +300,29 @@ export const SomaticBreathingCompanion: React.FC<SomaticBreathingCompanionProps>
             Cycle {Math.min(completedCycles + (isActive ? 1 : 0), protocol.cyclesTarget)} / {protocol.cyclesTarget}
           </span>
         </div>
+
+        {/* Post-Regulation Generosity Hook */}
+        {completedCycles >= protocol.cyclesTarget && (
+          <div className="relative z-10 mt-6 mx-4 p-4 rounded-2xl bg-gradient-to-r from-amber-500/20 via-emerald-500/15 to-indigo-500/20 border border-amber-400/40 text-center animate-fade-in-up">
+            <div className="flex items-center justify-center gap-1.5 text-amber-300 text-xs font-black uppercase tracking-wider mb-1">
+              <Sparkles size={14} />
+              <span>Somatic Grounding Complete • शांत मन</span>
+            </div>
+            <p className="text-xs text-slate-200">
+              Your autonomic nervous system is restored to quiet equilibrium. If this session brought you peace, consider lighting a beacon for another seeking teenager.
+            </p>
+            <button
+              onClick={() => {
+                somaticAudio.playStarBeaconChime();
+                window.open('https://github.com/HarshkumarG007/PRERNA', '_blank', 'noopener,noreferrer');
+              }}
+              className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 hover:scale-105 transition-all cursor-pointer"
+            >
+              <Star size={13} className="fill-slate-950" />
+              <span>Light a Star on GitHub ⭐</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Control Buttons */}

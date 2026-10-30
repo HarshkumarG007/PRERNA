@@ -27,6 +27,7 @@ import { AtmaJnanaOriginModal } from './components/common/AtmaJnanaOriginModal';
 import { AboutDeveloperModal } from './components/common/AboutDeveloperModal';
 import { SomaticBreathingCompanion } from './components/growth/SomaticBreathingCompanion';
 import { LifeBlueprintExport } from './components/growth/LifeBlueprintExport';
+import { SanctuaryFooter } from './components/common/SanctuaryFooter';
 import { ClinicianLogin } from './components/clinical/ClinicianLogin';
 import { ReviewDashboard } from './components/clinical/ReviewDashboard';
 import { useAppStore } from './store';
@@ -339,6 +340,9 @@ function App() {
         </Routes>
         </div>
       </main>
+
+      {/* Global Sanctuary Footer & Hold the Light Anchor */}
+      <SanctuaryFooter />
 
       {/* Global Atma-Jnana Philosophy Modal */}
       <AtmaJnanaOriginModal

@@ -13,6 +13,15 @@
     <img src="https://img.shields.io/badge/Architecture-Tauri_2_%2B_React_19_%2B_Rust-8B5CF6.svg" alt="Stack" />
     <img src="https://img.shields.io/badge/License-MIT-3B82F6.svg" alt="License" />
   </p>
+
+  <p align="center">
+    <a href="https://github.com/HarshkumarG007/PRERNA">
+      <img src="https://img.shields.io/github/stars/HarshkumarG007/PRERNA?style=social&label=Light%20a%20Star%20⭐" alt="GitHub Stars" />
+    </a>
+    <a href="https://github.com/HarshkumarG007/PRERNA/fork">
+      <img src="https://img.shields.io/github/forks/HarshkumarG007/PRERNA?style=social&label=Fork" alt="GitHub Forks" />
+    </a>
+  </p>
 </div>
 
 ---
@@ -197,6 +206,37 @@ Harsh Kumar Gupta has achieved **11 Google Professional Specializations** on Cou
 | **Faculty & Badges** | IBM SkillsBuild Faculty & 8 Badges (NLP, GenAI, ML) | IBM SkillsBuild | [Credly IBM Wallet](https://www.credly.com/users/harsh-kumar-gupta.03963a54/badges/credly) |
 | **Database** | HackerRank SQL (Basic) Skill Certificate | HackerRank | [`FB125F190852`](https://www.hackerrank.com/certificates/fb125f190852) |
 | **Public Wallet** | 11 Verified Digital Credentials | Credly | [credly.com/users/harshkumarg](https://www.credly.com/users/harshkumarg) |
+
+---
+
+## 🌟 Hold the Light: How You Can Be a Guardian of this Sanctuary
+
+> *"दीपक से दीपक जले, तो अंधकार टिक नहीं सकता।"*  
+> *(When one lamp kindles another, darkness has nowhere left to hide.)*
+
+PRERNA is built with pure devotion — as a non-commercial, open-source refuge for Indian adolescents. It enforces three sacred invariants:
+- 🚫 **Zero Behavioral Advertising:** No tracking, no covert profiles, and no algorithmic attention traps.
+- 🚫 **Zero Cloud Surveillance:** 100% on-device cryptographic storage complying strictly with DPDP Act 2023 Section 9.
+- 🚫 **Zero Paywalls:** Every single assessment, 432 Hz somatic exercise, and AI mentor capability is freely accessible.
+
+### The Quiet Power of a Single GitHub Star ⭐
+Open-source repository rankings and developer discovery engines rely on algorithmic resonance. When you **light a star on this repository**, you are not inflating a vanity counter — **you are lighting a signal fire in the open-source cosmos**.
+
+Every star:
+1. **Instructs discovery algorithms** that adolescent mental healthcare and local-first data privacy genuinely matter.
+2. **Elevates PRERNA's visibility** so that an exhausted parent, an anxious teenager, or an educator searching online late at night can discover this free sanctuary.
+3. **Validates months of selfless multi-disciplinary engineering** merging ancient *Atma-Jnana* with state-of-the-art neural architecture.
+
+If this codebase, its 432 Hz somatic vagal reset, its Higgins' self-discrepancy mirror, or its strict clinical safeguards offered you even a single breath of clarity:
+
+<div align="center">
+  <br/>
+  <a href="https://github.com/HarshkumarG007/PRERNA">
+    <img src="https://img.shields.io/badge/⭐_Light_a_Star_on_GitHub-Keep_the_Sanctuary_Illuminated-FFB800?style=for-the-badge&logo=github&logoColor=black" alt="Star on GitHub" />
+  </a>
+  <p><em>"As one lamp kindles another, your star lights the path for the next seeker."</em></p>
+  <br/>
+</div>
 
 ---
 

@@ -82,6 +82,36 @@ class SomaticAudioSynthesizer {
   }
 
   /**
+   * Plays a celestial beacon chime (Pythagorean harmonic cascade: 432 Hz -> 540 Hz -> 648 Hz -> 864 Hz)
+   * celebrating lighting a star on GitHub for the collective adolescent sanctuary.
+   */
+  public playStarBeaconChime() {
+    if (this.isMuted) return;
+    try {
+      this.initContext();
+      if (!this.ctx || !this.masterGain) return;
+      const now = this.ctx.currentTime;
+      const notes = [432, 540, 648, 864];
+      notes.forEach((freq, idx) => {
+        if (!this.ctx || !this.masterGain) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+        gain.gain.setValueAtTime(0, now + idx * 0.1);
+        gain.gain.linearRampToValueAtTime(0.18, now + idx * 0.1 + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 1.2);
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start(now + idx * 0.1);
+        osc.stop(now + idx * 0.1 + 1.2);
+      });
+    } catch (e) {
+      // safe fallback
+    }
+  }
+
+  /**
    * Rising swell chime for Inhale phase (gently lifts energy & opens lungs).
    */
   public playInhaleTone(duration: number = 4) {

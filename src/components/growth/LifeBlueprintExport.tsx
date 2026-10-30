@@ -5,6 +5,7 @@ import { PrernaEmblem } from '../common/PrernaLogo';
 import { UnifiedProfile, User } from '../../store';
 import { generateSelfImageComparison } from '../../engine/growth/selfEvolutionEngine';
 import { SixteenTypeResult } from '../../engine/assessment/sixteenPersonalities';
+import { somaticAudio } from '../../utils/audioSynthesis';
 
 interface LifeBlueprintExportProps {
   isOpen: boolean;
@@ -370,6 +371,9 @@ export const LifeBlueprintExport: React.FC<LifeBlueprintExportProps> = ({
               <div className="pt-8 border-t border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-slate-500">
                 <div>
                   <strong>PRERNA Verification Seal:</strong> Cryptographically logged on-device. No cloud telemetry collected.
+                  <div className="text-[11px] text-slate-400 mt-0.5">
+                    Architected by Harsh Kumar Gupta (<a href="https://www.linkedin.com/in/harshkumarg/" target="_blank" rel="noreferrer" className="text-indigo-600 underline">LinkedIn</a>) • Free & Open-Source on GitHub
+                  </div>
                 </div>
                 <div className="font-mono text-slate-400">
                   UID: {user?.id || 'LOCAL-TEEN'} • DPDP-S9-SECURE
@@ -380,14 +384,29 @@ export const LifeBlueprintExport: React.FC<LifeBlueprintExportProps> = ({
           </div>
 
           {/* Footer Bar */}
-          <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-500 print:hidden">
-            <span>Tip: Select <em>"Save as PDF"</em> in your browser's print dialog.</span>
-            <button
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold"
-            >
-              Close
-            </button>
+          <div className="p-4 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 print:hidden">
+            <div className="flex items-center gap-2">
+              <span>Tip: Select <em>"Save as PDF"</em> in your browser's print dialog.</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  somaticAudio.playStarBeaconChime();
+                  window.open('https://github.com/HarshkumarG007/PRERNA', '_blank', 'noopener,noreferrer');
+                }}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black shadow-sm flex items-center gap-1.5 cursor-pointer"
+                title="Star PRERNA on GitHub"
+              >
+                <Star size={13} className="fill-slate-950" />
+                <span>Light a Star on GitHub ⭐</span>
+              </button>
+              <button
+                onClick={onClose}
+                className="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
           </div>
 
         </motion.div>
