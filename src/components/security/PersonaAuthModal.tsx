@@ -16,6 +16,7 @@ import {
 import { useUser } from '../../store';
 import { safeInvoke as invoke } from '../../utils/mockBackend';
 import { somaticAudio } from '../../utils/audioSynthesis';
+import { useFocusTrap } from '../../utils/useFocusTrap';
 
 interface PersonaAuthModalProps {
   isOpen: boolean;
@@ -93,6 +94,8 @@ export const PersonaAuthModal: React.FC<PersonaAuthModalProps> = ({
         return 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/25';
     }
   };
+
+  const modalRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -211,6 +214,7 @@ export const PersonaAuthModal: React.FC<PersonaAuthModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
       <motion.div
+        ref={modalRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="persona-auth-title"

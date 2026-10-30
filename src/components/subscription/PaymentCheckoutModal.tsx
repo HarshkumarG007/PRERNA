@@ -23,6 +23,7 @@ import {
   downloadTaxInvoiceReceipt
 } from '../../services/paymentGateway';
 import { somaticAudio } from '../../utils/audioSynthesis';
+import { useFocusTrap } from '../../utils/useFocusTrap';
 
 interface PaymentCheckoutModalProps {
   isOpen: boolean;
@@ -65,6 +66,8 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
     }
   }, [isOpen, details]);
 
+  const modalRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
+
   if (!isOpen || !details) return null;
 
   const handleCopyVpa = () => {
@@ -106,6 +109,7 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
       <div className="fixed inset-0 z-[150] flex items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-md font-sans">
         
         <motion.div
+          ref={modalRef}
           role="dialog"
           aria-modal="true"
           aria-labelledby="payment-checkout-title"

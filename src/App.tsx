@@ -35,6 +35,7 @@ import { PersonaAuthModal } from './components/security/PersonaAuthModal';
 import { BetaFeedbackModal } from './components/beta/BetaFeedbackModal';
 import { ProductShowcaseModal } from './components/showcase/ProductShowcaseModal';
 import { MultiPersonaTourModal } from './components/showcase/MultiPersonaTourModal';
+import { DataSovereigntyModal } from './components/governance/DataSovereigntyModal';
 import { AdultDashboard } from './components/adult/AdultDashboard';
 import { PartnersDashboard } from './components/partners/dashboard/PartnersDashboard';
 import { PartnersGateModal } from './components/partners/auth/PartnersGateModal';
@@ -57,6 +58,7 @@ function App() {
   const [showBetaFeedback, setShowBetaFeedback] = useState(false);
   const [showProductShowcase, setShowProductShowcase] = useState(false);
   const [showPersonaTour, setShowPersonaTour] = useState(false);
+  const [showDataGovernance, setShowDataGovernance] = useState(false);
   const [showPartnersGateModal, setShowPartnersGateModal] = useState(false);
   const [isInPartnersView, setIsInPartnersView] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -234,6 +236,7 @@ function App() {
           onOpenBetaFeedback={() => setShowBetaFeedback(true)}
           onOpenProductShowcase={() => setShowProductShowcase(true)}
           onOpenPersonaTour={() => setShowPersonaTour(true)}
+          onOpenDataGovernance={() => setShowDataGovernance(true)}
         />
 
         <PersonaAuthModal
@@ -335,6 +338,7 @@ function App() {
           onOpenBetaFeedback={() => setShowBetaFeedback(true)}
           onOpenProductShowcase={() => setShowProductShowcase(true)}
           onOpenPersonaTour={() => setShowPersonaTour(true)}
+          onOpenDataGovernance={() => setShowDataGovernance(true)}
         />
 
         <PersonaAuthModal
@@ -423,6 +427,7 @@ function App() {
           onOpenBetaFeedback={() => setShowBetaFeedback(true)}
           onOpenProductShowcase={() => setShowProductShowcase(true)}
           onOpenPersonaTour={() => setShowPersonaTour(true)}
+          onOpenDataGovernance={() => setShowDataGovernance(true)}
         />
 
         <PersonaAuthModal
@@ -777,6 +782,7 @@ function App() {
         onOpenBetaFeedback={() => setShowBetaFeedback(true)}
         onOpenProductShowcase={() => setShowProductShowcase(true)}
         onOpenPersonaTour={() => setShowPersonaTour(true)}
+        onOpenDataGovernance={() => setShowDataGovernance(true)}
       />
 
       {/* Global Atma-Jnana Philosophy Modal */}
@@ -816,6 +822,12 @@ function App() {
         onClose={() => setShowPersonaTour(false)}
         onSelectPersona={handleTourPersonaSelect}
         currentRole={user?.role}
+      />
+
+      {/* Global DPDP Act 2023 §13 Data Sovereignty & Portability Suite */}
+      <DataSovereigntyModal
+        isOpen={showDataGovernance}
+        onClose={() => setShowDataGovernance(false)}
       />
     </div>
   );

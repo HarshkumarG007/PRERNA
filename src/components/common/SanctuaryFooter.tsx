@@ -8,12 +8,14 @@ export interface SanctuaryFooterProps {
   onOpenBetaFeedback?: () => void;
   onOpenProductShowcase?: () => void;
   onOpenPersonaTour?: () => void;
+  onOpenDataGovernance?: () => void;
 }
 
 export const SanctuaryFooter: React.FC<SanctuaryFooterProps> = ({
   onOpenBetaFeedback,
   onOpenProductShowcase,
   onOpenPersonaTour,
+  onOpenDataGovernance,
 }) => {
   const [litStar, setLitStar] = useState(false);
 
@@ -181,6 +183,19 @@ export const SanctuaryFooter: React.FC<SanctuaryFooterProps> = ({
                 >
                   <Sparkles size={12} className="text-indigo-600" />
                   <span>Product Deck</span>
+                </button>
+              )}
+              {onOpenDataGovernance && (
+                <button
+                  onClick={() => {
+                    somaticAudio.playSoftChime();
+                    onOpenDataGovernance();
+                  }}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold transition-colors cursor-pointer shadow-2xs"
+                  title="DPDP Act 2023 §13 Data Sovereignty & Erasure Vault"
+                >
+                  <ShieldCheck size={12} className="text-emerald-700" />
+                  <span>Data Vault & Rights</span>
                 </button>
               )}
               {onOpenBetaFeedback && (

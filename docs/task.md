@@ -487,6 +487,12 @@
   - [x] **Payment Checkout Modal**: Created `src/components/subscription/PaymentCheckoutModal.tsx` supporting UPI apps (GPay, PhonePe, Paytm, BHIM), Razorpay Standard cards/netbanking, and Beta grant vouchers.
   - [x] **Modal Integration**: Integrated checkout flows into `PartnerSubscriptionModal.tsx` and `SchoolLicensingModal.tsx`.
   - [x] **Comprehensive Test Suite Expansion**: Added `src/tests/security/cryptoVault.test.ts` (5 tests) and `src/tests/subscription/paymentGateway.test.ts` (4 tests) — scaled test suite to **191/191 tests passing across 37 test files**.
+- [x] **P7-29** DPDP Act §13 Data Sovereignty Suite, Formal Statutory DPIA, & WCAG 2.1 Focus Trapping
+  - [x] **Data Sovereignty Suite**: Created `src/components/governance/DataSovereigntyModal.tsx` enabling statutory Right to Portability (§13 full JSON archive export) and Right to Erasure (§13 cryptographic shredder with `SHRED MY VAULT` challenge).
+  - [x] **Sanctuary Footer Integration**: Added global `Data Vault & Rights` pill in `SanctuaryFooter.tsx` and wired into `App.tsx` across all 4 personas.
+  - [x] **WCAG 2.1 AA Keyboard Focus Trap**: Implemented `src/utils/useFocusTrap.ts` trapping Tab/Shift+Tab focus within dialogs and handling Escape key across `DataSovereigntyModal`, `PaymentCheckoutModal`, `PersonaAuthModal`, and `PartnerSubscriptionModal`.
+  - [x] **Formal Statutory DPIA Document**: Created `docs/dpia-data-protection-impact-assessment.md` detailing Section 9 child protections, risk matrices, clinician escalation invariants (Rule 0.3), and zero-cloud residual safety.
+  - [x] **Test Expansion**: Added `src/tests/governance/DataSovereigntyModal.test.tsx` (4 tests) and `src/tests/utils/useFocusTrap.test.ts` (2 tests) — scaled test suite to **197/197 tests passing across 39 test files**.
 
 ---
 
@@ -495,8 +501,8 @@
 - [x] `docs/dpdp-compliance-mapping.md` updated for any change touching consent, data collection, or crisis
 - [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
 - [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
-- [x] Pre-deployment regression test suite: **191/191 tests passed across 37 test files**
-- [x] Production bundle verified: `tsc && vite build` completed with zero errors (8.04s build time)
+- [x] Pre-deployment regression test suite: **197/197 tests passed across 39 test files**
+- [x] Production bundle verified: `tsc && vite build` completed with zero errors (9.35s build time)
 - [x] Staged rollout: Beta cohort testing before broad public release (documented in `docs/beta-cohort-staged-rollout-dossier.md`)
 
 ---
