@@ -192,6 +192,7 @@ export interface SignupData {
   region: string;
   language: string;
   pin: string;
+  role?: User['role'];
   // Rich profile fields
   name?: string;
   gender?: User['gender'];
@@ -438,6 +439,7 @@ export const useAppStore = create<AppState>()(
         set({ isLoading: true });
         
         try {
+          const userRole = data.role || 'teen';
           const userId = await invoke<string>('create_user', {
             user: {
               username: data.username,
@@ -445,6 +447,7 @@ export const useAppStore = create<AppState>()(
               age_range: data.ageRange,
               region: data.region || data.state || 'India',
               language: data.language || 'en',
+              role: userRole,
               pin: data.pin || null,
               name: data.name || null,
               gender: data.gender || null,
@@ -452,8 +455,9 @@ export const useAppStore = create<AppState>()(
             },
           });
           
-          // Remember last authenticated user ID (never store PINs or credentials in localStorage)
+          // Remember last authenticated user ID & role
           localStorage.setItem('prerna_last_user', userId);
+          localStorage.setItem('prerna_user_role', userRole);
           
           // Auto-login (create_user already set session.set_authenticated on backend)
           await get().login(userId);

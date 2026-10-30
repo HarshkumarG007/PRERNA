@@ -362,7 +362,35 @@ const SignupFlow: React.FC<{
   // ── Step 1: Identity ─────────────────────────────────────────────────────
   if (step === 1) {
     return (
-      <div className="space-y-5 pt-2">
+      <div className="space-y-4 pt-2">
+        <Field label="I am joining as" required>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { value: 'teen', label: '👤 Teen', desc: '13–18 yrs' },
+              { value: 'parent', label: '👨‍👩‍👧 Parent', desc: 'Family' },
+              { value: 'educator', label: '🎓 Educator', desc: 'School' },
+            ].map((roleOpt) => (
+              <button
+                key={roleOpt.value}
+                type="button"
+                onClick={() => setFormData({ 
+                  ...formData, 
+                  role: roleOpt.value as any,
+                  ageRange: roleOpt.value === 'parent' || roleOpt.value === 'educator' ? '18+' : (formData.ageRange || '16-17')
+                })}
+                className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                  (formData.role || 'teen') === roleOpt.value
+                    ? 'border-violet-500 bg-violet-500/25 text-white font-bold ring-1 ring-violet-500'
+                    : 'border-white/10 bg-white/5 text-white/60 hover:bg-white/10'
+                }`}
+              >
+                <div className="text-xs font-bold">{roleOpt.label}</div>
+                <div className="text-[10px] text-white/40">{roleOpt.desc}</div>
+              </button>
+            ))}
+          </div>
+        </Field>
+
         <Field label="Full Name" required>
           <input
             type="text"
@@ -668,7 +696,34 @@ const LoginForm: React.FC<{
   }
 
   return (
-    <div className="space-y-5 pt-2">
+    <div className="space-y-4 pt-2">
+      <div>
+        <label className="block text-xs font-bold text-white/50 uppercase tracking-widest mb-2">Access Persona</label>
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { value: 'teen', label: '👤 Teen' },
+            { value: 'parent', label: '👨‍👩‍👧 Parent' },
+            { value: 'educator', label: '🎓 Educator' },
+          ].map((roleOpt) => (
+            <button
+              key={roleOpt.value}
+              type="button"
+              onClick={() => {
+                setFormData({ ...formData, role: roleOpt.value as any });
+                localStorage.setItem('prerna_user_role', roleOpt.value);
+              }}
+              className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
+                (formData.role || localStorage.getItem('prerna_user_role') || 'teen') === roleOpt.value
+                  ? 'border-violet-500 bg-violet-500/25 text-white font-bold ring-1 ring-violet-500'
+                  : 'border-white/10 bg-white/5 text-white/60 hover:bg-white/10'
+              }`}
+            >
+              <div className="text-xs font-bold">{roleOpt.label}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div>
         <label className="block text-xs font-bold text-white/50 uppercase tracking-widest mb-2">Username</label>
         <input

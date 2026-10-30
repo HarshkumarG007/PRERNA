@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route, Link, Navigate } from 'react-router-dom';
-import { LogOut, HeartHandshake } from 'lucide-react';
+import { LogOut, HeartHandshake, Menu, X } from 'lucide-react';
 import { useI18n, LANGUAGE_NAMES, Language } from './engine/localization/i18n';
 
 import { BetaOnboardingNotice } from './components/consent/BetaOnboardingNotice';
@@ -31,6 +31,7 @@ import { KayaKalpaSanctuary } from './components/vitality/KayaKalpaSanctuary';
 import { SanctuaryFooter } from './components/common/SanctuaryFooter';
 import { ClinicianLogin } from './components/clinical/ClinicianLogin';
 import { ReviewDashboard } from './components/clinical/ReviewDashboard';
+import { PersonaAuthModal } from './components/security/PersonaAuthModal';
 import { useAppStore } from './store';
 
 // No mock context needed anymore
@@ -44,6 +45,17 @@ function App() {
   const [clinicianAuthed, setClinicianAuthed] = useState(false);
   const [showAtmaModal, setShowAtmaModal] = useState(false);
   const [showDevModal, setShowDevModal] = useState(false);
+  const [showPersonaModal, setShowPersonaModal] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleRoleAuthorize = (targetRole: 'teen' | 'parent' | 'educator') => {
+    updateRole(targetRole);
+    if (targetRole === 'parent') {
+      localStorage.setItem('prerna_parent_linked', 'true');
+      setParentLinked(true);
+    }
+    setShowPersonaModal(false);
+  };
 
   useEffect(() => {
     // Check for existing session
@@ -152,7 +164,7 @@ function App() {
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => updateRole(undefined as any)}
+                onClick={() => setShowPersonaModal(true)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors shadow-2xs cursor-pointer"
                 title="Switch persona to Teen or Educator"
               >
@@ -171,9 +183,15 @@ function App() {
           </div>
         </header>
         <main className="flex-grow">
-          <ParentDashboard onExit={() => updateRole(undefined as any)} />
+          <ParentDashboard onExit={() => setShowPersonaModal(true)} />
         </main>
         <SanctuaryFooter />
+
+        <PersonaAuthModal
+          isOpen={showPersonaModal}
+          onClose={() => setShowPersonaModal(false)}
+          onAuthorize={handleRoleAuthorize}
+        />
       </div>
     );
   }
@@ -194,7 +212,7 @@ function App() {
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => updateRole(undefined as any)}
+                onClick={() => setShowPersonaModal(true)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-colors shadow-2xs cursor-pointer"
                 title="Switch persona to Teen or Parent"
               >
@@ -216,6 +234,12 @@ function App() {
           <SchoolDashboard />
         </main>
         <SanctuaryFooter />
+
+        <PersonaAuthModal
+          isOpen={showPersonaModal}
+          onClose={() => setShowPersonaModal(false)}
+          onAuthorize={handleRoleAuthorize}
+        />
       </div>
     );
   }
@@ -344,9 +368,9 @@ function App() {
 
               {/* Persona Switcher */}
               <button
-                onClick={() => updateRole(undefined as any)}
+                onClick={() => setShowPersonaModal(true)}
                 className="flex flex-col items-center justify-center px-2 py-1 rounded-xl text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100 border border-indigo-200 transition-colors shadow-2xs cursor-pointer"
-                title="Click to switch persona (Teen, Parent, or Educator)"
+                title="Click to securely switch persona (Teen, Parent, or Educator)"
               >
                 <span className="text-[10px] font-bold leading-none">👤 Teen</span>
                 <span className="text-[9px] text-indigo-500 font-normal leading-tight">(Switch)</span>
@@ -361,8 +385,62 @@ function App() {
               >
                 <LogOut size={15} />
               </button>
+
+              {/* Mobile Menu Toggle (screens < lg) */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="lg:hidden p-1.5 text-slate-600 hover:text-indigo-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                title="Toggle navigation"
+                aria-label="Toggle navigation"
+              >
+                {mobileMenuOpen ? <X size={16} /> : <Menu size={16} />}
+              </button>
             </div>
           </div>
+
+          {/* Mobile Drawer (visible when mobileMenuOpen is true on small screens) */}
+          {mobileMenuOpen && (
+            <div className="lg:hidden w-full border-t border-slate-200/80 bg-white/95 backdrop-blur-md px-3 py-3 shadow-lg animate-fade-in-down">
+              <div className="grid grid-cols-3 gap-2">
+                <Link onClick={() => setMobileMenuOpen(false)} to="/quests" className="p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200/60 flex flex-col items-center text-center">
+                  <span className="text-xs font-bold text-slate-800">Life Quests</span>
+                  <span className="text-[10px] text-slate-500">Adventures</span>
+                </Link>
+                <Link onClick={() => setMobileMenuOpen(false)} to="/arena" className="p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200/60 flex flex-col items-center text-center">
+                  <span className="text-xs font-bold text-slate-800">Skill Arena</span>
+                  <span className="text-[10px] text-slate-500">Badges & XP</span>
+                </Link>
+                <Link onClick={() => setMobileMenuOpen(false)} to="/mood" className="p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200/60 flex flex-col items-center text-center">
+                  <span className="text-xs font-bold text-slate-800">Mood Mirror</span>
+                  <span className="text-[10px] text-slate-500">Balance</span>
+                </Link>
+                <Link onClick={() => setMobileMenuOpen(false)} to="/social" className="p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200/60 flex flex-col items-center text-center">
+                  <span className="text-xs font-bold text-slate-800">Social Compass</span>
+                  <span className="text-[10px] text-slate-500">Peers</span>
+                </Link>
+                <Link onClick={() => setMobileMenuOpen(false)} to="/mentor" className="p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200/60 flex flex-col items-center text-center">
+                  <span className="text-xs font-bold text-slate-800">AI Mentor</span>
+                  <span className="text-[10px] text-slate-500">Guidance</span>
+                </Link>
+                <Link onClick={() => setMobileMenuOpen(false)} to="/evolution" className="p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200/60 flex flex-col items-center text-center">
+                  <span className="text-xs font-bold text-slate-800">Self-Evolution</span>
+                  <span className="text-[10px] text-slate-500">Journal</span>
+                </Link>
+                <Link onClick={() => setMobileMenuOpen(false)} to="/vitality" className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 flex flex-col items-center text-center">
+                  <span className="text-xs font-bold text-emerald-800">Kaya Kalpa</span>
+                  <span className="text-[10px] text-emerald-600">Vitality & Sleep</span>
+                </Link>
+                <Link onClick={() => setMobileMenuOpen(false)} to="/breathe" className="p-2 rounded-xl bg-teal-50 hover:bg-teal-100 border border-teal-200/80 flex flex-col items-center text-center">
+                  <span className="text-xs font-bold text-teal-800">🫁 432Hz</span>
+                  <span className="text-[10px] text-teal-600">Breathe</span>
+                </Link>
+                <Link onClick={() => setMobileMenuOpen(false)} to="/profile" className="p-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 flex flex-col items-center text-center">
+                  <span className="text-xs font-bold text-indigo-800">Teen Dash</span>
+                  <span className="text-[10px] text-indigo-600">Milestones</span>
+                </Link>
+              </div>
+            </div>
+          )}
         </header>
 
       <main className="flex-grow flex flex-col">
@@ -429,6 +507,13 @@ function App() {
       <AboutDeveloperModal
         isOpen={showDevModal}
         onClose={() => setShowDevModal(false)}
+      />
+
+      {/* Global Persona Authentication Modal */}
+      <PersonaAuthModal
+        isOpen={showPersonaModal}
+        onClose={() => setShowPersonaModal(false)}
+        onAuthorize={handleRoleAuthorize}
       />
     </div>
   );
