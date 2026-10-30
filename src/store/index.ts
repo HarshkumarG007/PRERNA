@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { safeInvoke as invoke } from '../utils/mockBackend';
 import { SixteenTypeResult, deriveSixteenType } from '../engine/assessment/sixteenPersonalities';
+import { GrowthJournalEntry } from '../engine/growth/selfEvolutionEngine';
 
 // Types
 export interface User {
@@ -124,6 +125,13 @@ export interface AppState {
   recordSession: (session: Omit<Session, 'id'>) => Promise<void>;
   setActiveView: (view: AppState['activeView']) => void;
   revokeConsent: () => Promise<void>;
+
+  // Self-Evolution & Growth Journal (DPDP Act strictly local on-device)
+  journalEntries: GrowthJournalEntry[];
+  completedMitigations: Record<string, number>;
+  addJournalEntry: (entry: Omit<GrowthJournalEntry, 'id' | 'createdAt'>) => void;
+  deleteJournalEntry: (id: string) => void;
+  toggleMitigation: (strategyId: string) => void;
 }
 
 export interface SignupData {
@@ -164,6 +172,8 @@ export const useAppStore = create<AppState>()(
       },
       activeView: 'home',
       sidebarOpen: false,
+      journalEntries: [],
+      completedMitigations: {},
 
       // Actions
       login: async (userId: string) => {
@@ -467,14 +477,42 @@ export const useAppStore = create<AppState>()(
       },
 
       setActiveView: (view) => set({ activeView: view }),
+
+      addJournalEntry: (entry) => {
+        const newEntry: GrowthJournalEntry = {
+          ...entry,
+          id: `entry_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+          createdAt: new Date().toISOString(),
+        };
+        set(state => ({
+          journalEntries: [newEntry, ...state.journalEntries]
+        }));
+      },
+
+      deleteJournalEntry: (id) => {
+        set(state => ({
+          journalEntries: state.journalEntries.filter(e => e.id !== id)
+        }));
+      },
+
+      toggleMitigation: (strategyId) => {
+        set(state => ({
+          completedMitigations: {
+            ...state.completedMitigations,
+            [strategyId]: (state.completedMitigations[strategyId] || 0) + 1,
+          }
+        }));
+      },
     }),
     {
       name: 'prerna-storage',
       storage: createJSONStorage(() => localStorage),
-      // Only persist non-sensitive UI and streak preferences
+      // Only persist non-sensitive UI, streak preferences, and private on-device growth data
       partialize: (state) => ({
         streak: state.streak,
         activeView: state.activeView,
+        journalEntries: state.journalEntries,
+        completedMitigations: state.completedMitigations,
       }),
     }
   )
@@ -486,3 +524,5 @@ export const useProfile = () => useAppStore(state => state.profile);
 export const useStreak = () => useAppStore(state => state.streak);
 export const useIsAuthenticated = () => useAppStore(state => state.isAuthenticated);
 export const useTodaySessions = () => useAppStore(state => state.todaySessions);
+export const useJournalEntries = () => useAppStore(state => state.journalEntries);
+export const useCompletedMitigations = () => useAppStore(state => state.completedMitigations);

@@ -22,6 +22,7 @@ import { RoleSelection } from './components/onboarding/RoleSelection';
 import { ParentLinking } from './components/onboarding/ParentLinking';
 import { SelfDiscoveryJourney } from './components/assessment/SelfDiscoveryJourney';
 import { deriveSixteenType } from './engine/assessment/sixteenPersonalities';
+import { SelfEvolutionSanctuary } from './components/growth/SelfEvolutionSanctuary';
 import { ClinicianLogin } from './components/clinical/ClinicianLogin';
 import { ReviewDashboard } from './components/clinical/ReviewDashboard';
 import { useAppStore } from './store';
@@ -182,6 +183,7 @@ function App() {
                 <Link to="/mood" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.mood_mirror', 'Mood Mirror')}</Link>
                 <Link to="/social" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.social_compass', 'Social Compass')}</Link>
                 <Link to="/mentor" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.ai_mentor', 'AI Mentor')}</Link>
+                <Link to="/evolution" className="text-slate-600 hover:text-indigo-600 transition-colors">Self-Evolution</Link>
                 <Link to="/profile" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.profile', 'Teen Dash')}</Link>
               </nav>
             </div>
@@ -232,6 +234,9 @@ function App() {
           <Route path="/mood" element={<div className="max-w-7xl mx-auto"><MoodMirror userId={user.id} /></div>} />
           <Route path="/social" element={<div className="max-w-7xl mx-auto"><SocialCompass userId={user.id} /></div>} />
           <Route path="/mentor" element={<div className="max-w-7xl mx-auto"><AiMentorChat userId={user.id} /></div>} />
+          <Route path="/evolution" element={<SelfEvolutionSanctuary />} />
+          <Route path="/journal" element={<SelfEvolutionSanctuary initialTab="journal" />} />
+          <Route path="/mitigations" element={<SelfEvolutionSanctuary initialTab="mitigations" />} />
           <Route path="/dashboard" element={<TeenProfileView />} />
           <Route path="/profile" element={<TeenProfileView />} />
           <Route path="/shared-dashboard" element={<div className="max-w-7xl mx-auto"><SharedDashboardView /></div>} />

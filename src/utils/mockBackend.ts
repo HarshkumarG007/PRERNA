@@ -285,6 +285,16 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
         } as any;
       }
 
+      // 3. Self-Evolution, Friction & Mitigation Strategy guidance
+      if (/\b(better version|procrastinat|overthink|perfection|friction|habit|evolv|growth|weakness|self.?image)\b/i.test(msg)) {
+        return {
+          response: "Becoming a better version of yourself is not about self-criticism—it is about honoring your current foundation and applying micro-mitigations when friction happens. For example, using the '5-Minute Micro-Start' cuts through task avoidance, while the 'Thought vs. Fact Detangler' quiets overthinking. You can track these anytime in your Self-Evolution Sanctuary.",
+          conversation_id: convId,
+          sentiment: 'empowering',
+          suggested_actions: ['Open Self-Evolution Sanctuary', 'Try 5-Minute Micro-Start', 'Log a Superpower Win'],
+        } as any;
+      }
+
       // 3. Trait Context Reflection (P3-2 Acceptance Criteria)
       let traitRef = '';
       if (bigFive) {

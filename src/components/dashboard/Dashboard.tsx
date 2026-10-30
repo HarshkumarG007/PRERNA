@@ -10,7 +10,9 @@ import {
   ChevronRight,
   Zap,
   TrendingUp,
-  WifiOff
+  WifiOff,
+  Compass,
+  BookOpen
 } from 'lucide-react';
 
 // Sub-components
@@ -123,6 +125,57 @@ export const Dashboard: React.FC = () => {
             </section>
           )}
 
+          {/* Self-Evolution Sanctuary & Strengths Journal */}
+          <section>
+            <motion.div
+              whileHover={{ scale: 1.01 }}
+              onClick={() => navigate('/evolution')}
+              className="cursor-pointer bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-900 text-white rounded-3xl p-6 md:p-8 border border-indigo-700/40 shadow-lg relative overflow-hidden group transition-all"
+            >
+              <div className="absolute top-0 right-0 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-emerald-500/20 transition-all" />
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/30 text-indigo-200 text-xs font-bold uppercase tracking-wider border border-indigo-400/20">
+                    <Sparkles size={12} className="text-emerald-400" />
+                    <span>Actual vs. Improvised Self</span>
+                  </div>
+                  <h3 className="text-xl md:text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                    Self-Evolution Sanctuary & Strengths Journal
+                  </h3>
+                  <p className="text-slate-300 text-xs md:text-sm max-w-xl leading-relaxed">
+                    Explore your current archetype baseline vs. your self-actualized potential. Track superpower moments, face friction edges with dignity, and master 6 behavioral mitigation tools.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3 self-start md:self-auto flex-shrink-0">
+                  <div className="hidden sm:flex flex-col text-right">
+                    <span className="text-xs font-bold text-emerald-400">100% Private & Local</span>
+                    <span className="text-[11px] text-slate-400">DPDP Act Compliant</span>
+                  </div>
+                  <div className="w-12 h-12 rounded-2xl bg-white text-indigo-950 flex items-center justify-center font-bold shadow-md group-hover:translate-x-1 transition-transform">
+                    <ChevronRight size={22} />
+                  </div>
+                </div>
+              </div>
+
+              {/* 3 feature badges */}
+              <div className="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6 pt-5 border-t border-white/10">
+                <div className="flex items-center gap-2.5 text-xs text-slate-200 bg-white/5 px-3 py-2 rounded-xl border border-white/10">
+                  <Compass size={15} className="text-indigo-400 flex-shrink-0" />
+                  <span>Mirror: Current vs Evolved</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-xs text-slate-200 bg-white/5 px-3 py-2 rounded-xl border border-white/10">
+                  <BookOpen size={15} className="text-emerald-400 flex-shrink-0" />
+                  <span>Strengths & Friction Journal</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-xs text-slate-200 bg-white/5 px-3 py-2 rounded-xl border border-white/10">
+                  <Zap size={15} className="text-amber-400 flex-shrink-0" />
+                  <span>6 Behavioral Mitigation Tools</span>
+                </div>
+              </div>
+            </motion.div>
+          </section>
+
           {/* Daily Focus */}
           <section>
             <div className="flex items-center justify-between mb-5">
@@ -218,6 +271,7 @@ export const Dashboard: React.FC = () => {
         <div className="flex justify-between items-center max-w-sm mx-auto">
           {[
             { id: '/', icon: Sparkles, label: 'Home' },
+            { id: '/evolution', icon: Compass, label: 'Evolve' },
             { id: '/quests', icon: Target, label: 'Quest' },
             { id: '/arena', icon: Zap, label: 'Arena' },
             { id: '/mentor', icon: MessageCircle, label: 'Mentor' },

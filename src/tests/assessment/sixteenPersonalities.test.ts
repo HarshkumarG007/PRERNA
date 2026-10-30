@@ -94,3 +94,4 @@ describe('16 Personality Types Engine', () => {
     expect(result.definition.role).toBe('explorers');
   });
 });
+

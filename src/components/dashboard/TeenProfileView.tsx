@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, Brain, Compass, Sparkles, Shield, Database, LogOut, Bell, Link2, Check, ArrowLeft } from 'lucide-react';
+import { AlertTriangle, Brain, Compass, Sparkles, Shield, Database, LogOut, Bell, Link2, Check, ArrowLeft, ArrowRight } from 'lucide-react';
 import { DataExport } from '../settings/DataExport';
 import { DataDelete } from '../settings/DataDelete';
 import { AuditTrailViewer } from '../settings/AuditTrailViewer';
@@ -210,8 +210,19 @@ export const TeenProfileView: React.FC = () => {
 
       {/* 16 Personalities Typology Spotlight */}
       {sixteenType && (
-        <div className="relative z-10">
+        <div className="relative z-10 space-y-4">
           <SixteenTypeCard sixteenType={sixteenType} />
+          
+          <div className="flex justify-end">
+            <button
+              onClick={() => navigate('/evolution')}
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs tracking-wider uppercase shadow-lg shadow-indigo-600/30 transition-all border border-indigo-400/30"
+            >
+              <Sparkles size={15} className="text-amber-300" />
+              <span>Explore Actual vs. Improvised Self & Strengths Journal</span>
+              <ArrowRight size={14} />
+            </button>
+          </div>
         </div>
       )}
 
