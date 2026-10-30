@@ -181,7 +181,6 @@ function App() {
                 <Link to="/social" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.social_compass', 'Social Compass')}</Link>
                 <Link to="/mentor" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.ai_mentor', 'AI Mentor')}</Link>
                 <Link to="/profile" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.profile', 'Teen Dash')}</Link>
-                <Link to="/support" className="text-rose-600 hover:text-rose-700 transition-colors font-bold">{t('nav.support', 'Helplines')}</Link>
               </nav>
             </div>
           <div className="flex items-center gap-3">
