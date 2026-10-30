@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { safeInvoke as invoke } from '../utils/mockBackend';
 import { SixteenTypeResult, deriveSixteenType } from '../engine/assessment/sixteenPersonalities';
-import { GrowthJournalEntry } from '../engine/growth/selfEvolutionEngine';
+import { GrowthJournalEntry, MitigationStrategy } from '../engine/growth/selfEvolutionEngine';
 
 // Types
 export interface User {
@@ -129,9 +129,12 @@ export interface AppState {
   // Self-Evolution & Growth Journal (DPDP Act strictly local on-device)
   journalEntries: GrowthJournalEntry[];
   completedMitigations: Record<string, number>;
+  customMitigations: MitigationStrategy[];
   addJournalEntry: (entry: Omit<GrowthJournalEntry, 'id' | 'createdAt'>) => void;
   deleteJournalEntry: (id: string) => void;
   toggleMitigation: (strategyId: string) => void;
+  addCustomMitigation: (strategy: Omit<MitigationStrategy, 'id' | 'isCustom'>) => void;
+  deleteCustomMitigation: (id: string) => void;
 }
 
 export interface SignupData {
@@ -174,6 +177,7 @@ export const useAppStore = create<AppState>()(
       sidebarOpen: false,
       journalEntries: [],
       completedMitigations: {},
+      customMitigations: [],
 
       // Actions
       login: async (userId: string) => {
@@ -503,6 +507,23 @@ export const useAppStore = create<AppState>()(
           }
         }));
       },
+
+      addCustomMitigation: (strategyData) => {
+        const custom: MitigationStrategy = {
+          ...strategyData,
+          id: `custom_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          isCustom: true,
+        };
+        set(state => ({
+          customMitigations: [custom, ...state.customMitigations]
+        }));
+      },
+
+      deleteCustomMitigation: (id) => {
+        set(state => ({
+          customMitigations: state.customMitigations.filter(s => s.id !== id)
+        }));
+      },
     }),
     {
       name: 'prerna-storage',
@@ -513,6 +534,7 @@ export const useAppStore = create<AppState>()(
         activeView: state.activeView,
         journalEntries: state.journalEntries,
         completedMitigations: state.completedMitigations,
+        customMitigations: state.customMitigations,
       }),
     }
   )
@@ -526,3 +548,4 @@ export const useIsAuthenticated = () => useAppStore(state => state.isAuthenticat
 export const useTodaySessions = () => useAppStore(state => state.todaySessions);
 export const useJournalEntries = () => useAppStore(state => state.journalEntries);
 export const useCompletedMitigations = () => useAppStore(state => state.completedMitigations);
+export const useCustomMitigations = () => useAppStore(state => state.customMitigations);

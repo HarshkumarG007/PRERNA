@@ -17,17 +17,23 @@ import {
   TrendingUp, 
   Brain, 
   Layers,
-  ChevronLeft
+  ChevronLeft,
+  SlidersHorizontal,
+  Sun,
+  Wand2,
+  Star
 } from 'lucide-react';
 import { 
   useAppStore, 
   useUser, 
   useProfile, 
   useJournalEntries, 
-  useCompletedMitigations 
+  useCompletedMitigations,
+  useCustomMitigations
 } from '../../store';
 import { 
   generateSelfImageComparison, 
+  generatePersonalizedSelfManagementPlan,
   MITIGATION_STRATEGIES, 
   MitigationStrategy,
   GrowthJournalEntry 
@@ -70,12 +76,33 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
   const profile = useProfile();
   const journalEntries = useJournalEntries();
   const completedMitigations = useCompletedMitigations();
-  const { addJournalEntry, deleteJournalEntry, toggleMitigation } = useAppStore();
+  const customMitigations = useCustomMitigations();
+  const { 
+    addJournalEntry, 
+    deleteJournalEntry, 
+    toggleMitigation, 
+    addCustomMitigation, 
+    deleteCustomMitigation 
+  } = useAppStore();
 
   const [activeTab, setActiveTab] = useState<'mirror' | 'journal' | 'mitigations'>(initialTab);
   
-  // Strategy filter
+  // Strategy filter & mode
+  const [managementMode, setManagementMode] = useState<'personalized' | 'all'>('personalized');
   const [strategyCategory, setStrategyCategory] = useState<string>('all');
+  const [showCustomModal, setShowCustomModal] = useState(false);
+
+  // Custom strategy form state
+  const [customTitle, setCustomTitle] = useState('');
+  const [customHindiTitle, setCustomHindiTitle] = useState('');
+  const [customCategory, setCustomCategory] = useState<MitigationStrategy['category']>('focus');
+  const [customTagline, setCustomTagline] = useState('');
+  const [customTargetFriction, setCustomTargetFriction] = useState('');
+  const [customMechanism, setCustomMechanism] = useState('');
+  const [customStep1, setCustomStep1] = useState('');
+  const [customStep2, setCustomStep2] = useState('');
+  const [customStep3, setCustomStep3] = useState('');
+  const [customMantra, setCustomMantra] = useState('');
 
   // Journal form state
   const [showAddForm, setShowAddForm] = useState(false);
@@ -106,11 +133,33 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
     return generateSelfImageComparison(sixteenType, user?.name);
   }, [sixteenType, user?.name]);
 
-  // Filtered strategies
+  // Derive deep personalized self-management plan
+  const personalizedPlan = useMemo(() => {
+    return generatePersonalizedSelfManagementPlan(
+      profile,
+      user,
+      journalEntries,
+      completedMitigations,
+      customMitigations
+    );
+  }, [profile, user, journalEntries, completedMitigations, customMitigations]);
+
+  // All combined strategies
+  const allStrategies = useMemo(() => {
+    return [...MITIGATION_STRATEGIES, ...customMitigations];
+  }, [customMitigations]);
+
+  // Filtered strategies for "all" mode
   const filteredStrategies = useMemo(() => {
-    if (strategyCategory === 'all') return MITIGATION_STRATEGIES;
-    return MITIGATION_STRATEGIES.filter(s => s.category === strategyCategory);
-  }, [strategyCategory]);
+    if (strategyCategory === 'all') return allStrategies;
+    return allStrategies.filter(s => s.category === strategyCategory);
+  }, [strategyCategory, allStrategies]);
+
+  // Filtered recommendations for "personalized" mode
+  const filteredRecommendations = useMemo(() => {
+    if (strategyCategory === 'all') return personalizedPlan.recommendedStrategies;
+    return personalizedPlan.recommendedStrategies.filter(r => r.strategy.category === strategyCategory);
+  }, [strategyCategory, personalizedPlan]);
 
   // Filtered journal entries
   const filteredEntries = useMemo(() => {
@@ -157,6 +206,37 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
     setEntryMitigation('');
     setEntryMood(4);
     setShowAddForm(false);
+  };
+
+  const handleSaveCustomStrategy = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customTitle.trim() || !customTagline.trim()) return;
+
+    const steps = [customStep1, customStep2, customStep3]
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+
+    addCustomMitigation({
+      title: customTitle.trim(),
+      hindiTitle: customHindiTitle.trim() || customTitle.trim(),
+      category: customCategory,
+      tagline: customTagline.trim(),
+      targetFriction: customTargetFriction.trim() || 'Custom personal friction point',
+      psychologicalMechanism: customMechanism.trim() || 'Personal intentional habit reprogramming.',
+      stepByStep: steps.length > 0 ? steps : ['Pause and take a breath', 'Follow your custom protocol', 'Check off as completed'],
+      quickMantra: customMantra.trim() || 'My customized habit brings calm momentum.'
+    });
+
+    setCustomTitle('');
+    setCustomHindiTitle('');
+    setCustomTagline('');
+    setCustomTargetFriction('');
+    setCustomMechanism('');
+    setCustomStep1('');
+    setCustomStep2('');
+    setCustomStep3('');
+    setCustomMantra('');
+    setShowCustomModal(false);
   };
 
   const toggleTag = (tag: string) => {
@@ -916,134 +996,610 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
         )}
 
         {/* ========================================================================= */}
-        {/* TAB 3: MITIGATION STRATEGIES (EVOLUTION TOOLKIT) */}
+        {/* TAB 3: PERSONALIZED SELF-MANAGEMENT TOOLKIT */}
         {/* ========================================================================= */}
         {activeTab === 'mitigations' && (
           <div className="space-y-8 animate-fade-in-up">
-            {/* Header Description */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            
+            {/* Header with Mode Switcher & Custom Strategy CTA */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div>
-                <h3 className="text-xl font-black text-slate-900 flex items-center gap-2">
-                  <Zap size={22} className="text-amber-500" />
-                  Evidence-Based Behavioral Mitigation Toolkit
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-800 text-xs font-bold uppercase tracking-wider mb-1.5 border border-amber-200">
+                  <Wand2 size={13} className="text-amber-600" />
+                  <span>Personalized Self-Management Strategy Engine</span>
+                </div>
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                  Behavioral Self-Management Toolkit
                 </h3>
-                <p className="text-slate-500 text-xs md:text-sm mt-1">
-                  Rooted in Cognitive Behavioral Defusion (CBT) and Positive Psychology. Pick 1 tool to try whenever friction arises.
+                <p className="text-slate-500 text-xs md:text-sm mt-0.5 max-w-2xl">
+                  Evidence-based CBT and ACT micro-interventions dynamically matched to your 16-type, learning style, and local journal reflections.
                 </p>
               </div>
 
-              {/* Category Filter */}
-              <div className="flex gap-1.5 overflow-x-auto pb-1 hide-scrollbar">
-                {[
-                  { id: 'all', label: 'All' },
-                  { id: 'focus', label: 'Focus & Flow' },
-                  { id: 'emotional_calm', label: 'Emotional Calm' },
-                  { id: 'relationships', label: 'Boundaries' },
-                  { id: 'confidence', label: 'Confidence' },
-                ].map(cat => (
+              {/* Mode Switcher and Add Button */}
+              <div className="flex flex-wrap items-center gap-2 self-start lg:self-auto">
+                <div className="bg-slate-100 p-1 rounded-2xl flex items-center gap-1 border border-slate-200">
                   <button
-                    key={cat.id}
-                    onClick={() => setStrategyCategory(cat.id)}
-                    className={`text-xs font-bold px-3 py-1.5 rounded-full border transition-all whitespace-nowrap ${
-                      strategyCategory === cat.id
-                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    onClick={() => setManagementMode('personalized')}
+                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      managementMode === 'personalized'
+                        ? 'bg-white text-indigo-900 shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
-                    {cat.label}
+                    <Sparkles size={14} className="text-indigo-600" />
+                    <span>Tailored For You ({personalizedPlan.recommendedStrategies.length})</span>
                   </button>
-                ))}
+                  <button
+                    onClick={() => setManagementMode('all')}
+                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      managementMode === 'all'
+                        ? 'bg-white text-indigo-900 shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Layers size={14} className="text-slate-600" />
+                    <span>All Tools ({allStrategies.length})</span>
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => setShowCustomModal(true)}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-colors"
+                >
+                  <Plus size={14} />
+                  <span>Custom Tool</span>
+                </button>
               </div>
             </div>
 
-            {/* Strategies Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredStrategies.map((strategy) => {
-                const practiceCount = completedMitigations[strategy.id] || 0;
-                return (
-                  <div
-                    key={strategy.id}
-                    className="bg-white rounded-3xl p-6 md:p-7 border border-slate-200/90 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
-                  >
-                    <div>
-                      {/* Category & Practice Counter */}
-                      <div className="flex items-center justify-between gap-2 mb-3">
-                        <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                          {strategy.category.replace('_', ' ')}
-                        </span>
-                        {practiceCount > 0 && (
-                          <span className="inline-flex items-center gap-1 text-xs font-black text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
-                            <Flame size={12} className="text-amber-500" />
-                            {practiceCount} {practiceCount === 1 ? 'rep' : 'reps'}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Titles */}
-                      <h4 className="text-lg font-black text-slate-900 tracking-tight">
-                        {strategy.title}
-                      </h4>
-                      <p className="text-xs font-bold text-indigo-600 mt-0.5">
-                        {strategy.hindiTitle} • <span className="text-slate-500 font-medium">{strategy.tagline}</span>
-                      </p>
-
-                      {/* Target Friction */}
-                      <div className="mt-4 p-3 rounded-xl bg-rose-50/60 border border-rose-100 text-xs">
-                        <span className="font-bold text-rose-800">Target Friction: </span>
-                        <span className="text-rose-700">{strategy.targetFriction}</span>
-                      </div>
-
-                      {/* Psychological Mechanism */}
-                      <div className="mt-2.5 p-3 rounded-xl bg-indigo-50/50 border border-indigo-100/70 text-xs">
-                        <span className="font-bold text-indigo-900">Why It Works: </span>
-                        <span className="text-indigo-800">{strategy.psychologicalMechanism}</span>
-                      </div>
-
-                      {/* Step by step */}
-                      <div className="mt-4 space-y-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">
-                          Action Protocol:
-                        </span>
-                        {strategy.stepByStep.map((step, idx) => (
-                          <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-700">
-                            <span className="w-4 h-4 rounded-full bg-slate-100 text-slate-600 font-bold flex items-center justify-center flex-shrink-0 mt-0.5 text-[10px]">
-                              {idx + 1}
-                            </span>
-                            <span>{step}</span>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Quick Mantra */}
-                      <div className="mt-4 p-3 rounded-xl bg-amber-50/70 border border-amber-200/70 text-center">
-                        <p className="text-xs font-bold italic text-amber-900">
-                          "{strategy.quickMantra}"
-                        </p>
-                      </div>
+            {/* PERSONALIZED PROFILE BANNER (Visible in Personalized Mode) */}
+            {managementMode === 'personalized' && (
+              <div className="bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 text-white rounded-3xl p-6 md:p-8 border border-indigo-700/40 shadow-xl space-y-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+                
+                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-white/10">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
+                        <Star size={12} className="text-emerald-300 fill-emerald-300" />
+                        <span>Tailored for {personalizedPlan.userTitle}</span>
+                      </span>
+                      <span className="text-xs font-bold text-indigo-300">
+                        {sixteenType?.fullCode || 'Authentic Self'}
+                      </span>
                     </div>
+                    <h4 className="text-2xl font-black text-white tracking-tight">
+                      {personalizedPlan.archetypeTitle}
+                    </h4>
+                    <p className="text-indigo-200 text-xs md:text-sm mt-1">
+                      {personalizedPlan.archetypeSubtitle}
+                    </p>
+                  </div>
 
-                    {/* Actions */}
-                    <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
-                      <button
-                        onClick={() => toggleMitigation(strategy.id)}
-                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-colors"
-                      >
-                        <CheckCircle2 size={14} className="text-indigo-600" />
-                        <span>Practice This Tool (+1)</span>
-                      </button>
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 max-w-sm text-xs">
+                    <span className="text-amber-300 font-bold flex items-center gap-1.5 mb-1">
+                      <Flame size={14} className="text-amber-400" />
+                      Dominant Friction Focus:
+                    </span>
+                    <p className="text-slate-300 leading-snug">
+                      {personalizedPlan.coreFrictionPattern}
+                    </p>
+                  </div>
+                </div>
 
-                      <button
-                        onClick={() => handleReflectWithStrategy(strategy)}
-                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors shadow-sm"
-                      >
-                        <span>Reflect in Journal</span>
-                        <ArrowUpRight size={14} />
-                      </button>
+                {/* 3 Personal Adaptation Pillars */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 relative z-10">
+                  
+                  {/* Pillar 1: Learning Style */}
+                  <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2 text-indigo-300 font-bold text-xs uppercase tracking-wider">
+                        <Brain size={14} className="text-indigo-400" />
+                        <span>{personalizedPlan.learningStyleGuidance.title}</span>
+                      </div>
+                      <p className="text-xs text-slate-300 leading-relaxed">
+                        {personalizedPlan.learningStyleGuidance.description}
+                      </p>
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-white/10 text-xs font-medium text-emerald-300">
+                      💡 <strong>Action Tip:</strong> {personalizedPlan.learningStyleGuidance.actionableTip}
                     </div>
                   </div>
-                );
-              })}
+
+                  {/* Pillar 2: Academic & Age Context */}
+                  <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2 text-amber-300 font-bold text-xs uppercase tracking-wider">
+                        <Target size={14} className="text-amber-400" />
+                        <span>Academic Stage: {personalizedPlan.ageTierGuidance.tier}</span>
+                      </div>
+                      <p className="text-xs text-slate-300 leading-relaxed">
+                        {personalizedPlan.ageTierGuidance.context}
+                      </p>
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-white/10 text-xs font-medium text-amber-200">
+                      🎯 <strong>Focus:</strong> {personalizedPlan.ageTierGuidance.focus}
+                    </div>
+                  </div>
+
+                  {/* Pillar 3: Daily Keystone Routine */}
+                  <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2 text-cyan-300 font-bold text-xs uppercase tracking-wider">
+                        <Sun size={14} className="text-cyan-400" />
+                        <span>Daily Keystone Anchors</span>
+                      </div>
+                      <div className="space-y-1.5 text-xs text-slate-300">
+                        <div>
+                          <strong className="text-slate-100">🌅 Morning:</strong> {personalizedPlan.dailyKeystoneRoutine.morningAnchor}
+                        </div>
+                        <div>
+                          <strong className="text-slate-100">🎯 Study Focus:</strong> {personalizedPlan.dailyKeystoneRoutine.studyFocusRule}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-3 pt-2.5 border-t border-white/10 text-xs text-slate-300">
+                      <strong className="text-slate-100">🌙 Evening:</strong> {personalizedPlan.dailyKeystoneRoutine.eveningReflection}
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            )}
+
+            {/* Category Filter Pills */}
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal size={15} className="text-slate-400" />
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Theme:</span>
+                <div className="flex gap-1.5 overflow-x-auto pb-1 hide-scrollbar">
+                  {[
+                    { id: 'all', label: 'All Themes' },
+                    { id: 'focus', label: 'Focus & Flow' },
+                    { id: 'emotional_calm', label: 'Emotional Calm' },
+                    { id: 'relationships', label: 'Boundaries & Energy' },
+                    { id: 'confidence', label: 'Confidence' },
+                    { id: 'habits', label: 'Execution Habits' },
+                  ].map(cat => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setStrategyCategory(cat.id)}
+                      className={`text-xs font-bold px-3 py-1.5 rounded-full border transition-all whitespace-nowrap ${
+                        strategyCategory === cat.id
+                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <span className="text-xs font-medium text-slate-400">
+                {managementMode === 'personalized' 
+                  ? `Showing ${filteredRecommendations.length} tailored recommendations`
+                  : `Showing ${filteredStrategies.length} tools`}
+              </span>
             </div>
+
+            {/* ========================================================= */}
+            {/* PERSONALIZED RECOMMENDATIONS GRID */}
+            {/* ========================================================= */}
+            {managementMode === 'personalized' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredRecommendations.map(({ strategy, matchScore, matchReason, priority, learningStyleTip }) => {
+                  const practiceCount = completedMitigations[strategy.id] || 0;
+                  return (
+                    <div
+                      key={strategy.id}
+                      className="bg-white rounded-3xl p-6 md:p-7 border border-slate-200/90 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative overflow-hidden"
+                    >
+                      <div>
+                        {/* Top Match Bar */}
+                        <div className="flex items-center justify-between gap-2 mb-3">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="inline-flex items-center gap-1 text-xs font-black px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                              <Sparkles size={12} className="text-emerald-600" />
+                              <span>{matchScore}% Match for {personalizedPlan.userTitle}</span>
+                            </span>
+                            <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                              priority === 'primary' 
+                                ? 'bg-indigo-100 text-indigo-900' 
+                                : priority === 'recommended'
+                                ? 'bg-sky-100 text-sky-900'
+                                : 'bg-slate-100 text-slate-700'
+                            }`}>
+                              {priority === 'primary' ? 'High Impact' : priority === 'recommended' ? 'Recommended' : 'Supportive'}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {strategy.isCustom && (
+                              <span className="text-[10px] font-black bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full border border-amber-200">
+                                Custom Tool
+                              </span>
+                            )}
+                            {practiceCount > 0 && (
+                              <span className="inline-flex items-center gap-1 text-xs font-black text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                                <Flame size={12} className="text-amber-500" />
+                                {practiceCount} {practiceCount === 1 ? 'rep' : 'reps'}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Title and Category */}
+                        <h4 className="text-lg font-black text-slate-900 tracking-tight">
+                          {strategy.title}
+                        </h4>
+                        <p className="text-xs font-bold text-indigo-600 mt-0.5">
+                          {strategy.hindiTitle} • <span className="text-slate-500 font-medium">{strategy.tagline}</span>
+                        </p>
+
+                        {/* Personalized Matching Rationale */}
+                        <div className="mt-3.5 p-3 rounded-xl bg-indigo-50/70 border border-indigo-100/90 text-xs">
+                          <span className="font-black text-indigo-900 flex items-center gap-1.5 mb-0.5">
+                            <Target size={13} className="text-indigo-600" />
+                            Why tailored for you:
+                          </span>
+                          <span className="text-indigo-800 leading-snug block">
+                            {matchReason}
+                          </span>
+                        </div>
+
+                        {/* Learning Style Anchor (if applicable) */}
+                        {learningStyleTip && (
+                          <div className="mt-2 p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 text-xs text-emerald-800 font-medium">
+                            {learningStyleTip}
+                          </div>
+                        )}
+
+                        {/* Target Friction */}
+                        <div className="mt-3 p-2.5 rounded-xl bg-rose-50/60 border border-rose-100 text-xs">
+                          <span className="font-bold text-rose-800">Target Friction: </span>
+                          <span className="text-rose-700">{strategy.targetFriction}</span>
+                        </div>
+
+                        {/* Psychological Mechanism */}
+                        <div className="mt-2 p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+                          <span className="font-bold text-slate-800">Why It Works: </span>
+                          <span className="text-slate-600">{strategy.psychologicalMechanism}</span>
+                        </div>
+
+                        {/* Step by Step */}
+                        <div className="mt-3.5 space-y-1.5">
+                          <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">
+                            Action Protocol:
+                          </span>
+                          {strategy.stepByStep.map((step, idx) => (
+                            <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-700">
+                              <span className="w-4 h-4 rounded-full bg-slate-100 text-slate-600 font-bold flex items-center justify-center flex-shrink-0 mt-0.5 text-[10px]">
+                                {idx + 1}
+                              </span>
+                              <span>{step}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Quick Mantra */}
+                        <div className="mt-3.5 p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/70 text-center">
+                          <p className="text-xs font-bold italic text-amber-900">
+                            "{strategy.quickMantra}"
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => toggleMitigation(strategy.id)}
+                            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-colors"
+                          >
+                            <CheckCircle2 size={14} className="text-indigo-600" />
+                            <span>Practice (+1)</span>
+                          </button>
+                          {strategy.isCustom && (
+                            <button
+                              onClick={() => deleteCustomMitigation(strategy.id)}
+                              aria-label="Delete custom tool"
+                              className="text-slate-300 hover:text-red-500 transition-colors p-2"
+                              title="Delete custom tool"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          )}
+                        </div>
+
+                        <button
+                          onClick={() => handleReflectWithStrategy(strategy)}
+                          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors shadow-sm"
+                        >
+                          <span>Reflect in Journal</span>
+                          <ArrowUpRight size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              /* ========================================================= */
+              /* ALL STRATEGIES GRID VIEW */
+              /* ========================================================= */
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredStrategies.map((strategy) => {
+                  const practiceCount = completedMitigations[strategy.id] || 0;
+                  return (
+                    <div
+                      key={strategy.id}
+                      className="bg-white rounded-3xl p-6 md:p-7 border border-slate-200/90 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                    >
+                      <div>
+                        {/* Category & Practice Counter */}
+                        <div className="flex items-center justify-between gap-2 mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                              {strategy.category.replace('_', ' ')}
+                            </span>
+                            {strategy.isCustom && (
+                              <span className="text-[10px] font-black bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full border border-amber-200">
+                                Custom Tool
+                              </span>
+                            )}
+                          </div>
+                          {practiceCount > 0 && (
+                            <span className="inline-flex items-center gap-1 text-xs font-black text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                              <Flame size={12} className="text-amber-500" />
+                              {practiceCount} {practiceCount === 1 ? 'rep' : 'reps'}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Titles */}
+                        <h4 className="text-lg font-black text-slate-900 tracking-tight">
+                          {strategy.title}
+                        </h4>
+                        <p className="text-xs font-bold text-indigo-600 mt-0.5">
+                          {strategy.hindiTitle} • <span className="text-slate-500 font-medium">{strategy.tagline}</span>
+                        </p>
+
+                        {/* Target Friction */}
+                        <div className="mt-4 p-3 rounded-xl bg-rose-50/60 border border-rose-100 text-xs">
+                          <span className="font-bold text-rose-800">Target Friction: </span>
+                          <span className="text-rose-700">{strategy.targetFriction}</span>
+                        </div>
+
+                        {/* Psychological Mechanism */}
+                        <div className="mt-2.5 p-3 rounded-xl bg-indigo-50/50 border border-indigo-100/70 text-xs">
+                          <span className="font-bold text-indigo-900">Why It Works: </span>
+                          <span className="text-indigo-800">{strategy.psychologicalMechanism}</span>
+                        </div>
+
+                        {/* Step by step */}
+                        <div className="mt-4 space-y-2">
+                          <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">
+                            Action Protocol:
+                          </span>
+                          {strategy.stepByStep.map((step, idx) => (
+                            <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-700">
+                              <span className="w-4 h-4 rounded-full bg-slate-100 text-slate-600 font-bold flex items-center justify-center flex-shrink-0 mt-0.5 text-[10px]">
+                                {idx + 1}
+                              </span>
+                              <span>{step}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Quick Mantra */}
+                        <div className="mt-4 p-3 rounded-xl bg-amber-50/70 border border-amber-200/70 text-center">
+                          <p className="text-xs font-bold italic text-amber-900">
+                            "{strategy.quickMantra}"
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => toggleMitigation(strategy.id)}
+                            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-colors"
+                          >
+                            <CheckCircle2 size={14} className="text-indigo-600" />
+                            <span>Practice (+1)</span>
+                          </button>
+                          {strategy.isCustom && (
+                            <button
+                              onClick={() => deleteCustomMitigation(strategy.id)}
+                              aria-label="Delete custom tool"
+                              className="text-slate-300 hover:text-red-500 transition-colors p-2"
+                              title="Delete custom tool"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          )}
+                        </div>
+
+                        <button
+                          onClick={() => handleReflectWithStrategy(strategy)}
+                          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors shadow-sm"
+                        >
+                          <span>Reflect in Journal</span>
+                          <ArrowUpRight size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* ========================================================= */}
+            {/* CREATE CUSTOM SELF-MANAGEMENT TOOL MODAL */}
+            {/* ========================================================= */}
+            {showCustomModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+                <form 
+                  onSubmit={handleSaveCustomStrategy}
+                  className="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full border border-slate-200 shadow-2xl space-y-5 animate-fade-in-up my-8"
+                >
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+                        <Plus size={18} />
+                      </div>
+                      <h4 className="text-lg font-black text-slate-900">Craft Custom Self-Management Tool</h4>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowCustomModal(false)}
+                      className="text-slate-400 hover:text-slate-600 text-xs font-bold"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <p className="text-xs text-slate-500">
+                    Design a personalized behavioral trigger that fits your exact study schedule, temperament, or environment. Saved 100% locally to your device.
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                        Tool Title *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={customTitle}
+                        onChange={(e) => setCustomTitle(e.target.value)}
+                        placeholder="e.g. Cold Water Sip Reset"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                        Hindi / Nickname
+                      </label>
+                      <input
+                        type="text"
+                        value={customHindiTitle}
+                        onChange={(e) => setCustomHindiTitle(e.target.value)}
+                        placeholder="e.g. जल विराम नियम"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                        Category
+                      </label>
+                      <select
+                        value={customCategory}
+                        onChange={(e) => setCustomCategory(e.target.value as any)}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      >
+                        <option value="focus">Focus & Flow</option>
+                        <option value="emotional_calm">Emotional Calm</option>
+                        <option value="relationships">Boundaries & Energy</option>
+                        <option value="confidence">Confidence</option>
+                        <option value="habits">Execution Habits</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                        One-Line Tagline *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={customTagline}
+                        onChange={(e) => setCustomTagline(e.target.value)}
+                        placeholder="e.g. 3 cold sips break study brain-freeze."
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                      Target Friction Point
+                    </label>
+                    <input
+                      type="text"
+                      value={customTargetFriction}
+                      onChange={(e) => setCustomTargetFriction(e.target.value)}
+                      placeholder="e.g. Getting stuck on hard physics derivations and wanting to scroll Instagram."
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                      Action Protocol (3 Quick Steps)
+                    </label>
+                    <div className="space-y-1.5">
+                      <input
+                        type="text"
+                        value={customStep1}
+                        onChange={(e) => setCustomStep1(e.target.value)}
+                        placeholder="Step 1: Notice the moment you want to give up."
+                        className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      />
+                      <input
+                        type="text"
+                        value={customStep2}
+                        onChange={(e) => setCustomStep2(e.target.value)}
+                        placeholder="Step 2: Take 3 slow sips of cold water."
+                        className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      />
+                      <input
+                        type="text"
+                        value={customStep3}
+                        onChange={(e) => setCustomStep3(e.target.value)}
+                        placeholder="Step 3: Try writing just the next formula line."
+                        className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                      Personal Anchor Mantra
+                    </label>
+                    <input
+                      type="text"
+                      value={customMantra}
+                      onChange={(e) => setCustomMantra(e.target.value)}
+                      placeholder="e.g. Cool the mind, solve the line."
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => setShowCustomModal(false)}
+                      className="px-4 py-2 rounded-xl font-bold text-xs text-slate-500 hover:text-slate-800"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors"
+                    >
+                      Save Custom Tool
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
           </div>
         )}
 
