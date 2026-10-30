@@ -252,3 +252,4 @@ export function classifyRestingHeartRate(bpm: number): {
     description: 'Elevated pulse may reflect recent physical activity, hydration needs, or stress. Try 3 minutes of 432 Hz Box Breathing.',
   };
 }
+

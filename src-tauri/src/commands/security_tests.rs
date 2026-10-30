@@ -176,6 +176,10 @@ mod tests {
                 mfa_enabled: false,
                 role: "teen".to_string(),
                 tenant_id: None,
+                has_completed_questionnaire: false,
+                name: None,
+                gender: None,
+                date_of_birth: None,
             },
             sessions: vec![AssessmentSession {
                 id: "sess_1".to_string(),

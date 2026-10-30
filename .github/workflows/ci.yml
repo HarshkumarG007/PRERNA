@@ -31,6 +31,9 @@ jobs:
         npm run lint || echo "No lint script found, skipping"
         npm run test --passWithNoTests
         
+    - name: Build Frontend Assets
+      run: npm run build
+        
     - name: Install Rust Stable
       uses: dtolnay/rust-toolchain@stable
       with:
@@ -44,7 +47,7 @@ jobs:
     - name: Install Tauri OS Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+        sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev clang libclang-dev
         
     - name: Rust Formatting Check
       working-directory: src-tauri

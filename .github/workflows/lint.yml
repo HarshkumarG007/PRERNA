@@ -30,7 +30,9 @@ jobs:
       - name: Install Linux system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev clang libclang-dev
+      - name: Create stub frontend dist for Tauri context
+        run: mkdir -p dist && touch dist/index.html
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:

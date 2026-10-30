@@ -44,7 +44,7 @@ pub struct LocalLLM {
 
 impl LocalLLM {
     /// Initialize local LLM with quantized model
-    pub fn new(_app_handle: &tauri::AppHandle) -> Result<Self> {
+    pub fn new(app_handle: &tauri::AppHandle) -> Result<Self> {
         info!("Initializing local LLM...");
 
         #[cfg(target_os = "android")]
