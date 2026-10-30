@@ -34,9 +34,11 @@ import { ReviewDashboard } from './components/clinical/ReviewDashboard';
 import { PersonaAuthModal } from './components/security/PersonaAuthModal';
 import { BetaFeedbackModal } from './components/beta/BetaFeedbackModal';
 import { ProductShowcaseModal } from './components/showcase/ProductShowcaseModal';
+import { MultiPersonaTourModal } from './components/showcase/MultiPersonaTourModal';
 import { AdultDashboard } from './components/adult/AdultDashboard';
 import { PartnersDashboard } from './components/partners/dashboard/PartnersDashboard';
 import { PartnersGateModal } from './components/partners/auth/PartnersGateModal';
+import { somaticAudio } from './utils/audioSynthesis';
 import { usePartnerStore } from './store/partnerStore';
 import { useAppStore } from './store';
 
@@ -54,6 +56,7 @@ function App() {
   const [showPersonaModal, setShowPersonaModal] = useState(false);
   const [showBetaFeedback, setShowBetaFeedback] = useState(false);
   const [showProductShowcase, setShowProductShowcase] = useState(false);
+  const [showPersonaTour, setShowPersonaTour] = useState(false);
   const [showPartnersGateModal, setShowPartnersGateModal] = useState(false);
   const [isInPartnersView, setIsInPartnersView] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -77,6 +80,11 @@ function App() {
   };
 
   useEffect(() => {
+    // Check if user came from a tour link
+    if (window.location.search.includes('tour=true') || window.location.pathname === '/tour') {
+      setShowPersonaTour(true);
+    }
+
     // Check for existing session
     const init = async () => {
       const lastUser = localStorage.getItem('prerna_last_user');
@@ -184,6 +192,16 @@ function App() {
             </div>
             <div className="flex items-center gap-2">
               <button
+                onClick={() => {
+                  somaticAudio.playSoftChime();
+                  setShowPersonaTour(true);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors shadow-2xs cursor-pointer"
+                title="Interactive Tour of All 4 Personas"
+              >
+                <span>✨ Ecosystem Tour</span>
+              </button>
+              <button
                 onClick={() => setShowPersonaModal(true)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors shadow-2xs cursor-pointer"
                 title="Switch persona to Teen or Educator"
@@ -208,6 +226,7 @@ function App() {
         <SanctuaryFooter 
           onOpenBetaFeedback={() => setShowBetaFeedback(true)}
           onOpenProductShowcase={() => setShowProductShowcase(true)}
+          onOpenPersonaTour={() => setShowPersonaTour(true)}
         />
 
         <PersonaAuthModal
@@ -224,6 +243,13 @@ function App() {
         <ProductShowcaseModal
           isOpen={showProductShowcase}
           onClose={() => setShowProductShowcase(false)}
+        />
+
+        <MultiPersonaTourModal
+          isOpen={showPersonaTour}
+          onClose={() => setShowPersonaTour(false)}
+          onSelectPersona={handleRoleAuthorize}
+          currentRole={user.role}
         />
       </div>
     );
@@ -249,6 +275,16 @@ function App() {
               </span>
             </div>
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  somaticAudio.playSoftChime();
+                  setShowPersonaTour(true);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors shadow-2xs cursor-pointer"
+                title="Interactive Tour of All 4 Personas"
+              >
+                <span>✨ Ecosystem Tour</span>
+              </button>
               <button
                 onClick={() => {
                   if (partnerConnection.isActivated && !partnerConnection.isGateLocked) {
@@ -291,6 +327,7 @@ function App() {
         <SanctuaryFooter 
           onOpenBetaFeedback={() => setShowBetaFeedback(true)}
           onOpenProductShowcase={() => setShowProductShowcase(true)}
+          onOpenPersonaTour={() => setShowPersonaTour(true)}
         />
 
         <PersonaAuthModal
@@ -317,6 +354,13 @@ function App() {
             setIsInPartnersView(true);
           }}
         />
+
+        <MultiPersonaTourModal
+          isOpen={showPersonaTour}
+          onClose={() => setShowPersonaTour(false)}
+          onSelectPersona={handleRoleAuthorize}
+          currentRole={user.role}
+        />
       </div>
     );
   }
@@ -337,6 +381,16 @@ function App() {
             </div>
             <div className="flex items-center gap-2">
               <button
+                onClick={() => {
+                  somaticAudio.playSoftChime();
+                  setShowPersonaTour(true);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors shadow-2xs cursor-pointer"
+                title="Interactive Tour of All 4 Personas"
+              >
+                <span>✨ Ecosystem Tour</span>
+              </button>
+              <button
                 onClick={() => setShowPersonaModal(true)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-colors shadow-2xs cursor-pointer"
                 title="Switch persona to Teen or Parent"
@@ -356,11 +410,12 @@ function App() {
           </div>
         </header>
         <main className="flex-grow">
-          <SchoolDashboard />
+          <SchoolDashboard onSwitchPersona={() => setShowPersonaModal(true)} />
         </main>
         <SanctuaryFooter 
           onOpenBetaFeedback={() => setShowBetaFeedback(true)}
           onOpenProductShowcase={() => setShowProductShowcase(true)}
+          onOpenPersonaTour={() => setShowPersonaTour(true)}
         />
 
         <PersonaAuthModal
@@ -372,6 +427,18 @@ function App() {
         <BetaFeedbackModal
           isOpen={showBetaFeedback}
           onClose={() => setShowBetaFeedback(false)}
+        />
+
+        <ProductShowcaseModal
+          isOpen={showProductShowcase}
+          onClose={() => setShowProductShowcase(false)}
+        />
+
+        <MultiPersonaTourModal
+          isOpen={showPersonaTour}
+          onClose={() => setShowPersonaTour(false)}
+          onSelectPersona={handleRoleAuthorize}
+          currentRole={user.role}
         />
 
         <ProductShowcaseModal
@@ -473,6 +540,19 @@ function App() {
               >
                 <span className="text-[11px] leading-none">👨‍💻</span>
                 <span className="text-[9px] font-bold leading-tight text-indigo-900 mt-0.5">Developer</span>
+              </button>
+
+              {/* Multi-Persona Ecosystem Tour */}
+              <button
+                onClick={() => {
+                  somaticAudio.playSoftChime();
+                  setShowPersonaTour(true);
+                }}
+                className="flex flex-col items-center justify-center px-2 py-1 rounded-xl text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors shadow-2xs cursor-pointer group"
+                title="Ecosystem Tour: 4 Sovereign Personas"
+              >
+                <span className="text-[11px] leading-none">🧭</span>
+                <span className="text-[9px] font-bold leading-tight text-amber-900 mt-0.5">Tour</span>
               </button>
 
               {/* Product Showcase & Pitch Deck */}
@@ -654,6 +734,7 @@ function App() {
           <Route path="/showcase" element={<ProductShowcaseModal isOpen={true} onClose={() => window.history.back()} />} />
           <Route path="/pitch" element={<ProductShowcaseModal isOpen={true} onClose={() => window.history.back()} />} />
           <Route path="/deck" element={<ProductShowcaseModal isOpen={true} onClose={() => window.history.back()} />} />
+          <Route path="/tour" element={<MultiPersonaTourModal isOpen={true} onClose={() => window.history.back()} onSelectPersona={handleRoleAuthorize} currentRole={user.role} />} />
           <Route path="/feedback" element={<BetaFeedbackModal isOpen={true} onClose={() => window.history.back()} />} />
           <Route path="/beta-feedback" element={<BetaFeedbackModal isOpen={true} onClose={() => window.history.back()} />} />
           <Route path="/adult-dash" element={
@@ -688,6 +769,7 @@ function App() {
       <SanctuaryFooter
         onOpenBetaFeedback={() => setShowBetaFeedback(true)}
         onOpenProductShowcase={() => setShowProductShowcase(true)}
+        onOpenPersonaTour={() => setShowPersonaTour(true)}
       />
 
       {/* Global Atma-Jnana Philosophy Modal */}
@@ -719,6 +801,14 @@ function App() {
       <ProductShowcaseModal
         isOpen={showProductShowcase}
         onClose={() => setShowProductShowcase(false)}
+      />
+
+      {/* Global Multi-Persona Ecosystem Tour Modal */}
+      <MultiPersonaTourModal
+        isOpen={showPersonaTour}
+        onClose={() => setShowPersonaTour(false)}
+        onSelectPersona={handleRoleAuthorize}
+        currentRole={user.role}
       />
     </div>
   );

@@ -6,11 +6,13 @@ import { PrernaEmblem } from './PrernaLogo';
 export interface SanctuaryFooterProps {
   onOpenBetaFeedback?: () => void;
   onOpenProductShowcase?: () => void;
+  onOpenPersonaTour?: () => void;
 }
 
 export const SanctuaryFooter: React.FC<SanctuaryFooterProps> = ({
   onOpenBetaFeedback,
   onOpenProductShowcase,
+  onOpenPersonaTour,
 }) => {
   const [litStar, setLitStar] = useState(false);
 
@@ -153,6 +155,19 @@ export const SanctuaryFooter: React.FC<SanctuaryFooterProps> = ({
 
             {/* Quick Action Badges */}
             <div className="pt-1.5 flex flex-wrap items-center gap-2">
+              {onOpenPersonaTour && (
+                <button
+                  onClick={() => {
+                    somaticAudio.playSoftChime();
+                    onOpenPersonaTour();
+                  }}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-[11px] font-bold transition-colors cursor-pointer shadow-2xs"
+                  title="Interactive Walkthrough of all 4 Personas"
+                >
+                  <Sparkles size={12} className="text-amber-600" />
+                  <span>Ecosystem Tour</span>
+                </button>
+              )}
               {onOpenProductShowcase && (
                 <button
                   onClick={() => {

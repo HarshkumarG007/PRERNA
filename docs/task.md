@@ -419,6 +419,21 @@
     - Full adult personal development hub (Swadharma career purpose, Maslow transcendence, Kaya Kalpa somatics) housing the discreet "PRERNA for Partners" Secret Gateway Card.
   - [x] Unit test suite in `src/tests/partners/partnerStore.test.ts` (13 tests passed).
   - [x] Verified full test suite: **158/158 tests passing across 31 test files**; production bundle compiled cleanly in 9.00s.
+- [x] **P7-21** School & Educator Sanctuary Modernization, Preeti Audio/Soundscapes, Multi-Persona Tour & CI Matrix Polish
+  - [x] Modernized School & Educator Sanctuary (`SchoolDashboard.tsx`, `TeacherVitalityCorner.tsx`, `InstitutionalCareHub.tsx`):
+    - Rabindranath Tagore educational philosophy, 432 Hz Mindful Bell, Compassionate Pedagogy Playbook, and Educator self-care drills.
+    - Systemic cohort risk vectors, Socratic non-punitive playbooks, national adolescent hotlines (Tele-MANAS 14416, Childline 1098), and DPDP §9 zero-surveillance guarantees.
+    - Instant anonymized batch JSON report export for school boards and counselors.
+  - [x] Preeti (प्रेरणा साथी) Voice & Somatic Nature Soundscapes (`audioSynthesis.ts`):
+    - Pure Web Audio API nature soundscape synthesis: Monsoon Rain (pink noise + 800Hz lowpass), Temple Bells (Pythagorean 432/540/648/864Hz harmonics), Forest Wind (resonant bandpass sweep), and 432Hz grounding drone.
+    - Web Speech API integration with gentle cadence and Indian English / soothing female voice mapping (`speakText` / `stopSpeaking`).
+    - Added soundscape selector and Preeti voice narration to `PartnerAiCompanion.tsx` and `CommunicationStudio.tsx`.
+  - [x] Cross-Platform CI Windows Matrix & LLVM Bindgen Polish (`.github/workflows/test.yml`):
+    - Fixed Windows path escaping issue (`C:/Program Files/LLVM/bin`) and added vcpkg compilation caching to speed up CI runs.
+  - [x] Comprehensive Multi-Persona Interactive Demo Tour (`MultiPersonaTourModal.tsx`):
+    - Step-by-step interactive walkthrough showcasing all 4 personas (Teen Explorer, Parent Sanctuary, Adult & Partners Vault, School & Educator Hub).
+    - Integrated across all headers with `✨ Ecosystem Tour` pill, footer link, and `/tour` direct route with 1-click persona switching.
+  - [x] Verified full test suite: **158/158 tests passing across 31 test files**; production bundle compiled cleanly in 10.44s.
 
 ---
 
@@ -428,7 +443,7 @@
 - [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
 - [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
 - [x] Pre-deployment regression test suite: **158/158 tests passed across 31 test files**
-- [x] Production bundle verified: `tsc && vite build` completed with zero errors (9.00s build time)
+- [x] Production bundle verified: `tsc && vite build` completed with zero errors (10.44s build time)
 - [ ] Staged rollout: Beta cohort testing before broad public release
 
 ---

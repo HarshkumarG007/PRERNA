@@ -8,7 +8,13 @@ import {
   Sparkles, 
   Trash2, 
   Lock, 
-  Compass 
+  Compass,
+  Volume2,
+  VolumeX,
+  CloudRain,
+  Bell,
+  Wind,
+  Radio
 } from 'lucide-react';
 import { usePartnerStore } from '../../../store/partnerStore';
 import { somaticAudio } from '../../../utils/audioSynthesis';
@@ -18,6 +24,8 @@ export const PartnerAiCompanion: React.FC = () => {
   const [activeMode, setActiveMode] = useState<'personal' | 'shared' | 'learning'>('personal');
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [activeSoundscape, setActiveSoundscape] = useState<string | null>(null);
+  const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -26,6 +34,35 @@ export const PartnerAiCompanion: React.FC = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [filteredMessages, isTyping]);
+
+  useEffect(() => {
+    return () => {
+      somaticAudio.stopSpeaking();
+      somaticAudio.stopSoundscape();
+    };
+  }, []);
+
+  const handleToggleSoundscape = (type: 'monsoon' | 'temple_bells' | 'forest_wind' | 'pythagorean_drone') => {
+    if (activeSoundscape === type) {
+      somaticAudio.stopSoundscape();
+      setActiveSoundscape(null);
+    } else {
+      somaticAudio.startSoundscape(type);
+      setActiveSoundscape(type);
+    }
+  };
+
+  const handleSpeak = (id: string, text: string) => {
+    if (speakingMessageId === id) {
+      somaticAudio.stopSpeaking();
+      setSpeakingMessageId(null);
+    } else {
+      setSpeakingMessageId(id);
+      somaticAudio.speakText(text, () => {
+        setSpeakingMessageId(null);
+      });
+    }
+  };
 
   const handleSend = (textToSend?: string) => {
     const text = textToSend || inputText;
@@ -84,15 +121,96 @@ export const PartnerAiCompanion: React.FC = () => {
           </div>
         </div>
 
-        {/* Clear Chat Button */}
-        <button
-          onClick={() => clearCompanionChat(activeMode)}
-          className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors text-xs flex items-center gap-1 cursor-pointer"
-          title="Clear current mode conversation"
-        >
-          <Trash2 size={14} />
-          <span className="hidden sm:inline text-[11px] font-bold">Clear</span>
-        </button>
+        {/* Somatic Soundscape & Clear Controls */}
+        <div className="flex items-center gap-2">
+          {/* Ambient Soundscapes Selector */}
+          <div className="hidden sm:flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl border border-slate-200/60 text-[10px] font-bold">
+            <span className="text-slate-400 px-1.5 flex items-center gap-1">
+              <Radio size={11} className={activeSoundscape ? 'text-rose-500 animate-pulse' : ''} />
+              <span>Ambience:</span>
+            </span>
+
+            <button
+              type="button"
+              onClick={() => handleToggleSoundscape('monsoon')}
+              className={`px-2 py-0.5 rounded-lg flex items-center gap-1 cursor-pointer transition-all ${
+                activeSoundscape === 'monsoon' 
+                  ? 'bg-rose-500 text-white shadow-xs' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white'
+              }`}
+              title="Monsoon Rain (Calming pink noise lowpass)"
+            >
+              <CloudRain size={11} />
+              <span>Rain</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleToggleSoundscape('temple_bells')}
+              className={`px-2 py-0.5 rounded-lg flex items-center gap-1 cursor-pointer transition-all ${
+                activeSoundscape === 'temple_bells' 
+                  ? 'bg-amber-500 text-white shadow-xs' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white'
+              }`}
+              title="Temple Bells (432Hz Pythagorean harmonics)"
+            >
+              <Bell size={11} />
+              <span>Bells</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleToggleSoundscape('forest_wind')}
+              className={`px-2 py-0.5 rounded-lg flex items-center gap-1 cursor-pointer transition-all ${
+                activeSoundscape === 'forest_wind' 
+                  ? 'bg-emerald-600 text-white shadow-xs' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white'
+              }`}
+              title="Forest Wind (Gentle sweeping resonance)"
+            >
+              <Wind size={11} />
+              <span>Wind</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleToggleSoundscape('pythagorean_drone')}
+              className={`px-2 py-0.5 rounded-lg flex items-center gap-1 cursor-pointer transition-all ${
+                activeSoundscape === 'pythagorean_drone' 
+                  ? 'bg-indigo-600 text-white shadow-xs' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white'
+              }`}
+              title="432Hz Somatic Grounding Drone"
+            >
+              <Sparkles size={11} />
+              <span>432Hz</span>
+            </button>
+
+            {activeSoundscape && (
+              <button
+                type="button"
+                onClick={() => {
+                  somaticAudio.stopSoundscape();
+                  setActiveSoundscape(null);
+                }}
+                className="p-1 rounded-md text-rose-500 hover:bg-rose-100 transition-colors"
+                title="Stop ambient soundscape"
+              >
+                <VolumeX size={12} />
+              </button>
+            )}
+          </div>
+
+          {/* Clear Chat Button */}
+          <button
+            onClick={() => clearCompanionChat(activeMode)}
+            className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors text-xs flex items-center gap-1 cursor-pointer"
+            title="Clear current mode conversation"
+          >
+            <Trash2 size={14} />
+            <span className="hidden sm:inline text-[11px] font-bold">Clear</span>
+          </button>
+        </div>
       </div>
 
       {/* 3-Mode Selector Tabs */}
@@ -183,15 +301,43 @@ export const PartnerAiCompanion: React.FC = () => {
                   {isUser ? 'You' : '❤️'}
                 </div>
 
-                <div className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed ${
+                <div className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed relative group ${
                   isUser
                     ? 'bg-slate-900 text-white rounded-tr-xs'
                     : 'bg-white border border-slate-200/80 text-slate-800 shadow-xs rounded-tl-xs'
                 }`}>
                   <p className="whitespace-pre-wrap">{msg.text}</p>
-                  <span className={`block text-[9px] mt-1.5 opacity-60 text-right ${isUser ? 'text-slate-300' : 'text-slate-400'}`}>
-                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
+                  
+                  <div className="flex items-center justify-between mt-2 pt-1 border-t border-slate-100/50">
+                    {!isUser && (
+                      <button
+                        type="button"
+                        onClick={() => handleSpeak(msg.id, msg.text)}
+                        className={`flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md transition-colors cursor-pointer ${
+                          speakingMessageId === msg.id
+                            ? 'bg-rose-100 text-rose-700 animate-pulse'
+                            : 'text-slate-400 hover:text-rose-600 hover:bg-slate-50'
+                        }`}
+                        title={speakingMessageId === msg.id ? 'Stop listening' : 'Listen with Preeti voice'}
+                      >
+                        {speakingMessageId === msg.id ? (
+                          <>
+                            <VolumeX size={11} />
+                            <span>Stop</span>
+                          </>
+                        ) : (
+                          <>
+                            <Volume2 size={11} />
+                            <span>Listen</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+
+                    <span className={`block text-[9px] opacity-60 ml-auto ${isUser ? 'text-slate-300' : 'text-slate-400'}`}>
+                      {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
                 </div>
               </motion.div>
             );

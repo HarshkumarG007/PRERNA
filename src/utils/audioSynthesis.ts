@@ -310,6 +310,158 @@ class SomaticAudioSynthesizer {
   public isAlarmRinging(): boolean {
     return this.alarmInterval !== null;
   }
+
+  // --- Nature & Sanctuary Ambient Soundscapes ---
+  private soundscapeNodes: { source?: AudioNode; gain: GainNode; filter?: BiquadFilterNode; interval?: any } | null = null;
+  private currentSoundscape: string | null = null;
+
+  public startSoundscape(type: 'monsoon' | 'forest_wind' | 'temple_bells' | 'pythagorean_drone') {
+    this.stopSoundscape();
+    if (this.isMuted) return;
+
+    try {
+      this.initContext();
+      if (!this.ctx || !this.masterGain) return;
+
+      this.currentSoundscape = type;
+      const now = this.ctx.currentTime;
+
+      if (type === 'pythagorean_drone') {
+        this.startSleepLullabyDrone(60);
+        return;
+      }
+
+      if (type === 'temple_bells') {
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.2, now);
+        gain.connect(this.masterGain);
+
+        this.playSingingBowl(432, 4.0);
+        const interval = setInterval(() => {
+          const notes = [432, 540, 648, 864];
+          const n = notes[Math.floor(Math.random() * notes.length)];
+          this.playSingingBowl(n, 3.5);
+        }, 5000);
+
+        this.soundscapeNodes = { gain, interval };
+        return;
+      }
+
+      // Pink noise / Filtered White Noise for Monsoon & Forest Wind
+      const bufferSize = this.ctx.sampleRate * 2;
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const output = buffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.96900 * b2 + white * 0.1538520;
+        b3 = 0.86650 * b3 + white * 0.3104856;
+        b4 = 0.55000 * b4 + white * 0.5329522;
+        b5 = -0.7616 * b5 - white * 0.0168980;
+        output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.05;
+        b6 = white * 0.115926;
+      }
+
+      const noise = this.ctx.createBufferSource();
+      noise.buffer = buffer;
+      noise.loop = true;
+
+      const filter = this.ctx.createBiquadFilter();
+      const gain = this.ctx.createGain();
+
+      if (type === 'monsoon') {
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(800, now);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.25, now + 2);
+      } else {
+        // Forest wind
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(450, now);
+        filter.Q.setValueAtTime(1.5, now);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.2, now + 2);
+      }
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.masterGain);
+
+      noise.start(now);
+      this.soundscapeNodes = { source: noise, gain, filter };
+    } catch (e) {
+      console.warn('Soundscape synthesis failed:', e);
+    }
+  }
+
+  public stopSoundscape() {
+    if (this.currentSoundscape === 'pythagorean_drone') {
+      this.stopSleepLullabyDrone();
+    }
+    if (this.soundscapeNodes) {
+      if (this.soundscapeNodes.interval) {
+        clearInterval(this.soundscapeNodes.interval);
+      }
+      try {
+        if (this.soundscapeNodes.source && 'stop' in this.soundscapeNodes.source) {
+          (this.soundscapeNodes.source as AudioScheduledSourceNode).stop();
+        }
+      } catch {}
+      this.soundscapeNodes = null;
+    }
+    this.currentSoundscape = null;
+  }
+
+  public getActiveSoundscape(): string | null {
+    return this.currentSoundscape;
+  }
+
+  // --- Preeti Voice Speech Synthesis (Web Speech API) ---
+  public speakText(text: string, onEnd?: () => void) {
+    if (this.isMuted || typeof window === 'undefined' || !window.speechSynthesis) return;
+
+    this.stopSpeaking();
+
+    // Clean markdown symbols for natural speech
+    const cleanText = text
+      .replace(/[#*_`~>]/g, '')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .trim();
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 0.92; // Calm, gentle cadence
+    utterance.pitch = 1.05; // Gentle warm timbre
+
+    const voices = window.speechSynthesis.getVoices();
+    // Prefer Indian English or soothing female voices if available
+    const preferredVoice = voices.find(v => 
+      (v.lang.includes('en-IN') || v.lang.includes('hi-IN')) && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('zira'))
+    ) || voices.find(v => v.lang.includes('en') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('victoria'))) || voices[0];
+
+    if (preferredVoice) {
+      utterance.voice = preferredVoice;
+    }
+
+    if (onEnd) {
+      utterance.onend = onEnd;
+      utterance.onerror = onEnd;
+    }
+
+    window.speechSynthesis.speak(utterance);
+  }
+
+  public stopSpeaking() {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+  }
+
+  public isSpeaking(): boolean {
+    return typeof window !== 'undefined' && !!window.speechSynthesis?.speaking;
+  }
 }
 
 export const somaticAudio = new SomaticAudioSynthesizer();

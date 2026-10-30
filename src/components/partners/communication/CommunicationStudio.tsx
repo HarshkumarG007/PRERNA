@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   MessageSquareHeart, 
@@ -6,7 +6,9 @@ import {
   Heart, 
   Clock, 
   Send, 
-  Flame 
+  Flame,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import { usePartnerStore } from '../../../store/partnerStore';
 import { somaticAudio } from '../../../utils/audioSynthesis';
@@ -14,6 +16,14 @@ import { somaticAudio } from '../../../utils/audioSynthesis';
 export const CommunicationStudio: React.FC = () => {
   const { conversationPrompts, answerPrompt } = usePartnerStore();
   const [activeTab, setActiveTab] = useState<'daily_cards' | 'nvc_reframe' | 'gratitude_jar' | 'listening_drill'>('daily_cards');
+  const [isSpeakingPrompt, setIsSpeakingPrompt] = useState(false);
+  const [isSpeakingReframe, setIsSpeakingReframe] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      somaticAudio.stopSpeaking();
+    };
+  }, []);
 
   // Daily cards state
   const [selectedPromptIndex, setSelectedPromptIndex] = useState(0);
@@ -166,10 +176,32 @@ export const CommunicationStudio: React.FC = () => {
               </span>
             </div>
 
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-rose-50 via-white to-amber-50 border border-rose-100">
-              <p className="text-lg md:text-xl font-black text-slate-900 leading-snug">
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-rose-50 via-white to-amber-50 border border-rose-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <p className="text-lg md:text-xl font-black text-slate-900 leading-snug flex-1">
                 "{activePrompt.question}"
               </p>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (isSpeakingPrompt) {
+                    somaticAudio.stopSpeaking();
+                    setIsSpeakingPrompt(false);
+                  } else {
+                    setIsSpeakingPrompt(true);
+                    somaticAudio.speakText(activePrompt.question, () => setIsSpeakingPrompt(false));
+                  }
+                }}
+                className={`p-2.5 rounded-xl border flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer flex-shrink-0 ${
+                  isSpeakingPrompt
+                    ? 'bg-rose-100 text-rose-800 border-rose-300 animate-pulse'
+                    : 'bg-white text-slate-600 hover:text-rose-600 hover:bg-rose-50/50 border-slate-200'
+                }`}
+                title={isSpeakingPrompt ? 'Stop reading' : 'Listen with Preeti voice'}
+              >
+                {isSpeakingPrompt ? <VolumeX size={15} /> : <Volume2 size={15} />}
+                <span>{isSpeakingPrompt ? 'Stop' : 'Read Aloud'}</span>
+              </button>
             </div>
 
             {/* Answer Input */}
@@ -280,7 +312,7 @@ export const CommunicationStudio: React.FC = () => {
               <p className="text-sm font-semibold text-emerald-950 italic leading-relaxed">
                 "{reframedNvc}"
               </p>
-              <div className="pt-2 flex items-center gap-2 text-xs">
+              <div className="pt-2 flex flex-wrap items-center gap-2 text-xs">
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(reframedNvc);
@@ -290,6 +322,28 @@ export const CommunicationStudio: React.FC = () => {
                   className="px-3 py-1.5 bg-white border border-emerald-300 rounded-lg text-emerald-800 font-bold hover:bg-emerald-100 transition-colors cursor-pointer"
                 >
                   Copy to Share
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isSpeakingReframe) {
+                      somaticAudio.stopSpeaking();
+                      setIsSpeakingReframe(false);
+                    } else {
+                      setIsSpeakingReframe(true);
+                      somaticAudio.speakText(reframedNvc, () => setIsSpeakingReframe(false));
+                    }
+                  }}
+                  className={`px-3 py-1.5 rounded-lg border font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                    isSpeakingReframe
+                      ? 'bg-emerald-200 text-emerald-900 border-emerald-400 animate-pulse'
+                      : 'bg-white border-emerald-300 text-emerald-800 hover:bg-emerald-100'
+                  }`}
+                  title={isSpeakingReframe ? 'Stop audio' : 'Listen with Preeti voice'}
+                >
+                  {isSpeakingReframe ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                  <span>{isSpeakingReframe ? 'Stop Audio' : 'Listen Cadence'}</span>
                 </button>
               </div>
             </div>
