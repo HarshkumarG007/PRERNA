@@ -14,6 +14,7 @@ export interface UserContext {
   riasec?: RiasecProfile;
   name?: string;
   archetype?: string;
+  sixteenType?: string;
 }
 
 export interface ChatResponse {
@@ -37,6 +38,9 @@ export function buildMentorPrompt(
   if (context?.bigFive) {
     const { openness, conscientiousness, extraversion, agreeableness, neuroticism } = context.bigFive;
     traitSummary = `User Traits: Openness: ${openness}%, Conscientiousness: ${conscientiousness}%, Extraversion: ${extraversion}%, Agreeableness: ${agreeableness}%, Emotional Stability: ${100 - neuroticism}%.`;
+  }
+  if (context?.sixteenType) {
+    traitSummary += ` 16-Personality Typology: ${context.sixteenType}.`;
   }
 
   const history = recentMessages

@@ -15,6 +15,8 @@ import { CareerPathwaysWidget } from './CareerPathwaysWidget';
 import { RadarChart } from './RadarChart';
 import { BadgeCabinet } from './BadgeCabinet';
 import { ActivityHistoryViewer } from './ActivityHistoryViewer';
+import { SixteenTypeCard } from '../personality/SixteenTypeCard';
+import { deriveSixteenType } from '../../engine/assessment/sixteenPersonalities';
 
 import { useAppStore } from '../../store';
 
@@ -93,6 +95,18 @@ export const TeenProfileView: React.FC = () => {
   
   const [linkCode, setLinkCode] = useState<string | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  const sixteenType = React.useMemo(() => {
+    if (profile?.sixteenType) return profile.sixteenType;
+    if (profile?.personality?.bigFive) {
+      try {
+        return deriveSixteenType(profile.personality.bigFive);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }, [profile]);
 
   React.useEffect(() => {
     if (user) {
@@ -193,6 +207,13 @@ export const TeenProfileView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* 16 Personalities Typology Spotlight */}
+      {sixteenType && (
+        <div className="relative z-10">
+          <SixteenTypeCard sixteenType={sixteenType} />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative z-10">
         

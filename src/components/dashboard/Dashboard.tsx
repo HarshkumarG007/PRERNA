@@ -23,6 +23,8 @@ import { StreakTracker } from './StreakTracker';
 import { InsightsCard } from './InsightsCard';
 import { InsightNarrativeView } from '../synthesis/InsightNarrativeView';
 import { PrernaEmblem } from '../common/PrernaLogo';
+import { SixteenTypeCard } from '../personality/SixteenTypeCard';
+import { deriveSixteenType } from '../../engine/assessment/sixteenPersonalities';
 import { useNetworkStatus } from '../../hooks/useNetworkStatus';
 import { useAppStore, useUser, useProfile } from '../../store';
 
@@ -33,6 +35,18 @@ export const Dashboard: React.FC = () => {
   const { loadProfile, sessions, streak } = useAppStore();
   const [greeting, setGreeting] = useState('');
   const navigate = useNavigate();
+
+  const sixteenType = React.useMemo(() => {
+    if (profile?.sixteenType) return profile.sixteenType;
+    if (profile?.personality?.bigFive) {
+      try {
+        return deriveSixteenType(profile.personality.bigFive);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }, [profile]);
 
   useEffect(() => {
     // Set time-based greeting
@@ -101,6 +115,13 @@ export const Dashboard: React.FC = () => {
           
           {/* Wellness Pulse */}
           <WellnessPulse score={profile?.wellbeingScore || 72} />
+
+          {/* 16 Personalities Typology Profile */}
+          {sixteenType && (
+            <section>
+              <SixteenTypeCard sixteenType={sixteenType} />
+            </section>
+          )}
 
           {/* Daily Focus */}
           <section>

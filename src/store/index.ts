@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { safeInvoke as invoke } from '../utils/mockBackend';
+import { SixteenTypeResult, deriveSixteenType } from '../engine/assessment/sixteenPersonalities';
 
 // Types
 export interface User {
@@ -63,7 +64,9 @@ export interface UnifiedProfile {
     name: string;
     description: string;
     traits: string[];
+    sixteenType?: SixteenTypeResult;
   };
+  sixteenType?: SixteenTypeResult;
   wellbeingScore: number;
   strengths: string[];
   growthAreas: string[];
@@ -298,9 +301,17 @@ export const useAppStore = create<AppState>()(
       },
 
       updateProfile: (newProfile) => {
-        set((state) => ({
-          profile: state.profile ? { ...state.profile, ...newProfile } : (newProfile as UnifiedProfile)
-        }));
+        set((state) => {
+          const merged = state.profile ? { ...state.profile, ...newProfile } : (newProfile as UnifiedProfile);
+          if (merged?.personality?.bigFive && !merged.sixteenType) {
+            try {
+              merged.sixteenType = deriveSixteenType(merged.personality.bigFive);
+            } catch (e) {
+              console.warn("Could not derive 16 personality type:", e);
+            }
+          }
+          return { profile: merged };
+        });
       },
 
       revokeConsent: async () => {
@@ -358,6 +369,11 @@ export const useAppStore = create<AppState>()(
           });
           
           if (profile) {
+            if (profile.personality?.bigFive && !profile.sixteenType) {
+              try {
+                profile.sixteenType = deriveSixteenType(profile.personality.bigFive);
+              } catch {}
+            }
             set({ profile, profileLoading: false });
           }
         } catch (error) {

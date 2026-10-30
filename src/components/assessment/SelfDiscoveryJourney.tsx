@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Brain, Heart, Compass, Sparkles, Star } from 'lucide-react';
 import { deriveArchetype, buildLLMSynthesisPrompt, ScoredProfile } from '../../engine/assessment/scoringEngine';
 import { generateAssessment, scoreFusionProfile, RawFusionResponse } from '../../engine/assessment/fusionEngine';
+import { deriveSixteenType, SixteenTypeResult } from '../../engine/assessment/sixteenPersonalities';
 import { useAppStore } from '../../store';
 import { safeInvoke } from '../../utils/mockBackend';
 
@@ -44,6 +45,7 @@ export const SelfDiscoveryJourney: React.FC<SelfDiscoveryJourneyProps> = ({ onCo
   const [selectedScore, setSelectedScore] = useState<number | null>(null);
   const [isComplete, setIsComplete] = useState(false);
   const [archetype, setArchetype] = useState<ReturnType<typeof deriveArchetype> | null>(null);
+  const [sixteenType, setSixteenType] = useState<SixteenTypeResult | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const currentItem = assessmentItems[currentIndex] || assessmentItems[0];
@@ -79,6 +81,15 @@ export const SelfDiscoveryJourney: React.FC<SelfDiscoveryJourneyProps> = ({ onCo
         
         const detectedArchetype = deriveArchetype(scoredProfile);
         setArchetype(detectedArchetype);
+
+        const derived16 = deriveSixteenType({
+          openness: scoredProfile.openness,
+          conscientiousness: scoredProfile.conscientiousness,
+          extraversion: scoredProfile.extraversion,
+          agreeableness: scoredProfile.agreeableness,
+          neuroticism: scoredProfile.neuroticism,
+        });
+        setSixteenType(derived16);
         
         // Save the profile to backend (FE-2 Requirement)
         try {
@@ -131,6 +142,7 @@ export const SelfDiscoveryJourney: React.FC<SelfDiscoveryJourneyProps> = ({ onCo
           wellbeingScore: Math.round((scoredProfile.resilience + scoredProfile.empathy + (100 - scoredProfile.neuroticism)) / 3),
           strengths: detectedArchetype.coreStrengths,
           growthAreas: detectedArchetype.growthAreas,
+          sixteenType: derived16,
           llmSelfDiscoveryReport: llmReport,
         });
 
@@ -169,7 +181,14 @@ export const SelfDiscoveryJourney: React.FC<SelfDiscoveryJourneyProps> = ({ onCo
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
               <p className="text-violet-400 font-bold uppercase tracking-widest text-sm mb-2">Your Archetype</p>
-              <h1 className="text-4xl font-black text-white tracking-tight mb-3">{archetype.name}</h1>
+              <h1 className="text-4xl font-black text-white tracking-tight mb-2">{archetype.name}</h1>
+              {sixteenType && (
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-violet-500/20 border border-violet-500/30 text-violet-300 font-mono font-bold text-xs mb-3 shadow-sm">
+                  <span>{sixteenType.fullCode}</span>
+                  <span className="text-white/30">•</span>
+                  <span>{sixteenType.definition.name} ({sixteenType.definition.hindiName})</span>
+                </div>
+              )}
               <p className="text-xl text-white/70 italic font-medium">"{archetype.tagline}"</p>
             </motion.div>
 

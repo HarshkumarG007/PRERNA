@@ -98,6 +98,7 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
         riasec: profile?.personality?.riasec,
         name: (user as any)?.name || 'Learner',
         archetype: profile?.archetype?.name,
+        sixteenType: profile?.sixteenType ? `${profile.sixteenType.fullCode}: ${profile.sixteenType.definition.name}` : undefined,
       };
 
       const chatResponse = await sendMessageToLLM(

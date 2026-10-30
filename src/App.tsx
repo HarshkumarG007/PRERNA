@@ -21,6 +21,7 @@ import { SchoolDashboard } from './components/school/SchoolDashboard';
 import { RoleSelection } from './components/onboarding/RoleSelection';
 import { ParentLinking } from './components/onboarding/ParentLinking';
 import { SelfDiscoveryJourney } from './components/assessment/SelfDiscoveryJourney';
+import { deriveSixteenType } from './engine/assessment/sixteenPersonalities';
 import { ClinicianLogin } from './components/clinical/ClinicianLogin';
 import { ReviewDashboard } from './components/clinical/ReviewDashboard';
 import { useAppStore } from './store';
@@ -101,6 +102,7 @@ function App() {
             wellbeingScore: 70,
             strengths: ['Curiosity', 'Adaptability'],
             growthAreas: ['Focus', 'Planning'],
+            sixteenType: deriveSixteenType({ openness: 50, conscientiousness: 50, extraversion: 50, agreeableness: 50, neuroticism: 50 }),
           };
           if (!useAppStore.getState().profile) {
             useAppStore.getState().updateProfile(fallbackProfile as any);
