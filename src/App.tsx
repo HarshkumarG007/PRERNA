@@ -34,6 +34,8 @@ import { ReviewDashboard } from './components/clinical/ReviewDashboard';
 import { PersonaAuthModal } from './components/security/PersonaAuthModal';
 import { BetaFeedbackModal } from './components/beta/BetaFeedbackModal';
 import { ProductShowcaseModal } from './components/showcase/ProductShowcaseModal';
+import { AdultDashboard } from './components/adult/AdultDashboard';
+import { PartnersDashboard } from './components/partners/dashboard/PartnersDashboard';
 import { useAppStore } from './store';
 
 // No mock context needed anymore
@@ -50,9 +52,10 @@ function App() {
   const [showPersonaModal, setShowPersonaModal] = useState(false);
   const [showBetaFeedback, setShowBetaFeedback] = useState(false);
   const [showProductShowcase, setShowProductShowcase] = useState(false);
+  const [isInPartnersView, setIsInPartnersView] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleRoleAuthorize = (targetRole: 'teen' | 'parent' | 'educator') => {
+  const handleRoleAuthorize = (targetRole: 'teen' | 'adult' | 'parent' | 'educator') => {
     updateRole(targetRole);
     if (targetRole === 'parent') {
       localStorage.setItem('prerna_parent_linked', 'true');
@@ -93,6 +96,7 @@ function App() {
     return (
       <RoleSelection 
         onSelectTeen={() => updateRole('teen')} 
+        onSelectAdult={() => updateRole('adult')}
         onSelectParent={() => updateRole('parent')} 
         onSelectEducator={() => updateRole('educator')} 
       />
@@ -188,6 +192,82 @@ function App() {
         </header>
         <main className="flex-grow">
           <ParentDashboard onExit={() => setShowPersonaModal(true)} />
+        </main>
+        <SanctuaryFooter 
+          onOpenBetaFeedback={() => setShowBetaFeedback(true)}
+          onOpenProductShowcase={() => setShowProductShowcase(true)}
+        />
+
+        <PersonaAuthModal
+          isOpen={showPersonaModal}
+          onClose={() => setShowPersonaModal(false)}
+          onAuthorize={handleRoleAuthorize}
+        />
+
+        <BetaFeedbackModal
+          isOpen={showBetaFeedback}
+          onClose={() => setShowBetaFeedback(false)}
+        />
+
+        <ProductShowcaseModal
+          isOpen={showProductShowcase}
+          onClose={() => setShowProductShowcase(false)}
+        />
+      </div>
+    );
+  }
+
+  if (isAuthenticated && user && user.role === 'adult') {
+    if (isInPartnersView) {
+      return (
+        <PartnersDashboard onQuickExit={() => setIsInPartnersView(false)} />
+      );
+    }
+
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+        <header className="sticky top-0 z-50 glass-panel !rounded-none !border-x-0 !border-t-0 shadow-sm transition-all duration-300">
+          <div className="max-w-7xl mx-auto flex justify-between items-center px-4 py-2.5 md:px-6">
+            <div className="flex items-center gap-3">
+              <Link to="/" className="flex items-center gap-2 group flex-shrink-0" title="PRERNA Sanctuary">
+                <PrernaLogo variant="compact" size="sm" />
+              </Link>
+              <span className="text-xs uppercase font-extrabold tracking-widest px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200">
+                Adult Sanctuary
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsInPartnersView(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors shadow-2xs cursor-pointer"
+                title="Enter PRERNA for Partners"
+              >
+                <span>❤️ Partners</span>
+              </button>
+              <button
+                onClick={() => setShowPersonaModal(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-colors shadow-2xs cursor-pointer"
+                title="Switch persona"
+              >
+                <span>👤 Adult View</span>
+                <span className="text-[10px] text-slate-500 font-normal hidden sm:inline">(Switch)</span>
+              </button>
+              <button
+                onClick={logout}
+                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
+                title="Log out"
+                aria-label="Log out"
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
+          </div>
+        </header>
+        <main className="flex-grow">
+          <AdultDashboard 
+            onEnterPartners={() => setIsInPartnersView(true)} 
+            onSwitchPersona={() => setShowPersonaModal(true)} 
+          />
         </main>
         <SanctuaryFooter 
           onOpenBetaFeedback={() => setShowBetaFeedback(true)}
@@ -548,6 +628,23 @@ function App() {
           <Route path="/deck" element={<ProductShowcaseModal isOpen={true} onClose={() => window.history.back()} />} />
           <Route path="/feedback" element={<BetaFeedbackModal isOpen={true} onClose={() => window.history.back()} />} />
           <Route path="/beta-feedback" element={<BetaFeedbackModal isOpen={true} onClose={() => window.history.back()} />} />
+          <Route path="/adult-dash" element={
+            (user.role === 'adult' || user.ageRange === '18+') ? (
+              <AdultDashboard 
+                onEnterPartners={() => setIsInPartnersView(true)} 
+                onSwitchPersona={() => setShowPersonaModal(true)} 
+              />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          } />
+          <Route path="/partners" element={
+            (user.role === 'adult' || user.ageRange === '18+') ? (
+              <PartnersDashboard onQuickExit={() => window.history.back()} />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          } />
           <Route path="/parent-dash" element={user.role === 'parent' ? <ParentDashboard onExit={() => window.location.href='/'} /> : <Navigate to="/" replace />} />
           <Route path="/school-dash" element={user.role === 'educator' ? <SchoolDashboard /> : <Navigate to="/" replace />} />
           <Route path="/clinician-portal" element={

@@ -10,7 +10,8 @@ import {
   X, 
   User, 
   Users, 
-  GraduationCap
+  GraduationCap,
+  Compass
 } from 'lucide-react';
 import { useUser } from '../../store';
 import { safeInvoke as invoke } from '../../utils/mockBackend';
@@ -19,7 +20,7 @@ import { somaticAudio } from '../../utils/audioSynthesis';
 interface PersonaAuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAuthorize: (targetRole: 'teen' | 'parent' | 'educator') => void;
+  onAuthorize: (targetRole: 'teen' | 'adult' | 'parent' | 'educator') => void;
 }
 
 export const PersonaAuthModal: React.FC<PersonaAuthModalProps> = ({
@@ -29,8 +30,8 @@ export const PersonaAuthModal: React.FC<PersonaAuthModalProps> = ({
 }) => {
   const user = useUser();
   const currentRole = user?.role || 'teen';
-  const [targetRole, setTargetRole] = useState<'teen' | 'parent' | 'educator'>(
-    currentRole === 'teen' ? 'parent' : 'teen'
+  const [targetRole, setTargetRole] = useState<'teen' | 'adult' | 'parent' | 'educator'>(
+    currentRole === 'teen' ? 'adult' : 'teen'
   );
 
   const [authMethod, setAuthMethod] = useState<'biometric' | 'pin' | 'pattern' | 'password'>('biometric');
@@ -188,7 +189,7 @@ export const PersonaAuthModal: React.FC<PersonaAuthModalProps> = ({
           {/* Target Role Selector */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-700">Select Target Persona to Access:</label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button
                 type="button"
                 onClick={() => setTargetRole('teen')}
@@ -201,6 +202,20 @@ export const PersonaAuthModal: React.FC<PersonaAuthModalProps> = ({
                 <User size={20} className="mx-auto mb-1 text-indigo-600" />
                 <div className="text-xs font-extrabold">Teen Explorer</div>
                 <div className="text-[10px] text-slate-500 mt-0.5">Private Sanctuary</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setTargetRole('adult')}
+                className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${
+                  targetRole === 'adult'
+                    ? 'bg-rose-50 border-rose-300 ring-2 ring-rose-500 text-rose-900 shadow-sm'
+                    : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                <Compass size={20} className="mx-auto mb-1 text-rose-600" />
+                <div className="text-xs font-extrabold">Adult Sanctuary</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">Swadharma & Partners</div>
               </button>
 
               <button

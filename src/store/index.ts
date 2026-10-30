@@ -11,7 +11,7 @@ export interface User {
   ageRange: '13-15' | '16-17' | '18+';
   region: string;
   language: string;
-  role?: 'teen' | 'parent' | 'educator';
+  role?: 'teen' | 'adult' | 'parent' | 'educator';
   createdAt: string;
   // Rich profile fields
   name?: string;
@@ -118,7 +118,7 @@ export interface AppState {
   loginWithPin: (userId: string, pin: string) => Promise<string>;
   completeQuestionnaire: () => Promise<void>;
   logout: () => void;
-  updateRole: (role: 'teen' | 'parent' | 'educator') => void;
+  updateRole: (role: 'teen' | 'adult' | 'parent' | 'educator') => void;
   updateProfile: (profile: Partial<UnifiedProfile>) => void;
   signup: (data: SignupData) => Promise<string>;
   loadProfile: () => Promise<void>;
