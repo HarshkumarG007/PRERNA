@@ -42,6 +42,32 @@ export const PersonaAuthModal: React.FC<PersonaAuthModalProps> = ({
   // --- Pattern Lock State (3x3 grid: 0 to 8) ---
   const [patternDots, setPatternDots] = useState<number[]>([]);
 
+  const getRoleDisplayName = (role: 'teen' | 'adult' | 'parent' | 'educator') => {
+    switch (role) {
+      case 'adult':
+        return 'Adult Sanctuary';
+      case 'parent':
+        return 'Parent / Family';
+      case 'educator':
+        return 'School / Coach';
+      default:
+        return 'Teen Explorer';
+    }
+  };
+
+  const getRoleTheme = (role: 'teen' | 'adult' | 'parent' | 'educator') => {
+    switch (role) {
+      case 'adult':
+        return 'bg-gradient-to-r from-rose-600 via-rose-700 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white shadow-rose-500/25';
+      case 'parent':
+        return 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/25';
+      case 'educator':
+        return 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-500/25';
+      default:
+        return 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/25';
+    }
+  };
+
   if (!isOpen) return null;
 
   // --- 1. Biometric Authentication (WebAuthn / Windows Hello / Face / Fingerprint) ---
@@ -305,10 +331,10 @@ export const PersonaAuthModal: React.FC<PersonaAuthModalProps> = ({
               <button
                 onClick={handleBiometricAuth}
                 disabled={isVerifying}
-                className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-2"
+                className={`w-full py-3.5 rounded-xl ${getRoleTheme(targetRole)} text-white font-bold text-xs transition-all shadow-md cursor-pointer flex items-center justify-center gap-2`}
               >
                 <Fingerprint size={16} />
-                <span>{isVerifying ? 'Scanning Biometrics...' : 'Verify with Fingerprint / Face ID'}</span>
+                <span>{isVerifying ? 'Scanning Biometrics...' : `Verify & Authorize as ${getRoleDisplayName(targetRole)}`}</span>
               </button>
             </div>
           )}
@@ -350,9 +376,9 @@ export const PersonaAuthModal: React.FC<PersonaAuthModalProps> = ({
               <button
                 type="submit"
                 disabled={isVerifying || pinInput.length < 4}
-                className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold text-xs transition-colors shadow-sm cursor-pointer"
+                className={`w-full py-3.5 rounded-xl ${getRoleTheme(targetRole)} disabled:bg-slate-300 disabled:shadow-none font-bold text-xs transition-all shadow-md cursor-pointer`}
               >
-                {isVerifying ? 'Verifying PIN...' : `Authorize Access as ${targetRole === 'teen' ? 'Teen' : targetRole === 'parent' ? 'Parent' : 'Educator'}`}
+                {isVerifying ? 'Verifying PIN...' : `Authorize Access as ${getRoleDisplayName(targetRole)}`}
               </button>
             </form>
           )}
@@ -361,7 +387,9 @@ export const PersonaAuthModal: React.FC<PersonaAuthModalProps> = ({
           {authMethod === 'pattern' && (
             <div className="space-y-4 text-center">
               <div>
-                <h4 className="text-xs font-bold text-slate-700">Draw or Tap Pattern (Connect at least 4 dots):</h4>
+                <h4 className="text-xs font-bold text-slate-700">
+                  Draw or Tap Pattern to Authorize as {getRoleDisplayName(targetRole)} (Connect at least 4 dots):
+                </h4>
                 <p className="text-[11px] text-slate-500">
                   {patternDots.length === 0
                     ? 'Tap dots in your personal sequence'
@@ -420,9 +448,9 @@ export const PersonaAuthModal: React.FC<PersonaAuthModalProps> = ({
               <button
                 type="submit"
                 disabled={isVerifying || !passwordInput.trim()}
-                className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold text-xs transition-colors shadow-sm cursor-pointer"
+                className={`w-full py-3.5 rounded-xl ${getRoleTheme(targetRole)} disabled:bg-slate-300 disabled:shadow-none font-bold text-xs transition-all shadow-md cursor-pointer`}
               >
-                {isVerifying ? 'Verifying Password...' : 'Authorize Persona Switch'}
+                {isVerifying ? 'Verifying Password...' : `Authorize Access as ${getRoleDisplayName(targetRole)}`}
               </button>
             </form>
           )}
