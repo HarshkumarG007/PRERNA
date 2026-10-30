@@ -82,6 +82,31 @@ class SomaticAudioSynthesizer {
   }
 
   /**
+   * Plays a delicate, gentle navigation chime for transitions and button interactions.
+   */
+  public playSoftChime(freq: number = 540) {
+    if (this.isMuted) return;
+    try {
+      this.initContext();
+      if (!this.ctx || !this.masterGain) return;
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.12, now + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(now);
+      osc.stop(now + 0.65);
+    } catch {
+      // safe fallback
+    }
+  }
+
+  /**
    * Plays a celestial beacon chime (Pythagorean harmonic cascade: 432 Hz -> 540 Hz -> 648 Hz -> 864 Hz)
    * celebrating lighting a star on GitHub for the collective adolescent sanctuary.
    */

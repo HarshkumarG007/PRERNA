@@ -32,6 +32,8 @@ import { SanctuaryFooter } from './components/common/SanctuaryFooter';
 import { ClinicianLogin } from './components/clinical/ClinicianLogin';
 import { ReviewDashboard } from './components/clinical/ReviewDashboard';
 import { PersonaAuthModal } from './components/security/PersonaAuthModal';
+import { BetaFeedbackModal } from './components/beta/BetaFeedbackModal';
+import { ProductShowcaseModal } from './components/showcase/ProductShowcaseModal';
 import { useAppStore } from './store';
 
 // No mock context needed anymore
@@ -46,6 +48,8 @@ function App() {
   const [showAtmaModal, setShowAtmaModal] = useState(false);
   const [showDevModal, setShowDevModal] = useState(false);
   const [showPersonaModal, setShowPersonaModal] = useState(false);
+  const [showBetaFeedback, setShowBetaFeedback] = useState(false);
+  const [showProductShowcase, setShowProductShowcase] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleRoleAuthorize = (targetRole: 'teen' | 'parent' | 'educator') => {
@@ -185,12 +189,25 @@ function App() {
         <main className="flex-grow">
           <ParentDashboard onExit={() => setShowPersonaModal(true)} />
         </main>
-        <SanctuaryFooter />
+        <SanctuaryFooter 
+          onOpenBetaFeedback={() => setShowBetaFeedback(true)}
+          onOpenProductShowcase={() => setShowProductShowcase(true)}
+        />
 
         <PersonaAuthModal
           isOpen={showPersonaModal}
           onClose={() => setShowPersonaModal(false)}
           onAuthorize={handleRoleAuthorize}
+        />
+
+        <BetaFeedbackModal
+          isOpen={showBetaFeedback}
+          onClose={() => setShowBetaFeedback(false)}
+        />
+
+        <ProductShowcaseModal
+          isOpen={showProductShowcase}
+          onClose={() => setShowProductShowcase(false)}
         />
       </div>
     );
@@ -233,12 +250,25 @@ function App() {
         <main className="flex-grow">
           <SchoolDashboard />
         </main>
-        <SanctuaryFooter />
+        <SanctuaryFooter 
+          onOpenBetaFeedback={() => setShowBetaFeedback(true)}
+          onOpenProductShowcase={() => setShowProductShowcase(true)}
+        />
 
         <PersonaAuthModal
           isOpen={showPersonaModal}
           onClose={() => setShowPersonaModal(false)}
           onAuthorize={handleRoleAuthorize}
+        />
+
+        <BetaFeedbackModal
+          isOpen={showBetaFeedback}
+          onClose={() => setShowBetaFeedback(false)}
+        />
+
+        <ProductShowcaseModal
+          isOpen={showProductShowcase}
+          onClose={() => setShowProductShowcase(false)}
         />
       </div>
     );
@@ -335,6 +365,16 @@ function App() {
               >
                 <span className="text-[11px] leading-none">👨‍💻</span>
                 <span className="text-[9px] font-bold leading-tight text-indigo-900 mt-0.5">Developer</span>
+              </button>
+
+              {/* Product Showcase & Pitch Deck */}
+              <button
+                onClick={() => setShowProductShowcase(true)}
+                className="flex flex-col items-center justify-center px-2 py-1 rounded-xl text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 transition-colors shadow-2xs cursor-pointer group"
+                title="Product Showcase & Pitch Deck"
+              >
+                <span className="text-[11px] leading-none">✨</span>
+                <span className="text-[9px] font-bold leading-tight text-violet-900 mt-0.5">Showcase</span>
               </button>
               
               {/* Confidential Helplines */}
@@ -438,6 +478,26 @@ function App() {
                   <span className="text-xs font-bold text-indigo-800">Teen Dash</span>
                   <span className="text-[10px] text-indigo-600">Milestones</span>
                 </Link>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setShowProductShowcase(true);
+                  }}
+                  className="p-2 rounded-xl bg-violet-50 hover:bg-violet-100 border border-violet-200/80 flex flex-col items-center text-center cursor-pointer"
+                >
+                  <span className="text-xs font-bold text-violet-800">✨ Showcase</span>
+                  <span className="text-[10px] text-violet-600">Pitch Deck</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setShowBetaFeedback(true);
+                  }}
+                  className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 flex flex-col items-center text-center cursor-pointer"
+                >
+                  <span className="text-xs font-bold text-emerald-800">💌 Feedback</span>
+                  <span className="text-[10px] text-emerald-600">Beta Journal</span>
+                </button>
               </div>
             </div>
           )}
@@ -483,6 +543,11 @@ function App() {
           <Route path="/profile" element={<TeenProfileView />} />
           <Route path="/shared-dashboard" element={<div className="max-w-7xl mx-auto"><SharedDashboardView /></div>} />
           <Route path="/support" element={<div className="max-w-7xl mx-auto"><ResourceSurface mode="page" /></div>} />
+          <Route path="/showcase" element={<ProductShowcaseModal isOpen={true} onClose={() => window.history.back()} />} />
+          <Route path="/pitch" element={<ProductShowcaseModal isOpen={true} onClose={() => window.history.back()} />} />
+          <Route path="/deck" element={<ProductShowcaseModal isOpen={true} onClose={() => window.history.back()} />} />
+          <Route path="/feedback" element={<BetaFeedbackModal isOpen={true} onClose={() => window.history.back()} />} />
+          <Route path="/beta-feedback" element={<BetaFeedbackModal isOpen={true} onClose={() => window.history.back()} />} />
           <Route path="/parent-dash" element={user.role === 'parent' ? <ParentDashboard onExit={() => window.location.href='/'} /> : <Navigate to="/" replace />} />
           <Route path="/school-dash" element={user.role === 'educator' ? <SchoolDashboard /> : <Navigate to="/" replace />} />
           <Route path="/clinician-portal" element={
@@ -495,7 +560,10 @@ function App() {
       </main>
 
       {/* Global Sanctuary Footer & Hold the Light Anchor */}
-      <SanctuaryFooter />
+      <SanctuaryFooter
+        onOpenBetaFeedback={() => setShowBetaFeedback(true)}
+        onOpenProductShowcase={() => setShowProductShowcase(true)}
+      />
 
       {/* Global Atma-Jnana Philosophy Modal */}
       <AtmaJnanaOriginModal
@@ -514,6 +582,18 @@ function App() {
         isOpen={showPersonaModal}
         onClose={() => setShowPersonaModal(false)}
         onAuthorize={handleRoleAuthorize}
+      />
+
+      {/* Global Zero-Telemetry Beta Feedback Modal */}
+      <BetaFeedbackModal
+        isOpen={showBetaFeedback}
+        onClose={() => setShowBetaFeedback(false)}
+      />
+
+      {/* Global Product Showcase & Pitch Deck Modal */}
+      <ProductShowcaseModal
+        isOpen={showProductShowcase}
+        onClose={() => setShowProductShowcase(false)}
       />
     </div>
   );

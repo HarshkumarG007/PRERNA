@@ -1,9 +1,17 @@
 import React, { useState } from 'react';
-import { Star, Heart, ExternalLink, ShieldCheck, Sun } from 'lucide-react';
+import { Star, Heart, ExternalLink, ShieldCheck, Sun, Sparkles, MessageSquareHeart } from 'lucide-react';
 import { somaticAudio } from '../../utils/audioSynthesis';
 import { PrernaEmblem } from './PrernaLogo';
 
-export const SanctuaryFooter: React.FC = () => {
+export interface SanctuaryFooterProps {
+  onOpenBetaFeedback?: () => void;
+  onOpenProductShowcase?: () => void;
+}
+
+export const SanctuaryFooter: React.FC<SanctuaryFooterProps> = ({
+  onOpenBetaFeedback,
+  onOpenProductShowcase,
+}) => {
   const [litStar, setLitStar] = useState(false);
 
   const handleLightStar = () => {
@@ -142,6 +150,36 @@ export const SanctuaryFooter: React.FC = () => {
             <p className="text-[11px] font-semibold text-indigo-900 pt-0.5">
               PRERNA™ is a trademark of Harsh Kumar Gupta.
             </p>
+
+            {/* Quick Action Badges */}
+            <div className="pt-1.5 flex flex-wrap items-center gap-2">
+              {onOpenProductShowcase && (
+                <button
+                  onClick={() => {
+                    somaticAudio.playSoftChime();
+                    onOpenProductShowcase();
+                  }}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-[11px] font-bold transition-colors cursor-pointer shadow-2xs"
+                  title="View Interactive Product Showcase & Pitch Deck"
+                >
+                  <Sparkles size={12} className="text-indigo-600" />
+                  <span>Product Deck</span>
+                </button>
+              )}
+              {onOpenBetaFeedback && (
+                <button
+                  onClick={() => {
+                    somaticAudio.playSoftChime();
+                    onOpenBetaFeedback();
+                  }}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[11px] font-bold transition-colors cursor-pointer shadow-2xs"
+                  title="Open Zero-Telemetry Beta Feedback Journal"
+                >
+                  <MessageSquareHeart size={12} className="text-emerald-600" />
+                  <span>Beta Feedback</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

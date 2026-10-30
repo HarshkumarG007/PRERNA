@@ -364,6 +364,21 @@
   - [x] Wired secure switching into `App.tsx` for Teen, Parent Sanctuary, and School Educator headers.
   - [x] Added mobile responsive dropdown drawer (`lg:hidden`) for screens `< 1024px` guaranteeing zero navigation clipping across mobile, tablet, and desktop.
   - [x] Verified full suite: **137/137 tests passing across 29 test files**; production build cleanly generated.
+- [x] **P7-17** Cross-Platform Packaging & 100% Offline PWA Resilience
+  - [x] Configured `public/manifest.webmanifest` & `public/sw.js` providing zero-cloud service worker caching and offline-first boot.
+  - [x] Linked manifest and registered service worker in `index.html`.
+  - [x] Configured native window in `src-tauri/tauri.conf.json` (`PRERNA | प्रेरणा • Sanctuary`, 1280x820 default, resizable) and normalized package identity in `package.json`.
+  - [x] Verified native Android build artifacts in `src-tauri/gen/android/app/build/outputs/apk/arm64/` (`app-arm64-debug.apk` and `app-arm64-release.apk`).
+- [x] **P7-18** Zero-Telemetry Beta Feedback Journal & Interactive Product Showcase Deck
+  - [x] Created `src/components/beta/BetaFeedbackModal.tsx`:
+    - 100% on-device local storage for user observations, bug reports, and experience reflections.
+    - Zero remote telemetry, zero cloud calls, adhering strictly to Section 9 of the DPDP Act 2023.
+    - One-click encrypted JSON download (`prerna-beta-feedback-YYYY-MM-DD.json`) with consent disclosures.
+  - [x] Created `src/components/showcase/ProductShowcaseModal.tsx`:
+    - 5-slide interactive pitch deck & architecture showcase covering: Atma-Jnana Vision, 5-Domain Psychometrics, Kaya Kalpa Somatics & Sleep, Multi-Modal Persona Vault, and Local Native Architecture.
+    - Keyboard-accessible navigation, stepper tabs, 432 Hz Pythagorean chimes (`somaticAudio.playSoftChime()`), and Markdown pitch deck export (`PRERNA_Product_Showcase_Pitch_Deck_*.md`).
+  - [x] Integrated seamless access points across `src/App.tsx` (routes `/showcase`, `/pitch`, `/feedback`), `src/components/common/SanctuaryFooter.tsx`, and responsive mobile drawer.
+  - [x] Verified full suite: **137/137 tests passing across 29 test files**; production build succeeded in 8.18s.
 
 ---
 
