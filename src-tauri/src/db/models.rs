@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
     pub id: String,
     pub username: String,
@@ -14,9 +14,14 @@ pub struct User {
     pub mfa_enabled: bool,
     pub role: String,
     pub tenant_id: Option<String>,
+    pub pin_hash: Option<String>,
+    pub has_completed_questionnaire: bool,
+    pub name: Option<String>,
+    pub gender: Option<String>,
+    pub date_of_birth: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PublicUser {
     pub id: String,
     pub username: String,
@@ -27,6 +32,10 @@ pub struct PublicUser {
     pub mfa_enabled: bool,
     pub role: String,
     pub tenant_id: Option<String>,
+    pub has_completed_questionnaire: bool,
+    pub name: Option<String>,
+    pub gender: Option<String>,
+    pub date_of_birth: Option<String>,
 }
 
 impl From<&User> for PublicUser {
@@ -41,6 +50,10 @@ impl From<&User> for PublicUser {
             mfa_enabled: user.mfa_enabled,
             role: user.role.clone(),
             tenant_id: user.tenant_id.clone(),
+            has_completed_questionnaire: user.has_completed_questionnaire,
+            name: user.name.clone(),
+            gender: user.gender.clone(),
+            date_of_birth: user.date_of_birth.clone(),
         }
     }
 }
@@ -51,8 +64,14 @@ pub enum AgeBand {
     Teen13To15,
     #[serde(rename = "16-17")]
     Teen16To17,
+    #[serde(rename = "16-18")]
+    Teen16To18,
     #[serde(rename = "18+")]
     Adult18Plus,
+    #[serde(rename = "19-22")]
+    Adult19To22,
+    #[serde(other)]
+    Unknown,
 }
 
 impl AgeBand {
@@ -70,7 +89,10 @@ impl rusqlite::ToSql for AgeBand {
         let s = match self {
             AgeBand::Teen13To15 => "13-15",
             AgeBand::Teen16To17 => "16-17",
+            AgeBand::Teen16To18 => "16-18",
             AgeBand::Adult18Plus => "18+",
+            AgeBand::Adult19To22 => "19-22",
+            AgeBand::Unknown => "13-15",
         };
         Ok(rusqlite::types::ToSqlOutput::from(s))
     }
@@ -82,8 +104,10 @@ impl rusqlite::types::FromSql for AgeBand {
         match s {
             "13-15" => Ok(AgeBand::Teen13To15),
             "16-17" => Ok(AgeBand::Teen16To17),
+            "16-18" => Ok(AgeBand::Teen16To18),
             "18+" => Ok(AgeBand::Adult18Plus),
-            _ => Err(rusqlite::types::FromSqlError::InvalidType),
+            "19-22" => Ok(AgeBand::Adult19To22),
+            _ => Ok(AgeBand::Teen13To15), // Safe fallback
         }
     }
 }
@@ -93,8 +117,12 @@ pub struct NewUser {
     pub username: String,
     pub password_hash: String,
     pub age_range: AgeBand,
-    pub region: String,
-    pub language: String,
+    pub region: Option<String>,
+    pub language: Option<String>,
+    pub pin: Option<String>,
+    pub name: Option<String>,
+    pub gender: Option<String>,
+    pub date_of_birth: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

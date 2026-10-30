@@ -317,3 +317,4 @@ export const PrernaLogo: React.FC<PrernaLogoProps> = ({
 };
 
 export default PrernaLogo;
+

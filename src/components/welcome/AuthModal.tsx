@@ -56,21 +56,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
     phone: '',
   });
 
-  const { signup, login, loginWithCredentials } = useAppStore();
-
-  const validatePin = async () => {
-    const userId = localStorage.getItem('prerna_last_user');
-    if (!userId) {
-      setError('No previous user found. Please sign up or log in with credentials.');
-      return false;
-    }
-    const storedPin = localStorage.getItem(`prerna_pin_${userId}`);
-    if (storedPin !== formData.pin) {
-      setError('Incorrect PIN. Please try again.');
-      return false;
-    }
-    return true;
-  };
+  const { signup, login, loginWithCredentials, loginWithPin } = useAppStore();
 
   const canProceed = () => {
     if (mode === 'login') {
@@ -135,10 +121,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
         }
       } else {
         if (loginMode === 'pin') {
-          const isValid = await validatePin();
-          if (!isValid) { setIsLoading(false); return; }
-          const userId = localStorage.getItem('prerna_last_user')!;
-          await login(userId);
+          const userId = localStorage.getItem('prerna_last_user');
+          if (!userId) {
+            setError('No previous user found on this device. Please log in with username and password.');
+            setIsLoading(false);
+            return;
+          }
+          if (!formData.pin || formData.pin.length < 4) {
+            setError('Please enter your 4-digit PIN.');
+            setIsLoading(false);
+            return;
+          }
+          await loginWithPin(userId, formData.pin);
           onClose();
         } else if (loginMode === 'full') {
           if (!formData.username || !formData.passwordInput) {
@@ -177,7 +171,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={onClose}
+        onClick={() => {
+          // On mobile touchscreens, don't accidentally close when filling in multi-step signup
+          if (mode === 'signup' && step > 1) return;
+          onClose();
+        }}
         className="absolute inset-0 bg-black/70 backdrop-blur-md"
       />
 
@@ -372,7 +370,6 @@ const SignupFlow: React.FC<{
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className={inputCls}
             placeholder="Enter your full name"
-            autoFocus
           />
         </Field>
 
@@ -524,7 +521,6 @@ const SignupFlow: React.FC<{
             onChange={(e) => setFormData({ ...formData, username: e.target.value })}
             className={inputCls}
             placeholder="Choose a unique username"
-            autoFocus
           />
         </Field>
 
@@ -657,7 +653,6 @@ const LoginForm: React.FC<{
             onChange={(e) => setFormData({ ...formData, pin: e.target.value.replace(/\D/g, '').slice(0, 6)})}
             className="w-full p-4 bg-white/5 border border-white/10 rounded-xl text-white text-center text-2xl tracking-widest focus:border-violet-500 focus:outline-none font-mono"
             placeholder="••••"
-            autoFocus
           />
           <button
             onClick={() => setShowPassword(!showPassword)}
@@ -682,7 +677,6 @@ const LoginForm: React.FC<{
           onChange={(e) => setFormData({ ...formData, username: e.target.value })}
           className="w-full p-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/20 focus:border-violet-500 focus:outline-none transition-colors text-sm"
           placeholder="Enter your username"
-          autoFocus
         />
       </div>
       <div>

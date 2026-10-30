@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Sparkles, Brain, Shield, ChevronRight, X } from 'lucide-react';
 
 const TOUR_STEPS = [
@@ -58,57 +57,48 @@ export const WelcomeTour: React.FC = () => {
   const Icon = step.icon;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        className="bg-[#0f172a] rounded-[2.5rem] p-8 max-w-sm w-full border border-white/10 shadow-2xl relative overflow-hidden text-center"
+    <div 
+      onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-300"
+    >
+      <div
+        className="bg-white/95 backdrop-blur-md rounded-[2rem] p-6 max-w-sm w-full border border-slate-100 shadow-2xl relative overflow-hidden text-center"
       >
         <button
           onClick={handleClose}
-          className="absolute top-6 right-6 text-white/30 hover:text-white/80 transition-colors"
+          className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 transition-colors"
+          aria-label="Close tour"
         >
-          <X size={24} />
+          <X size={20} />
         </button>
 
-        <div className="mt-4 mb-8">
-          <motion.div
-            key={currentStep}
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className={`w-24 h-24 mx-auto rounded-3xl ${step.bg} flex items-center justify-center border border-white/10 mb-6`}
+        <div className="mt-2 mb-6">
+          <div
+            className={`w-20 h-20 mx-auto rounded-3xl ${step.bg} flex items-center justify-center border border-slate-100 mb-4`}
           >
-            <Icon size={48} className={step.color} />
-          </motion.div>
+            <Icon size={40} className={step.color} />
+          </div>
 
-          <motion.h2
-            key={`title-${currentStep}`}
-            initial={{ y: 10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="text-2xl font-black text-white mb-3"
+          <h2
+            className="text-xl font-bold text-slate-800 mb-2"
           >
             {step.title}
-          </motion.h2>
+          </h2>
 
-          <motion.p
-            key={`desc-${currentStep}`}
-            initial={{ y: 10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className="text-slate-400 font-medium leading-relaxed text-sm"
+          <p
+            className="text-slate-600 font-normal leading-relaxed text-sm"
           >
             {step.description}
-          </motion.p>
+          </p>
         </div>
 
-        <div className="flex items-center justify-between mt-8">
+        <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-100">
           <div className="flex gap-2">
             {TOUR_STEPS.map((_, idx) => (
               <div
                 key={idx}
                 className={`h-2 rounded-full transition-all duration-300 ${
-                  idx === currentStep ? 'w-6 bg-violet-500' : 'w-2 bg-white/10'
+                  idx === currentStep ? 'w-6 bg-violet-600' : 'w-2 bg-slate-200'
                 }`}
               />
             ))}
@@ -116,13 +106,13 @@ export const WelcomeTour: React.FC = () => {
           
           <button
             onClick={handleNext}
-            className="flex items-center gap-2 px-6 py-3 bg-white text-slate-900 rounded-xl font-bold hover:bg-slate-200 transition-colors"
+            className="flex items-center gap-1.5 px-5 py-2.5 bg-violet-600 text-white rounded-xl font-semibold shadow-md shadow-violet-200 hover:bg-violet-700 transition-colors text-sm"
           >
             {currentStep === TOUR_STEPS.length - 1 ? 'Get Started' : 'Next'}
-            {currentStep < TOUR_STEPS.length - 1 && <ChevronRight size={18} />}
+            {currentStep < TOUR_STEPS.length - 1 && <ChevronRight size={16} />}
           </button>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

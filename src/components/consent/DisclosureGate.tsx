@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Shield, Check, X } from 'lucide-react';
 import { CURRENT_DISCLOSURES, ActivityType } from '../../engine/assessment/disclosures';
 import { validateSessionCreation } from '../../engine/consent/sessionGate';
@@ -36,11 +35,9 @@ export const DisclosureGate: React.FC<DisclosureGateProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-[#0f172a] border border-white/10 rounded-2xl max-w-lg w-full p-8 shadow-2xl relative overflow-hidden"
+    <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div 
+        className="bg-white rounded-2xl max-w-lg w-full p-8 shadow-2xl relative overflow-hidden border border-slate-100"
       >
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-500" />
         
@@ -49,13 +46,13 @@ export const DisclosureGate: React.FC<DisclosureGateProps> = ({
             <Shield size={24} />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">Before you begin</h2>
-            <p className="text-sm text-slate-400">Please review this information</p>
+            <h2 className="text-xl font-bold text-slate-900">Before you begin</h2>
+            <p className="text-sm text-slate-500">Please review this information</p>
           </div>
         </div>
 
-        <div className="bg-white/5 rounded-xl p-5 mb-8 border border-white/5">
-          <p className="text-white/90 leading-relaxed font-medium">
+        <div className="bg-slate-50 rounded-xl p-5 mb-8 border border-slate-100">
+          <p className="text-slate-700 leading-relaxed font-medium">
             {disclosure.text[language as keyof typeof disclosure.text] || disclosure.text.en}
           </p>
         </div>
@@ -74,7 +71,7 @@ export const DisclosureGate: React.FC<DisclosureGateProps> = ({
             <Check size={18} /> I Understand
           </button>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

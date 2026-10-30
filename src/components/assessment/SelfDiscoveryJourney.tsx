@@ -87,9 +87,15 @@ export const SelfDiscoveryJourney: React.FC<SelfDiscoveryJourneyProps> = ({ onCo
           console.error("Failed to save profile to backend:", e);
         }
 
-        // Generate personalized LLM report
-        const prompt = buildLLMSynthesisPrompt('Teen', scoredProfile, detectedArchetype); // Teen name could be dynamic
-        const llmReport = await safeInvoke<string>('generate_llm_text', { prompt });
+        // Generate personalized LLM report with robust fallback
+        let llmReport = '';
+        try {
+          const prompt = buildLLMSynthesisPrompt('Teen', scoredProfile, detectedArchetype);
+          llmReport = (await safeInvoke<string>('generate_llm_text', { prompt })) || '';
+        } catch (e) {
+          console.warn("LLM report generation fallback:", e);
+          llmReport = `${detectedArchetype.name}: ${detectedArchetype.description}`;
+        }
 
         // Update the global profile with trait scores and report
         updateProfile({
@@ -203,7 +209,14 @@ export const SelfDiscoveryJourney: React.FC<SelfDiscoveryJourneyProps> = ({ onCo
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
-              onClick={onComplete}
+              onClick={async () => {
+                try {
+                  await useAppStore.getState().completeQuestionnaire();
+                } catch (e) {
+                  console.error("completeQuestionnaire error:", e);
+                }
+                onComplete();
+              }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="w-full py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-xl font-bold text-white text-lg shadow-2xl shadow-violet-500/20 flex items-center justify-center gap-2"

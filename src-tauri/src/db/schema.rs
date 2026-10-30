@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
     username TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     created_at TEXT NOT NULL,
-    age_range TEXT CHECK(age_range IN ('13-15', '16-18', '19-22')),
+    age_range TEXT,
     region TEXT, -- encrypted
     language TEXT DEFAULT 'en',
     encryption_key_hash TEXT,
@@ -16,7 +16,12 @@ CREATE TABLE IF NOT EXISTS users (
     mfa_secret TEXT,
     mfa_enabled BOOLEAN DEFAULT 0,
     role TEXT NOT NULL DEFAULT 'teen',
-    tenant_id TEXT
+    tenant_id TEXT,
+    pin_hash TEXT,
+    has_completed_questionnaire BOOLEAN DEFAULT 0,
+    name TEXT,
+    gender TEXT,
+    date_of_birth TEXT
 );
 
 -- Assessment Sessions (gamified interactions)

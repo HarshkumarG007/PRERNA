@@ -76,8 +76,8 @@ impl Database {
             }
         }
 
-        // Fallback for mobile / environments without secret-service keyring
-        let fallback_key = Zeroizing::new(hex::encode(b"PRERNA_FALLBACK_SECURE_STORAGE_"));
+        // Fallback for mobile / environments without secret-service keyring (must be exactly 32 bytes)
+        let fallback_key = Zeroizing::new(hex::encode(b"PRERNA_FALLBACK_SECURE_STORAGE32"));
         Ok(fallback_key)
     }
 
@@ -147,6 +147,9 @@ impl Database {
         }
         if actual_version < 2 {
             self.apply_migration_2()?;
+        }
+        if actual_version < 3 {
+            self.apply_migration_3()?;
         }
 
         info!("Database schema initialized and migrated successfully");
@@ -370,16 +373,32 @@ impl Database {
         }
     }
 
+    fn apply_migration_3(&mut self) -> AnyhowResult<()> {
+        let _ = self.conn.execute("ALTER TABLE users ADD COLUMN pin_hash TEXT", []);
+        let _ = self.conn.execute("ALTER TABLE users ADD COLUMN has_completed_questionnaire BOOLEAN DEFAULT 0", []);
+        let _ = self.conn.execute("ALTER TABLE users ADD COLUMN name TEXT", []);
+        let _ = self.conn.execute("ALTER TABLE users ADD COLUMN gender TEXT", []);
+        let _ = self.conn.execute("ALTER TABLE users ADD COLUMN date_of_birth TEXT", []);
+
+        let _ = self.conn.execute(
+            "INSERT INTO schema_migrations (version, applied_at) VALUES (3, datetime('now'))",
+            [],
+        );
+        Ok(())
+    }
+
     // === USER OPERATIONS ===
 
-    pub fn create_user(&self, user: &NewUser) -> AnyhowResult<String> {
+    pub fn create_user(&self, user: &NewUser, pin_hash: Option<String>) -> AnyhowResult<String> {
         let id = uuid::Uuid::new_v4().to_string();
-        let encrypted_region = self.encrypt_field(&user.region)?;
-        let encrypted_lang = self.encrypt_field(&user.language)?;
+        let region = user.region.as_deref().unwrap_or("India");
+        let lang = user.language.as_deref().unwrap_or("en");
+        let encrypted_region = self.encrypt_field(region)?;
+        let encrypted_lang = self.encrypt_field(lang)?;
 
         self.conn.execute(
-            "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled, role, tenant_id)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 0, 'teen', NULL)",
+            "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled, role, tenant_id, pin_hash, has_completed_questionnaire, name, gender, date_of_birth)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 0, 'teen', NULL, ?9, 0, ?10, ?11, ?12)",
             params![
                 &id,
                 &user.username,
@@ -388,7 +407,11 @@ impl Database {
                 &user.age_range,
                 encrypted_region,
                 encrypted_lang,
-                "key_placeholder" // In production: hash of encryption key
+                "key_placeholder",
+                pin_hash,
+                &user.name,
+                &user.gender,
+                &user.date_of_birth,
             ],
         )?;
 
@@ -397,7 +420,7 @@ impl Database {
 
     pub fn authenticate_user_raw(&self, username: &str) -> AnyhowResult<Option<User>> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_secret, mfa_enabled, role, tenant_id
+            "SELECT id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_secret, mfa_enabled, role, tenant_id, pin_hash, has_completed_questionnaire, name, gender, date_of_birth
              FROM users WHERE username = ?1"
         )?;
 
@@ -419,6 +442,11 @@ impl Database {
                     mfa_enabled: row.get(9).unwrap_or(false),
                     role: row.get(10).unwrap_or_else(|_| "teen".to_string()),
                     tenant_id: row.get(11).ok(),
+                    pin_hash: row.get(12).ok(),
+                    has_completed_questionnaire: row.get(13).unwrap_or(false),
+                    name: row.get(14).ok(),
+                    gender: row.get(15).ok(),
+                    date_of_birth: row.get(16).ok(),
                 })
             })
             .optional()?;
@@ -428,7 +456,7 @@ impl Database {
 
     pub fn get_user(&self, user_id: &str) -> AnyhowResult<Option<User>> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_secret, mfa_enabled, role, tenant_id
+            "SELECT id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_secret, mfa_enabled, role, tenant_id, pin_hash, has_completed_questionnaire, name, gender, date_of_birth
              FROM users WHERE id = ?1"
         )?;
 
@@ -450,6 +478,11 @@ impl Database {
                     mfa_enabled: row.get(9).unwrap_or(false),
                     role: row.get(10).unwrap_or_else(|_| "teen".to_string()),
                     tenant_id: row.get(11).ok(),
+                    pin_hash: row.get(12).ok(),
+                    has_completed_questionnaire: row.get(13).unwrap_or(false),
+                    name: row.get(14).ok(),
+                    gender: row.get(15).ok(),
+                    date_of_birth: row.get(16).ok(),
                 })
             })
             .optional()?;
@@ -851,6 +884,9 @@ impl Database {
 
         let key = Self::get_or_create_key()?;
         let mut key_bytes = hex::decode(&*key)?;
+        if key_bytes.len() != 32 {
+            key_bytes.resize(32, 0x42);
+        }
         let cipher_key = Key::<Aes256Gcm>::from_slice(&key_bytes);
         let cipher = Aes256Gcm::new(cipher_key);
         key_bytes.zeroize();
@@ -874,6 +910,9 @@ impl Database {
 
         let key = Self::get_or_create_key()?;
         let mut key_bytes = hex::decode(&*key)?;
+        if key_bytes.len() != 32 {
+            key_bytes.resize(32, 0x42);
+        }
         let cipher_key = Key::<Aes256Gcm>::from_slice(&key_bytes);
         let cipher = Aes256Gcm::new(cipher_key);
         key_bytes.zeroize();
@@ -887,6 +926,9 @@ impl Database {
         }
 
         let (nonce_bytes, encrypted) = data.split_at(12);
+        if nonce_bytes.len() != 12 {
+            return Err(anyhow::anyhow!("Invalid nonce length"));
+        }
         let nonce = Nonce::from_slice(nonce_bytes);
 
         let plaintext = cipher

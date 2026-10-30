@@ -33,12 +33,41 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
         username: user.username,
         password_hash: user.password_hash,
         ageRange: user.age_range,
-        region: user.region,
-        language: user.language,
+        region: user.region || 'India',
+        language: user.language || 'en',
+        name: user.name,
+        gender: user.gender,
+        dateOfBirth: user.date_of_birth,
+        pin: user.pin,
+        hasCompletedQuestionnaire: false,
         createdAt: new Date().toISOString()
       });
       saveMockDb(db);
       return id as any;
+    }
+
+    case 'authenticate_pin': {
+      const user = db.users.find((u: any) => u.id === args.userId);
+      if (user) {
+        return user as any;
+      }
+      throw new Error("Incorrect PIN. Please try again.");
+    }
+
+    case 'resume_session': {
+      const user = db.users.find((u: any) => u.id === args.userId);
+      if (user) return user as any;
+      throw new Error("User not found");
+    }
+
+    case 'complete_questionnaire': {
+      const userId = localStorage.getItem('prerna_last_user');
+      const user = db.users.find((u: any) => u.id === userId);
+      if (user) {
+        user.hasCompletedQuestionnaire = true;
+        saveMockDb(db);
+      }
+      return undefined as any;
     }
 
     case 'authenticate_user': {

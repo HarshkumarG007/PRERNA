@@ -19,13 +19,17 @@ fn bench_session_save(c: &mut Criterion) {
     let user = NewUser {
         username: "bench_user".to_string(),
         password_hash: "hash".to_string(),
-        age_range: "13-15".to_string(),
-        region: "Delhi".to_string(),
-        language: "en".to_string(),
+        age_range: app_lib::db::models::AgeBand::Teen13To15,
+        region: Some("Delhi".to_string()),
+        language: Some("en".to_string()),
+        pin: None,
+        name: Some("Bench User".to_string()),
+        gender: Some("male".to_string()),
+        date_of_birth: Some("2008-01-01".to_string()),
     };
 
     let user_id = db
-        .create_user(&user)
+        .create_user(&user, None)
         .unwrap_or_else(|_| "test_user".to_string());
 
     c.bench_function("save_session_encrypted", |b| {

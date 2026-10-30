@@ -110,6 +110,8 @@ export interface AppState {
   // Actions
   login: (userId: string) => Promise<void>;
   loginWithCredentials: (username: string, passwordInput: string) => Promise<string | { mfaRequired: true, userId: string }>;
+  loginWithPin: (userId: string, pin: string) => Promise<string>;
+  completeQuestionnaire: () => Promise<void>;
   logout: () => void;
   updateRole: (role: 'teen' | 'parent' | 'educator') => void;
   updateProfile: (profile: Partial<UnifiedProfile>) => void;
@@ -165,11 +167,24 @@ export const useAppStore = create<AppState>()(
         set({ isLoading: true });
         
         try {
-          const user = await invoke<User>('get_user', { userId });
+          let user: any = null;
+          try {
+            user = await invoke<any>('resume_session', { userId });
+          } catch {
+            user = await invoke<any>('get_user', { userId });
+          }
           
           if (user) {
+            const normalizedUser: User = {
+              ...user,
+              ageRange: user.ageRange || user.age_range,
+              createdAt: user.createdAt || user.created_at,
+              hasCompletedQuestionnaire: user.hasCompletedQuestionnaire ?? user.has_completed_questionnaire ?? false,
+              dateOfBirth: user.dateOfBirth || user.date_of_birth,
+            };
+
             set({ 
-              user,
+              user: normalizedUser,
               isAuthenticated: true,
               isLoading: false 
             });
@@ -183,6 +198,53 @@ export const useAppStore = create<AppState>()(
         } catch (error) {
           set({ isLoading: false });
           throw error;
+        }
+      },
+
+      loginWithPin: async (userId: string, pin: string) => {
+        set({ isLoading: true });
+        try {
+          const user = await invoke<any>('authenticate_pin', { userId, pin });
+          if (user) {
+            const normalizedUser: User = {
+              ...user,
+              ageRange: user.ageRange || user.age_range,
+              createdAt: user.createdAt || user.created_at,
+              hasCompletedQuestionnaire: user.hasCompletedQuestionnaire ?? user.has_completed_questionnaire ?? false,
+              dateOfBirth: user.dateOfBirth || user.date_of_birth,
+            };
+
+            localStorage.setItem('prerna_last_user', normalizedUser.id);
+            set({
+              user: normalizedUser,
+              isAuthenticated: true,
+              isLoading: false
+            });
+            await get().loadProfile();
+            get().refreshStreak();
+            return normalizedUser.id;
+          } else {
+            throw new Error('Invalid PIN');
+          }
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      completeQuestionnaire: async () => {
+        const { user } = get();
+        if (!user) return;
+        try {
+          await invoke('complete_questionnaire', { userId: user.id });
+          set({
+            user: { ...user, hasCompletedQuestionnaire: true }
+          });
+        } catch (e) {
+          console.error("Failed to mark questionnaire completed on backend:", e);
+          set({
+            user: { ...user, hasCompletedQuestionnaire: true }
+          });
         }
       },
 
@@ -262,15 +324,19 @@ export const useAppStore = create<AppState>()(
               username: data.username,
               password_hash: data.passwordInput, // Will be hashed in backend
               age_range: data.ageRange,
-              region: data.region,
-              language: data.language,
+              region: data.region || data.state || 'India',
+              language: data.language || 'en',
+              pin: data.pin || null,
+              name: data.name || null,
+              gender: data.gender || null,
+              date_of_birth: data.dateOfBirth || null,
             },
           });
           
           // Remember last authenticated user ID (never store PINs or credentials in localStorage)
           localStorage.setItem('prerna_last_user', userId);
           
-          // Auto-login
+          // Auto-login (create_user already set session.set_authenticated on backend)
           await get().login(userId);
           
           return userId;

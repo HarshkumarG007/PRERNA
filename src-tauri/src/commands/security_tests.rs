@@ -73,6 +73,11 @@ mod tests {
             mfa_enabled: true,
             role: "teen".to_string(),
             tenant_id: None,
+            pin_hash: Some("$argon2id$v=19$m=19456,t=2,p=1$SALT$PINHASH".to_string()),
+            has_completed_questionnaire: false,
+            name: Some("Test User".to_string()),
+            gender: Some("male".to_string()),
+            date_of_birth: Some("2008-01-01".to_string()),
         };
 
         let public_user = PublicUser::from(&internal_user);
@@ -81,6 +86,14 @@ mod tests {
         assert!(
             !serialized.contains("password_hash"),
             "SECURITY VULNERABILITY: PublicUser leaked password_hash!"
+        );
+        assert!(
+            !serialized.contains("pin_hash"),
+            "SECURITY VULNERABILITY: PublicUser leaked pin_hash!"
+        );
+        assert!(
+            !serialized.contains("PINHASH"),
+            "SECURITY VULNERABILITY: PublicUser leaked PIN hash value!"
         );
         assert!(
             !serialized.contains("mfa_secret"),
@@ -111,6 +124,11 @@ mod tests {
             mfa_enabled: true,
             role: "teen".to_string(),
             tenant_id: None,
+            pin_hash: Some("$argon2id$v=19$m=19456,t=2,p=1$SALT$PINHASH".to_string()),
+            has_completed_questionnaire: false,
+            name: Some("Test User".to_string()),
+            gender: Some("male".to_string()),
+            date_of_birth: Some("2008-01-01".to_string()),
         };
 
         let public_user = PublicUser::from(&internal_user);

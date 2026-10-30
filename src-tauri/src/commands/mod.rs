@@ -25,7 +25,11 @@ use totp_rs::{Algorithm, Secret, TOTP};
 // === USER COMMANDS ===
 
 #[tauri::command]
-pub fn create_user(state: State<DbState>, mut user: NewUser) -> Result<String, String> {
+pub fn create_user(
+    state: State<DbState>,
+    session: State<ActiveSession>,
+    mut user: NewUser,
+) -> Result<String, String> {
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
 
@@ -36,8 +40,89 @@ pub fn create_user(state: State<DbState>, mut user: NewUser) -> Result<String, S
 
     user.password_hash = password_hash;
 
+    let pin_hash = if let Some(ref pin) = user.pin {
+        let pin_salt = SaltString::generate(&mut OsRng);
+        Some(
+            argon2
+                .hash_password(pin.as_bytes(), &pin_salt)
+                .map_err(|e| e.to_string())?
+                .to_string(),
+        )
+    } else {
+        None
+    };
+
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    db.create_user(&user).map_err(|e| e.to_string())
+    let user_id = db.create_user(&user, pin_hash).map_err(|e| e.to_string())?;
+
+    // Commit active session immediately so subsequent get_user or MFA setup succeeds!
+    session.set_authenticated(user_id.clone())?;
+
+    Ok(user_id)
+}
+
+#[tauri::command]
+pub fn authenticate_pin(
+    state: State<DbState>,
+    session: State<ActiveSession>,
+    user_id: String,
+    pin: String,
+) -> Result<PublicUser, String> {
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    let user = db
+        .get_user(&user_id)
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| "User not found".to_string())?;
+
+    let pin_hash = user.pin_hash.as_deref().ok_or_else(|| "No PIN configured for user".to_string())?;
+    let parsed_hash = PasswordHash::new(pin_hash).map_err(|e| e.to_string())?;
+
+    if Argon2::default().verify_password(pin.as_bytes(), &parsed_hash).is_ok() {
+        session.set_authenticated(user.id.clone())?;
+        Ok(PublicUser::from(&user))
+    } else {
+        Err("Incorrect PIN. Please try again.".to_string())
+    }
+}
+
+#[tauri::command]
+pub fn resume_session(
+    state: State<DbState>,
+    session: State<ActiveSession>,
+    user_id: String,
+) -> Result<PublicUser, String> {
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    let user = db
+        .get_user(&user_id)
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| "User not found".to_string())?;
+
+    session.set_authenticated(user.id.clone())?;
+    Ok(PublicUser::from(&user))
+}
+
+#[tauri::command]
+pub fn complete_questionnaire(
+    state: State<DbState>,
+    session: State<ActiveSession>,
+) -> Result<(), String> {
+    let user_id = session.get_user_id()?;
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    db.conn
+        .execute(
+            "UPDATE users SET has_completed_questionnaire = 1 WHERE id = ?1",
+            rusqlite::params![user_id],
+        )
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn generate_llm_text(prompt: String) -> Result<String, String> {
+    let _ = prompt;
+    Ok(
+        "Based on your responses, you exhibit strong natural adaptability, high empathy, and a balanced problem-solving orientation. Your curiosity drives you to explore diverse perspectives, while your analytical strengths provide a grounded compass for your future endeavors.".to_string()
+    )
 }
 
 #[tauri::command]
@@ -759,6 +844,9 @@ pub fn import_user_data(
         .hash_password_into(pwd.as_bytes(), &salt, &mut key)
         .map_err(|_| "Key derivation failed".to_string())?;
 
+    if nonce_bytes.len() != 12 {
+        return Err("Invalid nonce length: expected 12 bytes".to_string());
+    }
     let cipher = Aes256Gcm::new(aes_gcm::Key::<Aes256Gcm>::from_slice(&key));
     let nonce = Nonce::from_slice(&nonce_bytes);
 

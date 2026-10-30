@@ -75,8 +75,7 @@ function App() {
   if (isAuthenticated && user && user.role === 'teen' && !user.hasCompletedQuestionnaire) {
     return (
       <SelfDiscoveryJourney
-        onComplete={() => {
-          // Generate a default fallback profile if they skip
+        onComplete={async () => {
           const fallbackProfile = {
             userId: user.id,
             generatedAt: new Date().toISOString(),
@@ -103,11 +102,10 @@ function App() {
             strengths: ['Curiosity', 'Adaptability'],
             growthAreas: ['Focus', 'Planning'],
           };
-          useAppStore.getState().updateProfile(fallbackProfile as any);
-          // Update user flag directly
-          useAppStore.setState((state) => ({
-            user: state.user ? { ...state.user, hasCompletedQuestionnaire: true } : null
-          }));
+          if (!useAppStore.getState().profile) {
+            useAppStore.getState().updateProfile(fallbackProfile as any);
+          }
+          await useAppStore.getState().completeQuestionnaire();
         }}
       />
     );
@@ -223,7 +221,7 @@ function App() {
         </div>
       </header>
 
-      <main className="flex-grow p-6 flex flex-col">
+      <main className="flex-grow flex flex-col">
         <div className="flex-grow w-full mx-auto animate-fade-in-up">
         <Routes>
           <Route path="/" element={<Dashboard />} />

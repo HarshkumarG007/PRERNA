@@ -99,7 +99,10 @@ PRERNA is designed as a unified codebase spanning Desktop (Windows, macOS, Linux
 ### Android Build Details
 - **Architecture:** `aarch64-linux-android` (`arm64-v8a`)
 - **API Target:** Minimum API 24 (Android 7.0 Nougat) — Target API 36 (Android 15)
-- **Output Artifact:** `src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk`
+- **Output Artifacts:**
+  - **Signed Release APK (11.3 MB, Standalone Offline):** `src-tauri/gen/android/app/build/outputs/apk/arm64/release/app-arm64-release.apk`
+  - **Debug APK (115 MB):** `src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk`
+- **Zero-Network Offline Protocol:** Uses Tauri 2 `custom-protocol` asset bundling to stream frontend assets directly from memory (`http://tauri.localhost/`), eliminating any runtime requirement for a local Vite dev server.
 - **Security Isolation:** Enforces Android application UID isolation, sandboxed private directory storage (`/data/user/0/com.lenovo.prerna/databases`), and zero cleartext network traffic in production.
 
 ---
@@ -250,7 +253,7 @@ npm test -- --run
 npx tsc --noEmit
 ```
 
-### Building the Android Version
+### Building the Android Version (ARM64 Release & Debug)
 
 ```powershell
 # Set Android environment variables (Windows PowerShell example)
@@ -259,16 +262,22 @@ $env:NDK_HOME = "$env:ANDROID_HOME\ndk\28.2.13676358"
 $env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
 $env:PATH = "$env:JAVA_HOME\bin;$env:ANDROID_HOME\platform-tools;$env:PATH"
 
-# Build Android APK (arm64-v8a)
+# Build Frontend Production Assets first
+npm run build
+
+# Build Android Release APK (arm64-v8a, signed and optimized for physical devices)
 cd src-tauri/gen/android
-.\gradlew.bat assembleArm64Debug
+.\gradlew.bat assembleArm64Release
 
-# Built APK will be available at:
-# src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk
+# Built Release APK is ready at:
+# src-tauri/gen/android/app/build/outputs/apk/arm64/release/app-arm64-release.apk (11.3 MB)
 
-# Install to connected device or emulator:
-adb install -r src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk
+# Install directly to your physical phone (e.g. Vivo X200T) via ADB:
+adb install -r app/build/outputs/apk/arm64/release/app-arm64-release.apk
 ```
+
+> [!TIP]
+> **Installing on Physical Phones (e.g. Vivo X200T):** You can directly copy `app-arm64-release.apk` to your phone's Internal Storage or WhatsApp/Drive and tap to install. Because it is signed with a valid signature and embeds all assets offline via `custom-protocol`, it launches independently without any network connection or development PC.
 
 ---
 

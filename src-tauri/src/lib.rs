@@ -103,6 +103,10 @@ pub fn run() {
             // User commands
             commands::create_user,
             commands::authenticate_user,
+            commands::authenticate_pin,
+            commands::resume_session,
+            commands::complete_questionnaire,
+            commands::generate_llm_text,
             commands::get_user,
             commands::logout,
             commands::revoke_consent,
