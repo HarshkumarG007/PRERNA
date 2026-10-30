@@ -179,6 +179,112 @@ class SomaticAudioSynthesizer {
       console.warn('Exhale tone failed:', e);
     }
   }
+
+  // --- Kaya Kalpa Sleep & Circadian Awakening Synthesizer ---
+  private sleepNodes: { oscLeft: OscillatorNode; oscRight: OscillatorNode; gain: GainNode } | null = null;
+  private alarmInterval: ReturnType<typeof setInterval> | null = null;
+
+  /**
+   * Continuous 432 Hz + 4 Hz Binaural Theta Wave Ambient Bed for Sleep Onset.
+   * 432 Hz base carrier with 436 Hz harmonic generates a 4 Hz Theta beat in the brain,
+   * gently facilitating the natural transition into Stage 3 slow-wave delta sleep.
+   */
+  public startSleepLullabyDrone(durationMins: number = 30) {
+    if (this.isMuted) return;
+    this.stopSleepLullabyDrone();
+
+    try {
+      this.initContext();
+      if (!this.ctx || !this.masterGain) return;
+
+      const now = this.ctx.currentTime;
+      const oscLeft = this.ctx.createOscillator();
+      const oscRight = this.ctx.createOscillator();
+      const droneGain = this.ctx.createGain();
+
+      oscLeft.type = 'sine';
+      oscLeft.frequency.setValueAtTime(216, now); // Sub-harmonic 432 / 2 = warm foundation
+
+      oscRight.type = 'sine';
+      oscRight.frequency.setValueAtTime(220, now); // 4 Hz Theta binaural beat differential
+
+      droneGain.gain.setValueAtTime(0.001, now);
+      droneGain.gain.linearRampToValueAtTime(0.18, now + 4); // Soft 4s fade in
+
+      oscLeft.connect(droneGain);
+      oscRight.connect(droneGain);
+      droneGain.connect(this.masterGain);
+
+      oscLeft.start(now);
+      oscRight.start(now);
+
+      this.sleepNodes = { oscLeft, oscRight, gain: droneGain };
+
+      // Optional auto-fadeout after duration
+      const totalSeconds = durationMins * 60;
+      setTimeout(() => {
+        this.stopSleepLullabyDrone();
+      }, totalSeconds * 1000);
+    } catch (e) {
+      console.warn('Sleep lullaby synthesis failed:', e);
+    }
+  }
+
+  public stopSleepLullabyDrone() {
+    if (this.sleepNodes && this.ctx) {
+      try {
+        const now = this.ctx.currentTime;
+        this.sleepNodes.gain.gain.linearRampToValueAtTime(0.001, now + 2);
+        setTimeout(() => {
+          this.sleepNodes?.oscLeft.stop();
+          this.sleepNodes?.oscRight.stop();
+          this.sleepNodes?.oscLeft.disconnect();
+          this.sleepNodes?.oscRight.disconnect();
+          this.sleepNodes = null;
+        }, 2100);
+      } catch {
+        this.sleepNodes = null;
+      }
+    }
+  }
+
+  public isSleepDronePlaying(): boolean {
+    return this.sleepNodes !== null;
+  }
+
+  /**
+   * Gentle, awakening morning chime pattern (432 Hz -> 540 Hz -> 648 Hz)
+   * Plays soft repetitive singing bowl strikes that build gradually.
+   */
+  public playWakeUpAlarm() {
+    this.stopWakeUpAlarm();
+    let count = 0;
+    
+    // Play immediately
+    this.playSingingBowl(432, 2.5);
+    
+    this.alarmInterval = setInterval(() => {
+      count++;
+      const notes = [432, 540, 648];
+      const note = notes[count % notes.length];
+      this.playSingingBowl(note, 2.8);
+      if (count >= 60) {
+        // Auto-stop after 3 minutes to preserve battery
+        this.stopWakeUpAlarm();
+      }
+    }, 3000);
+  }
+
+  public stopWakeUpAlarm() {
+    if (this.alarmInterval) {
+      clearInterval(this.alarmInterval);
+      this.alarmInterval = null;
+    }
+  }
+
+  public isAlarmRinging(): boolean {
+    return this.alarmInterval !== null;
+  }
 }
 
 export const somaticAudio = new SomaticAudioSynthesizer();

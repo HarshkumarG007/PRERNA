@@ -142,6 +142,47 @@ export interface AppState {
   addTrackedNeed: (item: Omit<TrackedNeedItem, 'id' | 'createdAt'>) => void;
   updateTrackedNeedStatus: (id: string, status: TrackedNeedItem['status'], userNotes?: string) => void;
   deleteTrackedNeed: (id: string) => void;
+
+  // Kaya Kalpa: Physical Vitality, Circadian Rhythm & Sleep Sanctuary (DPDP Act 100% on-device)
+  vitality: VitalityProfile;
+  sleepSessions: SleepSession[];
+  movementEntries: MovementEntry[];
+  updateVitalityProfile: (data: Partial<VitalityProfile>) => void;
+  logWaterGlass: () => void;
+  resetWaterToday: () => void;
+  logSleepSession: (session: Omit<SleepSession, 'id' | 'createdAt'>) => void;
+  deleteSleepSession: (id: string) => void;
+  logMovementEntry: (entry: Omit<MovementEntry, 'id'>) => void;
+}
+
+export interface VitalityProfile {
+  heightCm?: number;
+  weightKg?: number;
+  lastUpdated?: string;
+  waterGlassesToday: number;
+  lastWaterDate: string; // YYYY-MM-DD
+  dailyStepGoal: number;
+}
+
+export interface SleepSession {
+  id: string;
+  bedtime: string; // ISO string
+  wakeTime: string; // ISO string
+  durationMinutes: number;
+  cyclesCompleted: number; // Math.floor(durationMinutes / 90)
+  qualityRating: 1 | 2 | 3 | 4 | 5; // 1: Drained, 3: Fair, 5: Radiant
+  notes?: string;
+  createdAt: string;
+}
+
+export interface MovementEntry {
+  id: string;
+  date: string; // YYYY-MM-DD
+  steps: number;
+  activeMinutes: number;
+  activityType: 'walk' | 'run' | 'yoga' | 'sports' | 'dance' | 'other';
+  heartRateBpm?: number;
+  notes?: string;
 }
 
 export interface SignupData {
@@ -186,6 +227,36 @@ export const useAppStore = create<AppState>()(
       completedMitigations: {},
       customMitigations: [],
       trackedNeeds: [],
+      vitality: {
+        heightCm: 162,
+        weightKg: 52,
+        waterGlassesToday: 5,
+        lastWaterDate: new Date().toISOString().split('T')[0],
+        dailyStepGoal: 8000,
+      },
+      sleepSessions: [
+        {
+          id: 'sample_sleep_1',
+          bedtime: new Date(Date.now() - 28800000).toISOString(),
+          wakeTime: new Date(Date.now() - 1800000).toISOString(),
+          durationMinutes: 450,
+          cyclesCompleted: 5,
+          qualityRating: 5,
+          notes: 'Slept deeply after 432 Hz Theta lullaby',
+          createdAt: new Date().toISOString(),
+        }
+      ],
+      movementEntries: [
+        {
+          id: 'sample_move_1',
+          date: new Date().toISOString().split('T')[0],
+          steps: 6420,
+          activeMinutes: 35,
+          activityType: 'yoga',
+          heartRateBpm: 72,
+          notes: 'Surya Namaskar & evening stroll'
+        }
+      ],
 
       // Actions
       login: async (userId: string) => {
@@ -574,6 +645,70 @@ export const useAppStore = create<AppState>()(
           trackedNeeds: state.trackedNeeds.filter(item => item.id !== id)
         }));
       },
+
+      // Kaya Kalpa Vitality, Sleep & Movement Actions
+      updateVitalityProfile: (data) => {
+        set(state => ({
+          vitality: {
+            ...state.vitality,
+            ...data,
+            lastUpdated: new Date().toISOString(),
+          }
+        }));
+      },
+
+      logWaterGlass: () => {
+        const todayStr = new Date().toISOString().split('T')[0];
+        set(state => {
+          const isSameDay = state.vitality.lastWaterDate === todayStr;
+          const currentCount = isSameDay ? state.vitality.waterGlassesToday : 0;
+          return {
+            vitality: {
+              ...state.vitality,
+              waterGlassesToday: currentCount + 1,
+              lastWaterDate: todayStr,
+            }
+          };
+        });
+      },
+
+      resetWaterToday: () => {
+        const todayStr = new Date().toISOString().split('T')[0];
+        set(state => ({
+          vitality: {
+            ...state.vitality,
+            waterGlassesToday: 0,
+            lastWaterDate: todayStr,
+          }
+        }));
+      },
+
+      logSleepSession: (sessionData) => {
+        const session: SleepSession = {
+          ...sessionData,
+          id: `sleep_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          createdAt: new Date().toISOString(),
+        };
+        set(state => ({
+          sleepSessions: [session, ...state.sleepSessions]
+        }));
+      },
+
+      deleteSleepSession: (id) => {
+        set(state => ({
+          sleepSessions: state.sleepSessions.filter(s => s.id !== id)
+        }));
+      },
+
+      logMovementEntry: (entryData) => {
+        const entry: MovementEntry = {
+          ...entryData,
+          id: `move_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        };
+        set(state => ({
+          movementEntries: [entry, ...state.movementEntries]
+        }));
+      },
     }),
     {
       name: 'prerna-storage',
@@ -586,6 +721,9 @@ export const useAppStore = create<AppState>()(
         completedMitigations: state.completedMitigations,
         customMitigations: state.customMitigations,
         trackedNeeds: state.trackedNeeds,
+        vitality: state.vitality,
+        sleepSessions: state.sleepSessions,
+        movementEntries: state.movementEntries,
       }),
     }
   )
@@ -601,3 +739,6 @@ export const useJournalEntries = () => useAppStore(state => state.journalEntries
 export const useCompletedMitigations = () => useAppStore(state => state.completedMitigations);
 export const useCustomMitigations = () => useAppStore(state => state.customMitigations);
 export const useTrackedNeeds = () => useAppStore(state => state.trackedNeeds);
+export const useVitality = () => useAppStore(state => state.vitality);
+export const useSleepSessions = () => useAppStore(state => state.sleepSessions);
+export const useMovementEntries = () => useAppStore(state => state.movementEntries);

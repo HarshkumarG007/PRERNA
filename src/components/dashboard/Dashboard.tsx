@@ -15,7 +15,8 @@ import {
   BookOpen,
   ShieldCheck,
   Wind,
-  Printer
+  Printer,
+  Moon
 } from 'lucide-react';
 
 // Sub-components
@@ -323,6 +324,41 @@ export const Dashboard: React.FC = () => {
             <DailyQuestCard onClick={() => navigate('/quests')} />
             <SkillArenaCard onClick={() => navigate('/arena')} />
             <MentorCard onClick={() => navigate('/mentor')} />
+          </div>
+        </section>
+
+        {/* ========================================================
+            KAYA KALPA: PHYSICAL VITALITY & CIRCADIAN SANCTUARY (Bento Banner)
+           ======================================================== */}
+        <section>
+          <div className="p-6 md:p-7 rounded-3xl bg-gradient-to-br from-emerald-950 via-slate-900 to-indigo-950 text-white border border-emerald-500/25 shadow-md relative overflow-hidden">
+            <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div className="space-y-2 max-w-xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[11px] font-bold">
+                  <span>🌿</span>
+                  <span>काया कल्प • PHYSICAL VITALITY & CIRCADIAN SLEEP</span>
+                </div>
+                <h3 className="text-xl md:text-2xl font-black text-white">
+                  90-Min Sleep Cycles & Adolescent Growth Rhythm
+                </h3>
+                <p className="text-slate-300 text-xs md:text-sm leading-relaxed">
+                  Calculate optimal bedtime windows to wake up refreshed at the top of a cycle. Track hydration, safe adolescent growth velocity without numbers anxiety, and sync smartwatches over local Bluetooth.
+                </p>
+              </div>
+
+              {/* Action Button */}
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => navigate('/vitality')}
+                  className="px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 text-slate-950 font-black text-xs md:text-sm shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <Moon size={16} />
+                  <span>Open Kaya Kalpa Sanctuary</span>
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
           </div>
         </section>
 

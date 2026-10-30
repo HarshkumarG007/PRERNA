@@ -27,6 +27,7 @@ import { AtmaJnanaOriginModal } from './components/common/AtmaJnanaOriginModal';
 import { AboutDeveloperModal } from './components/common/AboutDeveloperModal';
 import { SomaticBreathingCompanion } from './components/growth/SomaticBreathingCompanion';
 import { LifeBlueprintExport } from './components/growth/LifeBlueprintExport';
+import { KayaKalpaSanctuary } from './components/vitality/KayaKalpaSanctuary';
 import { SanctuaryFooter } from './components/common/SanctuaryFooter';
 import { ClinicianLogin } from './components/clinical/ClinicianLogin';
 import { ReviewDashboard } from './components/clinical/ReviewDashboard';
@@ -265,6 +266,12 @@ function App() {
                     <span className="text-[10px] font-semibold text-slate-500 group-hover:text-indigo-600 tracking-tight mt-0.5">Evolution</span>
                   </span>
                 </Link>
+                <Link to="/vitality" className="px-2 py-1 rounded-xl hover:bg-slate-100/90 transition-colors group flex items-center justify-center flex-shrink-0" title="Kaya Kalpa: Physical Vitality, Circadian Rhythm & Sleep Sanctuary">
+                  <span className="flex flex-col items-center justify-center leading-none text-center">
+                    <span className="text-[11px] font-bold tracking-tight text-slate-700 group-hover:text-emerald-700">Kaya</span>
+                    <span className="text-[10px] font-semibold text-slate-500 group-hover:text-emerald-700 tracking-tight mt-0.5">Kalpa</span>
+                  </span>
+                </Link>
                 <Link to="/profile" className="px-2 py-1 rounded-xl hover:bg-slate-100/90 transition-colors group flex items-center justify-center flex-shrink-0" title="Teen Dash">
                   {renderStackedNav(t('nav.profile', 'Teen Dash'))}
                 </Link>
@@ -368,6 +375,10 @@ function App() {
           <Route path="/mood" element={<div className="max-w-7xl mx-auto"><MoodMirror userId={user.id} /></div>} />
           <Route path="/social" element={<div className="max-w-7xl mx-auto"><SocialCompass userId={user.id} /></div>} />
           <Route path="/mentor" element={<div className="max-w-7xl mx-auto"><AiMentorChat userId={user.id} /></div>} />
+          <Route path="/vitality" element={<KayaKalpaSanctuary />} />
+          <Route path="/sleep" element={<KayaKalpaSanctuary />} />
+          <Route path="/health" element={<KayaKalpaSanctuary />} />
+          <Route path="/kaya" element={<KayaKalpaSanctuary />} />
           <Route path="/evolution" element={<SelfEvolutionSanctuary />} />
           <Route path="/journal" element={<SelfEvolutionSanctuary initialTab="journal" />} />
           <Route path="/mitigations" element={<SelfEvolutionSanctuary initialTab="mitigations" />} />

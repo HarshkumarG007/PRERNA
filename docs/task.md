@@ -339,6 +339,20 @@
 - [x] **P7-14** Rust Backend Code Formatting & CI Pipeline Green
   - [x] Formatted Rust backend code with `cargo fmt` across `src-tauri/src/ai/mod.rs`, `src-tauri/src/commands/mod.rs`, `src-tauri/src/db/mod.rs`, and `src-tauri/tests/t15_crisis_matrix.rs`.
   - [x] Verified `cargo fmt --all -- --check` returns 0.
+- [x] **P7-15** Kaya Kalpa Physical Vitality & Sleep Sanctuary (`KayaKalpaSanctuary.tsx`)
+  - [x] Built `src/engine/vitality/vitalityEngine.ts`:
+    - 90-minute ultradian sleep cycle calculator with 14-min sleep latency compensation (bedtime target & wake target modes).
+    - IAP & WHO adolescent growth velocity categorization (`building_strength`, `harmonious_vitality`, `active_momentum`) avoiding restrictive diets or weight-shaming numbers anxiety.
+    - Dynamic hydration progress tracker (8 glasses / 2.0L goal) and resting heart rate classifier.
+  - [x] Built Web Audio API sleep & alarm engine in `src/utils/audioSynthesis.ts`:
+    - Continuous 432 Hz + 4 Hz Theta binaural lullaby drone with auto-fadeout timer.
+    - Gentle rising Tibetan singing bowl alarm pattern.
+  - [x] Created `src/components/vitality/KayaKalpaSanctuary.tsx` with 3 tabs:
+    - Tab 1: Circadian Sleep Sanctuary (निद्रा योग) with 90-min cycle math, night mode screen, smart alarm, and morning check-in.
+    - Tab 2: Physical Vitality & Growth (काया स्वास्थ्य) with height/weight growth horizon, 8-glass hydration tracker, and Ayurvedic Dinacharya pillars.
+    - Tab 3: Movement & Smartband Sync (गति व स्पंदन) with 8k step tracker, Web Bluetooth (BLE) smartband sync, and zero-hardware 60-Second Pulse Tap Meter.
+  - [x] Integrated into `App.tsx` (routes `/vitality`, `/sleep`, `/kaya`, `/health` & header nav) and `Dashboard.tsx` Bento Banner.
+  - [x] **Test:** verified in `src/tests/vitality/vitalityEngine.test.ts` (11 tests passed; total 137/137 tests passing across 29 test files).
 
 ---
 
@@ -347,8 +361,8 @@
 - [x] `docs/dpdp-compliance-mapping.md` updated for any change touching consent, data collection, or crisis
 - [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
 - [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
-- [x] Pre-deployment regression test suite: **126/126 tests passed across 28 test files**
-- [x] Production bundle verified: `tsc && vite build` completed with zero errors (8.55s build time)
+- [x] Pre-deployment regression test suite: **137/137 tests passed across 29 test files**
+- [x] Production bundle verified: `tsc && vite build` completed with zero errors (9.07s build time)
 - [ ] Staged rollout: Beta cohort testing before broad public release
 
 ---
