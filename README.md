@@ -9,7 +9,7 @@
   <p align="center">
     <img src="https://img.shields.io/badge/Platform-Desktop_%7C_Android_arm64-6366F1.svg" alt="Platforms" />
     <img src="https://img.shields.io/badge/Privacy-DPDP_Act_2023_Compliant-10B981.svg" alt="Privacy" />
-    <img src="https://img.shields.io/badge/Tests-100%2F100_Passing-10B981.svg" alt="Tests" />
+    <img src="https://img.shields.io/badge/Tests-119%2F119_Passing-10B981.svg" alt="Tests" />
     <img src="https://img.shields.io/badge/Architecture-Tauri_2_%2B_React_19_%2B_Rust-8B5CF6.svg" alt="Stack" />
     <img src="https://img.shields.io/badge/License-MIT-3B82F6.svg" alt="License" />
   </p>
@@ -41,8 +41,13 @@ PRERNA is built as a **local-first application**: core user data, psychometric s
 | **Encrypted Local Database** | ✅ Implemented | Desktop: SQLCipher AES-256; Android: Bundled SQLite + Android File-Based Encryption (FBE) |
 | **Android Mobile Support** | ✅ Built & Verified | Native `arm64-v8a` APK compiled via Tauri 2 + NDK 28 Clang cross-compilation pipeline |
 | **Real Psychometric Item Banks** | ✅ Integrated | IPIP Big Five (Goldberg et al.) & O*NET RIASEC Interest Profiler instruments |
+| **16 Personalities Typology** | ✅ Integrated | Big Five to 16-type Jungian mapping, cognitive functions, and interactive preference spectrums |
 | **Career Pathways Database** | ✅ Integrated | 100+ vetted pathways with India NCS & O*NET alignment, education tracks & salary data |
-| **Verification & Test Coverage** | ✅ 100/100 Passing | 24 Vitest suites (100 tests passing), TypeScript `tsc --noEmit` 0 errors |
+| **Self-Evolution Sanctuary** | ✅ Implemented | The Mirror: Actual vs. Evolved Self, Higgins' Self-Discrepancy stepping stones, 3-phase growth roadmap |
+| **Strengths & Growth Edges Journal**| ✅ Implemented | 100% on-device private journal, non-pathologizing reflections, DPDP Act 2023 S.9 compliant |
+| **Personalized Self-Management** | ✅ Implemented | Dynamic matching engine across Big Five, learning style, and age tier; 10 micro-tools + custom creator |
+| **Maslow Needs & Desires Compass** | ✅ Implemented | 5-tier adolescent pyramid, Wants vs. Needs classifier, distraction shield & hungry tier alert |
+| **Verification & Test Coverage** | ✅ 119/119 Passing | 27 Vitest suites (119 tests passing), TypeScript `tsc --noEmit` 0 errors, production build verified |
 | **AuthStatus Security Model** | ✅ Implemented | Backend state machine: `None → PendingMFA → Authenticated` with session eviction |
 | **Renderer Identity Isolation** | ✅ Implemented | Backend resolves user identity via authenticated session; renderer cannot spoof `user_id` |
 | **Role & Tenant Isolation** | ✅ Implemented | Strict backend authorization boundaries for Teen, Parent, Clinician, and Educator |
@@ -114,6 +119,7 @@ PRERNA replaces synthetic and mock assessment data with validated, empirical dat
 ### 1. Psychometric Instruments (`data/psychometrics/`)
 - **Big Five Inventory (IPIP-NEO-120 Item Bank):** Validated item bank from Goldberg et al. / Open Source Psychometrics covering Openness, Conscientiousness, Extraversion, Agreeableness, and Neuroticism with reverse-scored calibration.
 - **Holland Code RIASEC Assessment:** 60-item interest assessment based on the U.S. Department of Labor O*NET Interest Profiler covering Realistic, Investigative, Artistic, Social, Enterprising, and Conventional archetypes.
+- **16 Personality Types & Cognitive Functions:** Empirical mapping of Big Five traits to 16 Jungian psychological types with four-letter spectrums (E/I, S/N, T/F, J/P), cognitive functions (Ni, Ne, Ti, Fi, etc.), study environment preferences, and friction triggers.
 
 ### 2. Career Pathways Database (`data/careers/`)
 - **100+ Vetted Occupations:** Comprehensive pathways mapped to India’s **National Career Service (NCS)**, Ministry of Labour & Employment, and **O*NET 28.0**.
@@ -123,6 +129,32 @@ PRERNA replaces synthetic and mock assessment data with validated, empirical dat
 
 ## ✨ Core Capabilities
 
+### 🧬 16 Personality Types & Archetypal Spectrums
+* Translates calibrated IPIP Big Five dimensions into the 16 Jungian psychological archetypes (e.g., INTJ Mastermind, ENFP Campaigner, ISTP Virtuoso, INFJ Advocate).
+* Interactive preference spectrums (Introversion vs Extraversion, Intuition vs Sensing, Thinking vs Feeling, Judging vs Perceiving) displaying dynamic balance percentages.
+* Cognitive function hierarchies, communication tendencies, optimal study environments, and friction triggers.
+
+### 🪞 Self-Evolution Sanctuary (Actual vs. Evolved Potential)
+* Grounded in Higgins' Self-Discrepancy Theory: compares the teen's "Actual Current Self" with their "Evolved Ideal Self" without guilt, pressure, or pathologization.
+* Generates 3 sequential Stepping Stone growth phases (Awareness & Micro-habits → Active Reconditioning → Identity Integration).
+* Side-by-side mirror cards celebrating inherent superpowers while identifying gentle growth edges.
+
+### 📓 Strengths & Growth Edges Journal (DPDP Act Local-First)
+* Non-pathologizing, mindful logging across 3 modalities: "Superpower Win 🌟", "Growth Edge / Friction ⚡", and "Free Reflection 💭".
+* **100% On-Device Storage:** Entries are persisted strictly in `localStorage` — zero behavioral telemetry, zero cloud data transfer, complying strictly with DPDP Act 2023 Section 9.
+* Tag filtering, energy resonance ratings (1–5), linked self-management tools, and chronological history log.
+
+### ⚡ Personalized Behavioral Self-Management Engine
+* **10 Evidence-Based Micro-Interventions:** CBT/ACT and somatic regulation tools including 5-Minute Micro-Start, 20/5 Dopamine Sprint, Single-Priority Funnel, Thought vs. Fact Detangler, 4-7-8 Somatic Vagal Reset, 3-Second Active Pause, Social Recharge Shield, Respectful Boundary Script, 70% Good-Enough Release, and Micro-Victory Evidence Jar.
+* **Dynamic Multi-Dimensional Personalization:** Evaluates Big Five traits, 16-type archetype, sensory learning style (Visual, Auditory, Kinesthetic), and age tier (13–15, 16–17, 18+) to score tool relevance (0–99%).
+* **Custom Tool Creator:** Empowers adolescents to author and save their own personalized coping and self-management strategies on-device.
+
+### 🧭 Maslow's Needs & Desires Compass (Adolescent Distraction Shield)
+* **Adolescent 5-Tier Pyramid:** Maps personal state across Level 1 (Physiological), Level 2 (Safety), Level 3 (Belonging), Level 4 (Esteem), and Level 5 (Self-Actualization).
+* **Automated Wants vs. Needs Detangler (`discernWantVsNeed`):** Heuristic classifier that evaluates adolescent impulses and categorizes them into Dopamine Traps (scrolling, late-night junk food, avoidance, clout), Healthy Desires, or Core Foundational Needs with 10-minute nourishing alternatives.
+* **Hungry Tier Alert & Foundation Health Index:** Detects when lower physiological or safety tiers are starved, preventing compulsive dopamine-seeking at the root.
+* **Tracked Desires Audit Log:** One-click "Mark as Redirected ✨" action to reinforce healthy habit redirects.
+
 ### 🔐 Local-First Privacy & Data Sovereignty
 * Sensitive user information is processed entirely on-device.
 * Zero behavioral tracking for all under-18 accounts (**Global Rule 0.1**).
@@ -130,7 +162,7 @@ PRERNA replaces synthetic and mock assessment data with validated, empirical dat
 
 ### 🧠 Local AI Mentor & Hybrid RAG
 * AI mentor runs without external cloud dependency.
-* Retrieval-Augmented Generation (RAG) grounds guidance in verified career profiles and coping strategies.
+* Retrieval-Augmented Generation (RAG) grounds guidance in verified career profiles, self-evolution goals, and coping strategies.
 * Real-time safety filters catch crisis keywords and self-harm ideation, automatically suppressing conversational generation and presenting emergency helplines (Tele-MANAS, Vandrevala Foundation, Childline 1098).
 
 ### 🎮 Transparent Self-Discovery & Skill Arena
@@ -163,7 +195,7 @@ PRERNA replaces synthetic and mock assessment data with validated, empirical dat
 | **Desktop Database** | SQLite + SQLCipher (`rusqlite`) | AES-256 encrypted local database storage |
 | **Mobile Database** | SQLite Amalgamation (`rusqlite`) | Native storage protected by Android UID & FBE sandbox |
 | **Local LLM Engine** | `llama-cpp-2` (Desktop) / Mobile RAG | Offline quantized GGUF inference and contextual retrieval |
-| **Testing & Quality** | Vitest 4.1 | 24 test suites, 100/100 unit & integration tests passing |
+| **Testing & Quality** | Vitest 4.1 | 27 test suites, 119/119 unit & integration tests passing |
 
 ---
 
@@ -192,12 +224,20 @@ PRERNA/
 │   │   ├── activities/             # Mood Mirror, Social Compass, Life Quests
 │   │   ├── crisis/                 # ResourceSurface, TrustedAdultConnector, SafetyPlan
 │   │   ├── dashboard/              # TeenProfileView, SharedDashboard, CareerWidgets
+│   │   ├── growth/                 # SelfEvolutionSanctuary, MaslowNeedsCompass, StrategyCards
 │   │   ├── mentor/                 # AiMentorChat (local LLM UI)
 │   │   ├── settings/               # AuditTrailViewer, DataGovernance, ConsentRevocation
 │   │   └── skills/                 # Skill Arena (Spatial Puzzle, Reaction Test)
 │   ├── engine/                     # Big Five, RIASEC, Fusion, and Audit logging engines
-│   ├── store/                      # Zustand state store with auth state machine
-│   └── tests/                      # 24 Vitest test suites (100 tests passing)
+│   │   └── growth/                 # Self-evolution, 16-types, and Maslow needs engines
+│   ├── store/                      # Zustand state store with auth state machine & growth persistence
+│   └── tests/                      # 27 Vitest test suites (119 tests passing)
+│       ├── ai/                     # LLM client and AI mentor tests
+│       ├── assessment/             # Scoring, fusion, and 16 personalities tests
+│       ├── components/             # UI component tests
+│       ├── crisis/                 # Pattern detection and escalation router tests
+│       ├── growth/                 # Self-evolution and Maslow needs engine tests
+│       └── integration/            # Lifecycle and consent flow tests
 │
 ├── src-tauri/
 │   ├── src/
@@ -246,7 +286,7 @@ npm run tauri dev
 ### Running Unit & Integration Tests
 
 ```bash
-# Execute the full Vitest suite (100 tests across 24 suites)
+# Execute the full Vitest suite (119 tests across 27 suites)
 npm test -- --run
 
 # Verify TypeScript compilation (0 errors)

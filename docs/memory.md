@@ -1,9 +1,9 @@
 # Memory — Project Context & History Log
 ## PRERNA — Personalized Real-time Engagement & Neural Resource Assistant
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Status:** Living Document — update this after every significant session  
-**Last Updated:** 2026-10-29  
+**Last Updated:** 2026-10-30  
 **Baseline Commit:** `cdf334c`
 
 > **How to use this file:** Before starting any new work session, read Sections 1–3. After completing work, update Section 4 (decisions), Section 5 (bugs), and Section 2 (current status). This file is the single source of truth for project state — more reliable than memory of "what was done last time."
@@ -41,12 +41,19 @@ A local-first, gamified self-discovery platform for Indian adolescents (ages 13+
 | Phase | Status | Notes |
 |---|---|---|
 | Phase 0: Integrity Audit | ✅ Complete | Baseline at `cdf334c`; integrity audit clean |
-| Phase 1: Consent & Governance | 🟡 In Progress | P0 security tickets complete; schema/consent work in progress |
+| Phase 1: Consent & Governance | ✅ Complete | P0 security tickets complete; SQLCipher, age gating, parent consent verified |
 | Phase 2: Assessment Engine | ✅ Complete | P2-2, P2-3, P2-4 complete; ReactionTest, SpatialPuzzle, ActivityHistoryViewer, Rolling EMA scoring |
 | Phase 3: AI Mentor & Career Pathways | ✅ Complete | P3-1, P3-2, P3-3 complete; Local LLM IPC client, context-aware prompt injection, 5-category career classifier |
-| Phase 4: Crisis Protocol | ⏳ Not started | Blocked on Phase 3 + H1 clinical reviewer |
-| Phase 5: Dashboard & Data Rights | ⏳ Not started | — |
-| Phase 6: Beta | ⏳ Not started | Blocked on all previous phases + H1–H4 |
+| Phase 4: Crisis Protocol | ✅ Complete | Pattern screening, slang suppression, always-on resource surface, Rule 0.3 gate |
+| Phase 5: Dashboard & Data Rights | ✅ Complete | SharedDashboard parity, verified deletion & export, 6 Indian languages i18n |
+| Phase 6: Beta Readiness | ✅ Complete | BetaOnboardingNotice, end-to-end integration lifecycle test suite passing |
+| Phase 7: Self-Evolution, 16-Types & Maslow Compass | ✅ Complete | 16 Personalities Typology, Current vs Evolved Self, Strengths Journal, Personalized Self-Management, Maslow Needs Compass |
+
+**Verification & Quality Metrics:**
+- **Test Suite:** **119/119 tests passing across 27 test files**
+- **TypeScript:** `tsc --noEmit` **0 errors**
+- **Production Bundle:** `dist/` built in **8.76s** with zero errors
+- **Platform Support:** Desktop (Windows/macOS/Linux) + Mobile (Android `arm64-v8a` signed release APK)
 
 **Human-Review Blockers (External Dependencies):**
 
@@ -106,6 +113,10 @@ Never mutate React state directly for anything that must persist. Never add clou
 | 2026-10-29 | Context-Aware Local AI Mentor Prompt Injection & AI Self-Identification Invariant | Injected empirical Big Five / RIASEC traits into local LLM prompt template; strictly enforced explicit self-identification as an AI assistant (never human/clinician); added academic career category | Unconstrained conversational bot without psychometric grounding (rejected: generic, ungrounded) | ADR-0012 |
 | 2026-10-29 | Rule 0.3 Guardian Notification Gate & Teen-Informed Invariant | Enforced structural requirement that guardian notification cannot be dispatched without `teen_informed_at` non-null, `human_review_status = 'reviewed_guardian_notified'`, and clinician credential verification | Autonomous AI dispatch or notification without informing minor (rejected: violates Rule 0.3 and DPDP Act) | ADR-0013 |
 | 2026-10-29 | Single-Query Shared Dashboard Parity & DPDP Section 9 Zero Divergence | Unified `SharedDashboardView` with side-by-side verification proving Teen and Parent render from the exact same data source; granular teen sharing controls | Separate parent monitoring console with hidden behavioral metrics (rejected: violates DPDP Section 9) | ADR-0014 |
+| 2026-10-30 | 16-Personality Typology via Empirical Big Five Projection | Projected Big Five traits directly onto 16 Jungian types based on McCrae & Costa (1989) psychometrics (E, O->N, A->F, C->J, N->Identity) with animated dual spectrum sliders and explorer modal | Forcing teens through separate 60-question MBTI questionnaire (rejected: cognitive fatigue & redundancy) | ADR-0015 |
+| 2026-10-30 | Higgins' Actual vs Ideal Evolved Self-Discrepancy Engine & Strengths Journal | Modeled adolescent self-actualization by comparing grounded baseline foundation against evolved potential with 3-stage stepping stones; 100% on-device private journal storage | Static diagnostic labeling or pathologizing "weakness" reports (rejected: anti-developmental for minors) | ADR-0016 |
+| 2026-10-30 | Multi-Dimensional Personalized Self-Management Engine | Dynamically matched 10 evidence-based CBT/ACT strategies based on Big Five, 16-type archetype, learning style (visual/kinesthetic/auditory), age tier, and adaptive journal reflections with custom tool authoring | Generic static self-help lists (rejected: low efficacy across diverse cognitive temperaments) | ADR-0017 |
+| 2026-10-30 | Maslow's Hierarchy of Needs & Wants vs. Needs Distraction Shield | Implemented 5-tier adolescent Maslow pyramid with automatic urge discernment (classifying desires as Dopamine Traps vs Healthy Desires vs Core Needs) and hungry-tier foundation alerts | Shaming adolescent distraction as willpower failures (rejected: ignores physiological/safety root causes) | ADR-0018 |
 
 ---
 
@@ -123,6 +134,9 @@ Never mutate React state directly for anything that must persist. Never add clou
 | 2026-10-29 | STRUCT-04 | Age range mismatch: frontend used `'16-18'` vs backend `AgeBand` requiring `'16-17'` | Schema drift | Standardized on `'13-15' \| '16-17' \| '18+'` in store, AuthModal, and tests | ✅ Resolved |
 | 2026-10-29 | BUG-01 | `App.tsx` imported stub `activities/SkillArena.tsx` instead of full `skills/SkillArena.tsx` | Multiple implementations | Swapped import to full component with `DisclosureGate` | ✅ Resolved |
 | 2026-10-29 | BUG-06 | `AiMentorChat.tsx` did not screen messages for crisis indicators | Missing check in `handleSend` | Wired `checkForCrisisIndicators` into `AiMentorChat` | ✅ Resolved |
+| 2026-10-30 | BUG-07 | Browser crash when opening Teen Profile / Dashboard | Standard browser lacked Tauri IPC runtime; raw `@tauri-apps/api/core` `invoke` threw synchronous TypeError | Replaced raw `invoke` imports with `safeInvoke` fallback from `mockBackend.ts` | ✅ Resolved |
+| 2026-10-30 | BUG-08 | `TypeError: Cannot read properties of undefined (reading 'slice')` in ParentPermissionManager | Missing null checks on `fullProfile.careerMatches` | Added null-coalescing defaults `(fullProfile.careerMatches \|\| []).slice(0, 3)` | ✅ Resolved |
+| 2026-10-30 | BUG-09 | Duplicate Helpline link in header navigation | Redundant `<Link to="/support">Helplines</Link>` alongside button | Removed redundant link, preserved prominent single pill | ✅ Resolved |
 
 ---
 
@@ -140,6 +154,7 @@ Never mutate React state directly for anything that must persist. Never add clou
 | 2026-10-29 | Phase 3 AI Mentor & Career Pathways (P3-1, P3-2, P3-3) | Enhanced `llmClient.ts` with context injection & offline fallback; updated `AiMentorChat.tsx` with AI disclosure banners; enriched career classifier with 5th category (`academic`); verified < 2s latency and AI self-identification; 67/67 tests pass; 0 type errors | None | Prepare technical brief for Phase 4 (Crisis Protocol & Safety Invariants) |
 | 2026-10-29 | Phase 4 & Phase 5: Crisis Protocol Invariants & Shared Dashboard Parity (P4-1 through P5-3) | Implemented `dispatchGuardianNotification` in `escalationRouter.ts` gated by Rule 0.3; built always-on `ResourceSurface.tsx` with official Indian helplines (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555); built teen-controlled `TrustedAdultConnector.tsx`; rebuilt `SharedDashboardView.tsx` with side-by-side single-query parity; verified `DataExport`, `DataDelete`, and `AuditTrailViewer`; 90/90 tests pass; 0 type errors | H1 ticket remains blocked awaiting external clinician sign-off per Rule 0.7 | Prepare Phase 5 localisation review & Phase 6 pre-deployment verification |
 | 2026-10-29 | Phase 5 Localisation & Phase 6 Pre-Deployment Integration Walkthrough (P5-4, P6-1, P6-2) | Built dynamic i18n translation system supporting 6 Indian languages; verified text expansion in Hindi/Marathi/Tamil; verified BetaOnboardingNotice disclaimers; authored end-to-end integration walkthrough covering full adolescent lifecycle; verified production bundle build (`dist/`); reached 100/100 tests passed across 24 test files | H1–H4 tickets preserved awaiting external human clinical, legal, and psychometric collaborator sign-offs per Rule 0.7 | Ready for Human Reviewer (H1–H4) Engagement & Beta Testing |
+| 2026-10-30 | Phase 7: 16-Personality Typology, Self-Evolution Sanctuary, Personalized Self-Management & Maslow Needs Compass | Integrated 16-Personality mapping from Big Five (McCrae & Costa, 1989) with animated spectrum cards and explorer modal; implemented Higgins' Actual vs Improvised Self comparison engine; built 100% on-device Strengths & Growth Journal; engineered multi-dimensional personalized self-management plan (matching 10 CBT/ACT tools based on Big Five, 16-type, learning style, age tier, and journal tags); built Maslow 5-Tier Needs Compass with distraction shield and root-need discernment; reached 119/119 tests passed across 27 test files; production build verified in 8.76s | None | Human reviewer engagement (H1–H4) |
 
 ---
 

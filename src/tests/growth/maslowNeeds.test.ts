@@ -152,3 +152,4 @@ describe('Maslow Needs & Desires Store State', () => {
     expect(useAppStore.getState().trackedNeeds.length).toBe(0);
   });
 });
+
