@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route, Link, Navigate } from 'react-router-dom';
-import { LogOut, HeartHandshake, Menu, X } from 'lucide-react';
+import { LogOut, HeartHandshake, Menu, X, Lock } from 'lucide-react';
 import { useI18n, LANGUAGE_NAMES, Language } from './engine/localization/i18n';
 
 import { BetaOnboardingNotice } from './components/consent/BetaOnboardingNotice';
@@ -36,6 +36,8 @@ import { BetaFeedbackModal } from './components/beta/BetaFeedbackModal';
 import { ProductShowcaseModal } from './components/showcase/ProductShowcaseModal';
 import { AdultDashboard } from './components/adult/AdultDashboard';
 import { PartnersDashboard } from './components/partners/dashboard/PartnersDashboard';
+import { PartnersGateModal } from './components/partners/auth/PartnersGateModal';
+import { usePartnerStore } from './store/partnerStore';
 import { useAppStore } from './store';
 
 // No mock context needed anymore
@@ -52,16 +54,26 @@ function App() {
   const [showPersonaModal, setShowPersonaModal] = useState(false);
   const [showBetaFeedback, setShowBetaFeedback] = useState(false);
   const [showProductShowcase, setShowProductShowcase] = useState(false);
+  const [showPartnersGateModal, setShowPartnersGateModal] = useState(false);
   const [isInPartnersView, setIsInPartnersView] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { connection: partnerConnection } = usePartnerStore();
 
   const handleRoleAuthorize = (targetRole: 'teen' | 'adult' | 'parent' | 'educator') => {
+    usePartnerStore.getState().lockGate();
+    setIsInPartnersView(false);
     updateRole(targetRole);
     if (targetRole === 'parent') {
       localStorage.setItem('prerna_parent_linked', 'true');
       setParentLinked(true);
     }
     setShowPersonaModal(false);
+  };
+
+  const handleLogout = () => {
+    usePartnerStore.getState().lockGate();
+    setIsInPartnersView(false);
+    logout();
   };
 
   useEffect(() => {
@@ -180,7 +192,7 @@ function App() {
                 <span className="text-[10px] text-indigo-500 font-normal hidden sm:inline">(Switch)</span>
               </button>
               <button
-                onClick={logout}
+                onClick={handleLogout}
                 className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
                 title="Log out"
                 aria-label="Log out"
@@ -238,10 +250,17 @@ function App() {
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setIsInPartnersView(true)}
+                onClick={() => {
+                  if (partnerConnection.isActivated && !partnerConnection.isGateLocked) {
+                    setIsInPartnersView(true);
+                  } else {
+                    setShowPartnersGateModal(true);
+                  }
+                }}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors shadow-2xs cursor-pointer"
                 title="Enter PRERNA for Partners"
               >
+                <Lock size={12} className={partnerConnection.isGateLocked ? "text-rose-500" : "text-emerald-500"} />
                 <span>❤️ Partners</span>
               </button>
               <button
@@ -253,7 +272,7 @@ function App() {
                 <span className="text-[10px] text-slate-500 font-normal hidden sm:inline">(Switch)</span>
               </button>
               <button
-                onClick={logout}
+                onClick={handleLogout}
                 className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
                 title="Log out"
                 aria-label="Log out"
@@ -289,6 +308,15 @@ function App() {
           isOpen={showProductShowcase}
           onClose={() => setShowProductShowcase(false)}
         />
+
+        <PartnersGateModal
+          isOpen={showPartnersGateModal}
+          onClose={() => setShowPartnersGateModal(false)}
+          onUnlocked={() => {
+            setShowPartnersGateModal(false);
+            setIsInPartnersView(true);
+          }}
+        />
       </div>
     );
   }
@@ -317,7 +345,7 @@ function App() {
                 <span className="text-[10px] text-slate-500 font-normal hidden sm:inline">(Switch)</span>
               </button>
               <button
-                onClick={logout}
+                onClick={handleLogout}
                 className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
                 title="Log out"
                 aria-label="Log out"

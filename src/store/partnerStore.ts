@@ -292,7 +292,7 @@ export const usePartnerStore = create<PartnerState>()(
 
       unlockGate: (passcode: string) => {
         const currentPass = get().connection.secretPasscode;
-        if (!currentPass || currentPass === passcode || passcode === 'DEMO99') {
+        if (currentPass && (currentPass === passcode || passcode === 'DEMO99')) {
           set((state) => ({
             connection: { ...state.connection, isGateLocked: false },
           }));
@@ -528,6 +528,13 @@ export const usePartnerStore = create<PartnerState>()(
     {
       name: 'prerna_partners_vault',
       storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          // Cryptographic invariant: Partners Vault is always locked upon boot/page refresh
+          state.connection.isGateLocked = true;
+        }
+      },
     }
   )
 );
+

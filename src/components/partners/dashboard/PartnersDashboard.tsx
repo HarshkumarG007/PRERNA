@@ -22,6 +22,7 @@ import { CommunicationStudio } from '../communication/CommunicationStudio';
 import { RomanceAndHangoutStudio } from '../romance/RomanceAndHangoutStudio';
 import { SharedMemoriesAndJournal } from '../memories/SharedMemoriesAndJournal';
 import { PartnerPairingModal } from '../pairing/PartnerPairingModal';
+import { PartnersGateModal } from '../auth/PartnersGateModal';
 
 interface PartnersDashboardProps {
   onQuickExit: () => void;
@@ -64,6 +65,21 @@ export const PartnersDashboard: React.FC<PartnersDashboardProps> = ({ onQuickExi
       onQuickExit();
     }
   };
+
+  // Cryptographic Invariant: Zero disclosure if the gate is locked or unactivated
+  if (connection.isGateLocked || !connection.isActivated) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+        <PartnersGateModal
+          isOpen={true}
+          onClose={onQuickExit}
+          onUnlocked={() => {
+            // Unlocked callback: state update in partnerStore sets isGateLocked = false and re-renders
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
