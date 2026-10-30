@@ -38,7 +38,7 @@ describe('MultiPersonaTourModal (Phase 7-24)', () => {
     expect(screen.getByText(/5-Domain Psychometric Profiling/i)).toBeInTheDocument();
   });
 
-  it('navigates through all 4 personas using Next and Previous buttons', () => {
+  it('strictly isolates teen role: only shows Teen & Parent slides and hides Adult/School', () => {
     render(
       <MultiPersonaTourModal
         isOpen={true}
@@ -48,24 +48,53 @@ describe('MultiPersonaTourModal (Phase 7-24)', () => {
       />
     );
 
-    // Initial: Teen
+    // Initial: Teen Explorer
+    expect(screen.getByText('Teen Explorer Sanctuary')).toBeInTheDocument();
+    expect(screen.getByText('2 Sovereign Personas')).toBeInTheDocument();
+
+    // Click Next -> Parent Hub
+    fireEvent.click(screen.getByRole('button', { name: /Next/i }));
+    expect(screen.getByText('Parent Sanctuary Hub')).toBeInTheDocument();
+
+    // Click Next again -> wraps back to Teen (Adult and School are hidden from Teens)
+    fireEvent.click(screen.getByRole('button', { name: /Next/i }));
+    expect(screen.getByText('Teen Explorer Sanctuary')).toBeInTheDocument();
+
+    // Adult and School are NEVER in the teen tour
+    expect(screen.queryByText(/Adult Sanctuary/i)).toBeNull();
+    expect(screen.queryByText(/School & Educator Flourishing Hub/i)).toBeNull();
+  });
+
+  it('navigates through all 4 personas for adult role', () => {
+    render(
+      <MultiPersonaTourModal
+        isOpen={true}
+        onClose={onClose}
+        onSelectPersona={onSelectPersona}
+        currentRole="adult"
+      />
+    );
+
+    expect(screen.getByText('4 Sovereign Personas')).toBeInTheDocument();
+
+    // Starts on Adult for adult role
+    expect(screen.getByText('Adult Sanctuary • Swadharma & Purpose')).toBeInTheDocument();
+
+    // Click Next -> School
+    fireEvent.click(screen.getByRole('button', { name: /Next/i }));
+    expect(screen.getByText('School & Educator Flourishing Hub')).toBeInTheDocument();
+
+    // Click Next -> Teen
+    fireEvent.click(screen.getByRole('button', { name: /Next/i }));
     expect(screen.getByText('Teen Explorer Sanctuary')).toBeInTheDocument();
 
     // Click Next -> Parent
     fireEvent.click(screen.getByRole('button', { name: /Next/i }));
     expect(screen.getByText('Parent Sanctuary Hub')).toBeInTheDocument();
 
-    // Click Next -> Adult & Partners
+    // Click Next -> back to Adult
     fireEvent.click(screen.getByRole('button', { name: /Next/i }));
-    expect(screen.getByText(/Adult Sanctuary & Secret Partners/i)).toBeInTheDocument();
-
-    // Click Next -> School
-    fireEvent.click(screen.getByRole('button', { name: /Next/i }));
-    expect(screen.getByText('School & Educator Flourishing Hub')).toBeInTheDocument();
-
-    // Click Previous -> back to Adult & Partners
-    fireEvent.click(screen.getByRole('button', { name: /Previous/i }));
-    expect(screen.getByText(/Adult Sanctuary & Secret Partners/i)).toBeInTheDocument();
+    expect(screen.getByText('Adult Sanctuary • Swadharma & Purpose')).toBeInTheDocument();
   });
 
   it('triggers onSelectPersona and onClose when clicking Switch to Persona button', () => {

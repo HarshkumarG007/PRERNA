@@ -69,6 +69,9 @@ export const PartnersGateModal: React.FC<PartnersGateModalProps> = ({
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-xl animate-fade-in overflow-y-auto">
       <motion.div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="partners-gate-title"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
@@ -92,7 +95,7 @@ export const PartnersGateModal: React.FC<PartnersGateModalProps> = ({
             <div className="w-16 h-16 rounded-3xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 mx-auto">
               <AlertCircle size={32} />
             </div>
-            <h3 className="text-xl font-black text-slate-900">Adult Eligibility Required</h3>
+            <h3 id="partners-gate-title" className="text-xl font-black text-slate-900">Adult Eligibility Required</h3>
             <p className="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
               PRERNA for Partners is an exclusive, sovereign relationship environment restricted strictly to verified adults (18+). It is not accessible on Teen, Parent, or School accounts.
             </p>
@@ -116,7 +119,7 @@ export const PartnersGateModal: React.FC<PartnersGateModalProps> = ({
                   Private Sanctuary • दो दिल एक जान
                 </span>
               </div>
-              <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+              <h3 id="partners-gate-title" className="text-2xl font-black text-slate-900 tracking-tight">
                 PRERNA for Partners
               </h3>
               <p className="text-xs text-slate-500 font-medium mt-1 max-w-xs mx-auto">

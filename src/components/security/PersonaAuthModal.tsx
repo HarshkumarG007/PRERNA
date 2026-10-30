@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   ShieldCheck, 
@@ -30,8 +30,20 @@ export const PersonaAuthModal: React.FC<PersonaAuthModalProps> = ({
 }) => {
   const user = useUser();
   const currentRole = user?.role || 'teen';
+
+  // Default target: pick the "most useful" alternate persona for the current role
+  const getDefaultTarget = (role: string): 'teen' | 'adult' | 'parent' | 'educator' => {
+    switch (role) {
+      case 'teen': return 'adult';
+      case 'adult': return 'teen';
+      case 'parent': return 'teen';
+      case 'educator': return 'teen';
+      default: return 'adult';
+    }
+  };
+
   const [targetRole, setTargetRole] = useState<'teen' | 'adult' | 'parent' | 'educator'>(
-    currentRole === 'teen' ? 'adult' : 'teen'
+    getDefaultTarget(currentRole)
   );
 
   const [authMethod, setAuthMethod] = useState<'biometric' | 'pin' | 'pattern' | 'password'>('biometric');
@@ -41,6 +53,20 @@ export const PersonaAuthModal: React.FC<PersonaAuthModalProps> = ({
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
   // --- Pattern Lock State (3x3 grid: 0 to 8) ---
   const [patternDots, setPatternDots] = useState<number[]>([]);
+
+  // Reset all state every time the modal opens so stale selections never persist
+  useEffect(() => {
+    if (isOpen) {
+      setTargetRole(getDefaultTarget(currentRole));
+      setAuthMethod('biometric');
+      setPinInput('');
+      setPasswordInput('');
+      setError(null);
+      setIsVerifying(false);
+      setPatternDots([]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   const getRoleDisplayName = (role: 'teen' | 'adult' | 'parent' | 'educator') => {
     switch (role) {
@@ -185,6 +211,9 @@ export const PersonaAuthModal: React.FC<PersonaAuthModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
       <motion.div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="persona-auth-title"
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
@@ -205,7 +234,7 @@ export const PersonaAuthModal: React.FC<PersonaAuthModalProps> = ({
             <span>DPDP ACT §9 PERSONA PRIVACY VAULT</span>
           </div>
 
-          <h2 className="text-xl font-black text-white mt-1">Verify Identity to Switch Persona</h2>
+          <h2 id="persona-auth-title" className="text-xl font-black text-white mt-1">Verify Identity to Switch Persona</h2>
           <p className="text-xs text-slate-300 mt-1 leading-relaxed">
             Protect confidential teen journals and parental governance. Authenticate to unlock persona boundaries.
           </p>

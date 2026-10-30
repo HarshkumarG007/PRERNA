@@ -118,41 +118,41 @@ const PERSONA_SLIDES: PersonaSlide[] = [
   },
   {
     role: 'adult',
-    badge: 'Vocational Mastery & Sacred Intimacy',
-    badgeColor: 'bg-rose-100 text-rose-900 border-rose-200',
-    title: 'Adult Sanctuary & Secret Partners ❤️',
-    hindiTitle: 'वयस्क साधना & युगल संगम',
-    tagline: 'Cultivate personal Swadharma vocation, Maslow transcendence, and an encrypted sanctuary for Lovers & Besties.',
+    badge: 'Vocational Mastery • Age 18+ Verified',
+    badgeColor: 'bg-indigo-100 text-indigo-900 border-indigo-200',
+    title: 'Adult Sanctuary • Swadharma & Purpose',
+    hindiTitle: 'वयस्क साधना एवं स्वधर्म',
+    tagline: 'Cultivate personal Swadharma vocation, Maslow cosmic transcendence, and holistic life balance in complete cryptographic privacy.',
     philosophy: {
-      quote: 'रूमी: "The minute I heard my first love story, I started looking for you, not knowing how blind that was."',
-      author: 'Jalal al-Din Muhammad Rumi'
+      quote: 'संत कबीर: "सोई हंस तेरे घट मांहि, अलख पुरुष अविनाशी!" (Kabir: Within your own quiet consciousness dwells the imperishable essence of your authentic calling).',
+      author: 'Sant Kabir Das'
     },
-    accentGradient: 'from-rose-600 via-pink-700 to-amber-700',
-    cardBorder: 'border-rose-200',
+    accentGradient: 'from-slate-900 via-indigo-950 to-slate-900',
+    cardBorder: 'border-indigo-200',
     features: [
       {
-        title: 'Swadharma & Maslow Cosmic Compass',
-        description: 'Align daily career vocation with inner nature. Progression from physiological safety to self-actualization.',
+        title: 'Swadharma & Inner Calling Alignment',
+        description: 'Align daily vocational pursuit with authentic inner nature. In-depth Holland RIASEC themes & archetypal strengths.',
         tag: 'Swadharma'
       },
       {
-        title: 'PRERNA for Partners ❤️ (Secret Gateway)',
-        description: 'Dedicated lovers & besties vault completely hidden from Teens, Parents, and Schools with PIN/biometric isolation.',
-        tag: 'Partners Vault'
+        title: 'Maslow Cosmic Compass & Transcendence',
+        description: 'Progression from physiological safety and belonging to self-actualization, deep presence, and cosmic purpose.',
+        tag: 'Transcendence'
       },
       {
-        title: 'Preeti (प्रेरणा साथी) Voice & Somatic Audio',
-        description: '3-Mode AI companion with pure Web Audio synthesis (Monsoon, Temple Bells, 432Hz Drone) and soothing voice narration.',
-        tag: 'Somatic Soundscapes'
+        title: 'Kaya Kalpa Adult Somatics & Vitality',
+        description: 'Circadian sleep alignment, 90-minute ultradian focus pacing, hydration rhythms, and vagal regulation.',
+        tag: 'Vitality'
       },
       {
-        title: 'Communication Studio & Sacred Memories',
-        description: 'Compassionate NVC Re-framer, Daily Heart Cards, Date Planner, and Dual Encrypted Secret Journal.',
-        tag: 'Sacred Intimacy'
+        title: 'On-Device Cryptographic Sovereignty',
+        description: '100% On-device SQLCipher keying. Zero tracking, zero ads, zero employer or institutional surveillance.',
+        tag: 'DPDP §9 Sovereign'
       }
     ],
-    privacyGuarantee: 'Secret Gateway isolated completely from teens and parents. Guarded by biometric/passcode locking.',
-    targetAudience: 'Adults (18+), Career Seekers, Couples & Lifelong Besties'
+    privacyGuarantee: 'Complete cryptographic sovereignty. Adult vocational and reflective journeys remain strictly confidential and isolated.',
+    targetAudience: 'Adults (18+), University Students, Professionals & Life Seekers'
   },
   {
     role: 'educator',
@@ -200,29 +200,44 @@ export const MultiPersonaTourModal: React.FC<MultiPersonaTourModalProps> = ({
   onSelectPersona,
   currentRole = 'teen'
 }) => {
+  // DPDP §9 Strict Boundary Isolation:
+  // Teen users are only shown Teen Explorer & Parent Family Bridge.
+  // Adult & Partner spaces are completely hidden from minors.
+  const visibleSlides = PERSONA_SLIDES.filter((slide) => {
+    if (currentRole === 'teen') {
+      return slide.role === 'teen' || slide.role === 'parent';
+    }
+    if (currentRole === 'parent') {
+      return slide.role === 'parent' || slide.role === 'teen';
+    }
+    if (currentRole === 'educator') {
+      return slide.role === 'educator' || slide.role === 'parent' || slide.role === 'teen';
+    }
+    // Adults have full visibility across all 4 personas
+    return true;
+  });
+
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
   // Initialize slide based on currently active role
   useEffect(() => {
     if (isOpen) {
-      const idx = PERSONA_SLIDES.findIndex((s) => s.role === currentRole);
-      if (idx !== -1) {
-        setCurrentSlideIndex(idx);
-      }
+      const idx = visibleSlides.findIndex((s) => s.role === currentRole);
+      setCurrentSlideIndex(idx !== -1 ? idx : 0);
     }
-  }, [isOpen, currentRole]);
+  }, [isOpen, currentRole, visibleSlides.length]);
 
-  const slide = PERSONA_SLIDES[currentSlideIndex];
+  const slide = visibleSlides[currentSlideIndex] || visibleSlides[0];
 
   const handleNext = useCallback(() => {
     somaticAudio.playSoftChime();
-    setCurrentSlideIndex((prev) => (prev + 1) % PERSONA_SLIDES.length);
-  }, []);
+    setCurrentSlideIndex((prev) => (prev + 1) % visibleSlides.length);
+  }, [visibleSlides.length]);
 
   const handlePrev = useCallback(() => {
     somaticAudio.playSoftChime();
-    setCurrentSlideIndex((prev) => (prev - 1 + PERSONA_SLIDES.length) % PERSONA_SLIDES.length);
-  }, []);
+    setCurrentSlideIndex((prev) => (prev - 1 + visibleSlides.length) % visibleSlides.length);
+  }, [visibleSlides.length]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -244,7 +259,7 @@ export const MultiPersonaTourModal: React.FC<MultiPersonaTourModalProps> = ({
     onClose();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !slide) return null;
 
   return (
     <AnimatePresence>
@@ -252,6 +267,9 @@ export const MultiPersonaTourModal: React.FC<MultiPersonaTourModalProps> = ({
         
         {/* Modal Container */}
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="tour-modal-title"
           initial={{ opacity: 0, scale: 0.96, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 15 }}
@@ -264,11 +282,11 @@ export const MultiPersonaTourModal: React.FC<MultiPersonaTourModalProps> = ({
               <PrernaEmblem size={28} className="text-amber-400" />
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-black tracking-tight text-white">
+                  <h3 id="tour-modal-title" className="text-sm font-black tracking-tight text-white">
                     PRERNA Ecosystem Tour • चतुर्विध साधना
                   </h3>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                    4 Sovereign Personas
+                    {visibleSlides.length} Sovereign Personas
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-400">
@@ -290,7 +308,7 @@ export const MultiPersonaTourModal: React.FC<MultiPersonaTourModalProps> = ({
           {/* Persona Tabs Navigation Strip */}
           <div className="px-6 py-3 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between gap-2 overflow-x-auto text-xs">
             <div className="flex items-center gap-2">
-              {PERSONA_SLIDES.map((s, idx) => {
+              {visibleSlides.map((s, idx) => {
                 const isActive = idx === currentSlideIndex;
                 const isCurrent = s.role === currentRole;
                 return (
@@ -319,7 +337,7 @@ export const MultiPersonaTourModal: React.FC<MultiPersonaTourModalProps> = ({
             </div>
 
             <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400 font-mono">
-              <span>{currentSlideIndex + 1} / {PERSONA_SLIDES.length}</span>
+              <span>{currentSlideIndex + 1} / {visibleSlides.length}</span>
             </div>
           </div>
 

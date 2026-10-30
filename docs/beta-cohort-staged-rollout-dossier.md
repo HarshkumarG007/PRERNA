@@ -84,3 +84,4 @@ The following verification criteria are structured for official human expert sig
 
 1. **Bug & Vulnerability Reporting:** Handled strictly through on-device zero-telemetry export via [`BetaFeedbackModal.tsx`](file:///c:/Users/Lenovo/Downloads/prerna/src/components/beta/BetaFeedbackModal.tsx) or confidential email to `security@prerna.org`.
 2. **Rollback Protocol:** In the event of a critical regression, local SQLCipher databases maintain forward migration compatibility with zero data loss.
+

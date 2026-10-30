@@ -19,13 +19,24 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
   }
 
   // Fallback to Mock Backend for browser (npm run dev)
-  console.log(`[Mock Backend] Invoking ${cmd}`, args);
-  const db = getMockDb();
-
   const isTest = typeof process !== 'undefined' && (process.env?.NODE_ENV === 'test' || Boolean((process.env as any)?.VITEST));
+  
   if (!isTest) {
+    // Sanitize credentials before logging to console to protect DPDP compliance
+    let safeArgs = args;
+    if (args && typeof args === 'object') {
+      safeArgs = { ...args };
+      if ('passwordInput' in safeArgs) safeArgs.passwordInput = '***';
+      if ('pin' in safeArgs) safeArgs.pin = '***';
+      if (safeArgs.user && typeof safeArgs.user === 'object') {
+        safeArgs.user = { ...safeArgs.user, password_hash: '***', pin: '***' };
+      }
+    }
+    console.log(`[Mock Backend] Invoking ${cmd}`, safeArgs);
     await new Promise(resolve => setTimeout(resolve, 300)); // Simulate latency in dev
   }
+
+  const db = getMockDb();
 
   switch (cmd) {
     case 'create_user': {

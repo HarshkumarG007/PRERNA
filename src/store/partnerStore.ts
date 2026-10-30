@@ -292,7 +292,7 @@ export const usePartnerStore = create<PartnerState>()(
 
       unlockGate: (passcode: string) => {
         const currentPass = get().connection.secretPasscode;
-        if (currentPass && (currentPass === passcode || passcode === 'DEMO99')) {
+        if (currentPass && currentPass === passcode) {
           set((state) => ({
             connection: { ...state.connection, isGateLocked: false },
           }));

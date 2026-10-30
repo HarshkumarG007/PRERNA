@@ -79,3 +79,4 @@ describe('SubscriptionStore Architecture (Phase 7-22)', () => {
     expect(store.isPartnerPro()).toBe(false);
   });
 });
+

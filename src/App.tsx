@@ -73,6 +73,13 @@ function App() {
     setShowPersonaModal(false);
   };
 
+  const handleTourPersonaSelect = (targetRole: 'teen' | 'adult' | 'parent' | 'educator') => {
+    setShowPersonaTour(false);
+    if (targetRole === user?.role) return;
+    // Always require cryptographic identity verification to switch persona
+    setShowPersonaModal(true);
+  };
+
   const handleLogout = () => {
     usePartnerStore.getState().lockGate();
     setIsInPartnersView(false);
@@ -807,8 +814,8 @@ function App() {
       <MultiPersonaTourModal
         isOpen={showPersonaTour}
         onClose={() => setShowPersonaTour(false)}
-        onSelectPersona={handleRoleAuthorize}
-        currentRole={user.role}
+        onSelectPersona={handleTourPersonaSelect}
+        currentRole={user?.role}
       />
     </div>
   );

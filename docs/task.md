@@ -469,6 +469,15 @@
     - Cohort 2: 3 VidyaPeeth Model High Schools (CBSE, ICSE, State Board).
     - Cohort 3: 50 Adult Couples & Besties.
   - [x] Prepared detailed regulatory audit criteria for human sign-offs (H1 clinical psychologist, H2 DPDP legal counsel, H3 psychometric construct equivalence, H4 reading level comprehensibility).
+- [x] **P7-27** Multi-Expert Audit & Production Security Hardening
+  - [x] Comprehensive 8-Domain Multi-Expert Analysis produced (`prerna-expert-analysis-v1.md`) evaluating CPO, Frontend Architect, UX/a11y Specialist, SecOps, Legal/DPDP, Rust Systems, QA, and CFO perspectives.
+  - [x] **Teen Isolation in Ecosystem Tour**: `MultiPersonaTourModal.tsx` dynamically filters slides so Teen users only see Teen Explorer & Parent Bridge. Adult Sanctuary and Partner spaces are completely hidden from minors.
+  - [x] **Cryptographic Gate for Persona Switching**: Role switching from the tour modal now strictly mandates `PersonaAuthModal` authentication rather than granting unauthenticated role access.
+  - [x] **Skeleton Key Deletion**: Removed `DEMO99` universal master passcode bypass from `partnerStore.ts`.
+  - [x] **Console Log Sanitization**: Masked `passwordInput`, `pin`, and `password_hash` in `mockBackend.ts` to prevent credential leakage in console logs.
+  - [x] **Accessibility (a11y) Semantics**: Added `role="dialog"`, `aria-modal="true"`, and `aria-labelledby` across `PersonaAuthModal`, `MultiPersonaTourModal`, and `PartnersGateModal`.
+  - [x] **Rollup Code Splitting**: Configured `manualChunks` in `vite.config.ts` separating React, Framer Motion, and Lucide icons to reduce monolithic chunk size for Tauri runtime.
+  - [x] **PersonaAuthModal Reopen Reset**: Resolved stale selection state via `useEffect` reset so the authorize button label matches the highlighted target persona.
 
 ---
 
