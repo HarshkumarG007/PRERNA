@@ -9,7 +9,11 @@ import {
   Wind, 
   Printer, 
   PhoneCall, 
-  ShieldCheck 
+  ShieldCheck,
+  Camera,
+  QrCode,
+  Unlink,
+  CheckCircle2
 } from 'lucide-react';
 import { ParentSafeProfile } from '../../parent/permissions';
 import { DisclosureGate } from '../consent/DisclosureGate';
@@ -23,6 +27,14 @@ import { LifeBlueprintExport } from '../growth/LifeBlueprintExport';
 import { AtmaJnanaOriginModal } from '../common/AtmaJnanaOriginModal';
 import { AboutDeveloperModal } from '../common/AboutDeveloperModal';
 import { deriveSixteenType } from '../../engine/assessment/sixteenPersonalities';
+import { QrCameraScanner } from '../scanner/QrCameraScanner';
+import { 
+  getPairedTeenInfo, 
+  unpairTeen, 
+  parseAndVerifyPairingPayload, 
+  confirmPairingHandshake 
+} from '../../utils/pairingProtocol';
+import { somaticAudio } from '../../utils/audioSynthesis';
 
 interface ParentDashboardProps {
   onExit?: () => void;
@@ -41,6 +53,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ onExit }) => {
   const [showBlueprintModal, setShowBlueprintModal] = useState(false);
   const [showAtmaModal, setShowAtmaModal] = useState(false);
   const [showDevModal, setShowDevModal] = useState(false);
+  const [showScannerModal, setShowScannerModal] = useState(false);
+  const [pairedRecord, setPairedRecord] = useState(() => getPairedTeenInfo());
 
   const sixteenType = React.useMemo(() => {
     if (storeProfile?.sixteenType) return storeProfile.sixteenType;
@@ -465,6 +479,62 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ onExit }) => {
                 </div>
               </div>
             </div>
+
+            {/* Cryptographic Device Pairing Hub */}
+            <div className="bg-indigo-50/60 border border-indigo-200/80 rounded-2xl p-5 md:p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5 text-indigo-950 font-black text-base">
+                  <QrCode size={20} className="text-indigo-600" />
+                  <h4>Cryptographic Device Pairing</h4>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-200 flex items-center gap-1">
+                  <CheckCircle2 size={10} />
+                  <span>{pairedRecord ? 'Paired Active' : 'Linked'}</span>
+                </span>
+              </div>
+
+              <div className="bg-white p-4 rounded-xl border border-indigo-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <div>
+                  <span className="text-slate-400 text-[10px] uppercase font-bold block">Linked Teen Account</span>
+                  <span className="text-slate-900 font-black text-sm">
+                    {pairedRecord?.teenName || profile?.teenName || 'Your Teen'}
+                  </span>
+                  {pairedRecord?.pairedAt && (
+                    <span className="text-slate-400 text-[10px] block mt-0.5 font-mono">
+                      Handshake: {new Date(pairedRecord.pairedAt).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowScannerModal(true)}
+                    className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                  >
+                    <Camera size={14} />
+                    <span>Scan New QR</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm('Are you sure you want to unpair this teen device?')) {
+                        unpairTeen();
+                        setPairedRecord(null);
+                        somaticAudio.playSoftChime();
+                        if (onExit) onExit();
+                      }
+                    }}
+                    className="p-2 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 border border-slate-200 transition-colors cursor-pointer"
+                    title="Unpair Device"
+                  >
+                    <Unlink size={14} />
+                  </button>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-slate-500 leading-snug">
+                Pairing keys are stored 100% on-device. Scanning a new QR replaces the previous cryptographic session token.
+              </p>
+            </div>
           </div>
         </div>
       )}
@@ -499,6 +569,32 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ onExit }) => {
         isOpen={showDevModal}
         onClose={() => setShowDevModal(false)}
       />
+
+      {/* QR Camera Scanner Modal for Re-pairing */}
+      {showScannerModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-md">
+            <QrCameraScanner
+              onScan={(scannedText) => {
+                const res = parseAndVerifyPairingPayload(scannedText);
+                if (res.isValid && res.payload) {
+                  confirmPairingHandshake(res.payload);
+                  setPairedRecord(getPairedTeenInfo());
+                  setShowScannerModal(false);
+                  somaticAudio.playStarBeaconChime();
+                  loadParentView();
+                } else {
+                  alert(res.error || 'Invalid pairing code scanned.');
+                  setShowScannerModal(false);
+                }
+              }}
+              onClose={() => setShowScannerModal(false)}
+              title="Scan Teen's QR Code"
+              subtitle="Align your camera with the QR code on the teen's screen"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

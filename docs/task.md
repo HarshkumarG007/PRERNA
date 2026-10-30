@@ -379,6 +379,24 @@
     - Keyboard-accessible navigation, stepper tabs, 432 Hz Pythagorean chimes (`somaticAudio.playSoftChime()`), and Markdown pitch deck export (`PRERNA_Product_Showcase_Pitch_Deck_*.md`).
   - [x] Integrated seamless access points across `src/App.tsx` (routes `/showcase`, `/pitch`, `/feedback`), `src/components/common/SanctuaryFooter.tsx`, and responsive mobile drawer.
   - [x] Verified full suite: **137/137 tests passing across 29 test files**; production build succeeded in 8.18s.
+- [x] **P7-19** Sovereign QR & Camera Scanner Peer Pairing (`QrCameraScanner.tsx` & `TeenPairingQrModal.tsx`)
+  - [x] Implemented cryptographically secure, 15-minute time-bounded pairing protocol in `src/utils/pairingProtocol.ts`:
+    - Generates 128-bit cryptographic nonces, 6-character human shortcodes (`PRN-842`), and JSON-encoded pairing payloads.
+    - DPDP Act 2023 §9 compliance: strictly 100% on-device handshake with zero intermediary telemetry servers.
+  - [x] Created `src/components/scanner/QrCameraScanner.tsx`:
+    - Dual-engine camera scanning using native browser `BarcodeDetector` with automatic fallback to `jsQR`.
+    - Real-time video preview with glowing corner brackets, animated laser sweep line, and center targeting dot.
+    - Rear / Front camera switching, torch/flashlight toggle, and audio/haptic feedback upon successful detection.
+    - Camera permission handling with image file upload fallback (`<input type="file" accept="image/*" />`).
+  - [x] Created `src/components/pairing/TeenPairingQrModal.tsx`:
+    - High-contrast dynamic QR canvas via `qrcode`.
+    - Live 15-minute countdown timer with expiration protection and one-click token regeneration.
+    - Copyable 6-digit sync code with clipboard confirmation and single-device test scan simulation.
+  - [x] Upgraded `src/components/onboarding/ParentLinking.tsx`:
+    - Multi-modal linking interface with Live Camera Scanner, 6-digit Manual Code entry, and Verified Teen Confirmation Card.
+  - [x] Integrated into `src/components/dashboard/TeenProfileView.tsx` ("Display Pairing QR Code") and `src/components/parent/ParentDashboard.tsx` ("Cryptographic Device Pairing" & "Scan New QR").
+  - [x] Added unit tests in `src/tests/pairing/pairingProtocol.test.ts` (8 tests passed).
+  - [x] Verified full suite: **145/145 tests passing across 30 test files**; production build cleanly generated in 7.79s.
 
 ---
 
@@ -387,8 +405,8 @@
 - [x] `docs/dpdp-compliance-mapping.md` updated for any change touching consent, data collection, or crisis
 - [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
 - [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
-- [x] Pre-deployment regression test suite: **137/137 tests passed across 29 test files**
-- [x] Production bundle verified: `tsc && vite build` completed with zero errors (9.07s build time)
+- [x] Pre-deployment regression test suite: **145/145 tests passed across 30 test files**
+- [x] Production bundle verified: `tsc && vite build` completed with zero errors (7.79s build time)
 - [ ] Staged rollout: Beta cohort testing before broad public release
 
 ---

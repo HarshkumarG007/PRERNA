@@ -289,3 +289,4 @@ export const BetaFeedbackModal: React.FC<BetaFeedbackModalProps> = ({ isOpen, on
     </AnimatePresence>
   );
 };
+

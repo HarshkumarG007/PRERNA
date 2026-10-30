@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, Brain, Compass, Sparkles, Shield, Database, LogOut, Bell, Link2, Check, ArrowLeft, ArrowRight } from 'lucide-react';
+import { AlertTriangle, Brain, Compass, Sparkles, Shield, Database, LogOut, Bell, Link2, Check, ArrowLeft, ArrowRight, QrCode } from 'lucide-react';
 import { DataExport } from '../settings/DataExport';
 import { DataDelete } from '../settings/DataDelete';
 import { AuditTrailViewer } from '../settings/AuditTrailViewer';
@@ -18,6 +18,8 @@ import { ActivityHistoryViewer } from './ActivityHistoryViewer';
 import { SixteenTypeCard } from '../personality/SixteenTypeCard';
 import { deriveSixteenType } from '../../engine/assessment/sixteenPersonalities';
 import { LifeBlueprintExport } from '../growth/LifeBlueprintExport';
+import { TeenPairingQrModal } from '../pairing/TeenPairingQrModal';
+import { getStoredPairingRequest } from '../../utils/pairingProtocol';
 import { Printer } from 'lucide-react';
 
 import { useAppStore } from '../../store';
@@ -96,8 +98,17 @@ export const TeenProfileView: React.FC = () => {
   const [sharingPrefs, setSharingPrefs] = useState<SharingPreferences | null>(null);
   
   const [linkCode, setLinkCode] = useState<string | null>(null);
+  const [showPairingModal, setShowPairingModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showBlueprintModal, setShowBlueprintModal] = useState(false);
+
+  // Check for any active unexpired pairing code on load
+  useEffect(() => {
+    const existing = getStoredPairingRequest();
+    if (existing && Date.now() < existing.exp) {
+      setLinkCode(existing.shortCode);
+    }
+  }, []);
 
   const sixteenType = React.useMemo(() => {
     if (profile?.sixteenType) return profile.sixteenType;
@@ -420,22 +431,33 @@ export const TeenProfileView: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="font-bold text-white text-sm">Link Parent Account</h4>
-                  <p className="text-xs text-slate-400 font-medium">Generate a secure sync code for your parent.</p>
+                  <p className="text-xs text-slate-400 font-medium">Generate a secure QR code & sync key for your parent.</p>
                 </div>
               </div>
+
               {linkCode ? (
-                <div className="flex items-center justify-between bg-indigo-500/10 border border-indigo-500/30 p-3 rounded-xl">
-                  <span className="font-mono text-xl font-black tracking-widest text-indigo-300">{linkCode}</span>
-                  <div className="flex items-center gap-1 text-emerald-400 text-xs font-bold bg-emerald-500/10 px-2 py-1 rounded">
-                    <Check size={14} /> Active
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between bg-indigo-500/10 border border-indigo-500/30 p-3 rounded-xl">
+                    <span className="font-mono text-xl font-black tracking-widest text-indigo-300">{linkCode}</span>
+                    <div className="flex items-center gap-1 text-emerald-400 text-xs font-bold bg-emerald-500/10 px-2 py-1 rounded">
+                      <Check size={14} /> Active
+                    </div>
                   </div>
+                  <button
+                    onClick={() => setShowPairingModal(true)}
+                    className="w-full py-2.5 px-3 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 border border-indigo-400/30 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  >
+                    <QrCode size={16} />
+                    <span>Display Pairing QR Code</span>
+                  </button>
                 </div>
               ) : (
                 <button 
-                  onClick={() => setLinkCode('A7X-9P2')}
-                  className="w-full py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl text-sm font-bold transition-colors border border-white/10"
+                  onClick={() => setShowPairingModal(true)}
+                  className="w-full py-2.5 bg-gradient-to-r from-indigo-600/80 to-cyan-600/80 hover:from-indigo-500 hover:to-cyan-500 text-white rounded-xl text-sm font-bold transition-all border border-indigo-400/30 flex items-center justify-center gap-2 cursor-pointer shadow-sm"
                 >
-                  Generate Code
+                  <QrCode size={18} />
+                  <span>Generate Pairing QR Code</span>
                 </button>
               )}
             </div>
@@ -553,6 +575,20 @@ export const TeenProfileView: React.FC = () => {
         user={user}
         profile={profile}
         sixteenType={sixteenType}
+      />
+
+      {/* Teen Pairing QR & Sync Key Modal */}
+      <TeenPairingQrModal
+        isOpen={showPairingModal}
+        onClose={() => {
+          setShowPairingModal(false);
+          const req = getStoredPairingRequest();
+          if (req) setLinkCode(req.shortCode);
+        }}
+        onSimulateSuccess={() => {
+          setLinkCode('PRN-PAIR');
+          setShowPairingModal(false);
+        }}
       />
       </div>
     </div>
