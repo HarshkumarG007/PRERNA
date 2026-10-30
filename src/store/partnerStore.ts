@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { hashPasscode, verifyPasscode } from '../utils/cryptoVault';
 
 export type RelationshipMode = 'lovers' | 'besties';
 export type RelationshipType = 'romantic_partner' | 'spouse' | 'dating' | 'best_friend' | 'soul_companion';
@@ -273,14 +274,14 @@ export const usePartnerStore = create<PartnerState>()(
         },
       ],
 
-      // Gate & Activation Actions
+      // Gate & Activation Actions (DPDP §9 Cryptographically Hashed Vault)
       activatePartners: (passcode: string, mode: RelationshipMode = 'lovers') => {
         set((state) => ({
           connection: {
             ...state.connection,
             isActivated: true,
             isGateLocked: false,
-            secretPasscode: passcode,
+            secretPasscode: hashPasscode(passcode),
           },
           profile: {
             ...state.profile,
@@ -292,9 +293,15 @@ export const usePartnerStore = create<PartnerState>()(
 
       unlockGate: (passcode: string) => {
         const currentPass = get().connection.secretPasscode;
-        if (currentPass && currentPass === passcode) {
+        if (currentPass && verifyPasscode(passcode, currentPass)) {
+          // If legacy plaintext, seamlessly migrate to SHA-256 hash
+          const hashed = hashPasscode(passcode);
           set((state) => ({
-            connection: { ...state.connection, isGateLocked: false },
+            connection: {
+              ...state.connection,
+              isGateLocked: false,
+              secretPasscode: hashed,
+            },
           }));
           return true;
         }

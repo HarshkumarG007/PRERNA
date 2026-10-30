@@ -7,10 +7,12 @@ import {
   Building2, 
   ShieldCheck, 
   ArrowRight,
-  GraduationCap
+  QrCode
 } from 'lucide-react';
 import { useSubscriptionStore, SchoolLicenseTier } from '../../store/subscriptionStore';
 import { somaticAudio } from '../../utils/audioSynthesis';
+import { PaymentCheckoutModal } from './PaymentCheckoutModal';
+import { PaymentDetails } from '../../services/paymentGateway';
 
 interface SchoolLicensingModalProps {
   isOpen: boolean;
@@ -23,26 +25,39 @@ export const SchoolLicensingModal: React.FC<SchoolLicensingModalProps> = ({
 }) => {
   const { schoolLicense, schoolPilotDaysRemaining, schoolExpiresAt, upgradeSchoolLicense } = useSubscriptionStore();
   const [selectedTier, setSelectedTier] = useState<SchoolLicenseTier>('campus_annual');
-  const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccessBadge, setShowSuccessBadge] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutDetails, setCheckoutDetails] = useState<PaymentDetails | null>(null);
 
   if (!isOpen) return null;
 
-  const handleActivate = (tier: SchoolLicenseTier) => {
-    setIsProcessing(true);
-    somaticAudio.playSoftChime();
+  const getTierAmount = (tier: SchoolLicenseTier): number => {
+    switch (tier) {
+      case 'campus_annual': return 49000;
+      case 'district_annual': return 149000;
+      default: return 49000;
+    }
+  };
 
+  const handleOpenCheckout = (tier: SchoolLicenseTier) => {
+    const tierObj = TIERS.find((t) => t.id === tier);
+    setCheckoutDetails({
+      planTitle: tierObj?.title || 'VidyaPeeth License',
+      amountInr: getTierAmount(tier),
+      tierId: tier,
+      type: 'school',
+    });
+    setCheckoutOpen(true);
+  };
+
+  const handlePaymentSuccess = () => {
+    upgradeSchoolLicense(selectedTier);
+    setShowSuccessBadge(true);
+    somaticAudio.playStarBeaconChime();
     setTimeout(() => {
-      upgradeSchoolLicense(tier);
-      setIsProcessing(false);
-      setShowSuccessBadge(true);
-      somaticAudio.playStarBeaconChime();
-
-      setTimeout(() => {
-        setShowSuccessBadge(false);
-        onClose();
-      }, 1400);
-    }, 900);
+      setShowSuccessBadge(false);
+      onClose();
+    }, 2000);
   };
 
   const TIERS = [
@@ -273,25 +288,26 @@ export const SchoolLicensingModal: React.FC<SchoolLicensingModalProps> = ({
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <button
                 type="button"
-                onClick={() => handleActivate(selectedTier)}
-                disabled={isProcessing}
-                className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-indigo-950 hover:bg-slate-900 text-white font-black text-xs shadow-lg shadow-indigo-950/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                onClick={() => handleOpenCheckout(selectedTier)}
+                className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-indigo-950 hover:bg-slate-900 text-white font-black text-xs shadow-lg shadow-indigo-950/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
-                {isProcessing ? (
-                  <span>Generating Institutional License...</span>
-                ) : (
-                  <>
-                    <GraduationCap size={16} />
-                    <span>Activate {TIERS.find((t) => t.id === selectedTier)?.title}</span>
-                    <ArrowRight size={15} />
-                  </>
-                )}
+                <QrCode size={16} />
+                <span>Activate {TIERS.find((t) => t.id === selectedTier)?.title} (UPI / Cards)</span>
+                <ArrowRight size={15} />
               </button>
             </div>
 
           </div>
 
         </motion.div>
+
+        {/* Real Indian Payment Gateway Checkout Modal */}
+        <PaymentCheckoutModal
+          isOpen={checkoutOpen}
+          onClose={() => setCheckoutOpen(false)}
+          details={checkoutDetails}
+          onSuccess={handlePaymentSuccess}
+        />
       </div>
     </AnimatePresence>
   );

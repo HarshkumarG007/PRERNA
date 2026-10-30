@@ -60,14 +60,16 @@ describe('PartnerStore Ecosystem & Isolation', () => {
     expect(connection.secretPasscode).toBeNull();
   });
 
-  it('activates partners with passcode and unlocks gate', () => {
+  it('activates partners with passcode and unlocks gate with SHA-256 hashed storage', () => {
     const store = usePartnerStore.getState();
     store.activatePartners('7788', 'lovers');
 
     const state = usePartnerStore.getState();
     expect(state.connection.isActivated).toBe(true);
     expect(state.connection.isGateLocked).toBe(false);
-    expect(state.connection.secretPasscode).toBe('7788');
+    // DPDP Act §9 Security Invariant: Passcode must be stored as SHA-256 hex, never in cleartext
+    expect(state.connection.secretPasscode).not.toBe('7788');
+    expect(state.connection.secretPasscode).toHaveLength(64);
     expect(state.profile.mode).toBe('lovers');
     expect(state.profile.relationshipType).toBe('romantic_partner');
   });

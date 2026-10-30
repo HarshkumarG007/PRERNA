@@ -478,6 +478,15 @@
   - [x] **Accessibility (a11y) Semantics**: Added `role="dialog"`, `aria-modal="true"`, and `aria-labelledby` across `PersonaAuthModal`, `MultiPersonaTourModal`, and `PartnersGateModal`.
   - [x] **Rollup Code Splitting**: Configured `manualChunks` in `vite.config.ts` separating React, Framer Motion, and Lucide icons to reduce monolithic chunk size for Tauri runtime.
   - [x] **PersonaAuthModal Reopen Reset**: Resolved stale selection state via `useEffect` reset so the authorize button label matches the highlighted target persona.
+- [x] **P7-28** Cryptographic Vault Hashing, Anti-Tampering, & Real Indian Payment Infrastructure
+  - [x] **Sovereign SHA-256 CryptoVault**: Created `src/utils/cryptoVault.ts` (FIPS 180-4 compliant synchronous implementation) for salted passcode hashing, verifying, and anti-tamper sealing.
+  - [x] **Passcode Hashing in PartnerStore**: Updated `partnerStore.ts` so Partners Vault secret passcodes are stored as SHA-256 hex digests with salt—never in plaintext. Included graceful migration for existing passcodes.
+  - [x] **Subscription Anti-Tamper Seals**: Added deterministic HMAC-SHA256 signature sealing in `subscriptionStore.ts`. Direct DevTools modifications to `localStorage` are automatically detected and downgraded.
+  - [x] **Purged Unused `@tanstack/react-query`**: Cleaned up dependencies in `package.json`.
+  - [x] **Real Indian Payment Gateway Engine**: Created `src/services/paymentGateway.ts` with NPCI-compliant dynamic UPI deep links (`upi://pay`), on-screen dynamic QR code generation, and official GST tax invoice generation (SAC code 998431).
+  - [x] **Payment Checkout Modal**: Created `src/components/subscription/PaymentCheckoutModal.tsx` supporting UPI apps (GPay, PhonePe, Paytm, BHIM), Razorpay Standard cards/netbanking, and Beta grant vouchers.
+  - [x] **Modal Integration**: Integrated checkout flows into `PartnerSubscriptionModal.tsx` and `SchoolLicensingModal.tsx`.
+  - [x] **Comprehensive Test Suite Expansion**: Added `src/tests/security/cryptoVault.test.ts` (5 tests) and `src/tests/subscription/paymentGateway.test.ts` (4 tests) — scaled test suite to **191/191 tests passing across 37 test files**.
 
 ---
 
@@ -486,8 +495,8 @@
 - [x] `docs/dpdp-compliance-mapping.md` updated for any change touching consent, data collection, or crisis
 - [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
 - [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
-- [x] Pre-deployment regression test suite: **180/180 tests passed across 35 test files**
-- [x] Production bundle verified: `tsc && vite build` completed with zero errors (8.14s build time)
+- [x] Pre-deployment regression test suite: **191/191 tests passed across 37 test files**
+- [x] Production bundle verified: `tsc && vite build` completed with zero errors (8.04s build time)
 - [x] Staged rollout: Beta cohort testing before broad public release (documented in `docs/beta-cohort-staged-rollout-dossier.md`)
 
 ---

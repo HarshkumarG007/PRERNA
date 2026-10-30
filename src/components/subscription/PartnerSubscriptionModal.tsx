@@ -6,10 +6,13 @@ import {
   Check, 
   Crown, 
   ShieldCheck, 
-  ArrowRight
+  ArrowRight,
+  QrCode
 } from 'lucide-react';
 import { useSubscriptionStore, PartnerPlanTier } from '../../store/subscriptionStore';
 import { somaticAudio } from '../../utils/audioSynthesis';
+import { PaymentCheckoutModal } from './PaymentCheckoutModal';
+import { PaymentDetails } from '../../services/paymentGateway';
 
 interface PartnerSubscriptionModalProps {
   isOpen: boolean;
@@ -22,26 +25,40 @@ export const PartnerSubscriptionModal: React.FC<PartnerSubscriptionModalProps> =
 }) => {
   const { partnerPlan, partnerTrialDaysRemaining, partnerExpiresAt, upgradePartnerPlan, cancelPartnerPlan } = useSubscriptionStore();
   const [selectedTier, setSelectedTier] = useState<PartnerPlanTier>('partner_pro_annual');
-  const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccessBadge, setShowSuccessBadge] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutDetails, setCheckoutDetails] = useState<PaymentDetails | null>(null);
 
   if (!isOpen) return null;
 
-  const handleSubscribe = (tier: PartnerPlanTier) => {
-    setIsProcessing(true);
-    somaticAudio.playSoftChime();
+  const getTierAmount = (tier: PartnerPlanTier): number => {
+    switch (tier) {
+      case 'partner_pro_monthly': return 299;
+      case 'partner_pro_annual': return 1999;
+      case 'partner_lifetime': return 4999;
+      default: return 299;
+    }
+  };
 
+  const handleOpenCheckout = (tier: PartnerPlanTier) => {
+    const tierObj = TIERS.find((t) => t.id === tier);
+    setCheckoutDetails({
+      planTitle: tierObj?.title || 'Partner Pro',
+      amountInr: getTierAmount(tier),
+      tierId: tier,
+      type: 'partner',
+    });
+    setCheckoutOpen(true);
+  };
+
+  const handlePaymentSuccess = () => {
+    upgradePartnerPlan(selectedTier);
+    setShowSuccessBadge(true);
+    somaticAudio.playStarBeaconChime();
     setTimeout(() => {
-      upgradePartnerPlan(tier);
-      setIsProcessing(false);
-      setShowSuccessBadge(true);
-      somaticAudio.playStarBeaconChime();
-
-      setTimeout(() => {
-        setShowSuccessBadge(false);
-        onClose();
-      }, 1400);
-    }, 900);
+      setShowSuccessBadge(false);
+      onClose();
+    }, 2000);
   };
 
   const TIERS = [
@@ -308,24 +325,26 @@ export const PartnerSubscriptionModal: React.FC<PartnerSubscriptionModalProps> =
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <button
                 type="button"
-                onClick={() => handleSubscribe(selectedTier)}
-                disabled={isProcessing}
-                className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-600 to-amber-600 hover:from-rose-600 hover:to-amber-700 text-white font-black text-xs shadow-lg shadow-rose-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                onClick={() => handleOpenCheckout(selectedTier)}
+                className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-600 to-amber-600 hover:from-rose-600 hover:to-amber-700 text-white font-black text-xs shadow-lg shadow-rose-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
-                {isProcessing ? (
-                  <span>Activating Sanctuary Pass...</span>
-                ) : (
-                  <>
-                    <span>Activate {TIERS.find((t) => t.id === selectedTier)?.title}</span>
-                    <ArrowRight size={15} />
-                  </>
-                )}
+                <QrCode size={15} />
+                <span>Activate {TIERS.find((t) => t.id === selectedTier)?.title} (UPI / Cards)</span>
+                <ArrowRight size={15} />
               </button>
             </div>
 
           </div>
 
         </motion.div>
+
+        {/* Real Indian Payment Gateway Checkout Modal */}
+        <PaymentCheckoutModal
+          isOpen={checkoutOpen}
+          onClose={() => setCheckoutOpen(false)}
+          details={checkoutDetails}
+          onSuccess={handlePaymentSuccess}
+        />
       </div>
     </AnimatePresence>
   );

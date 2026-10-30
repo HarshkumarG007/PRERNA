@@ -1,18 +1,24 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useSubscriptionStore } from '../../store/subscriptionStore';
+import { computeSubscriptionSignature } from '../../utils/cryptoVault';
 
 describe('SubscriptionStore Architecture (Phase 7-22)', () => {
   beforeEach(() => {
-    // Reset state before each test
+    const trialExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const pilotExpires = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
+    const validSignature = computeSubscriptionSignature('trial', trialExpires, 'pilot', pilotExpires);
+
+    // Reset state before each test with valid cryptographic seal
     useSubscriptionStore.setState({
       partnerPlan: 'trial',
       partnerTrialDaysRemaining: 7,
       partnerActivatedAt: new Date().toISOString(),
-      partnerExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      partnerExpiresAt: trialExpires,
       schoolLicense: 'pilot',
       schoolPilotDaysRemaining: 60,
       schoolActivatedAt: new Date().toISOString(),
-      schoolExpiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
+      schoolExpiresAt: pilotExpires,
+      integritySignature: validSignature,
     });
   });
 
@@ -69,13 +75,29 @@ describe('SubscriptionStore Architecture (Phase 7-22)', () => {
     expect(updated.schoolExpiresAt).not.toBeNull();
   });
 
-  it('correctly handles expired subscription dates', () => {
+  it('correctly handles expired subscription dates with valid signature', () => {
+    const expiredDate = new Date(Date.now() - 1000).toISOString();
+    const sig = computeSubscriptionSignature('partner_pro_monthly', expiredDate, 'pilot', new Date(Date.now() + 60000).toISOString());
     useSubscriptionStore.setState({
       partnerPlan: 'partner_pro_monthly',
-      partnerExpiresAt: new Date(Date.now() - 1000).toISOString(), // in the past
+      partnerExpiresAt: expiredDate,
+      integritySignature: sig,
     });
 
     const store = useSubscriptionStore.getState();
+    expect(store.isPartnerPro()).toBe(false);
+  });
+
+  it('detects and rejects DevTools localStorage tampering without cryptographic signature', () => {
+    // An adversary tries to bypass payment by setting partner_lifetime in DevTools localStorage
+    useSubscriptionStore.setState({
+      partnerPlan: 'partner_lifetime',
+      partnerExpiresAt: null,
+      integritySignature: 'forged_fake_signature_abc_123',
+    });
+
+    const store = useSubscriptionStore.getState();
+    // Cryptographic anti-tamper seal detects forgery and denies pro status!
     expect(store.isPartnerPro()).toBe(false);
   });
 });
