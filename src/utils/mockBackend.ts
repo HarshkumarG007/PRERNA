@@ -47,22 +47,26 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
     }
 
     case 'authenticate_pin': {
-      const user = db.users.find((u: any) => u.id === args.userId);
+      const targetId = args.userId || localStorage.getItem('prerna_last_user');
+      const user = db.users.find((u: any) => u.id === targetId) || (db.users.length > 0 ? db.users[0] : null);
       if (user) {
-        return user as any;
+        if (!user.pin || user.pin === args.pin) {
+          return user as any;
+        }
       }
       throw new Error("Incorrect PIN. Please try again.");
     }
 
     case 'resume_session': {
-      const user = db.users.find((u: any) => u.id === args.userId);
+      const targetId = args?.userId || localStorage.getItem('prerna_last_user');
+      const user = db.users.find((u: any) => u.id === targetId) || (db.users.length > 0 ? db.users[0] : null);
       if (user) return user as any;
       throw new Error("User not found");
     }
 
     case 'complete_questionnaire': {
-      const userId = localStorage.getItem('prerna_last_user');
-      const user = db.users.find((u: any) => u.id === userId);
+      const userId = args?.userId || localStorage.getItem('prerna_last_user');
+      const user = db.users.find((u: any) => u.id === userId) || (db.users.length > 0 ? db.users[0] : null);
       if (user) {
         user.hasCompletedQuestionnaire = true;
         saveMockDb(db);
@@ -128,13 +132,29 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
     }
 
     case 'get_user': {
-      const user = db.users.find((u: any) => u.id === args.userId);
+      const targetId = args?.userId || localStorage.getItem('prerna_last_user');
+      const user = db.users.find((u: any) => u.id === targetId) || (db.users.length > 0 ? db.users[0] : null);
       if (user) return user as any;
       return null as any;
     }
 
     case 'get_unified_profile': {
-      return db.profiles[args.userId] || null;
+      const targetId = args.userId || localStorage.getItem('prerna_last_user') || 'current-user';
+      return db.profiles[targetId] || null;
+    }
+
+    case 'save_unified_profile': {
+      const targetId = args.userId || localStorage.getItem('prerna_last_user') || 'current-user';
+      try {
+        const parsed = typeof args.profileData === 'string' ? JSON.parse(args.profileData) : args.profileData;
+        db.profiles[targetId] = parsed;
+        saveMockDb(db);
+        return 'profile-saved' as any;
+      } catch {
+        db.profiles[targetId] = args.profileData;
+        saveMockDb(db);
+        return 'profile-saved' as any;
+      }
     }
 
     case 'save_session': {
