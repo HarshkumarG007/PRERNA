@@ -739,7 +739,7 @@ impl Database {
         let mut stmt = self.conn.prepare(
             "SELECT id, user_id, detected_at, severity, state, origin, cognitive_decision_id, reviewer_id, reviewer_credentials_ref, decision, teen_informed_at
              FROM crisis_events
-             WHERE state = 'HumanReview'"
+             WHERE state IN ('HumanReview', 'SignalDetected', 'AssessmentPending')"
         )?;
 
         let events = stmt
@@ -788,7 +788,7 @@ impl Database {
 
     pub fn claim_crisis_event(&self, event_id: &str, reviewer_id: &str) -> AnyhowResult<()> {
         let updated = self.conn.execute(
-            "UPDATE crisis_events SET reviewer_id = ?1 WHERE id = ?2 AND reviewer_id IS NULL AND state = 'HumanReview'",
+            "UPDATE crisis_events SET reviewer_id = ?1 WHERE id = ?2 AND reviewer_id IS NULL AND state IN ('HumanReview', 'SignalDetected')",
             rusqlite::params![reviewer_id, event_id]
         )?;
         if updated == 0 {
@@ -825,7 +825,7 @@ impl Database {
                 reviewer_credentials_ref = ?2,
                 decision = ?3,
                 teen_informed_at = ?4
-            WHERE id = ?5 AND reviewer_id = ?6 AND state = 'HumanReview'
+            WHERE id = ?5 AND reviewer_id = ?6 AND state IN ('HumanReview', 'SignalDetected')
         ";
 
         let updated = self.conn.execute(

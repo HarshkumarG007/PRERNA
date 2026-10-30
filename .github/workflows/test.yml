@@ -29,6 +29,7 @@ jobs:
   test-backend:
     name: Test Backend (Rust)
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
@@ -60,9 +61,10 @@ jobs:
 
       - name: Configure Windows Clang Environment
         if: runner.os == 'Windows'
+        shell: bash
         run: |
-          echo "LIBCLANG_PATH=C:\Program Files\LLVM\bin" >> $env:GITHUB_ENV
-          echo "CMAKE_GENERATOR=Visual Studio 17 2022" >> $env:GITHUB_ENV
+          echo "LIBCLANG_PATH=C:\Program Files\LLVM\bin" >> "$GITHUB_ENV"
+          echo "CMAKE_GENERATOR=Visual Studio 17 2022" >> "$GITHUB_ENV"
           
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
