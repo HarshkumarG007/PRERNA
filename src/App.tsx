@@ -208,12 +208,12 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col font-sans bg-slate-50">
         <header className="sticky top-0 z-50 glass-panel !rounded-none !border-x-0 !border-t-0 shadow-sm transition-all duration-300">
-          <div className="max-w-7xl mx-auto flex justify-between items-center px-4 py-2 md:px-6">
-            <div className="flex items-center gap-4 xl:gap-7">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 px-3 py-2 md:px-6">
+            <div className="flex items-center gap-3 xl:gap-6 min-w-0">
               <Link to="/" className="flex items-center gap-2 group flex-shrink-0" title="PRERNA Sanctuary Home">
                 <PrernaLogo variant="compact" size="sm" />
               </Link>
-              <nav className="hidden lg:flex items-center gap-3.5 xl:gap-5 text-xs xl:text-sm font-semibold">
+              <nav className="hidden lg:flex items-center gap-3 xl:gap-4 text-xs xl:text-sm font-semibold min-w-0">
                 <Link to="/quests" className="text-slate-600 hover:text-indigo-600 transition-colors whitespace-nowrap">{t('nav.life_quests', 'Life Quests')}</Link>
                 <Link to="/arena" className="text-slate-600 hover:text-indigo-600 transition-colors whitespace-nowrap">{t('nav.skill_arena', 'Skill Arena')}</Link>
                 <Link to="/mood" className="text-slate-600 hover:text-indigo-600 transition-colors whitespace-nowrap">{t('nav.mood_mirror', 'Mood Mirror')}</Link>
@@ -222,35 +222,38 @@ function App() {
                 <Link to="/evolution" className="text-slate-600 hover:text-indigo-600 transition-colors whitespace-nowrap">Self-Evolution</Link>
                 <Link to="/profile" className="text-slate-600 hover:text-indigo-600 transition-colors whitespace-nowrap">{t('nav.profile', 'Teen Dash')}</Link>
                 
-                {/* Fast Access Badges */}
+                {/* Fast Access Somatic Coherence Pacer */}
                 <Link 
                   to="/breathe" 
-                  className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors font-bold flex items-center gap-1 border border-emerald-200 text-xs shadow-2xs whitespace-nowrap"
+                  className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors font-bold flex items-center gap-1 border border-emerald-200 text-xs shadow-2xs whitespace-nowrap flex-shrink-0"
                   title="432 Hz Somatic Coherence Pacer"
                 >
                   <span>🫁</span>
                   <span>Breathe</span>
                 </Link>
-                <button
-                  onClick={() => setShowAtmaModal(true)}
-                  className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 hover:bg-amber-100 transition-colors font-bold flex items-center gap-1 border border-amber-200 text-xs shadow-2xs cursor-pointer whitespace-nowrap"
-                  title="आत्मज्ञान: Origin, Kabir's Creed & Vision"
-                >
-                  <span>🪷</span>
-                  <span>आत्मज्ञान</span>
-                </button>
               </nav>
             </div>
             
-            {/* Right-aligned action cluster */}
-            <div className="flex items-center gap-2 xl:gap-2.5 flex-shrink-0">
+            {/* Right-aligned action cluster: Genesis & Developer grouped together with guaranteed gap */}
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+              {/* Atma-Jnana Vision & Creed */}
+              <button
+                onClick={() => setShowAtmaModal(true)}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors shadow-2xs cursor-pointer whitespace-nowrap"
+                title="आत्मज्ञान: Origin, Kabir's Creed & Vision"
+              >
+                <span>🪷</span>
+                <span className="hidden xl:inline">आत्मज्ञान</span>
+              </button>
+
+              {/* Developer Profile */}
               <button
                 onClick={() => setShowDevModal(true)}
                 className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors shadow-2xs cursor-pointer whitespace-nowrap"
                 title="Meet the Developer: Harsh Kumar Gupta"
               >
                 <span>👨‍💻</span>
-                <span className="hidden sm:inline">Developer</span>
+                <span className="hidden xl:inline">Developer</span>
               </button>
               
               <Link
@@ -259,7 +262,7 @@ function App() {
                 title="Always-on confidential helplines and calming tools"
               >
                 <HeartHandshake size={13} className="text-rose-600" />
-                <span className="hidden sm:inline">{t('nav.support', 'Helplines')}</span>
+                <span className="hidden md:inline">{t('nav.support', 'Helplines')}</span>
               </Link>
               
               <div className="relative">
@@ -287,7 +290,7 @@ function App() {
                 title="Click to switch persona (Teen, Parent, or Educator)"
               >
                 <span>👤 Teen</span>
-                <span className="text-[10px] text-indigo-500 font-normal hidden sm:inline">(Switch)</span>
+                <span className="text-[10px] text-indigo-500 font-normal hidden md:inline">(Switch)</span>
               </button>
 
               <button

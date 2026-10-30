@@ -334,60 +334,61 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
             </div>
           </div>
 
-          {/* Navigation Tabs */}
-          <div className="flex flex-wrap items-center gap-2 mt-8 border-b border-white/10 pb-1">
+          {/* Navigation Tabs: Sleek single row without wrapping */}
+          <div className="flex items-center gap-1.5 md:gap-2 mt-6 border-b border-white/10 pb-2 overflow-x-auto hide-scrollbar flex-nowrap">
             <button
               onClick={() => setActiveTab('mirror')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs md:text-sm transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
                 activeTab === 'mirror'
                   ? 'bg-white text-indigo-950 shadow-md'
                   : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Compass size={16} />
-              <span>The Mirror (Current vs Evolved)</span>
+              <Compass size={15} />
+              <span>The Mirror</span>
+              <span className="hidden xl:inline text-[11px] text-slate-400 font-normal">(Current vs Evolved)</span>
             </button>
             <button
               onClick={() => setActiveTab('journal')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs md:text-sm transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
                 activeTab === 'journal'
                   ? 'bg-white text-indigo-950 shadow-md'
                   : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
-              <BookOpen size={16} />
-              <span>Strengths & Growth Journal</span>
+              <BookOpen size={15} />
+              <span>Strengths Journal</span>
               {journalEntries.length > 0 && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-extrabold">
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-extrabold">
                   {journalEntries.length}
                 </span>
               )}
             </button>
             <button
               onClick={() => setActiveTab('mitigations')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs md:text-sm transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
                 activeTab === 'mitigations'
                   ? 'bg-white text-indigo-950 shadow-md'
                   : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Zap size={16} />
-              <span>Self-Management (Tools)</span>
+              <Zap size={15} />
+              <span>Self-Management</span>
             </button>
             <button
               onClick={() => setActiveTab('needs')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs md:text-sm transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
                 activeTab === 'needs'
                   ? 'bg-white text-indigo-950 shadow-md'
                   : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
-              <ShieldCheck size={16} />
-              <span>Needs & Desires (Maslow Compass)</span>
+              <ShieldCheck size={15} />
+              <span>Maslow Compass</span>
             </button>
             <button
               onClick={() => setActiveTab('origin')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs md:text-sm transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
                 activeTab === 'origin'
                   ? 'bg-amber-400 text-slate-950 shadow-md font-black'
                   : 'text-amber-300 hover:text-white hover:bg-amber-400/10 border border-amber-400/30'
@@ -395,7 +396,7 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
               title="आत्मज्ञान: Foundational Verses & Creator's Ideology"
             >
               <span>🪷</span>
-              <span>आत्मज्ञान • Origin & Creed</span>
+              <span>आत्मज्ञान Creed</span>
             </button>
           </div>
         </div>
