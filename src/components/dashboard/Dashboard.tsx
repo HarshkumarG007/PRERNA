@@ -159,8 +159,8 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* 4 feature badges */}
-              <div className="relative z-10 grid grid-cols-2 lg:grid-cols-4 gap-3 mt-6 pt-5 border-t border-white/10">
+              {/* 5 feature badges */}
+              <div className="relative z-10 grid grid-cols-2 lg:grid-cols-5 gap-3 mt-6 pt-5 border-t border-white/10">
                 <div className="flex items-center gap-2 text-xs text-slate-200 bg-white/5 px-3 py-2 rounded-xl border border-white/10">
                   <Compass size={14} className="text-indigo-400 flex-shrink-0" />
                   <span>Actual vs Evolved</span>
@@ -175,10 +175,46 @@ export const Dashboard: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2 text-xs text-slate-200 bg-white/5 px-3 py-2 rounded-xl border border-white/10">
                   <ShieldCheck size={14} className="text-rose-400 flex-shrink-0" />
-                  <span>Maslow Needs Compass</span>
+                  <span>Maslow Compass</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-amber-200 bg-amber-500/15 px-3 py-2 rounded-xl border border-amber-400/30">
+                  <span className="text-xs">🪷</span>
+                  <span>आत्मज्ञान Creed</span>
                 </div>
               </div>
             </motion.div>
+          </section>
+
+          {/* Atma-Jnana Foundational Creed Card */}
+          <section>
+            <div className="bg-gradient-to-r from-amber-500/10 via-slate-900 to-indigo-950 text-white rounded-3xl p-6 md:p-7 border border-amber-400/30 shadow-md relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-amber-400/20 border border-amber-400/30 flex items-center justify-center text-2xl flex-shrink-0 shadow-sm shadow-amber-400/10">
+                  🪷
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                      The Soul of PRERNA • संत कबीर दास
+                    </span>
+                    <span className="text-xs text-slate-400">Founder's Creed</span>
+                  </div>
+                  <p className="text-white font-serif text-sm md:text-base italic">
+                    "जैसे मृगा नाभि कस्तूरी, वन-वन फिरत उदासी... सोई हंस तेरे घट माहि, अलख पुरुष अविनाशी!"
+                  </p>
+                  <p className="text-amber-200/90 text-xs font-semibold">
+                    Core Ideology: <strong>Self Realisation is God's Realisation</strong> (आत्म-साक्षात्कार ही ईश्वर-साक्षात्कार है)
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate('/origin')}
+                className="flex-shrink-0 px-4 py-2 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 text-amber-200 text-xs font-bold transition-all border border-amber-400/30 flex items-center gap-1.5 cursor-pointer shadow-sm"
+              >
+                <span>Read Genesis</span>
+                <ChevronRight size={14} className="text-amber-300" />
+              </button>
+            </div>
           </section>
 
           {/* Daily Focus */}

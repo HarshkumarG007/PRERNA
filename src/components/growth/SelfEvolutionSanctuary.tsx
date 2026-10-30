@@ -40,9 +40,10 @@ import {
 } from '../../engine/growth/selfEvolutionEngine';
 import { deriveSixteenType } from '../../engine/assessment/sixteenPersonalities';
 import { MaslowNeedsCompass } from './MaslowNeedsCompass';
+import { AtmaJnanaOriginModal } from '../common/AtmaJnanaOriginModal';
 
 interface SelfEvolutionSanctuaryProps {
-  initialTab?: 'mirror' | 'journal' | 'mitigations' | 'needs';
+  initialTab?: 'mirror' | 'journal' | 'mitigations' | 'needs' | 'origin';
   onNavigateHome?: () => void;
 }
 
@@ -86,7 +87,8 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
     deleteCustomMitigation 
   } = useAppStore();
 
-  const [activeTab, setActiveTab] = useState<'mirror' | 'journal' | 'mitigations' | 'needs'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'mirror' | 'journal' | 'mitigations' | 'needs' | 'origin'>(initialTab);
+  const [showAtmaModal, setShowAtmaModal] = useState(false);
   
   // Strategy filter & mode
   const [managementMode, setManagementMode] = useState<'personalized' | 'all'>('personalized');
@@ -307,10 +309,10 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex items-center gap-2 mt-8 border-b border-white/10 pb-1">
+          <div className="flex flex-wrap items-center gap-2 mt-8 border-b border-white/10 pb-1">
             <button
               onClick={() => setActiveTab('mirror')}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
                 activeTab === 'mirror'
                   ? 'bg-white text-indigo-950 shadow-md'
                   : 'text-slate-300 hover:text-white hover:bg-white/5'
@@ -321,7 +323,7 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
             </button>
             <button
               onClick={() => setActiveTab('journal')}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
                 activeTab === 'journal'
                   ? 'bg-white text-indigo-950 shadow-md'
                   : 'text-slate-300 hover:text-white hover:bg-white/5'
@@ -337,7 +339,7 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
             </button>
             <button
               onClick={() => setActiveTab('mitigations')}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
                 activeTab === 'mitigations'
                   ? 'bg-white text-indigo-950 shadow-md'
                   : 'text-slate-300 hover:text-white hover:bg-white/5'
@@ -348,7 +350,7 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
             </button>
             <button
               onClick={() => setActiveTab('needs')}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
                 activeTab === 'needs'
                   ? 'bg-white text-indigo-950 shadow-md'
                   : 'text-slate-300 hover:text-white hover:bg-white/5'
@@ -357,12 +359,66 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
               <ShieldCheck size={16} />
               <span>Needs & Desires (Maslow Compass)</span>
             </button>
+            <button
+              onClick={() => setActiveTab('origin')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
+                activeTab === 'origin'
+                  ? 'bg-amber-400 text-slate-950 shadow-md font-black'
+                  : 'text-amber-300 hover:text-white hover:bg-amber-400/10 border border-amber-400/30'
+              }`}
+              title="आत्मज्ञान: Foundational Verses & Creator's Ideology"
+            >
+              <span>🪷</span>
+              <span>आत्मज्ञान • Origin & Creed</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Sacred Atma-Jnana Foundation Banner */}
+      <div className="max-w-6xl mx-auto px-6 md:px-12 -mt-4 mb-2 relative z-20">
+        <div className="p-4 md:p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-slate-900/90 to-indigo-950/90 backdrop-blur-xl border border-amber-400/40 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300 flex-shrink-0 mt-0.5 shadow-sm">
+              <span className="text-xl">🪷</span>
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                  मूल दर्शन • The Foundation
+                </span>
+                <span className="text-xs text-slate-400">Quote by संत कबीर दास (Sant Kabir Das)</span>
+              </div>
+              <p className="text-white font-serif text-xs md:text-sm italic leading-relaxed">
+                "जैसे मृगा नाभि कस्तूरी, वन-वन फिरत उदासी... सोई हंस तेरे घट माहि, अलख पुरुष अविनाशी!"
+              </p>
+              <p className="text-amber-200/90 text-xs font-semibold mt-0.5">
+                The Guiding Creed: <strong>Self Realisation is God's Realisation</strong> (आत्म-साक्षात्कार ही ईश्वर-साक्षात्कार है)
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 self-end md:self-auto flex-shrink-0">
+            <button
+              onClick={() => setActiveTab('origin')}
+              className="px-3.5 py-1.5 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/40 text-amber-200 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+            >
+              <span>Explore Genesis Tab</span>
+              <ArrowRight size={13} className="text-amber-300" />
+            </button>
+            <button
+              onClick={() => setShowAtmaModal(true)}
+              className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer"
+              title="Open full interactive philosophy modal"
+            >
+              <Sparkles size={13} className="text-amber-300" />
+              <span>Modal</span>
+            </button>
           </div>
         </div>
       </div>
 
       {/* Main Container */}
-      <div className="max-w-6xl mx-auto px-6 md:px-12 mt-8">
+      <div className="max-w-6xl mx-auto px-6 md:px-12 mt-6">
         
         {/* ========================================================================= */}
         {/* TAB 1: THE MIRROR (CURRENT VS EVOLVED SELF) */}
@@ -1622,7 +1678,156 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
           <MaslowNeedsCompass />
         )}
 
+        {/* ========================================================================= */}
+        {/* TAB 5: ATMA-JNANA (ORIGIN, FOUNDATIONAL DOHAS & CREATOR'S CREED) */}
+        {/* ========================================================================= */}
+        {activeTab === 'origin' && (
+          <div className="space-y-8 animate-fade-in-up pb-12">
+            {/* Grand Hero Creed Card */}
+            <div className="p-8 md:p-10 rounded-3xl bg-gradient-to-br from-amber-500/20 via-slate-900 to-indigo-950 text-white border border-amber-400/40 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="relative z-10 space-y-4">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-400/20 text-amber-300 text-xs font-black uppercase tracking-widest border border-amber-400/30">
+                  <Sparkles size={13} className="text-amber-400" />
+                  <span>The Soul of PRERNA • आदि दर्शन</span>
+                </div>
+                <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white">
+                  "Self-Realisation is God's Realisation."
+                </h2>
+                <p className="text-amber-200 font-serif text-lg md:text-xl font-bold">
+                  आत्म-साक्षात्कार ही ईश्वर-साक्षात्कार है — स्वयं को जानना ही परमात्मा की अनुभूति है।
+                </p>
+                <p className="text-slate-300 text-sm md:text-base leading-relaxed max-w-3xl">
+                  This platform is not merely an assemblage of psychometric charts or productivity sprints. It was conceived as a digital sanctuary with one sacred intent: to guide adolescents away from the noisy, frantic search for external approval, and to anchor them in their eternal, indwelling essence.
+                </p>
+                <div className="pt-2">
+                  <button
+                    onClick={() => setShowAtmaModal(true)}
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs transition-all shadow-lg shadow-amber-500/25 flex items-center gap-2 cursor-pointer"
+                  >
+                    <span>Open Interactive Philosophy Modal</span>
+                    <Sparkles size={14} />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* The Foundational Verses with Reverent Attribution */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+              {/* Question: The External Search */}
+              <div className="bg-white rounded-3xl p-7 md:p-8 border border-slate-200/90 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+                      The Symptom • बाहरी भटकाव
+                    </span>
+                    <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+                      संत कबीर दास (Sant Kabir Das)
+                    </span>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-slate-900 text-amber-100 font-serif text-base md:text-lg text-center leading-loose font-semibold shadow-inner border border-slate-800">
+                    "आत्मज्ञान बिना नर भटके, कोई मथुरा कोई काशी।<br />
+                    जैसे मृगा नाभि कस्तूरी, वन-वन फिरत उदासी।।<br />
+                    जल में मीन प्यासी, मोहे सुन-सुन आवत हाँसि।।"
+                  </div>
+
+                  <div className="space-y-2 text-xs md:text-sm text-slate-600 leading-relaxed">
+                    <p className="font-semibold text-slate-800">सरल भावार्थ (Profound Commentary):</p>
+                    <p>
+                      <strong>कस्तूरी मृग (The Musk Deer):</strong> जिस प्रकार कस्तूरी मृग अपनी ही नाभि में बसी दिव्य सुगंध से अनजान होकर पूरे वन में व्याकुल होकर भटकता रहता है, उसी प्रकार आज का किशोर शांति, आत्म-सम्मान और अपनी पहचान को बाहर दुनिया में, सोशल मीडिया पर और दूसरों की नज़रों में खोजता है।
+                    </p>
+                    <p>
+                      <strong>जल में मीन प्यासी (The Thirsty Fish):</strong> जैसे असीम सागर में तैरती हुई मछली पानी के लिए प्यासी रहे, यह सुनकर ज्ञानी को दया और आश्चर्य होता है — वैसे ही हम परमात्मा और असीम ऊर्जा में डूबे होकर भी स्वयं को अधूरा और असहाय समझते हैं।
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Answer: The Indwelling Light */}
+              <div className="bg-white rounded-3xl p-7 md:p-8 border border-slate-200/90 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      The Resolution • घट में प्रकाश
+                    </span>
+                    <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+                      संत कबीर दास (Sant Kabir Das)
+                    </span>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-slate-900 text-emerald-100 font-serif text-base md:text-lg text-center leading-loose font-semibold shadow-inner border border-slate-800">
+                    "विधि हरि हर जाको ध्यान धरत हैं, मुनिजन सहज अठ्ठासी।<br />
+                    सोई हंस तेरे घट माहि, अलख पुरुष अविनाशी!"
+                  </div>
+
+                  <div className="space-y-2 text-xs md:text-sm text-slate-600 leading-relaxed">
+                    <p className="font-semibold text-slate-800">सरल भावार्थ (Profound Commentary):</p>
+                    <p>
+                      <strong>सोई हंस तेरे घट माहि (The Indwelling Divine Swan):</strong> जिस परम चेतना का ध्यान ब्रह्मा (विधि), विष्णु (हरि) और शिव (हर) धरते हैं, और अट्ठासी हज़ार ऋषि-मुनि समाधि में जिसकी खोज करते हैं — वही अविनाशी, अलख पुरुष रूपी 'हंस' (शुद्ध आत्मा) तुम्हारे अपने हृदय में विराजमान है!
+                    </p>
+                    <p>
+                      <strong>आत्मज्ञान ही परमात्मा का ज्ञान है:</strong> जब एक किशोर अपने भीतर के उस प्रकाश, अपनी अंतर्निहित शक्तियों और आत्म-स्वरूप को पहचान लेता है, तो बाहर की सभी व्यर्थ चिंताओं, तुलना और भटकावों से मुक्त हो जाता है।
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* How PRERNA's Architecture Fulfills This Ancient Vision */}
+            <div className="bg-white rounded-3xl p-8 border border-slate-200/90 shadow-sm space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+                  <Compass size={24} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-slate-900">How Every Feature Manifests Atma-Jnana</h3>
+                  <p className="text-xs md:text-sm text-slate-500 font-medium">From Ancient Philosophy to Modern Cognitive Architecture</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-black">
+                    1
+                  </div>
+                  <h4 className="text-sm font-black text-slate-900">Psychometrics & 16 Types</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Understanding the unique design of your vessel (घट). Recognizing your natural introversion, creativity, or analytical precision without comparing yourself to others.
+                  </p>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs font-black">
+                    2
+                  </div>
+                  <h4 className="text-sm font-black text-slate-900">Actual vs. Evolved Mirror</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Higgins' Self-Discrepancy reimagined with reverence. Your evolved self is not an artificial persona you force, but the natural awakening of the Divine Swan within you.
+                  </p>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
+                  <div className="w-8 h-8 rounded-lg bg-amber-600 text-white flex items-center justify-center text-xs font-black">
+                    3
+                  </div>
+                  <h4 className="text-sm font-black text-slate-900">Maslow Needs vs. Wants</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    The Distraction Shield. Breaking free from superficial dopamine traps (scrolling, cravings) so your mind can remain clear, centered, and peaceful.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
+
+      {/* Atma-Jnana Interactive Modal */}
+      <AtmaJnanaOriginModal
+        isOpen={showAtmaModal}
+        onClose={() => setShowAtmaModal(false)}
+      />
     </div>
   );
 };

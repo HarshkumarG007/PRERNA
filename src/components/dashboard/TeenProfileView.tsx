@@ -231,6 +231,34 @@ export const TeenProfileView: React.FC = () => {
         {/* Left Column */}
         <div className="space-y-8">
           
+          {/* Atma-Jnana Foundational Creed Card */}
+          <div 
+            onClick={() => navigate('/origin')}
+            className="cursor-pointer bg-gradient-to-br from-amber-500/10 via-slate-900 to-indigo-950 p-6 rounded-[2rem] border border-amber-400/30 shadow-2xl relative overflow-hidden group hover:border-amber-400/50 transition-all"
+          >
+            <div className="absolute top-0 right-0 w-48 h-48 bg-amber-400/10 rounded-full blur-[60px] pointer-events-none" />
+            <div className="flex items-center space-x-3.5 mb-3">
+              <div className="w-11 h-11 rounded-2xl bg-amber-400/20 flex items-center justify-center border border-amber-400/30 text-xl group-hover:scale-105 transition-transform shadow-sm">
+                🪷
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-300">
+                    The Soul of PRERNA • संत कबीर दास
+                  </span>
+                  <span className="text-[10px] text-white/40">Read Genesis →</span>
+                </div>
+                <h3 className="text-lg font-black text-white tracking-tight">आत्मज्ञान • Self-Realisation</h3>
+              </div>
+            </div>
+            <p className="text-amber-100 font-serif text-xs md:text-sm italic leading-relaxed">
+              "जैसे मृगा नाभि कस्तूरी, वन-वन फिरत उदासी... सोई हंस तेरे घट माहि, अलख पुरुष अविनाशी!"
+            </p>
+            <p className="text-amber-200/90 text-xs font-semibold mt-2">
+              Foundational Creed: <em>Self Realisation is God's Realisation</em>
+            </p>
+          </div>
+
           {/* Badge Cabinet */}
           <BadgeCabinet profile={profile} />
 

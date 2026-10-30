@@ -23,6 +23,7 @@ import { ParentLinking } from './components/onboarding/ParentLinking';
 import { SelfDiscoveryJourney } from './components/assessment/SelfDiscoveryJourney';
 import { deriveSixteenType } from './engine/assessment/sixteenPersonalities';
 import { SelfEvolutionSanctuary } from './components/growth/SelfEvolutionSanctuary';
+import { AtmaJnanaOriginModal } from './components/common/AtmaJnanaOriginModal';
 import { ClinicianLogin } from './components/clinical/ClinicianLogin';
 import { ReviewDashboard } from './components/clinical/ReviewDashboard';
 import { useAppStore } from './store';
@@ -36,6 +37,7 @@ function App() {
     return localStorage.getItem('prerna_parent_linked') === 'true';
   });
   const [clinicianAuthed, setClinicianAuthed] = useState(false);
+  const [showAtmaModal, setShowAtmaModal] = useState(false);
 
   useEffect(() => {
     // Check for existing session
@@ -214,10 +216,22 @@ function App() {
                 <Link to="/social" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.social_compass', 'Social Compass')}</Link>
                 <Link to="/mentor" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.ai_mentor', 'AI Mentor')}</Link>
                 <Link to="/evolution" className="text-slate-600 hover:text-indigo-600 transition-colors">Self-Evolution</Link>
+                <Link to="/origin" className="text-amber-700 hover:text-amber-900 transition-colors font-bold flex items-center gap-1">
+                  <span>🪷</span>
+                  <span>आत्मज्ञान</span>
+                </Link>
                 <Link to="/profile" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.profile', 'Teen Dash')}</Link>
               </nav>
             </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowAtmaModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors shadow-sm cursor-pointer"
+              title="आत्मज्ञान: Origin, Foundational Dohas & Creator's Vision"
+            >
+              <span className="text-sm">🪷</span>
+              <span className="hidden lg:inline">Vision</span>
+            </button>
             <Link
               to="/support"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors shadow-sm"
@@ -278,6 +292,9 @@ function App() {
           <Route path="/mitigations" element={<SelfEvolutionSanctuary initialTab="mitigations" />} />
           <Route path="/needs" element={<SelfEvolutionSanctuary initialTab="needs" />} />
           <Route path="/maslow" element={<SelfEvolutionSanctuary initialTab="needs" />} />
+          <Route path="/origin" element={<SelfEvolutionSanctuary initialTab="origin" />} />
+          <Route path="/philosophy" element={<SelfEvolutionSanctuary initialTab="origin" />} />
+          <Route path="/atma-jnana" element={<SelfEvolutionSanctuary initialTab="origin" />} />
           <Route path="/dashboard" element={<TeenProfileView />} />
           <Route path="/profile" element={<TeenProfileView />} />
           <Route path="/shared-dashboard" element={<div className="max-w-7xl mx-auto"><SharedDashboardView /></div>} />
@@ -292,6 +309,12 @@ function App() {
         </Routes>
         </div>
       </main>
+
+      {/* Global Atma-Jnana Philosophy Modal */}
+      <AtmaJnanaOriginModal
+        isOpen={showAtmaModal}
+        onClose={() => setShowAtmaModal(false)}
+      />
     </div>
   );
 }

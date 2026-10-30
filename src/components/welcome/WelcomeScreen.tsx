@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, LogIn, ChevronDown, Star, Heart, Brain } from 'lucide-react';
 import { AuthModal } from './AuthModal';
 import { PrernaLogo, PrernaEmblem } from '../common/PrernaLogo';
+import { AtmaJnanaOriginModal } from '../common/AtmaJnanaOriginModal';
 
 interface WelcomeScreenProps {
   onAuthenticated: (userId: string) => void;
@@ -10,6 +11,7 @@ interface WelcomeScreenProps {
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onAuthenticated }) => {
   const [showAuth, setShowAuth] = useState(false);
+  const [showAtmaModal, setShowAtmaModal] = useState(false);
   const [authMode, setAuthMode] = useState<'signup' | 'login'>('signup');
   const [authLoginMode, setAuthLoginMode] = useState<'pin' | 'full'>('full');
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -150,6 +152,33 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onAuthenticated })
                   <span>100% Private & Secure</span>
                 </div>
               </div>
+
+              {/* Atma-Jnana Foundational Creed Banner */}
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 }}
+                onClick={() => setShowAtmaModal(true)}
+                className="cursor-pointer p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-slate-900/80 to-indigo-950/80 border border-amber-400/25 hover:border-amber-400/50 transition-all flex items-center gap-3.5 group max-w-lg shadow-lg"
+              >
+                <div className="w-10 h-10 rounded-xl bg-amber-400/20 border border-amber-400/30 flex items-center justify-center text-lg flex-shrink-0 group-hover:scale-105 transition-transform shadow-sm">
+                  🪷
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-300">
+                      The Soul of PRERNA • संत कबीर दास
+                    </span>
+                    <span className="text-[10px] text-amber-400 font-bold group-hover:translate-x-0.5 transition-transform">Read Origin →</span>
+                  </div>
+                  <p className="text-white/80 font-serif text-xs italic mt-0.5 leading-snug">
+                    "जैसे मृगा नाभि कस्तूरी, वन-वन फिरत उदासी... सोई हंस तेरे घट माहि!"
+                  </p>
+                  <p className="text-amber-200/90 text-[11px] font-semibold mt-0.5">
+                    Creed: <em>Self Realisation is God's Realisation</em>
+                  </p>
+                </div>
+              </motion.div>
             </motion.div>
 
             {/* Right: Visual Showcase */}
@@ -228,6 +257,12 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onAuthenticated })
           />
         )}
       </AnimatePresence>
+
+      {/* Atma-Jnana Philosophy & Origin Modal */}
+      <AtmaJnanaOriginModal
+        isOpen={showAtmaModal}
+        onClose={() => setShowAtmaModal(false)}
+      />
     </div>
   );
 };

@@ -289,6 +289,16 @@
   - [x] Interactive UI in `src/components/growth/MaslowNeedsCompass.tsx`
   - [x] **Test:** `src/tests/growth/maslowNeeds.test.ts` (6 tests passed)
 
+### Atma-Jnana & The Foundational Philosophy
+- [x] **P7-7** Atma-Jnana (Self-Knowledge) Foundation & Creator's Creed
+  - [x] Anchored the platform in the sacred verses of Sant Kabir Das:
+    - *Question:* "आत्मज्ञान बिना नर भटके, कोई मथुरा कोई काशी। जैसे मृगा नाभि कस्तूरी, वन-वन फिरत उदासी।। जल में मीन प्यासी, मोहे सुन-सुन आवत हाँसि।।"
+    - *Answer:* "विधि हरि हर जाको ध्यान धरत हैं, मुनिजन सहज अठ्ठासी। सोई हंस तेरे घट माहि, अलख पुरुष अविनाशी!"
+  - [x] Articulated the founder's overarching ideology: **"Self Realisation is God's Realisation" (आत्म-साक्षात्कार ही ईश्वर-साक्षात्कार है)**
+  - [x] Implemented `AtmaJnanaOriginModal.tsx` with bilingual Hindi/English commentary and creator's genesis manifesto
+  - [x] Added dedicated Tab 5 ("आत्मज्ञान • Origin & Creed") in `SelfEvolutionSanctuary.tsx`
+  - [x] Embedded foundational creed banners across `WelcomeScreen.tsx`, `Dashboard.tsx`, and `TeenProfileView.tsx`
+
 ---
 
 ## Ongoing (Every Release)

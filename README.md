@@ -60,6 +60,34 @@ PRERNA is built as a **local-first application**: core user data, psychometric s
 
 ---
 
+## 🪷 The Soul of PRERNA: Atma-Jnana (Self-Realisation is God's Realisation)
+
+> *"आत्मज्ञान बिना नर भटके, कोई मथुरा कोई काशी।  
+> जैसे मृगा नाभि कस्तूरी, वन-वन फिरत उदासी।।  
+> जल में मीन प्यासी, मोहे सुन-सुन आवत हाँसि।।"*  
+> — **संत कबीर दास (Sant Kabir Das)**  
+>  
+> *"विधि हरि हर जाको ध्यान धरत हैं, मुनिजन सहज अठ्ठासी।  
+> सोई हंस तेरे घट माहि, अलख पुरुष अविनाशी!"*  
+> — **संत कबीर दास / संत वाणी परम्परा (Sant Kabir Das / Sant Vani Tradition)**
+
+### The Genesis & Developer's Intent:
+PRERNA (**प्रेरणा** — *Inspiration Within*) was brought into existence around a single, uncompromising foundational ideology:
+
+> **"Self-Realisation is God's Realisation." (आत्म-साक्षात्कार ही ईश्वर-साक्षात्कार है)**
+
+In an era where adolescents are pulled outward by endless algorithmic feeds, social comparison, and the anxious chase for external validation, they wander like the **Kasturi Mriga** (the musk deer) — despondently scouring dense forests for a divine fragrance that has always radiated from its own navel. 
+
+Every capability in PRERNA is deliberately architected to turn the adolescent mirror inward:
+- **16 Personalities & Big Five:** Not to categorize or label, but to understand the unique vessel (*घट*) of consciousness.
+- **The Mirror (Actual vs. Evolved Self):** Higgins' Self-Discrepancy framework grounded in gentle self-compassion, awakening the indwelling Divine Swan (*सोई हंस*).
+- **Strengths & Growth Edges Journal:** Mindful self-witnessing strictly on-device without cloud surveillance or judgment.
+- **Personalized Behavioral Self-Management:** Calming the somatic nervous system so clarity and peace can be felt.
+- **Maslow's Needs vs. Desires Compass:** Disentangling fleeting dopamine cravings from foundational physiological and emotional truth.
+- **Local-First DPDP Sovereignty:** Because a seeker's inner sanctuary belongs to them alone, never to a corporate cloud.
+
+---
+
 ## 🎨 Brand Identity & Design Philosophy
 
 PRERNA (प्रेरणा — *Inspiration*) is built upon a distinct, copyright-free brand identity tailored specifically to adolescent psychology, emotional safety, and cultural resonance:
@@ -344,6 +372,8 @@ PRERNA is **not** a healthcare provider, clinical diagnostic instrument, or emer
 
 ## 📄 License & Author
 
-**Author:** Harshkumar G. (`@HarshkumarG007`)  
+**Author & Creator:** Harshkumar G. (`@HarshkumarG007`)  
+**Foundational Creed:** *"Self Realisation is God's Realisation"* (आत्म-साक्षात्कार ही ईश्वर-साक्षात्कार है)  
+**Philosophical Roots:** Inspired by Sant Kabir Das & the timeless Indian Atma-Jnana tradition  
 **Repository:** [https://github.com/HarshkumarG007/PRERNA](https://github.com/HarshkumarG007/PRERNA)  
 **License:** Released under the [MIT License](LICENSE).
