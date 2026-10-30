@@ -140,17 +140,17 @@ function App() {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col relative overflow-hidden">
         <header className="sticky top-0 z-50 glass-panel !rounded-none !border-x-0 !border-t-0 shadow-sm transition-all duration-300">
-          <div className="max-w-7xl mx-auto flex justify-between items-center p-4">
+          <div className="max-w-7xl mx-auto flex justify-between items-center px-4 py-2.5 md:px-6">
             <div className="flex items-center gap-3">
               <PrernaLogo variant="compact" size="sm" />
               <span className="text-xs uppercase font-extrabold tracking-widest px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">
                 Parent Hub
               </span>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <button
                 onClick={() => updateRole(undefined as any)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-indigo-700 bg-indigo-100 hover:bg-indigo-200 border border-indigo-200 transition-colors shadow-sm cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-indigo-700 bg-indigo-100 hover:bg-indigo-200 border border-indigo-200 transition-colors shadow-sm cursor-pointer"
                 title="Switch persona to Teen or Educator"
               >
                 <span>👨‍👩‍👧 Parent View</span>
@@ -158,9 +158,9 @@ function App() {
               </button>
               <button
                 onClick={logout}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors border border-transparent hover:border-red-100"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors border border-transparent hover:border-red-100 cursor-pointer"
               >
-                <LogOut size={16} /> Log out
+                <LogOut size={14} /> Log out
               </button>
             </div>
           </div>
@@ -175,17 +175,17 @@ function App() {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col relative overflow-hidden">
         <header className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
-          <div className="max-w-7xl mx-auto flex justify-between items-center p-4">
+          <div className="max-w-7xl mx-auto flex justify-between items-center px-4 py-2.5 md:px-6">
             <div className="flex items-center gap-3">
               <PrernaLogo variant="compact" size="sm" />
               <span className="text-xs uppercase font-extrabold tracking-widest px-2.5 py-1 rounded-full bg-slate-100 text-slate-800">
                 School Analytics
               </span>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <button
                 onClick={() => updateRole(undefined as any)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-colors shadow-sm cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-colors shadow-sm cursor-pointer"
                 title="Switch persona to Teen or Parent"
               >
                 <span>🎓 Educator View</span>
@@ -193,9 +193,9 @@ function App() {
               </button>
               <button
                 onClick={logout}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
               >
-                <LogOut size={16} /> Log out
+                <LogOut size={14} /> Log out
               </button>
             </div>
           </div>
@@ -208,91 +208,99 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col font-sans bg-slate-50">
         <header className="sticky top-0 z-50 glass-panel !rounded-none !border-x-0 !border-t-0 shadow-sm transition-all duration-300">
-          <div className="max-w-7xl mx-auto flex justify-between items-center p-4">
-            <div className="flex items-center space-x-8">
-              <Link to="/" className="flex items-center gap-2 group">
-                <PrernaLogo variant="compact" size="md" />
+          <div className="max-w-7xl mx-auto flex justify-between items-center px-4 py-2 md:px-6">
+            <div className="flex items-center gap-4 xl:gap-7">
+              <Link to="/" className="flex items-center gap-2 group flex-shrink-0" title="PRERNA Sanctuary Home">
+                <PrernaLogo variant="compact" size="sm" />
               </Link>
-              <nav className="hidden md:flex space-x-6 text-sm font-semibold">
-                <Link to="/beta" className="text-slate-600 hover:text-indigo-600 transition-colors">Beta Consent</Link>
-                <Link to="/quests" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.life_quests', 'Life Quests')}</Link>
-                <Link to="/arena" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.skill_arena', 'Skill Arena')}</Link>
-                <Link to="/mood" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.mood_mirror', 'Mood Mirror')}</Link>
-                <Link to="/social" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.social_compass', 'Social Compass')}</Link>
-                <Link to="/mentor" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.ai_mentor', 'AI Mentor')}</Link>
-                <Link to="/evolution" className="text-slate-600 hover:text-indigo-600 transition-colors">Self-Evolution</Link>
-                <Link to="/breathe" className="text-emerald-700 hover:text-emerald-900 transition-colors font-bold flex items-center gap-1">
+              <nav className="hidden lg:flex items-center gap-3.5 xl:gap-5 text-xs xl:text-sm font-semibold">
+                <Link to="/quests" className="text-slate-600 hover:text-indigo-600 transition-colors whitespace-nowrap">{t('nav.life_quests', 'Life Quests')}</Link>
+                <Link to="/arena" className="text-slate-600 hover:text-indigo-600 transition-colors whitespace-nowrap">{t('nav.skill_arena', 'Skill Arena')}</Link>
+                <Link to="/mood" className="text-slate-600 hover:text-indigo-600 transition-colors whitespace-nowrap">{t('nav.mood_mirror', 'Mood Mirror')}</Link>
+                <Link to="/social" className="text-slate-600 hover:text-indigo-600 transition-colors whitespace-nowrap">{t('nav.social_compass', 'Social Compass')}</Link>
+                <Link to="/mentor" className="text-slate-600 hover:text-indigo-600 transition-colors whitespace-nowrap">{t('nav.ai_mentor', 'AI Mentor')}</Link>
+                <Link to="/evolution" className="text-slate-600 hover:text-indigo-600 transition-colors whitespace-nowrap">Self-Evolution</Link>
+                <Link to="/profile" className="text-slate-600 hover:text-indigo-600 transition-colors whitespace-nowrap">{t('nav.profile', 'Teen Dash')}</Link>
+                
+                {/* Fast Access Badges */}
+                <Link 
+                  to="/breathe" 
+                  className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors font-bold flex items-center gap-1 border border-emerald-200 text-xs shadow-2xs whitespace-nowrap"
+                  title="432 Hz Somatic Coherence Pacer"
+                >
                   <span>🫁</span>
                   <span>Breathe</span>
                 </Link>
-                <Link to="/origin" className="text-amber-700 hover:text-amber-900 transition-colors font-bold flex items-center gap-1">
+                <button
+                  onClick={() => setShowAtmaModal(true)}
+                  className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 hover:bg-amber-100 transition-colors font-bold flex items-center gap-1 border border-amber-200 text-xs shadow-2xs cursor-pointer whitespace-nowrap"
+                  title="आत्मज्ञान: Origin, Kabir's Creed & Vision"
+                >
                   <span>🪷</span>
                   <span>आत्मज्ञान</span>
-                </Link>
-                <Link to="/profile" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.profile', 'Teen Dash')}</Link>
+                </button>
               </nav>
             </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowDevModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors shadow-sm cursor-pointer"
-              title="Meet the Developer: Harsh Kumar Gupta"
-            >
-              <span>👨‍💻</span>
-              <span className="hidden xl:inline">Developer</span>
-            </button>
-            <button
-              onClick={() => setShowAtmaModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors shadow-sm cursor-pointer"
-              title="आत्मज्ञान: Origin, Foundational Dohas & Creator's Vision"
-            >
-              <span className="text-sm">🪷</span>
-              <span className="hidden lg:inline">Vision</span>
-            </button>
-            <Link
-              to="/support"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors shadow-sm"
-              title="Always-on confidential helplines and calming tools"
-            >
-              <HeartHandshake size={14} className="text-rose-600" />
-              <span>{t('nav.support', 'Helplines')}</span>
-            </Link>
-            <div className="relative group">
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value as Language)}
-                className="appearance-none pl-4 pr-10 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-full text-sm font-bold transition-colors border border-indigo-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            
+            {/* Right-aligned action cluster */}
+            <div className="flex items-center gap-2 xl:gap-2.5 flex-shrink-0">
+              <button
+                onClick={() => setShowDevModal(true)}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors shadow-2xs cursor-pointer whitespace-nowrap"
+                title="Meet the Developer: Harsh Kumar Gupta"
               >
-                {Object.entries(LANGUAGE_NAMES).map(([code, name]) => (
-                  <option key={code} value={code}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-indigo-700">
-                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                <span>👨‍💻</span>
+                <span className="hidden sm:inline">Developer</span>
+              </button>
+              
+              <Link
+                to="/support"
+                className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors shadow-2xs whitespace-nowrap"
+                title="Always-on confidential helplines and calming tools"
+              >
+                <HeartHandshake size={13} className="text-rose-600" />
+                <span className="hidden sm:inline">{t('nav.support', 'Helplines')}</span>
+              </Link>
+              
+              <div className="relative">
+                <select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value as Language)}
+                  className="appearance-none pl-2.5 pr-6 py-1 bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold transition-colors border border-indigo-200 cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  title="Select language"
+                >
+                  {Object.entries(LANGUAGE_NAMES).map(([code, name]) => (
+                    <option key={code} value={code}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-indigo-700">
+                  <svg className="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                </div>
               </div>
+
+              {/* Persona Switcher Pill */}
+              <button
+                onClick={() => updateRole(undefined as any)}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100 border border-indigo-200 transition-colors shadow-2xs cursor-pointer whitespace-nowrap"
+                title="Click to switch persona (Teen, Parent, or Educator)"
+              >
+                <span>👤 Teen</span>
+                <span className="text-[10px] text-indigo-500 font-normal hidden sm:inline">(Switch)</span>
+              </button>
+
+              <button
+                onClick={logout}
+                title="Log out"
+                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
+                aria-label="Log out"
+              >
+                <LogOut size={16} />
+              </button>
             </div>
-            {/* Persona Switcher Pill */}
-            <button
-              onClick={() => updateRole(undefined as any)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors shadow-sm cursor-pointer"
-              title="Click to switch persona (Teen, Parent, or Educator)"
-            >
-              <span>👤 Teen</span>
-              <span className="text-[10px] text-indigo-500 font-normal">(Switch)</span>
-            </button>
-            <button
-              onClick={logout}
-              title="Log out"
-              className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors border border-transparent hover:border-red-100 cursor-pointer"
-            >
-              <LogOut size={16} />
-              <span className="hidden md:inline">{t('nav.logout', 'Log out')}</span>
-            </button>
           </div>
-        </div>
-      </header>
+        </header>
 
       <main className="flex-grow flex flex-col">
         <div className="flex-grow w-full mx-auto animate-fade-in-up">
