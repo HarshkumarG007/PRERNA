@@ -14,7 +14,7 @@ interface AboutDeveloperModalProps {
 }
 
 export const AboutDeveloperModal: React.FC<AboutDeveloperModalProps> = ({ isOpen, onClose }) => {
-  const [activeTab, setActiveTab] = useState<'journey' | 'education' | 'certifications' | 'experience' | 'lineage'>('journey');
+  const [activeTab, setActiveTab] = useState<'journey' | 'education' | 'certifications' | 'experience' | 'lineage' | 'repositories'>('journey');
 
   if (!isOpen) return null;
 
@@ -111,6 +111,7 @@ export const AboutDeveloperModal: React.FC<AboutDeveloperModalProps> = ({ isOpen
           <div className="relative z-10 px-6 pt-3 border-b border-white/10 bg-slate-950/40 flex items-center gap-2 overflow-x-auto scrollbar-none">
             {[
               { id: 'journey', label: 'Polymathic Journey', icon: Sparkles },
+              { id: 'repositories', label: 'Open-Source Ecosystem (22 Repos)', icon: Code },
               { id: 'lineage', label: 'Spiritual Lineage & Dedication', icon: Sun },
               { id: 'education', label: 'Multi-Disciplinary Education', icon: GraduationCap },
               { id: 'experience', label: 'Experience & Industry', icon: Activity },
@@ -579,6 +580,281 @@ export const AboutDeveloperModal: React.FC<AboutDeveloperModalProps> = ({ isOpen
                         <p className="text-[11px] text-slate-400 leading-snug">{cert.desc}</p>
                       </div>
                     ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ================================================================= */}
+            {/* TAB 6: OPEN-SOURCE ECOSYSTEM (22 REPOSITORIES) */}
+            {/* ================================================================= */}
+            {activeTab === 'repositories' && (
+              <div className="space-y-6 animate-fade-in-up">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/10">
+                  <div className="flex items-center gap-2">
+                    <Code size={18} className="text-indigo-400" />
+                    <div>
+                      <h4 className="text-sm font-black uppercase tracking-widest text-white">
+                        Open-Source Ecosystem Architected by Harsh Kumar Gupta
+                      </h4>
+                      <p className="text-xs text-slate-400">
+                        22 Public Repositories spanning Ethical AI, Privacy Sanctuaries, Agentic Forensics & Bullion Systems
+                      </p>
+                    </div>
+                  </div>
+                  <a
+                    href="https://github.com/HarshkumarG007?tab=repositories"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white flex items-center gap-1.5 transition-colors self-start sm:self-auto cursor-pointer"
+                  >
+                    <span>View All 22 on GitHub</span>
+                    <ExternalLink size={12} />
+                  </a>
+                </div>
+
+                {/* Categories */}
+                <div className="space-y-6">
+                  {/* Category 1: Ethical AI & Conformal ML */}
+                  <div className="space-y-3">
+                    <span className="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+                      <Sparkles size={13} /> Ethical AI, Conformal Uncertainty & Machine Learning
+                    </span>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {[
+                        {
+                          name: 'ArthaIQ',
+                          lang: 'Python',
+                          license: 'Apache-2.0',
+                          desc: "Ethical compensation intelligence for India's tech careers. Evidence-weighted salary distributions, conformal prediction, transparent abstention, explainable AI.",
+                          tags: ['catboost', 'conformal-prediction', 'explainable-ai', 'data-science'],
+                          url: 'https://github.com/HarshkumarG007/ArthaIQ'
+                        },
+                        {
+                          name: 'Aegis',
+                          lang: 'Python',
+                          license: 'Apache-2.0',
+                          desc: 'Security research framework for authorization-monotone RAG systems, adversarial evaluation, semantic-boundary testing, and fail-closed AI authorization.',
+                          tags: ['ai-safety', 'rag-security', 'semantic-security', 'authorization'],
+                          url: 'https://github.com/HarshkumarG007/Aegis'
+                        },
+                        {
+                          name: 'COGNIGUARD',
+                          lang: 'Python',
+                          license: 'MIT',
+                          desc: 'Neuro-symbolic compliance platform. Combines LLMs with Neo4j Knowledge Graphs to automate GDPR and SOC2 compliance audits directly from source code.',
+                          tags: ['neo4j', 'knowledge-graphs', 'devsecops', 'compliance-as-code'],
+                          url: 'https://github.com/HarshkumarG007/COGNIGUARD'
+                        },
+                        {
+                          name: 'LeadGuard',
+                          lang: 'Python',
+                          license: 'Apache-2.0',
+                          desc: 'AI-powered inspection prioritization for municipal lead water service lines, combining geospatial ML, calibrated risk prediction, and active learning.',
+                          tags: ['geospatial-ml', 'xgboost', 'water-quality', 'active-learning'],
+                          url: 'https://github.com/HarshkumarG007/LeadGuard'
+                        },
+                        {
+                          name: 'netflix_recsys',
+                          lang: 'Python',
+                          license: 'Apache-2.0',
+                          desc: 'End-to-end multi-stage recommendation engine: PyTorch Two-Tower retrieval, FAISS vector search, XGBoost pairwise learning-to-rank, and MMR diversity.',
+                          tags: ['pytorch', 'faiss', 'xgboost', 'two-tower-retrieval'],
+                          url: 'https://github.com/HarshkumarG007/netflix_recsys'
+                        },
+                        {
+                          name: 'PBEL-NOVELia-AI-chatbot',
+                          lang: 'HTML / JS',
+                          license: 'Apache-2.0',
+                          desc: 'Emotion-aware book recommendation chatbot built during IBM PBEL AI Virtual Internship using IBM Watsonx Assistant with sentiment NLP.',
+                          tags: ['ibm-watsonx', 'sentiment-analysis', 'nlp-bot', 'ibm-skillsbuild'],
+                          url: 'https://github.com/HarshkumarG007/PBEL-NOVELia-AI-chatbot'
+                        },
+                      ].map((repo, idx) => (
+                        <a
+                          key={idx}
+                          href={repo.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-amber-400/40 hover:bg-white/[0.06] transition-all space-y-2 block group"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-black text-sm text-white group-hover:text-amber-300 transition-colors flex items-center gap-1.5">
+                              <span>{repo.name}</span>
+                              <ExternalLink size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </span>
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/20">
+                              {repo.lang} • {repo.license}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-300 leading-relaxed">{repo.desc}</p>
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {repo.tags.map((tag, tIdx) => (
+                              <span key={tIdx} className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-white/5 text-slate-400">
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Category 2: Privacy Sanctuaries & Cultural AI */}
+                  <div className="space-y-3">
+                    <span className="text-xs font-black uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+                      <ShieldCheck size={13} /> Privacy Sanctuaries, Cultural AI & Sovereignty
+                    </span>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {[
+                        {
+                          name: 'PRERNA (Flagship)',
+                          lang: 'TypeScript / Rust',
+                          license: 'MIT',
+                          desc: 'Local-first adolescent self-discovery, career exploration, and wellbeing sanctuary. DPDP Act 2023 §9 compliant, 432 Hz somatic audio synthesizer, Higgins mirror.',
+                          tags: ['tauri-2', 'react-19', 'sqlcipher', 'dpdp-act', 'local-first'],
+                          url: 'https://github.com/HarshkumarG007/PRERNA'
+                        },
+                        {
+                          name: 'AurumAI',
+                          lang: 'TypeScript',
+                          license: 'Apache-2.0',
+                          desc: 'Privacy-first Hindi voice companion for gold & silver bullion markets. Deterministic pricing, moving averages, Telegram voice bot, and Gemini tool-calling.',
+                          tags: ['hindi-nlp', 'telegram-bot', 'bullion-pricing', 'gemini-api'],
+                          url: 'https://github.com/HarshkumarG007/AurumAI'
+                        },
+                        {
+                          name: 'SlowLight',
+                          lang: 'TypeScript',
+                          license: 'Apache-2.0',
+                          desc: 'Privacy-first digital sanctuary for two. Built with React, Fastify, WebCrypto E2EE, WebAuthn passkeys, PostgreSQL RLS, and deterministic Three.js.',
+                          tags: ['e2ee', 'webauthn-passkeys', 'threejs', 'privacy-sanctuary'],
+                          url: 'https://github.com/HarshkumarG007/SlowLight'
+                        },
+                        {
+                          name: 'Aethelgard',
+                          lang: 'TypeScript',
+                          license: 'Apache-2.0',
+                          desc: 'Private relationship memory sanctuary built with Next.js, PostgreSQL, and Three.js. Features Argon2id auth, Cloudflare R2 media, and spatial 3D views.',
+                          tags: ['threejs', 'argon2id', 'spatial-webgl', 'nextjs'],
+                          url: 'https://github.com/HarshkumarG007/Aethelgard'
+                        },
+                      ].map((repo, idx) => (
+                        <a
+                          key={idx}
+                          href={repo.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-emerald-400/40 hover:bg-white/[0.06] transition-all space-y-2 block group"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-black text-sm text-white group-hover:text-emerald-300 transition-colors flex items-center gap-1.5">
+                              <span>{repo.name}</span>
+                              <ExternalLink size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </span>
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-400/10 text-emerald-300 border border-emerald-400/20">
+                              {repo.lang} • {repo.license}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-300 leading-relaxed">{repo.desc}</p>
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {repo.tags.map((tag, tIdx) => (
+                              <span key={tIdx} className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-white/5 text-slate-400">
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Category 3: Cognitive Core, Agentic Forensics & Systems */}
+                  <div className="space-y-3">
+                    <span className="text-xs font-black uppercase tracking-wider text-indigo-300 flex items-center gap-1.5">
+                      <Cpu size={13} /> Cognitive Cores, Autonomous Forensics & Spatial Worlds
+                    </span>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {[
+                        {
+                          name: 'PROMETHEUS',
+                          lang: 'Python / C++',
+                          license: 'MIT',
+                          desc: 'Local-first personal AI assistant with an 8B/70B cognitive core, strictly sandboxed tool-calling architecture, UE5 Metahuman avatar, and fine-tuned voice clone.',
+                          tags: ['local-llm', 'unreal-engine-5', 'voice-cloning', 'sandboxed-ai'],
+                          url: 'https://github.com/HarshkumarG007/PROMETHEUS'
+                        },
+                        {
+                          name: 'MNEMOSYNE',
+                          lang: 'Python',
+                          license: 'Apache-2.0',
+                          desc: 'Local-first autonomous digital forensics platform reconstructing temporal knowledge graphs from digital artifacts using multi-agent AI.',
+                          tags: ['dfir', 'temporal-graphs', 'osint', 'multi-agent-systems'],
+                          url: 'https://github.com/HarshkumarG007/MNEMOSYNE'
+                        },
+                        {
+                          name: 'ChronoScope',
+                          lang: 'Python',
+                          license: 'Apache-2.0',
+                          desc: 'Privacy-preserving temporal forensics platform. Uses multi-agent orchestration to build chain-of-custody knowledge graphs and detect media manipulation.',
+                          tags: ['chain-of-custody', 'deepfake-detection', 'cybersecurity'],
+                          url: 'https://github.com/HarshkumarG007/ChronoScope'
+                        },
+                        {
+                          name: 'DocuParseAi',
+                          lang: 'Python',
+                          license: 'Apache-2.0',
+                          desc: 'Privacy-first financial document processing engine for invoices and vouchers combining Tesseract OCR, PyTorch spatial token alignment, and validation.',
+                          tags: ['tesseract-ocr', 'computer-vision', 'financial-ocr', 'pytorch'],
+                          url: 'https://github.com/HarshkumarG007/DocuParseAi'
+                        },
+                        {
+                          name: 'OMNISCIENT',
+                          lang: 'Python',
+                          license: 'Apache-2.0',
+                          desc: 'Unified, real-time search and threat-intel platform enforcing strict permission boundaries across internal SaaS applications and public intelligence feeds.',
+                          tags: ['elasticsearch', 'threat-intel', 'kafka', 'spacy'],
+                          url: 'https://github.com/HarshkumarG007/OMNISCIENT'
+                        },
+                        {
+                          name: 'Echo-Zero',
+                          lang: 'C# / Unity',
+                          license: 'Proprietary',
+                          desc: 'Sci-fi/fantasy mystery vertical slice built with Unity through Agentic AI Coding. Features narrative exploration, memory reconstruction, and Utility AI.',
+                          tags: ['unity3d', 'utility-ai', 'agentic-game-dev', 'c-sharp'],
+                          url: 'https://github.com/HarshkumarG007/Echo-Zero'
+                        },
+                      ].map((repo, idx) => (
+                        <a
+                          key={idx}
+                          href={repo.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-indigo-400/40 hover:bg-white/[0.06] transition-all space-y-2 block group"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-black text-sm text-white group-hover:text-indigo-300 transition-colors flex items-center gap-1.5">
+                              <span>{repo.name}</span>
+                              <ExternalLink size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </span>
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-400/10 text-indigo-300 border border-indigo-400/20">
+                              {repo.lang} • {repo.license}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-300 leading-relaxed">{repo.desc}</p>
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {repo.tags.map((tag, tIdx) => (
+                              <span key={tIdx} className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-white/5 text-slate-400">
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                        </a>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>

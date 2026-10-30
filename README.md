@@ -209,6 +209,29 @@ Harsh Kumar Gupta has achieved **11 Google Professional Specializations** on Cou
 
 ---
 
+### 🌐 Open-Source Ecosystem & Sister Projects (Harsh Kumar Gupta)
+
+Harsh is the architect of **22 public open-source repositories** spanning ethical AI, privacy sanctuaries, agentic forensics, and bullion economics:
+
+| Project | Primary Focus & Stack | Key Highlights | Link |
+| :--- | :--- | :--- | :--- |
+| **PRERNA** | Adolescent Sanctuary • TypeScript, Rust, Tauri 2, SQLCipher | Local-first self-discovery, 432 Hz somatic breathing, Higgins mirror, DPDP §9 compliance | [Repository](https://github.com/HarshkumarG007/PRERNA) |
+| **ArthaIQ** | Ethical Compensation Intelligence • Python, CatBoost, Conformal ML | Conformal uncertainty prediction, transparent abstention, explainable salary distributions | [Repository](https://github.com/HarshkumarG007/ArthaIQ) |
+| **AurumAI** | Bullion Voice Companion • TypeScript, Telegram, Gemini API | Privacy-first Hindi voice assistant for gold/silver bullion markets with deterministic pricing | [Repository](https://github.com/HarshkumarG007/AurumAI) |
+| **SlowLight** | Private E2EE Sanctuary • React, WebAuthn Passkeys, Three.js, Fastify | End-to-end encrypted digital sanctuary for two with PostgreSQL RLS and spatial 3D views | [Repository](https://github.com/HarshkumarG007/SlowLight) |
+| **Aegis** | AI Security & Monotone RAG • Python, PyTorch | Security framework for authorization-monotone RAG, semantic boundary tests, fail-closed AI | [Repository](https://github.com/HarshkumarG007/Aegis) |
+| **COGNIGUARD** | Neuro-Symbolic Compliance • Python, Neo4j, Multi-Agent | LLMs + Neo4j knowledge graphs automating GDPR/SOC2 compliance audits directly from source | [Repository](https://github.com/HarshkumarG007/COGNIGUARD) |
+| **LeadGuard** | Geospatial Infrastructure ML • Python, XGBoost | Inspection prioritization for municipal lead water service lines with active learning | [Repository](https://github.com/HarshkumarG007/LeadGuard) |
+| **PROMETHEUS** | Sovereign Cognitive Core • Python, Unreal Engine 5, Metahuman | Local-first AI assistant with 8B/70B LLM core, sandboxed tools, UE5 avatar, voice cloning | [Repository](https://github.com/HarshkumarG007/PROMETHEUS) |
+| **Aethelgard** | Memory Sanctuary • Next.js, Three.js, Argon2id, Cloudflare R2 | Accessible 2D and spatial 3D relationship memory sanctuary with zero tracking | [Repository](https://github.com/HarshkumarG007/Aethelgard) |
+| **MNEMOSYNE** | Autonomous Forensics • Python, Multi-Agent OSINT | Reconstructing temporal knowledge graphs from digital artifacts using multi-agent AI | [Repository](https://github.com/HarshkumarG007/MNEMOSYNE) |
+| **DocuParseAi** | Financial Document OCR • Python, PyTorch, Tesseract | Privacy-first invoice and voucher processing with spatial token alignment | [Repository](https://github.com/HarshkumarG007/DocuParseAi) |
+| **netflix_recsys**| Multi-Stage RecSys • Python, PyTorch Two-Tower, FAISS | Two-Tower retrieval, FAISS vector search, XGBoost pairwise ranking, and MMR diversity | [Repository](https://github.com/HarshkumarG007/netflix_recsys) |
+
+👉 *Explore the complete catalog of all 22 projects on [HarshkumarG007 Repositories](https://github.com/HarshkumarG007?tab=repositories).*
+
+---
+
 ## 🌟 Hold the Light: How You Can Be a Guardian of this Sanctuary
 
 > *"दीपक से दीपक जले, तो अंधकार टिक नहीं सकता।"*  

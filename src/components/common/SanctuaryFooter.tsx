@@ -115,12 +115,13 @@ export const SanctuaryFooter: React.FC = () => {
                 </a>
                 <span>•</span>
                 <a
-                  href="https://github.com/HarshkumarG007/PRERNA"
+                  href="https://github.com/HarshkumarG007?tab=repositories"
                   target="_blank"
                   rel="noreferrer"
                   className="text-[11px] font-semibold text-slate-500 hover:text-slate-900 transition-colors"
+                  title="Explore all 22 open-source repositories"
                 >
-                  GitHub
+                  22 GitHub Repos
                 </a>
               </div>
             </div>
