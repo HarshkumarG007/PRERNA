@@ -24,6 +24,8 @@ import { SelfDiscoveryJourney } from './components/assessment/SelfDiscoveryJourn
 import { deriveSixteenType } from './engine/assessment/sixteenPersonalities';
 import { SelfEvolutionSanctuary } from './components/growth/SelfEvolutionSanctuary';
 import { AtmaJnanaOriginModal } from './components/common/AtmaJnanaOriginModal';
+import { SomaticBreathingCompanion } from './components/growth/SomaticBreathingCompanion';
+import { LifeBlueprintExport } from './components/growth/LifeBlueprintExport';
 import { ClinicianLogin } from './components/clinical/ClinicianLogin';
 import { ReviewDashboard } from './components/clinical/ReviewDashboard';
 import { useAppStore } from './store';
@@ -216,6 +218,10 @@ function App() {
                 <Link to="/social" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.social_compass', 'Social Compass')}</Link>
                 <Link to="/mentor" className="text-slate-600 hover:text-indigo-600 transition-colors">{t('nav.ai_mentor', 'AI Mentor')}</Link>
                 <Link to="/evolution" className="text-slate-600 hover:text-indigo-600 transition-colors">Self-Evolution</Link>
+                <Link to="/breathe" className="text-emerald-700 hover:text-emerald-900 transition-colors font-bold flex items-center gap-1">
+                  <span>🫁</span>
+                  <span>Breathe</span>
+                </Link>
                 <Link to="/origin" className="text-amber-700 hover:text-amber-900 transition-colors font-bold flex items-center gap-1">
                   <span>🪷</span>
                   <span>आत्मज्ञान</span>
@@ -295,6 +301,18 @@ function App() {
           <Route path="/origin" element={<SelfEvolutionSanctuary initialTab="origin" />} />
           <Route path="/philosophy" element={<SelfEvolutionSanctuary initialTab="origin" />} />
           <Route path="/atma-jnana" element={<SelfEvolutionSanctuary initialTab="origin" />} />
+          <Route path="/breathe" element={<div className="max-w-3xl mx-auto py-8 px-4"><SomaticBreathingCompanion isModal={false} /></div>} />
+          <Route path="/blueprint" element={
+            <div className="max-w-4xl mx-auto py-8 px-4">
+              <LifeBlueprintExport 
+                isOpen={true} 
+                onClose={() => window.history.back()} 
+                user={user} 
+                profile={useAppStore.getState().profile} 
+                sixteenType={useAppStore.getState().profile?.sixteenType || deriveSixteenType(useAppStore.getState().profile?.personality?.bigFive || { openness: 60, conscientiousness: 60, extraversion: 60, agreeableness: 60, neuroticism: 40 })} 
+              />
+            </div>
+          } />
           <Route path="/dashboard" element={<TeenProfileView />} />
           <Route path="/profile" element={<TeenProfileView />} />
           <Route path="/shared-dashboard" element={<div className="max-w-7xl mx-auto"><SharedDashboardView /></div>} />

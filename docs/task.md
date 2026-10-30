@@ -299,6 +299,24 @@
   - [x] Added dedicated Tab 5 ("आत्मज्ञान • Origin & Creed") in `SelfEvolutionSanctuary.tsx`
   - [x] Embedded foundational creed banners across `WelcomeScreen.tsx`, `Dashboard.tsx`, and `TeenProfileView.tsx`
 
+### Somatic Companion & Life Blueprint Export
+- [x] **P7-8** Guided Somatic Audio & Breathing Companion (432 Hz Offline Synthesizer)
+  - [x] Built pure Web Audio API mathematical oscillator engine (`src/utils/audioSynthesis.ts`) with zero cloud dependencies or external audio assets
+  - [x] Pythagorean harmonic 432 Hz base frequency with singing bowl overtone resonance (864 Hz, 1296 Hz) and swell envelopes
+  - [x] 4 evidence-based vagal protocols in `src/components/growth/SomaticBreathingCompanion.tsx`:
+    - 4-7-8 Somatic Vagal Reset (acute panic & heart palpitations)
+    - Box Breathing (Samavritti 4-4-4-4 for focus & exam composure)
+    - 3-Second Active Pause (impulse interruption)
+    - Atma-Jnana Contemplative Breath (peaceful stillness with harmonic chime)
+  - [x] Pulsating resonant orb, cycle counters, bilingual labels, mute/unmute toggle, and headless environment fallback
+  - [x] Navigation route `/breathe` and quick-launcher in Sanctuary, Dashboard, and Profile
+- [x] **P7-9** "Life Blueprint" Portfolio & Self-Discovery PDF Export
+  - [x] Built 100% on-device client-side printable and downloadable A4 Life Blueprint portfolio (`src/components/growth/LifeBlueprintExport.tsx`)
+  - [x] Includes official DPDP Act verification seal, Sant Kabir Das Atma-Jnana creed banner, 16-Personality Typology breakdown, Big Five normative percentiles, The Mirror (Current vs Evolved Self with 3 Stepping Stones), top 3 Indian Career Pathways, and Keystone Daily Routine
+  - [x] One-click "Print / Save to PDF" (`window.print()`) and "Download Offline HTML Document"
+  - [x] Navigation route `/blueprint` and quick-launcher in Sanctuary, Dashboard, and Profile
+  - [x] **Test:** verified in `src/tests/growth/somaticAndBlueprint.test.tsx` (7 tests passed; total 126/126 across 28 files)
+
 ---
 
 ## Ongoing (Every Release)
@@ -306,8 +324,8 @@
 - [x] `docs/dpdp-compliance-mapping.md` updated for any change touching consent, data collection, or crisis
 - [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
 - [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
-- [x] Pre-deployment regression test suite: **119/119 tests passed across 27 test files**
-- [x] Production bundle verified: `tsc && vite build` completed with zero errors (8.76s build time)
+- [x] Pre-deployment regression test suite: **126/126 tests passed across 28 test files**
+- [x] Production bundle verified: `tsc && vite build` completed with zero errors (8.55s build time)
 - [ ] Staged rollout: Beta cohort testing before broad public release
 
 ---

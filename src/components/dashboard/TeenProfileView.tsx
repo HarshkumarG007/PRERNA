@@ -17,6 +17,8 @@ import { BadgeCabinet } from './BadgeCabinet';
 import { ActivityHistoryViewer } from './ActivityHistoryViewer';
 import { SixteenTypeCard } from '../personality/SixteenTypeCard';
 import { deriveSixteenType } from '../../engine/assessment/sixteenPersonalities';
+import { LifeBlueprintExport } from '../growth/LifeBlueprintExport';
+import { Printer } from 'lucide-react';
 
 import { useAppStore } from '../../store';
 
@@ -95,6 +97,7 @@ export const TeenProfileView: React.FC = () => {
   
   const [linkCode, setLinkCode] = useState<string | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showBlueprintModal, setShowBlueprintModal] = useState(false);
 
   const sixteenType = React.useMemo(() => {
     if (profile?.sixteenType) return profile.sixteenType;
@@ -213,10 +216,17 @@ export const TeenProfileView: React.FC = () => {
         <div className="relative z-10 space-y-4">
           <SixteenTypeCard sixteenType={sixteenType} />
           
-          <div className="flex justify-end">
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <button
+              onClick={() => setShowBlueprintModal(true)}
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs tracking-wider uppercase transition-all border border-white/20 cursor-pointer shadow-md"
+            >
+              <Printer size={15} className="text-indigo-400" />
+              <span>Export Life Blueprint (PDF)</span>
+            </button>
             <button
               onClick={() => navigate('/evolution')}
-              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs tracking-wider uppercase shadow-lg shadow-indigo-600/30 transition-all border border-indigo-400/30"
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs tracking-wider uppercase shadow-lg shadow-indigo-600/30 transition-all border border-indigo-400/30 cursor-pointer"
             >
               <Sparkles size={15} className="text-amber-300" />
               <span>Explore Actual vs. Improvised Self & Strengths Journal</span>
@@ -535,6 +545,15 @@ export const TeenProfileView: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Life Blueprint Export Modal */}
+      <LifeBlueprintExport
+        isOpen={showBlueprintModal}
+        onClose={() => setShowBlueprintModal(false)}
+        user={user}
+        profile={profile}
+        sixteenType={sixteenType}
+      />
       </div>
     </div>
   );

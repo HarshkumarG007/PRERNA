@@ -264,7 +264,7 @@ export function generateSelfImageComparison(
   name?: string
 ): SelfImageComparison {
   const typeDef = sixteenType?.definition;
-  const firstName = name ? name.split(' ')[0] : 'You';
+  const firstName = (typeof name === 'string' && name.trim()) ? name.trim().split(' ')[0] : 'You';
 
   return {
     currentSelf: {

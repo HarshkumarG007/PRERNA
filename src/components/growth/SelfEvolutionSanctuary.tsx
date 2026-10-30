@@ -21,7 +21,9 @@ import {
   SlidersHorizontal,
   Sun,
   Wand2,
-  Star
+  Star,
+  Wind,
+  Printer
 } from 'lucide-react';
 import { 
   useAppStore, 
@@ -41,6 +43,8 @@ import {
 import { deriveSixteenType } from '../../engine/assessment/sixteenPersonalities';
 import { MaslowNeedsCompass } from './MaslowNeedsCompass';
 import { AtmaJnanaOriginModal } from '../common/AtmaJnanaOriginModal';
+import { SomaticBreathingCompanion } from './SomaticBreathingCompanion';
+import { LifeBlueprintExport } from './LifeBlueprintExport';
 
 interface SelfEvolutionSanctuaryProps {
   initialTab?: 'mirror' | 'journal' | 'mitigations' | 'needs' | 'origin';
@@ -89,6 +93,8 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
 
   const [activeTab, setActiveTab] = useState<'mirror' | 'journal' | 'mitigations' | 'needs' | 'origin'>(initialTab);
   const [showAtmaModal, setShowAtmaModal] = useState(false);
+  const [showBreathingModal, setShowBreathingModal] = useState(false);
+  const [showBlueprintModal, setShowBlueprintModal] = useState(false);
   
   // Strategy filter & mode
   const [managementMode, setManagementMode] = useState<'personalized' | 'all'>('personalized');
@@ -285,6 +291,24 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
               <p className="text-slate-300 text-sm md:text-base mt-2 max-w-2xl leading-relaxed">
                 Explore the bridge between where you are today and your highest potential. Turn natural friction into strengths with gentle evidence-based micro-strategies.
               </p>
+              
+              {/* Quick action buttons in Hero */}
+              <div className="flex flex-wrap items-center gap-2.5 mt-4">
+                <button
+                  onClick={() => setShowBreathingModal(true)}
+                  className="px-3.5 py-1.5 rounded-xl bg-emerald-500/25 hover:bg-emerald-500/35 text-emerald-200 font-bold text-xs transition-all border border-emerald-400/30 flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Wind size={14} className="text-emerald-300" />
+                  <span>432 Hz Somatic Pacer</span>
+                </button>
+                <button
+                  onClick={() => setShowBlueprintModal(true)}
+                  className="px-3.5 py-1.5 rounded-xl bg-indigo-500/25 hover:bg-indigo-500/35 text-indigo-200 font-bold text-xs transition-all border border-indigo-400/30 flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Printer size={14} className="text-indigo-300" />
+                  <span>Export Life Blueprint (PDF)</span>
+                </button>
+              </div>
             </div>
 
             {/* Quick stats pill */}
@@ -1086,6 +1110,14 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
 
               {/* Mode Switcher and Add Button */}
               <div className="flex flex-wrap items-center gap-2 self-start lg:self-auto">
+                <button
+                  onClick={() => setShowBreathingModal(true)}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
+                >
+                  <Wind size={14} />
+                  <span>432Hz Breathing Pacer</span>
+                </button>
+
                 <div className="bg-slate-100 p-1 rounded-2xl flex items-center gap-1 border border-slate-200">
                   <button
                     onClick={() => setManagementMode('personalized')}
@@ -1113,12 +1145,40 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
 
                 <button
                   onClick={() => setShowCustomModal(true)}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-colors"
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
                 >
                   <Plus size={14} />
                   <span>Custom Tool</span>
                 </button>
               </div>
+            </div>
+
+            {/* Interactive Somatic Breathing Companion Banner */}
+            <div className="bg-gradient-to-r from-emerald-500/10 via-slate-900 to-indigo-950 text-white p-6 rounded-3xl border border-emerald-500/30 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-300 flex-shrink-0 text-xl shadow-sm">
+                  🫁
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      Somatic Vagal Regulation • 432 Hz Synthesizer
+                    </span>
+                    <span className="text-xs text-slate-400">4-7-8 • Box Breath • 3s Active Pause</span>
+                  </div>
+                  <h4 className="text-lg font-black text-white">Interactive Somatic Breathing Companion</h4>
+                  <p className="text-slate-300 text-xs mt-0.5 max-w-xl leading-relaxed">
+                    Instantly down-regulate autonomic nervous system panic, test anxiety, or impulsive reactions using mathematically synthesized 432 Hz harmonic audio cues.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowBreathingModal(true)}
+                className="flex-shrink-0 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-xs transition-all shadow-md shadow-emerald-500/25 flex items-center gap-2 cursor-pointer"
+              >
+                <Wind size={15} />
+                <span>Launch Breathing Pacer</span>
+              </button>
             </div>
 
             {/* PERSONALIZED PROFILE BANNER (Visible in Personalized Mode) */}
@@ -1827,6 +1887,25 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
       <AtmaJnanaOriginModal
         isOpen={showAtmaModal}
         onClose={() => setShowAtmaModal(false)}
+      />
+
+      {/* Somatic Breathing Modal */}
+      {showBreathingModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+          <SomaticBreathingCompanion
+            isModal={true}
+            onClose={() => setShowBreathingModal(false)}
+          />
+        </div>
+      )}
+
+      {/* Life Blueprint Export Modal */}
+      <LifeBlueprintExport
+        isOpen={showBlueprintModal}
+        onClose={() => setShowBlueprintModal(false)}
+        user={user}
+        profile={profile}
+        sixteenType={sixteenType}
       />
     </div>
   );

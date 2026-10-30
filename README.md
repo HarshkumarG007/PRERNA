@@ -9,7 +9,7 @@
   <p align="center">
     <img src="https://img.shields.io/badge/Platform-Desktop_%7C_Android_arm64-6366F1.svg" alt="Platforms" />
     <img src="https://img.shields.io/badge/Privacy-DPDP_Act_2023_Compliant-10B981.svg" alt="Privacy" />
-    <img src="https://img.shields.io/badge/Tests-119%2F119_Passing-10B981.svg" alt="Tests" />
+    <img src="https://img.shields.io/badge/Tests-126%2F126_Passing-10B981.svg" alt="Tests" />
     <img src="https://img.shields.io/badge/Architecture-Tauri_2_%2B_React_19_%2B_Rust-8B5CF6.svg" alt="Stack" />
     <img src="https://img.shields.io/badge/License-MIT-3B82F6.svg" alt="License" />
   </p>
@@ -47,7 +47,9 @@ PRERNA is built as a **local-first application**: core user data, psychometric s
 | **Strengths & Growth Edges Journal**| ✅ Implemented | 100% on-device private journal, non-pathologizing reflections, DPDP Act 2023 S.9 compliant |
 | **Personalized Self-Management** | ✅ Implemented | Dynamic matching engine across Big Five, learning style, and age tier; 10 micro-tools + custom creator |
 | **Maslow Needs & Desires Compass** | ✅ Implemented | 5-tier adolescent pyramid, Wants vs. Needs classifier, distraction shield & hungry tier alert |
-| **Verification & Test Coverage** | ✅ 119/119 Passing | 27 Vitest suites (119 tests passing), TypeScript `tsc --noEmit` 0 errors, production build verified |
+| **Guided Somatic Breathing (432 Hz)**| ✅ Implemented | Pure Web Audio API mathematical oscillator, 432 Hz Pythagorean resonance, 4 vagal protocols |
+| **Life Blueprint Portfolio & PDF**  | ✅ Implemented | 100% on-device client-side A4 printable & downloadable HTML/PDF report with DPDP seal |
+| **Verification & Test Coverage** | ✅ 126/126 Passing | 28 Vitest suites (126 tests passing), TypeScript `tsc --noEmit` 0 errors, production build verified |
 | **AuthStatus Security Model** | ✅ Implemented | Backend state machine: `None → PendingMFA → Authenticated` with session eviction |
 | **Renderer Identity Isolation** | ✅ Implemented | Backend resolves user identity via authenticated session; renderer cannot spoof `user_id` |
 | **Role & Tenant Isolation** | ✅ Implemented | Strict backend authorization boundaries for Teen, Parent, Clinician, and Educator |
@@ -83,6 +85,8 @@ Every capability in PRERNA is deliberately architected to turn the adolescent mi
 - **The Mirror (Actual vs. Evolved Self):** Higgins' Self-Discrepancy framework grounded in gentle self-compassion, awakening the indwelling Divine Swan (*सोई हंस*).
 - **Strengths & Growth Edges Journal:** Mindful self-witnessing strictly on-device without cloud surveillance or judgment.
 - **Personalized Behavioral Self-Management:** Calming the somatic nervous system so clarity and peace can be felt.
+- **432 Hz Somatic Breathing Companion:** Pure mathematical offline oscillator synthesis providing vagal nerve grounding (4-7-8, Box Breathing, 3s Pause, Atma Meditation).
+- **Life Blueprint Portfolio & PDF Export:** Comprehensive A4 synthesis of archetype, potential, career tracks, and daily keystone habits with DPDP verification seal.
 - **Maslow's Needs vs. Desires Compass:** Disentangling fleeting dopamine cravings from foundational physiological and emotional truth.
 - **Local-First DPDP Sovereignty:** Because a seeker's inner sanctuary belongs to them alone, never to a corporate cloud.
 

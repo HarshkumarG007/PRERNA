@@ -13,7 +13,9 @@ import {
   WifiOff,
   Compass,
   BookOpen,
-  ShieldCheck
+  ShieldCheck,
+  Wind,
+  Printer
 } from 'lucide-react';
 
 // Sub-components
@@ -30,6 +32,8 @@ import { SixteenTypeCard } from '../personality/SixteenTypeCard';
 import { deriveSixteenType } from '../../engine/assessment/sixteenPersonalities';
 import { useNetworkStatus } from '../../hooks/useNetworkStatus';
 import { useAppStore, useUser, useProfile } from '../../store';
+import { SomaticBreathingCompanion } from '../growth/SomaticBreathingCompanion';
+import { LifeBlueprintExport } from '../growth/LifeBlueprintExport';
 
 export const Dashboard: React.FC = () => {
   const user = useUser();
@@ -37,6 +41,8 @@ export const Dashboard: React.FC = () => {
   const isOnline = useNetworkStatus();
   const { loadProfile, sessions, streak } = useAppStore();
   const [greeting, setGreeting] = useState('');
+  const [showBreathingModal, setShowBreathingModal] = useState(false);
+  const [showBlueprintModal, setShowBlueprintModal] = useState(false);
   const navigate = useNavigate();
 
   const sixteenType = React.useMemo(() => {
@@ -185,6 +191,30 @@ export const Dashboard: React.FC = () => {
             </motion.div>
           </section>
 
+          {/* Quick Growth Action Bar: 432 Hz Breath & Blueprint Export */}
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-4 md:p-5 rounded-2xl border border-slate-200/90 shadow-sm">
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Grounding & Portfolio</span>
+              <span className="text-xs font-bold text-slate-800">Quick Growth Actions</span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={() => setShowBreathingModal(true)}
+                className="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs transition-colors border border-emerald-200 flex items-center gap-1.5 cursor-pointer shadow-sm"
+              >
+                <Wind size={15} className="text-emerald-600" />
+                <span>432 Hz Breath Pacer</span>
+              </button>
+              <button
+                onClick={() => setShowBlueprintModal(true)}
+                className="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs transition-colors border border-indigo-200 flex items-center gap-1.5 cursor-pointer shadow-sm"
+              >
+                <Printer size={15} className="text-indigo-600" />
+                <span>Export Life Blueprint (PDF)</span>
+              </button>
+            </div>
+          </div>
+
           {/* Atma-Jnana Foundational Creed Card */}
           <section>
             <div className="bg-gradient-to-r from-amber-500/10 via-slate-900 to-indigo-950 text-white rounded-3xl p-6 md:p-7 border border-amber-400/30 shadow-md relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -332,6 +362,25 @@ export const Dashboard: React.FC = () => {
           ))}
         </div>
       </nav>
+
+      {/* Somatic Breathing Modal */}
+      {showBreathingModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+          <SomaticBreathingCompanion
+            isModal={true}
+            onClose={() => setShowBreathingModal(false)}
+          />
+        </div>
+      )}
+
+      {/* Life Blueprint Export Modal */}
+      <LifeBlueprintExport
+        isOpen={showBlueprintModal}
+        onClose={() => setShowBlueprintModal(false)}
+        user={user}
+        profile={profile}
+        sixteenType={sixteenType}
+      />
     </div>
   );
 };
