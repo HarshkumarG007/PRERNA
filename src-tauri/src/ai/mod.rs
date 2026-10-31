@@ -44,7 +44,7 @@ pub struct LocalLLM {
 
 impl LocalLLM {
     /// Initialize local LLM with quantized model
-    pub fn new(app_handle: &tauri::AppHandle) -> Result<Self> {
+    pub fn new(_app_handle: &tauri::AppHandle) -> Result<Self> {
         info!("Initializing local LLM...");
 
         #[cfg(any(target_os = "android", not(feature = "local-llm")))]
@@ -67,7 +67,7 @@ impl LocalLLM {
             let backend = Arc::new(LlamaBackend::init()?);
 
             // Model path - will download on first run
-            let model_path = get_model_path(app_handle)?;
+            let model_path = get_model_path(_app_handle)?;
 
             // RTX 4060 optimized: 8GB VRAM, use 4-bit quantization
             let model_params = LlamaModelParams::default()
