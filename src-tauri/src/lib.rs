@@ -70,9 +70,22 @@ pub fn run() {
         .setup(|app| {
             info!("PRERNA backend initializing...");
 
-            // Initialize encrypted database
-            let database = Database::new(app.handle())
-                .expect("Failed to initialize database");
+            // Initialize encrypted database with zero-crash fallback
+            let database = match Database::new(app.handle()) {
+                Ok(db) => {
+                    info!("PRERNA database initialized successfully");
+                    db
+                }
+                Err(e) => {
+                    log::error!("Database initialization failed: {}. Falling back to in-memory database to prevent launch abort.", e);
+                    Database::new_in_memory("PRERNA_FALLBACK_KEY").unwrap_or_else(|e2| {
+                        log::error!("Fallback memory database failed: {}", e2);
+                        Database {
+                            conn: rusqlite::Connection::open_in_memory().unwrap(),
+                        }
+                    })
+                }
+            };
 
             app.manage(DbState(std::sync::Mutex::new(database)));
 
