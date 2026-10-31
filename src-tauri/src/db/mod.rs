@@ -152,6 +152,8 @@ impl Database {
             self.apply_migration_3()?;
         }
 
+        self.seed_demo_users_if_needed()?;
+
         info!("Database schema initialized and migrated successfully");
         Ok(())
     }
@@ -398,6 +400,115 @@ impl Database {
         Ok(())
     }
 
+    pub fn seed_demo_users_if_needed(&mut self) -> AnyhowResult<()> {
+        let count: i64 = self
+            .conn
+            .query_row("SELECT COUNT(*) FROM users", [], |row| row.get(0))
+            .unwrap_or(0);
+
+        if count > 0 {
+            return Ok(());
+        }
+
+        use argon2::{
+            password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
+            Argon2,
+        };
+
+        let argon2 = Argon2::default();
+        let salt = SaltString::generate(&mut OsRng);
+        let pin_salt = SaltString::generate(&mut OsRng);
+
+        let pw_hash = argon2
+            .hash_password(b"demo123", &salt)
+            .map_err(|e| anyhow::anyhow!("{}", e))?
+            .to_string();
+
+        let pin_hash = argon2
+            .hash_password(b"1234", &pin_salt)
+            .map_err(|e| anyhow::anyhow!("{}", e))?
+            .to_string();
+
+        let enc_india = self.encrypt_field("India - Delhi")?;
+        let enc_mumbai = self.encrypt_field("India - Maharashtra")?;
+        let enc_chennai = self.encrypt_field("India - Tamil Nadu")?;
+        let enc_lang = self.encrypt_field("en")?;
+        let now = chrono::Utc::now().to_rfc3339();
+
+        // 1. Aarav (Teen Demo)
+        self.conn.execute(
+            "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled, role, tenant_id, pin_hash, has_completed_questionnaire, name, gender, date_of_birth)
+             VALUES (?1, ?2, ?3, ?4, '16-17', ?5, ?6, 'key_seed', 0, 'teen', NULL, ?7, 1, 'Aarav Sharma', 'male', '2009-08-15')",
+            params!["demo-teen-001", "aarav", &pw_hash, &now, &enc_india, &enc_lang, &pin_hash],
+        )?;
+
+        // 2. Demo User (General Demo)
+        self.conn.execute(
+            "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled, role, tenant_id, pin_hash, has_completed_questionnaire, name, gender, date_of_birth)
+             VALUES (?1, ?2, ?3, ?4, '16-17', ?5, ?6, 'key_seed', 0, 'teen', NULL, ?7, 1, 'Explorer Demo', 'prefer-not-to-say', '2009-05-10')",
+            params!["demo-user-001", "demo", &pw_hash, &now, &enc_india, &enc_lang, &pin_hash],
+        )?;
+
+        // 3. Priya (Adult Demo)
+        self.conn.execute(
+            "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled, role, tenant_id, pin_hash, has_completed_questionnaire, name, gender, date_of_birth)
+             VALUES (?1, ?2, ?3, ?4, '18+', ?5, ?6, 'key_seed', 0, 'adult', NULL, ?7, 1, 'Priya Verma', 'female', '1998-04-20')",
+            params!["demo-adult-001", "priya", &pw_hash, &now, &enc_mumbai, &enc_lang, &pin_hash],
+        )?;
+
+        // 4. Rajesh (Parent Demo)
+        self.conn.execute(
+            "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled, role, tenant_id, pin_hash, has_completed_questionnaire, name, gender, date_of_birth)
+             VALUES (?1, ?2, ?3, ?4, '18+', ?5, ?6, 'key_seed', 0, 'parent', NULL, ?7, 1, 'Rajesh Sharma', 'male', '1979-11-12')",
+            params!["demo-parent-001", "rajesh", &pw_hash, &now, &enc_india, &enc_lang, &pin_hash],
+        )?;
+
+        // 5. Dr. Meenakshi (Educator Demo)
+        self.conn.execute(
+            "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled, role, tenant_id, pin_hash, has_completed_questionnaire, name, gender, date_of_birth)
+             VALUES (?1, ?2, ?3, ?4, '18+', ?5, ?6, 'key_seed', 0, 'educator', NULL, ?7, 1, 'Dr. Meenakshi Sundaram', 'female', '1982-03-15')",
+            params!["demo-educator-001", "meenakshi", &pw_hash, &now, &enc_chennai, &enc_lang, &pin_hash],
+        )?;
+
+        // Link Rajesh (Parent) to Aarav (Teen)
+        self.conn.execute(
+            "INSERT OR IGNORE INTO parent_teen_relationships (id, parent_user_id, teen_user_id, established_at, consent_record_id, relationship_id, verification_method, status, issued_at, expires_at, verified_at, provider_reference)
+             VALUES ('rel-demo-001', 'demo-parent-001', 'demo-teen-001', ?1, 'consent-demo-001', 'rel-demo-001', 'aadhaar_ekyc', 'active', ?1, '2030-01-01T00:00:00Z', ?1, 'ref-aadhaar-demo')",
+            params![&now],
+        )?;
+
+        // Seed Unified Profile for Aarav & Demo
+        let aarav_profile = r#"{
+            "userId": "demo-teen-001",
+            "generatedAt": "2026-10-31T00:00:00Z",
+            "big_five": { "openness": 78, "conscientiousness": 72, "extraversion": 68, "agreeableness": 80, "neuroticism": 34 },
+            "riasec": { "realistic": 52, "investigative": 82, "artistic": 76, "social": 74, "enterprising": 60, "conventional": 50 },
+            "emotional": { "resilience": 78, "empathy": 84, "emotionalAwareness": 80, "impulseControl": 72, "socialIntuition": 75 },
+            "archetype": {
+                "name": "The Navigator",
+                "description": "An agile, empathetic explorer driven by curiosity and purposeful insight.",
+                "traits": ["Curious", "Empathetic", "Insightful"]
+            },
+            "sixteenType": {
+                "fullCode": "ENFP",
+                "definition": { "name": "The Campaigner", "hindiName": "प्रणेता" }
+            },
+            "wellbeingScore": 85,
+            "strengths": ["Emotional Intuition", "Curious Exploration", "Adaptive Problem-Solving"],
+            "growthAreas": ["Focus Consistency", "Pacing & Rest"],
+            "llmSelfDiscoveryReport": "Aarav possesses exceptional intellectual curiosity balanced by deep emotional empathy. His natural inclination towards creative problem-solving and social intuition makes him an inspiring companion and forward-thinking explorer."
+        }"#;
+
+        self.conn.execute(
+            "INSERT INTO sessions (id, user_id, session_type, started_at, completed_at, raw_choices, derived_traits, disclosure_version, disclosure_shown_at)
+             VALUES ('session-profile-demo-001', 'demo-teen-001', 'unified_profile', ?1, ?1, ?2, ?2, 'v1', 1700000000)",
+            params![&now, aarav_profile],
+        )?;
+
+        info!("Successfully pre-seeded 5 demo personas (Aarav, Demo, Priya, Rajesh, Meenakshi) and sample profile.");
+        Ok(())
+    }
+
     // === USER OPERATIONS ===
 
     pub fn create_user(&self, user: &NewUser, pin_hash: Option<String>) -> AnyhowResult<String> {
@@ -406,10 +517,11 @@ impl Database {
         let lang = user.language.as_deref().unwrap_or("en");
         let encrypted_region = self.encrypt_field(region)?;
         let encrypted_lang = self.encrypt_field(lang)?;
+        let role = user.role.as_deref().unwrap_or("teen");
 
         self.conn.execute(
             "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled, role, tenant_id, pin_hash, has_completed_questionnaire, name, gender, date_of_birth)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 0, 'teen', NULL, ?9, 0, ?10, ?11, ?12)",
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 0, ?9, NULL, ?10, 0, ?11, ?12, ?13)",
             params![
                 &id,
                 &user.username,
@@ -419,6 +531,7 @@ impl Database {
                 encrypted_region,
                 encrypted_lang,
                 "key_placeholder",
+                role,
                 pin_hash,
                 &user.name,
                 &user.gender,

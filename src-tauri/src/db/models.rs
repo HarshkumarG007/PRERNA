@@ -123,6 +123,7 @@ pub struct NewUser {
     pub name: Option<String>,
     pub gender: Option<String>,
     pub date_of_birth: Option<String>,
+    pub role: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

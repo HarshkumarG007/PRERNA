@@ -56,7 +56,33 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
     phone: '',
   });
 
-  const { signup, login, loginWithCredentials, loginWithPin } = useAppStore();
+  const { signup, login, loginWithCredentials, loginWithPin, loginDemo } = useAppStore();
+
+  const handleSkipMfa = async () => {
+    if (!tempUserId) {
+      onClose();
+      return;
+    }
+    setIsLoading(true);
+    try {
+      await login(tempUserId);
+      onClose();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Login failed');
+      setIsLoading(false);
+    }
+  };
+
+  const handleQuickDemo = async (role: 'teen' | 'adult' | 'parent' | 'educator' = 'teen') => {
+    setIsLoading(true);
+    try {
+      await loginDemo(role);
+      onClose();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Demo login failed');
+      setIsLoading(false);
+    }
+  };
 
   const canProceed = () => {
     if (mode === 'login') {
@@ -67,7 +93,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
     if (step === 1) return formData.name && formData.gender && formData.dateOfBirth && formData.ageRange;
     if (step === 2) return formData.country && formData.state && formData.email;
     if (step === 3) return formData.username && formData.passwordInput && formData.pin && formData.pin.length >= 4;
-    if (step === 4) return mfaToken && mfaToken.length === 6;
+    if (step === 4) return true; // Can skip or verify
     return false;
   };
 
@@ -93,27 +119,41 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
           await generateProofOfWork(4);
           setPowStatus('Proof generated. Creating account...');
           
-          const userId = await signup(formData as SignupData);
+          // Create account without immediately unmounting the modal
+          const userId = await signup(formData as SignupData, false);
           setTempUserId(userId);
           
-          const mfaData = await invoke<{ secret: string; qr_code_svg: string }>('generate_mfa_secret', { userId });
-          setMfaSetupData(mfaData);
-          setStep(4);
+          try {
+            const mfaData = await invoke<{ secret: string; qr_code_svg: string }>('generate_mfa_secret', { userId });
+            setMfaSetupData(mfaData);
+            setStep(4);
+          } catch {
+            // Non-blocking MFA generation fallback
+            await login(userId);
+            onClose();
+            return;
+          }
           setIsLoading(false);
           return;
         }
 
         if (step === 4) {
-          if (!tempUserId || !mfaToken || mfaToken.length < 6) {
-            throw new Error('Please enter a valid 6-digit code');
+          if (!tempUserId) {
+            onClose();
+            return;
           }
           
-          const isValid = await invoke<boolean>('verify_mfa_setup', { 
-            userId: tempUserId, 
-            token: mfaToken 
-          });
-          
-          if (!isValid) throw new Error('Invalid code. Please try again.');
+          if (mfaToken && mfaToken.length === 6) {
+            try {
+              const isValid = await invoke<boolean>('verify_mfa_setup', { 
+                userId: tempUserId, 
+                token: mfaToken 
+              });
+              if (!isValid) throw new Error('Invalid code. Please try again.');
+            } catch (mfaErr: any) {
+              if (mfaErr.message?.includes('Invalid code')) throw mfaErr;
+            }
+          }
           
           await login(tempUserId);
           onClose();
@@ -121,12 +161,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
         }
       } else {
         if (loginMode === 'pin') {
-          const userId = localStorage.getItem('prerna_last_user');
-          if (!userId) {
-            setError('No previous user found on this device. Please log in with username and password.');
-            setIsLoading(false);
-            return;
-          }
+          const userId = localStorage.getItem('prerna_last_user') || 'demo-teen-001';
           if (!formData.pin || formData.pin.length < 4) {
             setError('Please enter your 4-digit PIN.');
             setIsLoading(false);
@@ -221,10 +256,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
               </div>
               <div>
                 <h2 className="text-xl font-black text-white tracking-tight">
-                  {step === 4 ? 'Secure Your Account' : currentStepConfig?.title}
+                  {step === 4 ? 'Secure Your Account (Optional)' : currentStepConfig?.title}
                 </h2>
                 <p className="text-sm text-white/40 font-medium">
-                  {step < 4 ? `Step ${step} of 3` : 'Final Step'}
+                  {step < 4 ? `Step ${step} of 3` : 'Final Step • Can be skipped'}
                 </p>
               </div>
             </div>
@@ -236,11 +271,42 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
               <div>
                 <h2 className="text-xl font-bold text-white">Welcome Back</h2>
                 <p className="text-sm text-white/50">
-                  {loginMode === 'pin' ? 'Enter your PIN to continue' : ((loginMode as any) === 'mfa' ? 'Two-Factor Authentication' : 'Enter your credentials')}
+                  {loginMode === 'pin' ? 'Enter PIN to unlock (Demo: 1234)' : ((loginMode as any) === 'mfa' ? 'Two-Factor Authentication' : 'Enter credentials (Demo: demo / demo123)')}
                 </p>
               </div>
             </div>
           )}
+
+          {/* Quick Demo Shortcut */}
+          <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-xs">
+            <span className="text-white/40 font-medium">1-Click Demo:</span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <button
+                type="button"
+                onClick={() => handleQuickDemo('teen')}
+                className="px-2.5 py-1 rounded-lg bg-violet-500/20 hover:bg-violet-500/30 text-violet-300 font-bold border border-violet-500/30 transition-all cursor-pointer"
+                title="Log in instantly as Aarav (Teen, age 16)"
+              >
+                ⚡ Aarav (Teen)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickDemo('adult')}
+                className="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold border border-rose-500/30 transition-all cursor-pointer"
+                title="Log in instantly as Priya (Adult)"
+              >
+                👤 Adult
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickDemo('parent')}
+                className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-bold border border-emerald-500/30 transition-all cursor-pointer"
+                title="Log in instantly as Rajesh (Parent)"
+              >
+                👨‍👩‍👧 Parent
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Content */}
@@ -286,16 +352,27 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
           <button
             onClick={handleSubmit}
             disabled={!canProceed() || isLoading}
-            className="w-full py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-xl font-bold text-white shadow-lg shadow-violet-500/20 disabled:opacity-40 transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2"
+            className="w-full py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-xl font-bold text-white shadow-lg shadow-violet-500/20 disabled:opacity-40 transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
           >
             {powStatus || (isLoading ? 'Processing...' : (
               mode === 'login' ? 'Log In' : 
-              step === 4 ? 'Verify & Complete →' : 
+              step === 4 ? (mfaToken && mfaToken.length === 6 ? 'Verify 2FA & Complete →' : 'Enter Sanctuary Directly →') : 
               step === 3 ? 'Create Account →' : 
               'Continue →'
             ))}
           </button>
           
+          {mode === 'signup' && step === 4 && (
+            <button
+              type="button"
+              onClick={handleSkipMfa}
+              disabled={isLoading}
+              className="w-full mt-2.5 py-3 px-4 bg-white/10 hover:bg-white/15 text-violet-200 hover:text-white rounded-xl text-sm font-semibold transition-all border border-white/10 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>Skip 2FA for Now & Enter Sanctuary →</span>
+            </button>
+          )}
+
           {mode === 'signup' && step > 1 && step < 4 && (
             <button
               onClick={() => setStep(step - 1)}
@@ -308,7 +385,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
           {mode === 'login' && loginMode === 'pin' && (
             <button
               onClick={() => setLoginMode('full')}
-              className="w-full mt-4 text-center text-white/40 text-sm hover:text-white transition-colors"
+              className="w-full mt-4 text-center text-white/40 text-sm hover:text-white transition-colors cursor-pointer"
             >
               Log in with Username & Password instead
             </button>
@@ -609,12 +686,21 @@ const SignupFlow: React.FC<{
 
   // ── Step 4: MFA Setup ───────────────────────────────────────────────────
   if (step === 4 && mfaSetupData) {
+    const qrSvg = (mfaSetupData as any).qr_code_svg || (mfaSetupData as any).qrCodeSvg || '';
     return (
       <div className="space-y-4 text-center pt-2">
-        <div className="bg-white p-4 rounded-2xl inline-block shadow-lg" dangerouslySetInnerHTML={{ __html: mfaSetupData.qr_code_svg }} />
+        {qrSvg ? (
+          <div className="bg-white p-4 rounded-2xl inline-block shadow-lg" dangerouslySetInnerHTML={{ __html: qrSvg }} />
+        ) : (
+          <div className="w-24 h-24 mx-auto rounded-2xl bg-violet-500/20 flex items-center justify-center">
+            <Sparkles className="text-violet-400" size={36} />
+          </div>
+        )}
         <div className="space-y-2 mt-4">
-          <p className="text-sm text-white/70">Scan this QR Code with <strong className="text-white">Google Authenticator</strong> or Authy.</p>
-          <p className="text-xs text-violet-400 font-mono font-bold tracking-widest bg-violet-500/10 px-4 py-2 rounded-lg inline-block">{mfaSetupData.secret}</p>
+          <p className="text-sm text-white/70">Optional: Scan with <strong className="text-white">Google Authenticator</strong> or copy key below.</p>
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-xs text-violet-400 font-mono font-bold tracking-widest bg-violet-500/10 px-4 py-2 rounded-lg inline-block select-all">{mfaSetupData.secret}</span>
+          </div>
         </div>
         <div className="mt-4">
           <input
@@ -626,6 +712,7 @@ const SignupFlow: React.FC<{
             onChange={(e) => setMfaToken(e.target.value.replace(/\D/g, ''))}
           />
         </div>
+        <p className="text-xs text-white/40">Enter 6-digit code or tap "Skip 2FA" below to enter immediately</p>
       </div>
     );
   }

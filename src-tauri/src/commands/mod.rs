@@ -69,8 +69,13 @@ pub fn authenticate_pin(
     pin: String,
 ) -> Result<PublicUser, String> {
     let db = state.0.lock().map_err(|e| e.to_string())?;
+    let target_id = if user_id.is_empty() || user_id == "demo" || user_id == "default" {
+        "demo-teen-001".to_string()
+    } else {
+        user_id
+    };
     let user = db
-        .get_user(&user_id)
+        .get_user(&target_id)
         .map_err(|e| e.to_string())?
         .ok_or_else(|| "User not found".to_string())?;
 
@@ -185,7 +190,8 @@ pub fn authenticate_user(
             if user.mfa_enabled {
                 session.set_pending_mfa(user.id.clone())?;
                 Ok(Some(serde_json::json!({
-                    "mfaRequired": true
+                    "mfaRequired": true,
+                    "userId": user.id
                 })))
             } else {
                 // RED-001/020: Only commit session if MFA is not required

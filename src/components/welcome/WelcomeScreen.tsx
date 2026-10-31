@@ -4,6 +4,7 @@ import { ArrowRight, LogIn, ChevronDown, Star, Heart, Brain } from 'lucide-react
 import { AuthModal } from './AuthModal';
 import { PrernaLogo, PrernaEmblem } from '../common/PrernaLogo';
 import { AtmaJnanaOriginModal } from '../common/AtmaJnanaOriginModal';
+import { useAppStore } from '../../store';
 
 interface WelcomeScreenProps {
   onAuthenticated: (userId: string) => void;
@@ -43,6 +44,15 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onAuthenticated })
     setAuthMode('login');
     setAuthLoginMode('pin');
     setShowAuth(true);
+  };
+
+  const handleQuickExplorer = async (role: 'teen' | 'adult' | 'parent' | 'educator') => {
+    try {
+      const userId = await useAppStore.getState().loginDemo(role);
+      onAuthenticated(userId);
+    } catch (e) {
+      console.error('Quick explorer error:', e);
+    }
   };
 
   return (
@@ -132,6 +142,66 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onAuthenticated })
                   I have a PIN
                 </motion.button>
               </div>
+
+              {/* ⚡ Instant 1-Click Explorer Mode */}
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="p-4 rounded-2xl bg-gradient-to-br from-violet-950/60 via-slate-900/80 to-slate-950 border border-violet-500/30 backdrop-blur-md shadow-xl max-w-lg"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                    <span className="text-xs font-black uppercase tracking-wider text-amber-300">
+                      ⚡ Instant 1-Click Explorer Mode
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-white/50 font-medium">Instant Demo • Zero Setup</span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickExplorer('teen')}
+                    className="p-2.5 rounded-xl bg-violet-600/20 hover:bg-violet-600/35 border border-violet-500/30 hover:border-violet-400 transition-all text-left group cursor-pointer"
+                  >
+                    <div className="text-base mb-1">🌟</div>
+                    <div className="text-xs font-bold text-white group-hover:text-violet-300">Aarav</div>
+                    <div className="text-[10px] text-white/50">Teen (16)</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleQuickExplorer('adult')}
+                    className="p-2.5 rounded-xl bg-rose-600/20 hover:bg-rose-600/35 border border-rose-500/30 hover:border-rose-400 transition-all text-left group cursor-pointer"
+                  >
+                    <div className="text-base mb-1">👤</div>
+                    <div className="text-xs font-bold text-white group-hover:text-rose-300">Priya</div>
+                    <div className="text-[10px] text-white/50">Adult • Vitality</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleQuickExplorer('parent')}
+                    className="p-2.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/35 border border-emerald-500/30 hover:border-emerald-400 transition-all text-left group cursor-pointer"
+                  >
+                    <div className="text-base mb-1">👨‍👩‍👧</div>
+                    <div className="text-xs font-bold text-white group-hover:text-emerald-300">Rajesh</div>
+                    <div className="text-[10px] text-white/50">Parent Hub</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleQuickExplorer('educator')}
+                    className="p-2.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/35 border border-amber-500/30 hover:border-amber-400 transition-all text-left group cursor-pointer"
+                  >
+                    <div className="text-base mb-1">🎓</div>
+                    <div className="text-xs font-bold text-white group-hover:text-amber-300">Meenakshi</div>
+                    <div className="text-[10px] text-white/50">School Dash</div>
+                  </button>
+                </div>
+              </motion.div>
 
               {/* Trust Indicators */}
               <div className="flex items-center gap-6 pt-6">

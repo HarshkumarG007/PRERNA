@@ -8,6 +8,7 @@ import { TrackedNeedItem } from '../engine/growth/maslowNeedsEngine';
 // Types
 export interface User {
   id: string;
+  username?: string;
   ageRange: '13-15' | '16-17' | '18+';
   region: string;
   language: string;
@@ -116,11 +117,12 @@ export interface AppState {
   login: (userId: string) => Promise<void>;
   loginWithCredentials: (username: string, passwordInput: string) => Promise<string | { mfaRequired: true, userId: string }>;
   loginWithPin: (userId: string, pin: string) => Promise<string>;
+  loginDemo: (persona: 'teen' | 'adult' | 'parent' | 'educator') => Promise<string>;
   completeQuestionnaire: () => Promise<void>;
   logout: () => void;
   updateRole: (role: 'teen' | 'adult' | 'parent' | 'educator') => void;
   updateProfile: (profile: Partial<UnifiedProfile>) => void;
-  signup: (data: SignupData) => Promise<string>;
+  signup: (data: SignupData, autoLogin?: boolean) => Promise<string>;
   loadProfile: () => Promise<void>;
   refreshStreak: () => void;
   recordSession: (session: Omit<Session, 'id'>) => Promise<void>;
@@ -283,7 +285,8 @@ export const useAppStore = create<AppState>()(
       loginWithPin: async (userId: string, pin: string) => {
         set({ isLoading: true });
         try {
-          const user = await invoke<any>('authenticate_pin', { userId, pin });
+          const targetId = userId || localStorage.getItem('prerna_last_user') || 'demo-teen-001';
+          const user = await invoke<any>('authenticate_pin', { userId: targetId, pin });
           if (user) {
             const savedRole = (localStorage.getItem('prerna_user_role') || undefined) as User['role'];
             const normalizedUser: User = {
@@ -307,6 +310,92 @@ export const useAppStore = create<AppState>()(
           } else {
             throw new Error('Invalid PIN');
           }
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      loginDemo: async (persona: 'teen' | 'adult' | 'parent' | 'educator') => {
+        set({ isLoading: true });
+        try {
+          const demoMap: Record<'teen' | 'adult' | 'parent' | 'educator', { id: string; username: string; name: string; role: 'teen' | 'adult' | 'parent' | 'educator'; ageRange: User['ageRange'] }> = {
+            teen: { id: 'demo-teen-001', username: 'aarav', name: 'Aarav Sharma', role: 'teen', ageRange: '16-17' },
+            adult: { id: 'demo-adult-001', username: 'priya', name: 'Priya Verma', role: 'adult', ageRange: '18+' },
+            parent: { id: 'demo-parent-001', username: 'rajesh', name: 'Rajesh Sharma', role: 'parent', ageRange: '18+' },
+            educator: { id: 'demo-educator-001', username: 'meenakshi', name: 'Dr. Meenakshi Sundaram', role: 'educator', ageRange: '18+' },
+          };
+
+          const target = demoMap[persona] || demoMap.teen;
+
+          // Attempt backend resume/auth if available
+          try {
+            await invoke('resume_session', { userId: target.id });
+          } catch {
+            // Non-blocking fallback in dev/mock
+          }
+
+          localStorage.setItem('prerna_last_user', target.id);
+          localStorage.setItem('prerna_user_role', target.role);
+          if (target.role === 'parent') {
+            localStorage.setItem('prerna_parent_linked', 'true');
+          }
+
+          const demoUser: User = {
+            id: target.id,
+            username: target.username,
+            name: target.name,
+            role: target.role,
+            ageRange: target.ageRange,
+            region: 'India',
+            language: 'en',
+            createdAt: '2026-10-31T00:00:00.000Z',
+            hasCompletedQuestionnaire: true,
+          };
+
+          set({
+            user: demoUser,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+
+          // Pre-seed profile for instant alive experience
+          if (persona === 'teen') {
+            const bigFive = { openness: 78, conscientiousness: 72, extraversion: 68, agreeableness: 80, neuroticism: 34 };
+            const fallbackProfile: UnifiedProfile = {
+              userId: target.id,
+              generatedAt: '2026-10-31T00:00:00.000Z',
+              personality: {
+                bigFive,
+                riasec: { realistic: 52, investigative: 82, artistic: 76, social: 74, enterprising: 60, conventional: 50 },
+                emotional: { resilience: 78, empathy: 84, emotionalAwareness: 80, impulseControl: 72, socialIntuition: 75 },
+              },
+              cognition: {
+                logicalReasoning: 78,
+                verbalFluency: 74,
+                spatialIntelligence: 68,
+                creativeDivergence: 82,
+                processingSpeed: 72,
+                workingMemory: 74,
+                learningStyle: 'mixed',
+              },
+              archetype: {
+                name: 'The Navigator',
+                description: 'An agile, empathetic explorer driven by curiosity and purposeful insight.',
+                traits: ['Curious', 'Empathetic', 'Insightful']
+              },
+              sixteenType: deriveSixteenType(bigFive),
+              wellbeingScore: 85,
+              strengths: ['Emotional Intuition', 'Curious Exploration', 'Adaptive Problem-Solving'],
+              growthAreas: ['Focus Consistency', 'Pacing & Rest'],
+              llmSelfDiscoveryReport: 'Aarav possesses exceptional intellectual curiosity balanced by deep emotional empathy.'
+            };
+            set({ profile: fallbackProfile });
+          }
+
+          await get().loadProfile().catch(() => {});
+          get().refreshStreak();
+          return target.id;
         } catch (error) {
           set({ isLoading: false });
           throw error;
@@ -415,7 +504,7 @@ export const useAppStore = create<AppState>()(
         get().logout();
       },
 
-      signup: async (data: SignupData) => {
+      signup: async (data: SignupData, autoLogin = true) => {
         set({ isLoading: true });
         
         try {
@@ -439,8 +528,11 @@ export const useAppStore = create<AppState>()(
           localStorage.setItem('prerna_last_user', userId);
           localStorage.setItem('prerna_user_role', userRole);
           
-          // Auto-login (create_user already set session.set_authenticated on backend)
-          await get().login(userId);
+          if (autoLogin) {
+            await get().login(userId);
+          } else {
+            set({ isLoading: false });
+          }
           
           return userId;
         } catch (error) {

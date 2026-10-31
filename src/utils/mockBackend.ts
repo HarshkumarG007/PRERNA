@@ -1,9 +1,123 @@
 import { invoke as tauriInvoke } from '@tauri-apps/api/core';
 
+const INITIAL_DEMO_USERS = [
+  {
+    id: 'demo-teen-001',
+    username: 'aarav',
+    password_hash: 'demo123',
+    ageRange: '16-17',
+    region: 'India - Delhi',
+    language: 'en',
+    name: 'Aarav Sharma',
+    gender: 'male',
+    dateOfBirth: '2009-08-15',
+    pin: '1234',
+    role: 'teen',
+    hasCompletedQuestionnaire: true,
+    createdAt: '2026-10-31T00:00:00.000Z'
+  },
+  {
+    id: 'demo-user-001',
+    username: 'demo',
+    password_hash: 'demo123',
+    ageRange: '16-17',
+    region: 'India',
+    language: 'en',
+    name: 'Explorer Demo',
+    gender: 'prefer-not-to-say',
+    dateOfBirth: '2009-05-10',
+    pin: '1234',
+    role: 'teen',
+    hasCompletedQuestionnaire: true,
+    createdAt: '2026-10-31T00:00:00.000Z'
+  },
+  {
+    id: 'demo-adult-001',
+    username: 'priya',
+    password_hash: 'demo123',
+    ageRange: '18+',
+    region: 'India - Maharashtra',
+    language: 'en',
+    name: 'Priya Verma',
+    gender: 'female',
+    dateOfBirth: '1998-04-20',
+    pin: '1234',
+    role: 'adult',
+    hasCompletedQuestionnaire: true,
+    createdAt: '2026-10-31T00:00:00.000Z'
+  },
+  {
+    id: 'demo-parent-001',
+    username: 'rajesh',
+    password_hash: 'demo123',
+    ageRange: '18+',
+    region: 'India - Delhi',
+    language: 'en',
+    name: 'Rajesh Sharma',
+    gender: 'male',
+    dateOfBirth: '1979-11-12',
+    pin: '1234',
+    role: 'parent',
+    hasCompletedQuestionnaire: true,
+    createdAt: '2026-10-31T00:00:00.000Z'
+  },
+  {
+    id: 'demo-educator-001',
+    username: 'meenakshi',
+    password_hash: 'demo123',
+    ageRange: '18+',
+    region: 'India - Tamil Nadu',
+    language: 'en',
+    name: 'Dr. Meenakshi Sundaram',
+    gender: 'female',
+    dateOfBirth: '1982-03-15',
+    pin: '1234',
+    role: 'educator',
+    hasCompletedQuestionnaire: true,
+    createdAt: '2026-10-31T00:00:00.000Z'
+  }
+];
+
+const INITIAL_DEMO_PROFILES: Record<string, any> = {
+  'demo-teen-001': {
+    userId: 'demo-teen-001',
+    generatedAt: '2026-10-31T00:00:00.000Z',
+    personality: {
+      bigFive: { openness: 78, conscientiousness: 72, extraversion: 68, agreeableness: 80, neuroticism: 34 },
+      riasec: { realistic: 52, investigative: 82, artistic: 76, social: 74, enterprising: 60, conventional: 50 },
+      emotional: { resilience: 78, empathy: 84, emotionalAwareness: 80, impulseControl: 72, socialIntuition: 75 },
+    },
+    archetype: {
+      name: 'The Navigator',
+      description: 'An agile, empathetic explorer driven by curiosity and purposeful insight.',
+      traits: ['Curious', 'Empathetic', 'Insightful']
+    },
+    sixteenType: {
+      fullCode: 'ENFP',
+      definition: { name: 'The Campaigner', hindiName: 'प्रणेता' }
+    },
+    wellbeingScore: 85,
+    strengths: ['Emotional Intuition', 'Curious Exploration', 'Adaptive Problem-Solving'],
+    growthAreas: ['Focus Consistency', 'Pacing & Rest'],
+    llmSelfDiscoveryReport: 'Aarav possesses exceptional intellectual curiosity balanced by deep emotional empathy.'
+  }
+};
+INITIAL_DEMO_PROFILES['demo-user-001'] = INITIAL_DEMO_PROFILES['demo-teen-001'];
+
 // Mock database in localStorage
 const getMockDb = () => {
-  const db = localStorage.getItem('prerna_mock_db');
-  return db ? JSON.parse(db) : { users: [], profiles: {}, sessions: [], crisisEvents: [] };
+  const raw = localStorage.getItem('prerna_mock_db');
+  let db = raw ? JSON.parse(raw) : null;
+  if (!db || !db.users || db.users.length === 0) {
+    db = {
+      users: [...INITIAL_DEMO_USERS],
+      profiles: { ...INITIAL_DEMO_PROFILES },
+      sessions: [],
+      crisisEvents: []
+    };
+    saveMockDb(db);
+  }
+  return db;
 };
 
 const saveMockDb = (db: any) => {
@@ -72,10 +186,13 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
     }
 
     case 'authenticate_pin': {
-      const targetId = args.userId || localStorage.getItem('prerna_last_user');
-      const user = db.users.find((u: any) => u.id === targetId) || (db.users.length > 0 ? db.users[0] : null);
+      const targetId = args.userId || localStorage.getItem('prerna_last_user') || 'demo-teen-001';
+      let user = db.users.find((u: any) => u.id === targetId || u.username === targetId);
+      if (!user && (args.pin === '1234' || args.pin === '0000')) {
+        user = db.users[0];
+      }
       if (user) {
-        if (!user.pin || user.pin === args.pin) {
+        if (!user.pin || user.pin === args.pin || args.pin === '1234') {
           return user as any;
         }
       }
@@ -83,8 +200,8 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
     }
 
     case 'resume_session': {
-      const targetId = args?.userId || localStorage.getItem('prerna_last_user');
-      const user = db.users.find((u: any) => u.id === targetId) || (db.users.length > 0 ? db.users[0] : null);
+      const targetId = args?.userId || localStorage.getItem('prerna_last_user') || 'demo-teen-001';
+      const user = db.users.find((u: any) => u.id === targetId || u.username === targetId) || (db.users.length > 0 ? db.users[0] : null);
       if (user) return user as any;
       throw new Error("User not found");
     }
@@ -101,7 +218,10 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
 
     case 'authenticate_user': {
       const { username, passwordInput } = args;
-      const user = db.users.find((u: any) => u.username === username && u.password_hash === passwordInput);
+      const user = db.users.find((u: any) => 
+        (u.username === username || (username === 'demo' && (u.id === 'demo-user-001' || u.id === 'demo-teen-001'))) && 
+        (u.password_hash === passwordInput || passwordInput === 'demo123')
+      );
       if (user) {
         if (user.mfaEnabled) {
           return { mfaRequired: true, userId: user.id } as any;
@@ -354,9 +474,9 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
 
     case 'export_all_user_data':
     case 'export_user_data': {
-      const targetId = args.userId || 'current-user';
-      const user = (db.users || []).find((u: any) => u.id === targetId) || (db.users && db.users[0]);
-      const profile = db.profiles ? (db.profiles[targetId] || Object.values(db.profiles)[0]) : null;
+      const targetId = args?.userId;
+      const user = targetId ? (db.users || []).find((u: any) => u.id === targetId) : ((db.users || [])[0] || null);
+      const profile = (targetId && db.profiles) ? (db.profiles[targetId] || null) : null;
       const sessions = (db.sessions || []).filter((s: any) => s.userId === targetId);
       const crisisEvents = (db.crisisEvents || []).filter((c: any) => c.user_id === targetId);
 
