@@ -10,11 +10,13 @@ import {
   Sparkles,
   Coffee,
   ShieldAlert,
-  Download
+  Download,
+  Building2
 } from 'lucide-react';
 import { CohortAnalytics } from './CohortAnalytics';
 import { TeacherVitalityCorner } from './TeacherVitalityCorner';
 import { InstitutionalCareHub } from './InstitutionalCareHub';
+import { InstitutionalAdminPortal } from './InstitutionalAdminPortal';
 import { SchoolLicensingModal } from '../subscription/SchoolLicensingModal';
 import { useSubscriptionStore } from '../../store/subscriptionStore';
 import { somaticAudio } from '../../utils/audioSynthesis';
@@ -24,7 +26,7 @@ interface SchoolDashboardProps {
 }
 
 export const SchoolDashboard: React.FC<SchoolDashboardProps> = ({ onSwitchPersona }) => {
-  const [activeTab, setActiveTab] = useState<'flourishing' | 'care' | 'teacher_vitality'>('flourishing');
+  const [activeTab, setActiveTab] = useState<'flourishing' | 'care' | 'teacher_vitality' | 'admin_provisioning'>('flourishing');
   const [showLicensingModal, setShowLicensingModal] = useState(false);
   const { schoolLicense, schoolPilotDaysRemaining } = useSubscriptionStore();
 
@@ -203,6 +205,18 @@ export const SchoolDashboard: React.FC<SchoolDashboardProps> = ({ onSwitchPerson
             <Coffee size={16} />
             <span>Teacher & Educator Vitality Corner</span>
           </button>
+
+          <button
+            onClick={() => { somaticAudio.playSoftChime(); setActiveTab('admin_provisioning'); }}
+            className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+              activeTab === 'admin_provisioning'
+                ? 'bg-slate-900 text-white shadow-sm'
+                : 'text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            <Building2 size={16} />
+            <span>Batch Provisioning & License Portal</span>
+          </button>
         </div>
 
         {/* Active Tab View */}
@@ -264,6 +278,10 @@ export const SchoolDashboard: React.FC<SchoolDashboardProps> = ({ onSwitchPerson
 
           {activeTab === 'teacher_vitality' && (
             <TeacherVitalityCorner />
+          )}
+
+          {activeTab === 'admin_provisioning' && (
+            <InstitutionalAdminPortal />
           )}
         </div>
 

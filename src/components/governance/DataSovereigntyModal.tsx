@@ -168,7 +168,20 @@ export const DataSovereigntyModal: React.FC<DataSovereigntyModalProps> = ({
       localStorage.removeItem('prerna_parent_linked');
       localStorage.removeItem('prerna_mock_db');
 
-      // 4. Logout from app store
+      // 4. Logout and reset all in-memory growth & vitality stores
+      useAppStore.setState({
+        user: null,
+        isAuthenticated: false,
+        profile: null,
+        sessions: [],
+        todaySessions: [],
+        journalEntries: [],
+        completedMitigations: {},
+        customMitigations: [],
+        trackedNeeds: [],
+        sleepSessions: [],
+        movementEntries: [],
+      });
       logout();
 
       setIsShredding(false);

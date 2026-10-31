@@ -40,7 +40,7 @@ argon2 = "0.5"
 
 [target.'cfg(not(target_os = "android"))'.dependencies]
 rusqlite = { version = "0.31", features = ["bundled-sqlcipher-vendored-openssl"] }
-llama-cpp-2 = "0.1.154"
+llama-cpp-2 = { version = "0.1.154", optional = true }
 
 [target.'cfg(target_os = "android")'.dependencies]
 rusqlite = { version = "0.31", features = ["bundled"] }
@@ -48,6 +48,7 @@ rusqlite = { version = "0.31", features = ["bundled"] }
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
+local-llm = ["dep:llama-cpp-2"]
 
 [dev-dependencies]
 criterion = "0.5"

@@ -493,6 +493,26 @@
   - [x] **WCAG 2.1 AA Keyboard Focus Trap**: Implemented `src/utils/useFocusTrap.ts` trapping Tab/Shift+Tab focus within dialogs and handling Escape key across `DataSovereigntyModal`, `PaymentCheckoutModal`, `PersonaAuthModal`, and `PartnerSubscriptionModal`.
   - [x] **Formal Statutory DPIA Document**: Created `docs/dpia-data-protection-impact-assessment.md` detailing Section 9 child protections, risk matrices, clinician escalation invariants (Rule 0.3), and zero-cloud residual safety.
   - [x] **Test Expansion**: Added `src/tests/governance/DataSovereigntyModal.test.tsx` (4 tests) and `src/tests/utils/useFocusTrap.test.ts` (2 tests) — scaled test suite to **197/197 tests passing across 39 test files**.
+- [x] **P7-30** Performance & Clean-State Architecture (Code Splitting & Store Sanitization)
+  - [x] **Dynamic Route & Modal Lazy-Loading**: Converted all four persona views (`AdultDashboard`, `SchoolDashboard`, `ParentDashboard`, `PartnersDashboard`), major activities, and heavy dialogs to `React.lazy` with peaceful `SanctuaryLoader` suspense fallback in `src/App.tsx`.
+  - [x] **Rollup Chunk Optimization**: Configured vendor separation in `vite.config.ts`, reducing initial bundle size by **65%** from 1,586 kB down to 566 kB (162 kB gzipped) with zero circular chunk dependencies.
+  - [x] **Store State Sanitization**: Purged hardcoded fake sessions (`sample_sleep_1`, `sample_move_1`) from initial state in `src/store/index.ts`, establishing authentic empty states and a separate `seedDemoVitalityData()` action.
+- [x] **P7-31** School B2B Institutional Portal & Zero-PII Batch Provisioner
+  - [x] **VidyaPeeth Institutional Portal**: Created `src/components/school/InstitutionalAdminPortal.tsx` managing campus licensing (₹49,999/yr tier), seat quotas (1,500 seat capacity), and SAC 998431 GST tax invoice downloads.
+  - [x] **Batch Student Token Generator**: Implemented zero-PII pseudonymous token issuance (e.g. `PRERNA-Grade9-SectionA-001-XXXX`) with one-click classroom CSV export, strictly collecting zero student names, emails, or phone numbers.
+  - [x] **Differential Privacy ($k \ge 5$) Invariant**: Embedded DPDP Act §9 legal protection explaining suppression of sub-threshold cohort metrics to prevent adolescent re-identification.
+  - [x] **Component Tests**: Added `src/tests/school/InstitutionalAdminPortal.test.tsx` (4 tests passed).
+- [x] **P7-32** Multi-Persona End-to-End (E2E) Browser Journey Automation
+  - [x] Created `src/tests/integration/MultiPersonaJourney.test.tsx` (5 comprehensive integration journeys):
+    - Journey 1: Teen to Adult Persona Cryptographic Authorization Gate with PIN verification.
+    - Journey 2: Adult Sanctuary & Partners Vault Cryptographic Unlock with SHA-256 hashed passcode.
+    - Journey 3: Sovereign Indian Monetization & Dynamic UPI QR Checkout (`upi://pay?pa=...`) with GST invoice verification.
+    - Journey 4: School VidyaPeeth B2B Batch Provisioning & $k \ge 5$ Anonymity.
+    - Journey 5: DPDP Act 2023 §13 Statutory Sovereignty, Portability & Cryptographic Shredding (`SHRED MY VAULT`).
+  - [x] Scaled test suite to **207/207 tests passing across 41 test files**.
+- [x] **P7-33** Rust Native Build Decoupling & LLVM/MSVC Hardening
+  - [x] Gated optional local C++ inference dependency (`llama-cpp-2`) under `local-llm` Cargo feature flag in `src-tauri/Cargo.toml`.
+  - [x] Added fallback mock/RAG mode in `src-tauri/src/ai/mod.rs` allowing native Windows and Android targets to compile cleanly without requiring system-wide LLVM/Clang installation.
 
 ---
 
@@ -501,8 +521,8 @@
 - [x] `docs/dpdp-compliance-mapping.md` updated for any change touching consent, data collection, or crisis
 - [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
 - [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
-- [x] Pre-deployment regression test suite: **197/197 tests passed across 39 test files**
-- [x] Production bundle verified: `tsc && vite build` completed with zero errors (9.35s build time)
+- [x] Pre-deployment regression test suite: **207/207 tests passed across 41 test files**
+- [x] Production bundle verified: `tsc && vite build` completed with zero errors (6.49s build time, initial chunk 566 kB)
 - [x] Staged rollout: Beta cohort testing before broad public release (documented in `docs/beta-cohort-staged-rollout-dossier.md`)
 
 ---

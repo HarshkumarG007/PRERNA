@@ -153,6 +153,7 @@ export interface AppState {
   logSleepSession: (session: Omit<SleepSession, 'id' | 'createdAt'>) => void;
   deleteSleepSession: (id: string) => void;
   logMovementEntry: (entry: Omit<MovementEntry, 'id'>) => void;
+  seedDemoVitalityData: () => void;
 }
 
 export interface VitalityProfile {
@@ -231,33 +232,12 @@ export const useAppStore = create<AppState>()(
       vitality: {
         heightCm: 162,
         weightKg: 52,
-        waterGlassesToday: 5,
+        waterGlassesToday: 0,
         lastWaterDate: new Date().toISOString().split('T')[0],
         dailyStepGoal: 8000,
       },
-      sleepSessions: [
-        {
-          id: 'sample_sleep_1',
-          bedtime: new Date(Date.now() - 28800000).toISOString(),
-          wakeTime: new Date(Date.now() - 1800000).toISOString(),
-          durationMinutes: 450,
-          cyclesCompleted: 5,
-          qualityRating: 5,
-          notes: 'Slept deeply after 432 Hz Theta lullaby',
-          createdAt: new Date().toISOString(),
-        }
-      ],
-      movementEntries: [
-        {
-          id: 'sample_move_1',
-          date: new Date().toISOString().split('T')[0],
-          steps: 6420,
-          activeMinutes: 35,
-          activityType: 'yoga',
-          heartRateBpm: 72,
-          notes: 'Surya Namaskar & evening stroll'
-        }
-      ],
+      sleepSessions: [],
+      movementEntries: [],
 
       // Actions
       login: async (userId: string) => {
@@ -712,6 +692,34 @@ export const useAppStore = create<AppState>()(
         set(state => ({
           movementEntries: [entry, ...state.movementEntries]
         }));
+      },
+
+      seedDemoVitalityData: () => {
+        set({
+          sleepSessions: [
+            {
+              id: 'sample_sleep_1',
+              bedtime: new Date(Date.now() - 28800000).toISOString(),
+              wakeTime: new Date(Date.now() - 1800000).toISOString(),
+              durationMinutes: 450,
+              cyclesCompleted: 5,
+              qualityRating: 5,
+              notes: 'Slept deeply after 432 Hz Theta lullaby',
+              createdAt: new Date().toISOString(),
+            }
+          ],
+          movementEntries: [
+            {
+              id: 'sample_move_1',
+              date: new Date().toISOString().split('T')[0],
+              steps: 6420,
+              activeMinutes: 35,
+              activityType: 'yoga',
+              heartRateBpm: 72,
+              notes: 'Surya Namaskar & evening stroll'
+            }
+          ]
+        });
       },
     }),
     {

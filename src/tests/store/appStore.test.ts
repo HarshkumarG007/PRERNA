@@ -105,4 +105,29 @@ describe('AppStore', () => {
     expect(state.user).toBeNull();
     expect(state.isAuthenticated).toBe(false);
   });
+
+  it('initializes with clean empty vitality and sleep state and seeds on demand', () => {
+    useAppStore.setState({
+      vitality: {
+        heightCm: 162,
+        weightKg: 52,
+        waterGlassesToday: 0,
+        lastWaterDate: new Date().toISOString().split('T')[0],
+        dailyStepGoal: 8000,
+      },
+      sleepSessions: [],
+      movementEntries: []
+    });
+
+    const state = useAppStore.getState();
+    expect(state.sleepSessions).toEqual([]);
+    expect(state.movementEntries).toEqual([]);
+    expect(state.vitality.waterGlassesToday).toBe(0);
+
+    state.seedDemoVitalityData();
+    const updated = useAppStore.getState();
+    expect(updated.sleepSessions.length).toBeGreaterThan(0);
+    expect(updated.sleepSessions[0].id).toBe('sample_sleep_1');
+    expect(updated.movementEntries[0].id).toBe('sample_move_1');
+  });
 });

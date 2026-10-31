@@ -1,47 +1,63 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { Routes, Route, Link, Navigate } from 'react-router-dom';
 import { LogOut, HeartHandshake, Menu, X, Lock } from 'lucide-react';
 import { useI18n, LANGUAGE_NAMES, Language } from './engine/localization/i18n';
 
 import { BetaOnboardingNotice } from './components/consent/BetaOnboardingNotice';
-import { LifeQuests } from './components/activities/LifeQuests';
-import { SkillArena } from './components/skills/SkillArena';
-import { MoodMirror } from './components/activities/MoodMirror';
-import { SocialCompass } from './components/activities/SocialCompass';
-import { AiMentorChat } from './components/mentor/AiMentorChat';
-import { TeenProfileView } from './components/dashboard/TeenProfileView';
 import { Dashboard } from './components/dashboard/Dashboard';
-import { SharedDashboardView } from './components/dashboard/SharedDashboardView';
 import { ResourceSurface } from './components/crisis/ResourceSurface';
 import { WelcomeScreen } from './components/welcome/WelcomeScreen';
 import { LoadingScreen } from './components/common/LoadingScreen';
 import { PrernaLogo } from './components/common/PrernaLogo';
-import { ParentDashboard } from './components/parent/ParentDashboard';
-import { SchoolDashboard } from './components/school/SchoolDashboard';
-import { RoleSelection } from './components/onboarding/RoleSelection';
-import { ParentLinking } from './components/onboarding/ParentLinking';
-import { SelfDiscoveryJourney } from './components/assessment/SelfDiscoveryJourney';
-import { deriveSixteenType } from './engine/assessment/sixteenPersonalities';
-import { SelfEvolutionSanctuary } from './components/growth/SelfEvolutionSanctuary';
-import { AtmaJnanaOriginModal } from './components/common/AtmaJnanaOriginModal';
-import { AboutDeveloperModal } from './components/common/AboutDeveloperModal';
-import { SomaticBreathingCompanion } from './components/growth/SomaticBreathingCompanion';
-import { LifeBlueprintExport } from './components/growth/LifeBlueprintExport';
-import { KayaKalpaSanctuary } from './components/vitality/KayaKalpaSanctuary';
 import { SanctuaryFooter } from './components/common/SanctuaryFooter';
-import { ClinicianLogin } from './components/clinical/ClinicianLogin';
-import { ReviewDashboard } from './components/clinical/ReviewDashboard';
 import { PersonaAuthModal } from './components/security/PersonaAuthModal';
-import { BetaFeedbackModal } from './components/beta/BetaFeedbackModal';
-import { ProductShowcaseModal } from './components/showcase/ProductShowcaseModal';
-import { MultiPersonaTourModal } from './components/showcase/MultiPersonaTourModal';
-import { DataSovereigntyModal } from './components/governance/DataSovereigntyModal';
-import { AdultDashboard } from './components/adult/AdultDashboard';
-import { PartnersDashboard } from './components/partners/dashboard/PartnersDashboard';
 import { PartnersGateModal } from './components/partners/auth/PartnersGateModal';
+import { deriveSixteenType } from './engine/assessment/sixteenPersonalities';
 import { somaticAudio } from './utils/audioSynthesis';
 import { usePartnerStore } from './store/partnerStore';
 import { useAppStore } from './store';
+
+// Lazy-loaded Persona Dashboards & Modular Subsystems
+const AdultDashboard = lazy(() => import('./components/adult/AdultDashboard').then(m => ({ default: m.AdultDashboard })));
+const PartnersDashboard = lazy(() => import('./components/partners/dashboard/PartnersDashboard').then(m => ({ default: m.PartnersDashboard })));
+const ParentDashboard = lazy(() => import('./components/parent/ParentDashboard').then(m => ({ default: m.ParentDashboard })));
+const SchoolDashboard = lazy(() => import('./components/school/SchoolDashboard').then(m => ({ default: m.SchoolDashboard })));
+const RoleSelection = lazy(() => import('./components/onboarding/RoleSelection').then(m => ({ default: m.RoleSelection })));
+const ParentLinking = lazy(() => import('./components/onboarding/ParentLinking').then(m => ({ default: m.ParentLinking })));
+const SelfDiscoveryJourney = lazy(() => import('./components/assessment/SelfDiscoveryJourney').then(m => ({ default: m.SelfDiscoveryJourney })));
+
+// Lazy-loaded Activities & Sanctuaries
+const LifeQuests = lazy(() => import('./components/activities/LifeQuests').then(m => ({ default: m.LifeQuests })));
+const SkillArena = lazy(() => import('./components/skills/SkillArena').then(m => ({ default: m.SkillArena })));
+const MoodMirror = lazy(() => import('./components/activities/MoodMirror').then(m => ({ default: m.MoodMirror })));
+const SocialCompass = lazy(() => import('./components/activities/SocialCompass').then(m => ({ default: m.SocialCompass })));
+const AiMentorChat = lazy(() => import('./components/mentor/AiMentorChat').then(m => ({ default: m.AiMentorChat })));
+const TeenProfileView = lazy(() => import('./components/dashboard/TeenProfileView').then(m => ({ default: m.TeenProfileView })));
+const SharedDashboardView = lazy(() => import('./components/dashboard/SharedDashboardView').then(m => ({ default: m.SharedDashboardView })));
+const SelfEvolutionSanctuary = lazy(() => import('./components/growth/SelfEvolutionSanctuary').then(m => ({ default: m.SelfEvolutionSanctuary })));
+const KayaKalpaSanctuary = lazy(() => import('./components/vitality/KayaKalpaSanctuary').then(m => ({ default: m.KayaKalpaSanctuary })));
+const SomaticBreathingCompanion = lazy(() => import('./components/growth/SomaticBreathingCompanion').then(m => ({ default: m.SomaticBreathingCompanion })));
+const LifeBlueprintExport = lazy(() => import('./components/growth/LifeBlueprintExport').then(m => ({ default: m.LifeBlueprintExport })));
+
+// Lazy-loaded Clinical Portal
+const ClinicianLogin = lazy(() => import('./components/clinical/ClinicianLogin').then(m => ({ default: m.ClinicianLogin })));
+const ReviewDashboard = lazy(() => import('./components/clinical/ReviewDashboard').then(m => ({ default: m.ReviewDashboard })));
+
+// Lazy-loaded Modals
+const AtmaJnanaOriginModal = lazy(() => import('./components/common/AtmaJnanaOriginModal').then(m => ({ default: m.AtmaJnanaOriginModal })));
+const AboutDeveloperModal = lazy(() => import('./components/common/AboutDeveloperModal').then(m => ({ default: m.AboutDeveloperModal })));
+const BetaFeedbackModal = lazy(() => import('./components/beta/BetaFeedbackModal').then(m => ({ default: m.BetaFeedbackModal })));
+const ProductShowcaseModal = lazy(() => import('./components/showcase/ProductShowcaseModal').then(m => ({ default: m.ProductShowcaseModal })));
+const MultiPersonaTourModal = lazy(() => import('./components/showcase/MultiPersonaTourModal').then(m => ({ default: m.MultiPersonaTourModal })));
+const DataSovereigntyModal = lazy(() => import('./components/governance/DataSovereigntyModal').then(m => ({ default: m.DataSovereigntyModal })));
+
+// Peaceful fallback loader for suspended chunks
+const SanctuaryLoader = () => (
+  <div className="flex flex-col items-center justify-center min-h-[40vh] p-8 text-center" role="status" aria-label="Loading sanctuary">
+    <div className="w-10 h-10 rounded-full border-2 border-indigo-400 border-t-transparent animate-spin mb-3" />
+    <p className="text-xs text-slate-500 font-medium tracking-wide">अवतरण · Loading Sanctuary...</p>
+  </div>
+);
 
 // No mock context needed anymore
 
@@ -123,65 +139,71 @@ function App() {
 
   if (isAuthenticated && user && !user.role) {
     return (
-      <RoleSelection 
-        onSelectTeen={() => updateRole('teen')} 
-        onSelectAdult={() => updateRole('adult')}
-        onSelectParent={() => updateRole('parent')} 
-        onSelectEducator={() => updateRole('educator')} 
-      />
+      <Suspense fallback={<SanctuaryLoader />}>
+        <RoleSelection 
+          onSelectTeen={() => updateRole('teen')} 
+          onSelectAdult={() => updateRole('adult')}
+          onSelectParent={() => updateRole('parent')} 
+          onSelectEducator={() => updateRole('educator')} 
+        />
+      </Suspense>
     );
   }
 
   // Teen must complete the deep questionnaire on first login
   if (isAuthenticated && user && user.role === 'teen' && !user.hasCompletedQuestionnaire) {
     return (
-      <SelfDiscoveryJourney
-        onComplete={async () => {
-          const fallbackProfile = {
-            userId: user.id,
-            generatedAt: new Date().toISOString(),
-            personality: {
-              bigFive: { openness: 68, conscientiousness: 72, extraversion: 64, agreeableness: 76, neuroticism: 38 },
-              riasec: { realistic: 48, investigative: 78, artistic: 70, social: 72, enterprising: 58, conventional: 52 },
-              emotional: { resilience: 74, empathy: 80, emotionalAwareness: 76, impulseControl: 70, socialIntuition: 72 },
-            },
-            cognition: {
-              logicalReasoning: 78,
-              verbalFluency: 74,
-              spatialIntelligence: 68,
-              creativeDivergence: 82,
-              processingSpeed: 72,
-              workingMemory: 74,
-              learningStyle: 'mixed',
-            },
-            archetype: {
-              name: 'The Navigator',
-              description: 'You are an insightful and empathetic explorer with an agile, curious mind.',
-              traits: ['Curious', 'Empathetic', 'Insightful']
-            },
-            wellbeingScore: 82,
-            strengths: ['Emotional Intuition', 'Creative Problem-Solving', 'Empathy'],
-            growthAreas: ['Focus Consistency', 'Boundary Setting'],
-            sixteenType: deriveSixteenType({ openness: 68, conscientiousness: 72, extraversion: 64, agreeableness: 76, neuroticism: 38 }),
-          };
-          if (!useAppStore.getState().profile) {
-            useAppStore.getState().updateProfile(fallbackProfile as any);
-          }
-          await useAppStore.getState().completeQuestionnaire();
-        }}
-      />
+      <Suspense fallback={<SanctuaryLoader />}>
+        <SelfDiscoveryJourney
+          onComplete={async () => {
+            const fallbackProfile = {
+              userId: user.id,
+              generatedAt: new Date().toISOString(),
+              personality: {
+                bigFive: { openness: 68, conscientiousness: 72, extraversion: 64, agreeableness: 76, neuroticism: 38 },
+                riasec: { realistic: 48, investigative: 78, artistic: 70, social: 72, enterprising: 58, conventional: 52 },
+                emotional: { resilience: 74, empathy: 80, emotionalAwareness: 76, impulseControl: 70, socialIntuition: 72 },
+              },
+              cognition: {
+                logicalReasoning: 78,
+                verbalFluency: 74,
+                spatialIntelligence: 68,
+                creativeDivergence: 82,
+                processingSpeed: 72,
+                workingMemory: 74,
+                learningStyle: 'mixed',
+              },
+              archetype: {
+                name: 'The Navigator',
+                description: 'You are an insightful and empathetic explorer with an agile, curious mind.',
+                traits: ['Curious', 'Empathetic', 'Insightful']
+              },
+              wellbeingScore: 82,
+              strengths: ['Emotional Intuition', 'Creative Problem-Solving', 'Empathy'],
+              growthAreas: ['Focus Consistency', 'Boundary Setting'],
+              sixteenType: deriveSixteenType({ openness: 68, conscientiousness: 72, extraversion: 64, agreeableness: 76, neuroticism: 38 }),
+            };
+            if (!useAppStore.getState().profile) {
+              useAppStore.getState().updateProfile(fallbackProfile as any);
+            }
+            await useAppStore.getState().completeQuestionnaire();
+          }}
+        />
+      </Suspense>
     );
   }
 
   if (isAuthenticated && user && user.role === 'parent' && !parentLinked) {
     return (
-      <ParentLinking 
-        onLinkSuccess={() => {
-          localStorage.setItem('prerna_parent_linked', 'true');
-          setParentLinked(true);
-        }} 
-        onBack={() => updateRole(undefined as any)} 
-      />
+      <Suspense fallback={<SanctuaryLoader />}>
+        <ParentLinking 
+          onLinkSuccess={() => {
+            localStorage.setItem('prerna_parent_linked', 'true');
+            setParentLinked(true);
+          }} 
+          onBack={() => updateRole(undefined as any)} 
+        />
+      </Suspense>
     );
   }
 
@@ -230,7 +252,9 @@ function App() {
           </div>
         </header>
         <main className="flex-grow">
-          <ParentDashboard onExit={() => setShowPersonaModal(true)} />
+          <Suspense fallback={<SanctuaryLoader />}>
+            <ParentDashboard onExit={() => setShowPersonaModal(true)} />
+          </Suspense>
         </main>
         <SanctuaryFooter 
           onOpenBetaFeedback={() => setShowBetaFeedback(true)}
@@ -239,28 +263,43 @@ function App() {
           onOpenDataGovernance={() => setShowDataGovernance(true)}
         />
 
-        <PersonaAuthModal
-          isOpen={showPersonaModal}
-          onClose={() => setShowPersonaModal(false)}
-          onAuthorize={handleRoleAuthorize}
-        />
+        <Suspense fallback={null}>
+          <PersonaAuthModal
+            isOpen={showPersonaModal}
+            onClose={() => setShowPersonaModal(false)}
+            onAuthorize={handleRoleAuthorize}
+          />
 
-        <BetaFeedbackModal
-          isOpen={showBetaFeedback}
-          onClose={() => setShowBetaFeedback(false)}
-        />
+          {showBetaFeedback && (
+            <BetaFeedbackModal
+              isOpen={showBetaFeedback}
+              onClose={() => setShowBetaFeedback(false)}
+            />
+          )}
 
-        <ProductShowcaseModal
-          isOpen={showProductShowcase}
-          onClose={() => setShowProductShowcase(false)}
-        />
+          {showProductShowcase && (
+            <ProductShowcaseModal
+              isOpen={showProductShowcase}
+              onClose={() => setShowProductShowcase(false)}
+            />
+          )}
 
-        <MultiPersonaTourModal
-          isOpen={showPersonaTour}
-          onClose={() => setShowPersonaTour(false)}
-          onSelectPersona={handleRoleAuthorize}
-          currentRole={user.role}
-        />
+          {showPersonaTour && (
+            <MultiPersonaTourModal
+              isOpen={showPersonaTour}
+              onClose={() => setShowPersonaTour(false)}
+              onSelectPersona={handleTourPersonaSelect}
+              currentRole={user.role}
+            />
+          )}
+
+          {showDataGovernance && (
+            <DataSovereigntyModal
+              isOpen={showDataGovernance}
+              onClose={() => setShowDataGovernance(false)}
+            />
+          )}
+        </Suspense>
       </div>
     );
   }
@@ -268,7 +307,9 @@ function App() {
   if (isAuthenticated && user && user.role === 'adult') {
     if (isInPartnersView) {
       return (
-        <PartnersDashboard onQuickExit={() => setIsInPartnersView(false)} />
+        <Suspense fallback={<SanctuaryLoader />}>
+          <PartnersDashboard onQuickExit={() => setIsInPartnersView(false)} />
+        </Suspense>
       );
     }
 
@@ -329,10 +370,12 @@ function App() {
           </div>
         </header>
         <main className="flex-grow">
-          <AdultDashboard 
-            onEnterPartners={() => setIsInPartnersView(true)} 
-            onSwitchPersona={() => setShowPersonaModal(true)} 
-          />
+          <Suspense fallback={<SanctuaryLoader />}>
+            <AdultDashboard 
+              onEnterPartners={() => setIsInPartnersView(true)} 
+              onSwitchPersona={() => setShowPersonaModal(true)} 
+            />
+          </Suspense>
         </main>
         <SanctuaryFooter 
           onOpenBetaFeedback={() => setShowBetaFeedback(true)}
@@ -341,37 +384,52 @@ function App() {
           onOpenDataGovernance={() => setShowDataGovernance(true)}
         />
 
-        <PersonaAuthModal
-          isOpen={showPersonaModal}
-          onClose={() => setShowPersonaModal(false)}
-          onAuthorize={handleRoleAuthorize}
-        />
+        <Suspense fallback={null}>
+          <PersonaAuthModal
+            isOpen={showPersonaModal}
+            onClose={() => setShowPersonaModal(false)}
+            onAuthorize={handleRoleAuthorize}
+          />
 
-        <BetaFeedbackModal
-          isOpen={showBetaFeedback}
-          onClose={() => setShowBetaFeedback(false)}
-        />
+          {showBetaFeedback && (
+            <BetaFeedbackModal
+              isOpen={showBetaFeedback}
+              onClose={() => setShowBetaFeedback(false)}
+            />
+          )}
 
-        <ProductShowcaseModal
-          isOpen={showProductShowcase}
-          onClose={() => setShowProductShowcase(false)}
-        />
+          {showProductShowcase && (
+            <ProductShowcaseModal
+              isOpen={showProductShowcase}
+              onClose={() => setShowProductShowcase(false)}
+            />
+          )}
 
-        <PartnersGateModal
-          isOpen={showPartnersGateModal}
-          onClose={() => setShowPartnersGateModal(false)}
-          onUnlocked={() => {
-            setShowPartnersGateModal(false);
-            setIsInPartnersView(true);
-          }}
-        />
+          <PartnersGateModal
+            isOpen={showPartnersGateModal}
+            onClose={() => setShowPartnersGateModal(false)}
+            onUnlocked={() => {
+              setShowPartnersGateModal(false);
+              setIsInPartnersView(true);
+            }}
+          />
 
-        <MultiPersonaTourModal
-          isOpen={showPersonaTour}
-          onClose={() => setShowPersonaTour(false)}
-          onSelectPersona={handleRoleAuthorize}
-          currentRole={user.role}
-        />
+          {showPersonaTour && (
+            <MultiPersonaTourModal
+              isOpen={showPersonaTour}
+              onClose={() => setShowPersonaTour(false)}
+              onSelectPersona={handleTourPersonaSelect}
+              currentRole={user.role}
+            />
+          )}
+
+          {showDataGovernance && (
+            <DataSovereigntyModal
+              isOpen={showDataGovernance}
+              onClose={() => setShowDataGovernance(false)}
+            />
+          )}
+        </Suspense>
       </div>
     );
   }
@@ -421,7 +479,9 @@ function App() {
           </div>
         </header>
         <main className="flex-grow">
-          <SchoolDashboard onSwitchPersona={() => setShowPersonaModal(true)} />
+          <Suspense fallback={<SanctuaryLoader />}>
+            <SchoolDashboard onSwitchPersona={() => setShowPersonaModal(true)} />
+          </Suspense>
         </main>
         <SanctuaryFooter 
           onOpenBetaFeedback={() => setShowBetaFeedback(true)}
@@ -430,33 +490,43 @@ function App() {
           onOpenDataGovernance={() => setShowDataGovernance(true)}
         />
 
-        <PersonaAuthModal
-          isOpen={showPersonaModal}
-          onClose={() => setShowPersonaModal(false)}
-          onAuthorize={handleRoleAuthorize}
-        />
+        <Suspense fallback={null}>
+          <PersonaAuthModal
+            isOpen={showPersonaModal}
+            onClose={() => setShowPersonaModal(false)}
+            onAuthorize={handleRoleAuthorize}
+          />
 
-        <BetaFeedbackModal
-          isOpen={showBetaFeedback}
-          onClose={() => setShowBetaFeedback(false)}
-        />
+          {showBetaFeedback && (
+            <BetaFeedbackModal
+              isOpen={showBetaFeedback}
+              onClose={() => setShowBetaFeedback(false)}
+            />
+          )}
 
-        <ProductShowcaseModal
-          isOpen={showProductShowcase}
-          onClose={() => setShowProductShowcase(false)}
-        />
+          {showProductShowcase && (
+            <ProductShowcaseModal
+              isOpen={showProductShowcase}
+              onClose={() => setShowProductShowcase(false)}
+            />
+          )}
 
-        <MultiPersonaTourModal
-          isOpen={showPersonaTour}
-          onClose={() => setShowPersonaTour(false)}
-          onSelectPersona={handleRoleAuthorize}
-          currentRole={user.role}
-        />
+          {showPersonaTour && (
+            <MultiPersonaTourModal
+              isOpen={showPersonaTour}
+              onClose={() => setShowPersonaTour(false)}
+              onSelectPersona={handleTourPersonaSelect}
+              currentRole={user.role}
+            />
+          )}
 
-        <ProductShowcaseModal
-          isOpen={showProductShowcase}
-          onClose={() => setShowProductShowcase(false)}
-        />
+          {showDataGovernance && (
+            <DataSovereigntyModal
+              isOpen={showDataGovernance}
+              onClose={() => setShowDataGovernance(false)}
+            />
+          )}
+        </Suspense>
       </div>
     );
   }
@@ -705,6 +775,7 @@ function App() {
 
       <main className="flex-grow flex flex-col">
         <div className="flex-grow w-full mx-auto animate-fade-in-up">
+        <Suspense fallback={<SanctuaryLoader />}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/beta" element={<BetaOnboardingNotice onAccept={() => { localStorage.setItem('prerna_beta_consented', 'true'); }} />} />
@@ -746,7 +817,7 @@ function App() {
           <Route path="/showcase" element={<ProductShowcaseModal isOpen={true} onClose={() => window.history.back()} />} />
           <Route path="/pitch" element={<ProductShowcaseModal isOpen={true} onClose={() => window.history.back()} />} />
           <Route path="/deck" element={<ProductShowcaseModal isOpen={true} onClose={() => window.history.back()} />} />
-          <Route path="/tour" element={<MultiPersonaTourModal isOpen={true} onClose={() => window.history.back()} onSelectPersona={handleRoleAuthorize} currentRole={user.role} />} />
+          <Route path="/tour" element={<MultiPersonaTourModal isOpen={true} onClose={() => window.history.back()} onSelectPersona={handleTourPersonaSelect} currentRole={user.role} />} />
           <Route path="/feedback" element={<BetaFeedbackModal isOpen={true} onClose={() => window.history.back()} />} />
           <Route path="/beta-feedback" element={<BetaFeedbackModal isOpen={true} onClose={() => window.history.back()} />} />
           <Route path="/adult-dash" element={
@@ -774,6 +845,7 @@ function App() {
               <ReviewDashboard />
           } />
         </Routes>
+        </Suspense>
         </div>
       </main>
 
@@ -785,50 +857,57 @@ function App() {
         onOpenDataGovernance={() => setShowDataGovernance(true)}
       />
 
-      {/* Global Atma-Jnana Philosophy Modal */}
-      <AtmaJnanaOriginModal
-        isOpen={showAtmaModal}
-        onClose={() => setShowAtmaModal(false)}
-      />
+      <Suspense fallback={null}>
+        {showAtmaModal && (
+          <AtmaJnanaOriginModal
+            isOpen={showAtmaModal}
+            onClose={() => setShowAtmaModal(false)}
+          />
+        )}
 
-      {/* Global About Developer Profile Modal */}
-      <AboutDeveloperModal
-        isOpen={showDevModal}
-        onClose={() => setShowDevModal(false)}
-      />
+        {showDevModal && (
+          <AboutDeveloperModal
+            isOpen={showDevModal}
+            onClose={() => setShowDevModal(false)}
+          />
+        )}
 
-      {/* Global Persona Authentication Modal */}
-      <PersonaAuthModal
-        isOpen={showPersonaModal}
-        onClose={() => setShowPersonaModal(false)}
-        onAuthorize={handleRoleAuthorize}
-      />
+        <PersonaAuthModal
+          isOpen={showPersonaModal}
+          onClose={() => setShowPersonaModal(false)}
+          onAuthorize={handleRoleAuthorize}
+        />
 
-      {/* Global Zero-Telemetry Beta Feedback Modal */}
-      <BetaFeedbackModal
-        isOpen={showBetaFeedback}
-        onClose={() => setShowBetaFeedback(false)}
-      />
+        {showBetaFeedback && (
+          <BetaFeedbackModal
+            isOpen={showBetaFeedback}
+            onClose={() => setShowBetaFeedback(false)}
+          />
+        )}
 
-      {/* Global Product Showcase & Pitch Deck Modal */}
-      <ProductShowcaseModal
-        isOpen={showProductShowcase}
-        onClose={() => setShowProductShowcase(false)}
-      />
+        {showProductShowcase && (
+          <ProductShowcaseModal
+            isOpen={showProductShowcase}
+            onClose={() => setShowProductShowcase(false)}
+          />
+        )}
 
-      {/* Global Multi-Persona Ecosystem Tour Modal */}
-      <MultiPersonaTourModal
-        isOpen={showPersonaTour}
-        onClose={() => setShowPersonaTour(false)}
-        onSelectPersona={handleTourPersonaSelect}
-        currentRole={user?.role}
-      />
+        {showPersonaTour && (
+          <MultiPersonaTourModal
+            isOpen={showPersonaTour}
+            onClose={() => setShowPersonaTour(false)}
+            onSelectPersona={handleTourPersonaSelect}
+            currentRole={user?.role}
+          />
+        )}
 
-      {/* Global DPDP Act 2023 §13 Data Sovereignty & Portability Suite */}
-      <DataSovereigntyModal
-        isOpen={showDataGovernance}
-        onClose={() => setShowDataGovernance(false)}
-      />
+        {showDataGovernance && (
+          <DataSovereigntyModal
+            isOpen={showDataGovernance}
+            onClose={() => setShowDataGovernance(false)}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }

@@ -2,9 +2,9 @@
 //! Optimized for RTX 4060 (8GB VRAM)
 
 use anyhow::{Context, Result};
-#[cfg(not(target_os = "android"))]
+#[cfg(all(not(target_os = "android"), feature = "local-llm"))]
 use llama_cpp_2::llama_backend::LlamaBackend;
-#[cfg(not(target_os = "android"))]
+#[cfg(all(not(target_os = "android"), feature = "local-llm"))]
 use llama_cpp_2::model::{params::LlamaModelParams, LlamaModel};
 use log::info;
 use std::path::PathBuf;
@@ -32,9 +32,9 @@ pub enum MentorModel {
 
 pub struct LocalLLM {
     _model_variant: MentorModel,
-    #[cfg(not(target_os = "android"))]
+    #[cfg(all(not(target_os = "android"), feature = "local-llm"))]
     _model: Arc<LlamaModel>,
-    #[cfg(not(target_os = "android"))]
+    #[cfg(all(not(target_os = "android"), feature = "local-llm"))]
     _backend: Arc<LlamaBackend>,
     safety_filter: SafetyFilter,
     rag_engine: Arc<DomainRag>,
@@ -47,9 +47,9 @@ impl LocalLLM {
     pub fn new(app_handle: &tauri::AppHandle) -> Result<Self> {
         info!("Initializing local LLM...");
 
-        #[cfg(target_os = "android")]
+        #[cfg(any(target_os = "android", not(feature = "local-llm")))]
         {
-            info!("Android platform: running AI in mobile mock/RAG mode");
+            info!("Running AI in local mock/RAG mode (native local-llm feature disabled or mobile target)");
             return Ok(Self {
                 _model_variant: MentorModel::RagHybrid {
                     base: PathBuf::new(),
@@ -62,7 +62,7 @@ impl LocalLLM {
             });
         }
 
-        #[cfg(not(target_os = "android"))]
+        #[cfg(all(not(target_os = "android"), feature = "local-llm"))]
         {
             let backend = Arc::new(LlamaBackend::init()?);
 
