@@ -531,138 +531,33 @@ function App() {
     );
   }
 
-  // Helper for two-line stacked navigation labels (halves horizontal footprint)
-  const renderStackedNav = (fullText: string) => {
-    const parts = fullText.split(/[\s-]+/);
-    if (parts.length >= 2) {
-      return (
-        <span className="flex flex-col items-center justify-center leading-none text-center">
-          <span className="text-[11px] font-bold tracking-tight text-slate-700 group-hover:text-indigo-600">{parts[0]}</span>
-          <span className="text-[10px] font-semibold text-slate-500 group-hover:text-indigo-600 tracking-tight mt-0.5">{parts.slice(1).join(' ')}</span>
-        </span>
-      );
-    }
-    return <span className="text-xs font-bold text-slate-700 group-hover:text-indigo-600">{fullText}</span>;
-  };
-
   return (
     <div className="min-h-screen flex flex-col font-sans bg-slate-50">
-        <header className="sticky top-0 z-50 glass-panel !rounded-none !border-x-0 !border-t-0 shadow-sm transition-all duration-300">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 px-3 py-1.5 md:px-5">
-            {/* Left: Brand + Two-Line Stacked Nav */}
-            <div className="flex items-center gap-2.5 lg:gap-3.5 min-w-0">
-              <Link to="/" className="flex items-center gap-2 group flex-shrink-0" title="PRERNA Sanctuary Home">
-                <PrernaLogo variant="compact" size="sm" />
-              </Link>
-              
-              <nav className="hidden lg:flex items-center gap-1 md:gap-1.5 min-w-0">
-                <Link to="/quests" className="px-2 py-1 rounded-xl hover:bg-slate-100/90 transition-colors group flex items-center justify-center flex-shrink-0" title="Life Quests">
-                  {renderStackedNav(t('nav.life_quests', 'Life Quests'))}
-                </Link>
-                <Link to="/arena" className="px-2 py-1 rounded-xl hover:bg-slate-100/90 transition-colors group flex items-center justify-center flex-shrink-0" title="Skill Arena">
-                  {renderStackedNav(t('nav.skill_arena', 'Skill Arena'))}
-                </Link>
-                <Link to="/mood" className="px-2 py-1 rounded-xl hover:bg-slate-100/90 transition-colors group flex items-center justify-center flex-shrink-0" title="Mood Mirror">
-                  {renderStackedNav(t('nav.mood_mirror', 'Mood Mirror'))}
-                </Link>
-                <Link to="/social" className="px-2 py-1 rounded-xl hover:bg-slate-100/90 transition-colors group flex items-center justify-center flex-shrink-0" title="Social Compass">
-                  {renderStackedNav(t('nav.social_compass', 'Social Compass'))}
-                </Link>
-                <Link to="/mentor" className="px-2 py-1 rounded-xl hover:bg-slate-100/90 transition-colors group flex items-center justify-center flex-shrink-0" title="AI Mentor">
-                  {renderStackedNav(t('nav.ai_mentor', 'AI Mentor'))}
-                </Link>
-                <Link to="/evolution" className="px-2 py-1 rounded-xl hover:bg-slate-100/90 transition-colors group flex items-center justify-center flex-shrink-0" title="Self-Evolution">
-                  <span className="flex flex-col items-center justify-center leading-none text-center">
-                    <span className="text-[11px] font-bold tracking-tight text-slate-700 group-hover:text-indigo-600">Self</span>
-                    <span className="text-[10px] font-semibold text-slate-500 group-hover:text-indigo-600 tracking-tight mt-0.5">Evolution</span>
-                  </span>
-                </Link>
-                <Link to="/vitality" className="px-2 py-1 rounded-xl hover:bg-slate-100/90 transition-colors group flex items-center justify-center flex-shrink-0" title="Kaya Kalpa: Physical Vitality, Circadian Rhythm & Sleep Sanctuary">
-                  <span className="flex flex-col items-center justify-center leading-none text-center">
-                    <span className="text-[11px] font-bold tracking-tight text-slate-700 group-hover:text-emerald-700">Kaya</span>
-                    <span className="text-[10px] font-semibold text-slate-500 group-hover:text-emerald-700 tracking-tight mt-0.5">Kalpa</span>
-                  </span>
-                </Link>
-                <Link to="/profile" className="px-2 py-1 rounded-xl hover:bg-slate-100/90 transition-colors group flex items-center justify-center flex-shrink-0" title="Teen Dash">
-                  {renderStackedNav(t('nav.profile', 'Teen Dash'))}
-                </Link>
-                
-                {/* Fast Access Somatic Coherence Pacer (Two-Line Stacked) */}
-                <Link 
-                  to="/breathe" 
-                  className="px-2 py-1 rounded-xl bg-emerald-50/80 hover:bg-emerald-100 text-emerald-800 transition-colors border border-emerald-200/80 shadow-2xs group flex flex-col items-center justify-center flex-shrink-0"
-                  title="432 Hz Somatic Coherence Pacer"
-                >
-                  <span className="text-[10px] font-bold leading-none flex items-center gap-0.5">
-                    <span>🫁</span>
-                    <span>432Hz</span>
-                  </span>
-                  <span className="text-[9px] font-bold text-emerald-700 leading-none mt-0.5">Breathe</span>
-                </Link>
-              </nav>
-            </div>
+        <header className="sticky top-0 z-40 glass-panel !rounded-none !border-x-0 !border-t-0 shadow-sm transition-all duration-300">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 px-3 py-2 sm:px-6">
+            {/* Left: Brand / Logo - Guaranteed full clear space across all viewports */}
+            <Link to="/" className="flex items-center gap-2 group flex-shrink-0" title="PRERNA Sanctuary Home">
+              <PrernaLogo variant="compact" size="sm" />
+            </Link>
             
-            {/* Right: Actions, Language, Persona & Auth (Two-Line Stacked Compact Items) */}
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              {/* Atma-Jnana Vision & Creed */}
-              <button
-                onClick={() => setShowAtmaModal(true)}
-                className="flex flex-col items-center justify-center px-2 py-1 rounded-xl text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors shadow-2xs cursor-pointer group"
-                title="आत्मज्ञान: Origin, Kabir's Creed & Vision"
-              >
-                <span className="text-[11px] leading-none">🪷</span>
-                <span className="text-[9px] font-bold leading-tight text-amber-900 mt-0.5">आत्मज्ञान</span>
-              </button>
-
-              {/* Developer Profile */}
-              <button
-                onClick={() => setShowDevModal(true)}
-                className="flex flex-col items-center justify-center px-2 py-1 rounded-xl text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors shadow-2xs cursor-pointer group"
-                title="Meet the Developer: Harsh Kumar Gupta"
-              >
-                <span className="text-[11px] leading-none">👨‍💻</span>
-                <span className="text-[9px] font-bold leading-tight text-indigo-900 mt-0.5">Developer</span>
-              </button>
-
-              {/* Multi-Persona Ecosystem Tour */}
-              <button
-                onClick={() => {
-                  somaticAudio.playSoftChime();
-                  setShowPersonaTour(true);
-                }}
-                className="flex flex-col items-center justify-center px-2 py-1 rounded-xl text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors shadow-2xs cursor-pointer group"
-                title="Ecosystem Tour: 4 Sovereign Personas"
-              >
-                <span className="text-[11px] leading-none">🧭</span>
-                <span className="text-[9px] font-bold leading-tight text-amber-900 mt-0.5">Tour</span>
-              </button>
-
-              {/* Product Showcase & Pitch Deck */}
-              <button
-                onClick={() => setShowProductShowcase(true)}
-                className="flex flex-col items-center justify-center px-2 py-1 rounded-xl text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 transition-colors shadow-2xs cursor-pointer group"
-                title="Product Showcase & Pitch Deck"
-              >
-                <span className="text-[11px] leading-none">✨</span>
-                <span className="text-[9px] font-bold leading-tight text-violet-900 mt-0.5">Showcase</span>
-              </button>
-              
-              {/* Confidential Helplines */}
+            {/* Right: Exactly 3 non-colliding controls (Helplines, Language, Slide Menu) */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Helplines (Emergency / Support Quick Access) */}
               <Link
                 to="/support"
-                className="flex flex-col items-center justify-center px-2 py-1 rounded-xl text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors shadow-2xs group"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors shadow-2xs group cursor-pointer"
                 title="Always-on confidential helplines and calming tools"
               >
-                <HeartHandshake size={12} className="text-rose-600" />
-                <span className="text-[9px] font-bold leading-tight text-rose-800 mt-0.5">{t('nav.support', 'Helplines')}</span>
+                <HeartHandshake size={15} className="text-rose-600 flex-shrink-0" />
+                <span className="text-xs font-bold text-rose-800 hidden sm:inline">{t('nav.support', 'Helplines')}</span>
               </Link>
-              
+
               {/* Language Selector */}
               <div className="relative">
                 <select
                   value={language}
                   onChange={(e) => setLanguage(e.target.value as Language)}
-                  className="appearance-none pl-2 pr-5 py-1.5 bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 rounded-xl text-[11px] font-bold transition-colors border border-indigo-200 cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="appearance-none pl-2.5 pr-6 py-1.5 bg-indigo-50/90 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold transition-colors border border-indigo-200 cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   title="Select language"
                 >
                   {Object.entries(LANGUAGE_NAMES).map(([code, name]) => (
@@ -671,107 +566,295 @@ function App() {
                     </option>
                   ))}
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1 text-indigo-700">
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-indigo-700">
                   <svg className="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                 </div>
               </div>
 
-              {/* Persona Switcher */}
+              {/* Universal Sliding Navigation Drawer Trigger */}
               <button
-                onClick={() => setShowPersonaModal(true)}
-                className="flex flex-col items-center justify-center px-2 py-1 rounded-xl text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100 border border-indigo-200 transition-colors shadow-2xs cursor-pointer"
-                title="Click to securely switch persona (Teen, Parent, or Educator)"
+                onClick={() => {
+                  somaticAudio.playSoftChime();
+                  setMobileMenuOpen(true);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 active:scale-95 border border-indigo-500 transition-all shadow-sm cursor-pointer"
+                title="Open Navigation Menu"
+                aria-label="Open Navigation Menu"
               >
-                <span className="text-[10px] font-bold leading-none">👤 Teen</span>
-                <span className="text-[9px] text-indigo-500 font-normal leading-tight">(Switch)</span>
-              </button>
-
-              {/* Log out */}
-              <button
-                onClick={logout}
-                title="Log out"
-                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
-                aria-label="Log out"
-              >
-                <LogOut size={15} />
-              </button>
-
-              {/* Mobile Menu Toggle (screens < lg) */}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-1.5 text-slate-600 hover:text-indigo-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
-                title="Toggle navigation"
-                aria-label="Toggle navigation"
-              >
-                {mobileMenuOpen ? <X size={16} /> : <Menu size={16} />}
+                <Menu size={16} />
+                <span className="text-xs font-bold tracking-tight">Menu</span>
               </button>
             </div>
           </div>
+        </header>
 
-          {/* Mobile Drawer (visible when mobileMenuOpen is true on small screens) */}
-          {mobileMenuOpen && (
-            <div className="lg:hidden w-full border-t border-slate-200/80 bg-white/95 backdrop-blur-md px-3 py-3 shadow-lg animate-fade-in-down">
-              <div className="grid grid-cols-3 gap-2">
-                <Link onClick={() => setMobileMenuOpen(false)} to="/quests" className="p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200/60 flex flex-col items-center text-center">
-                  <span className="text-xs font-bold text-slate-800">Life Quests</span>
-                  <span className="text-[10px] text-slate-500">Adventures</span>
-                </Link>
-                <Link onClick={() => setMobileMenuOpen(false)} to="/arena" className="p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200/60 flex flex-col items-center text-center">
-                  <span className="text-xs font-bold text-slate-800">Skill Arena</span>
-                  <span className="text-[10px] text-slate-500">Badges & XP</span>
-                </Link>
-                <Link onClick={() => setMobileMenuOpen(false)} to="/mood" className="p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200/60 flex flex-col items-center text-center">
-                  <span className="text-xs font-bold text-slate-800">Mood Mirror</span>
-                  <span className="text-[10px] text-slate-500">Balance</span>
-                </Link>
-                <Link onClick={() => setMobileMenuOpen(false)} to="/social" className="p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200/60 flex flex-col items-center text-center">
-                  <span className="text-xs font-bold text-slate-800">Social Compass</span>
-                  <span className="text-[10px] text-slate-500">Peers</span>
-                </Link>
-                <Link onClick={() => setMobileMenuOpen(false)} to="/mentor" className="p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200/60 flex flex-col items-center text-center">
-                  <span className="text-xs font-bold text-slate-800">AI Mentor</span>
-                  <span className="text-[10px] text-slate-500">Guidance</span>
-                </Link>
-                <Link onClick={() => setMobileMenuOpen(false)} to="/evolution" className="p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200/60 flex flex-col items-center text-center">
-                  <span className="text-xs font-bold text-slate-800">Self-Evolution</span>
-                  <span className="text-[10px] text-slate-500">Journal</span>
-                </Link>
-                <Link onClick={() => setMobileMenuOpen(false)} to="/vitality" className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 flex flex-col items-center text-center">
-                  <span className="text-xs font-bold text-emerald-800">Kaya Kalpa</span>
-                  <span className="text-[10px] text-emerald-600">Vitality & Sleep</span>
-                </Link>
-                <Link onClick={() => setMobileMenuOpen(false)} to="/breathe" className="p-2 rounded-xl bg-teal-50 hover:bg-teal-100 border border-teal-200/80 flex flex-col items-center text-center">
-                  <span className="text-xs font-bold text-teal-800">🫁 432Hz</span>
-                  <span className="text-[10px] text-teal-600">Breathe</span>
-                </Link>
-                <Link onClick={() => setMobileMenuOpen(false)} to="/profile" className="p-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 flex flex-col items-center text-center">
-                  <span className="text-xs font-bold text-indigo-800">Teen Dash</span>
-                  <span className="text-[10px] text-indigo-600">Milestones</span>
-                </Link>
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    setShowProductShowcase(true);
-                  }}
-                  className="p-2 rounded-xl bg-violet-50 hover:bg-violet-100 border border-violet-200/80 flex flex-col items-center text-center cursor-pointer"
-                >
-                  <span className="text-xs font-bold text-violet-800">✨ Showcase</span>
-                  <span className="text-[10px] text-violet-600">Pitch Deck</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    setShowBetaFeedback(true);
-                  }}
-                  className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 flex flex-col items-center text-center cursor-pointer"
-                >
-                  <span className="text-xs font-bold text-emerald-800">💌 Feedback</span>
-                  <span className="text-[10px] text-emerald-600">Beta Journal</span>
-                </button>
+        {/* Sliding Navigation Drawer (Responsive across all screen ratios & aspect sizes) */}
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 z-50 overflow-hidden animate-fade-in" role="dialog" aria-modal="true" aria-label="Navigation Menu">
+            {/* Backdrop Blur Overlay */}
+            <div 
+              className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" 
+              onClick={() => setMobileMenuOpen(false)}
+            />
+
+            {/* Slide-out Panel from Right */}
+            <div className="fixed inset-y-0 right-0 max-w-full flex pl-8">
+              <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col border-l border-slate-200">
+                {/* Drawer Header */}
+                <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200/80 bg-slate-50/90 backdrop-blur-sm">
+                  <div className="flex items-center gap-2">
+                    <PrernaLogo variant="compact" size="sm" />
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Sanctuary Menu</span>
+                  </div>
+                  <button
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-200/60 transition-colors cursor-pointer"
+                    aria-label="Close menu"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                {/* Drawer Scrollable Body */}
+                <div className="flex-1 overflow-y-auto p-5 space-y-6">
+                  {/* Persona Card */}
+                  <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50 via-slate-50 to-purple-50 border border-indigo-100 shadow-2xs">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                          {user.name ? user.name[0].toUpperCase() : 'A'}
+                        </div>
+                        <div>
+                          <p className="text-sm font-black text-slate-900">{user.name || 'Aarav'}</p>
+                          <p className="text-[11px] font-semibold text-indigo-600 capitalize">
+                            👤 {user.role} · Sovereign Persona
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-indigo-100/70">
+                      <button
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          setShowPersonaModal(true);
+                        }}
+                        className="w-full py-2 px-3 rounded-xl bg-white hover:bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
+                      >
+                        <span>🔄 Switch Persona</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          logout();
+                        }}
+                        className="w-full py-2 px-3 rounded-xl bg-white hover:bg-rose-50 border border-rose-200 text-rose-600 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
+                      >
+                        <LogOut size={13} />
+                        <span>Log Out</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Sanctuary Explorations & Lineage */}
+                  <div>
+                    <p className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-2.5 px-1">
+                      Soul, Origin & Creator Lineage
+                    </p>
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <button
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          setShowAtmaModal(true);
+                        }}
+                        className="p-3 rounded-2xl bg-amber-50 hover:bg-amber-100/80 border border-amber-200/80 text-left transition-all shadow-2xs group cursor-pointer"
+                      >
+                        <div className="text-lg mb-1">🪷</div>
+                        <p className="text-xs font-bold text-amber-950 group-hover:text-amber-900">आत्मज्ञान</p>
+                        <p className="text-[10px] text-amber-700 font-medium">Kabir's Soul Creed</p>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          setShowDevModal(true);
+                        }}
+                        className="p-3 rounded-2xl bg-indigo-50 hover:bg-indigo-100/80 border border-indigo-200/80 text-left transition-all shadow-2xs group cursor-pointer"
+                      >
+                        <div className="text-lg mb-1">👨‍💻</div>
+                        <p className="text-xs font-bold text-indigo-950 group-hover:text-indigo-900">Developer</p>
+                        <p className="text-[10px] text-indigo-700 font-medium">Meet Harsh K. Gupta</p>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          somaticAudio.playSoftChime();
+                          setShowPersonaTour(true);
+                        }}
+                        className="p-3 rounded-2xl bg-purple-50 hover:bg-purple-100/80 border border-purple-200/80 text-left transition-all shadow-2xs group cursor-pointer"
+                      >
+                        <div className="text-lg mb-1">🧭</div>
+                        <p className="text-xs font-bold text-purple-950 group-hover:text-purple-900">Ecosystem Tour</p>
+                        <p className="text-[10px] text-purple-700 font-medium">4 Sovereign Personas</p>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          setShowProductShowcase(true);
+                        }}
+                        className="p-3 rounded-2xl bg-violet-50 hover:bg-violet-100/80 border border-violet-200/80 text-left transition-all shadow-2xs group cursor-pointer"
+                      >
+                        <div className="text-lg mb-1">✨</div>
+                        <p className="text-xs font-bold text-violet-950 group-hover:text-violet-900">Pitch Deck</p>
+                        <p className="text-[10px] text-violet-700 font-medium">Product Showcase</p>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Wellbeing & Growth Sanctuaries */}
+                  <div>
+                    <p className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-2.5 px-1">
+                      Wellbeing & Growth Sanctuaries
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <Link
+                        to="/quests"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50/60 border border-slate-200 text-left transition-colors flex items-center gap-3 group"
+                      >
+                        <span className="text-xl">🌟</span>
+                        <div>
+                          <p className="text-xs font-bold text-slate-800 group-hover:text-indigo-600">Life Quests</p>
+                          <p className="text-[10px] text-slate-500">Adventures & Hero Quests</p>
+                        </div>
+                      </Link>
+
+                      <Link
+                        to="/arena"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50/60 border border-slate-200 text-left transition-colors flex items-center gap-3 group"
+                      >
+                        <span className="text-xl">⚔️</span>
+                        <div>
+                          <p className="text-xs font-bold text-slate-800 group-hover:text-indigo-600">Skill Arena</p>
+                          <p className="text-[10px] text-slate-500">Psychology & Mastery</p>
+                        </div>
+                      </Link>
+
+                      <Link
+                        to="/mood"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50/60 border border-slate-200 text-left transition-colors flex items-center gap-3 group"
+                      >
+                        <span className="text-xl">🪞</span>
+                        <div>
+                          <p className="text-xs font-bold text-slate-800 group-hover:text-indigo-600">Mood Mirror</p>
+                          <p className="text-[10px] text-slate-500">Somatic Reflection</p>
+                        </div>
+                      </Link>
+
+                      <Link
+                        to="/social"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50/60 border border-slate-200 text-left transition-colors flex items-center gap-3 group"
+                      >
+                        <span className="text-xl">🧭</span>
+                        <div>
+                          <p className="text-xs font-bold text-slate-800 group-hover:text-indigo-600">Social Compass</p>
+                          <p className="text-[10px] text-slate-500">Peer & Family Boundaries</p>
+                        </div>
+                      </Link>
+
+                      <Link
+                        to="/mentor"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50/60 border border-slate-200 text-left transition-colors flex items-center gap-3 group"
+                      >
+                        <span className="text-xl">🤖</span>
+                        <div>
+                          <p className="text-xs font-bold text-slate-800 group-hover:text-indigo-600">AI Mentor</p>
+                          <p className="text-[10px] text-slate-500">24/7 Sovereign Guide</p>
+                        </div>
+                      </Link>
+
+                      <Link
+                        to="/evolution"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50/60 border border-slate-200 text-left transition-colors flex items-center gap-3 group"
+                      >
+                        <span className="text-xl">🌱</span>
+                        <div>
+                          <p className="text-xs font-bold text-slate-800 group-hover:text-indigo-600">Self-Evolution</p>
+                          <p className="text-[10px] text-slate-500">Archetypes & Strengths</p>
+                        </div>
+                      </Link>
+
+                      <Link
+                        to="/vitality"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="p-3 rounded-2xl bg-emerald-50/70 hover:bg-emerald-100/70 border border-emerald-200/70 text-left transition-colors flex items-center gap-3 group"
+                      >
+                        <span className="text-xl">🌿</span>
+                        <div>
+                          <p className="text-xs font-bold text-emerald-900 group-hover:text-emerald-700">Kaya Kalpa</p>
+                          <p className="text-[10px] text-emerald-700">Circadian Sleep & Vitality</p>
+                        </div>
+                      </Link>
+
+                      <Link
+                        to="/breathe"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="p-3 rounded-2xl bg-teal-50/70 hover:bg-teal-100/70 border border-teal-200/70 text-left transition-colors flex items-center gap-3 group"
+                      >
+                        <span className="text-xl">🫁</span>
+                        <div>
+                          <p className="text-xs font-bold text-teal-900 group-hover:text-teal-700">432 Hz Breathe</p>
+                          <p className="text-[10px] text-teal-700">Somatic Coherence Pacer</p>
+                        </div>
+                      </Link>
+
+                      <Link
+                        to="/profile"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="p-3 rounded-2xl bg-indigo-50/70 hover:bg-indigo-100/70 border border-indigo-200/70 text-left transition-colors flex items-center gap-3 group"
+                      >
+                        <span className="text-xl">📊</span>
+                        <div>
+                          <p className="text-xs font-bold text-indigo-900 group-hover:text-indigo-700">Teen Dashboard</p>
+                          <p className="text-[10px] text-indigo-700">Milestones & Blueprint</p>
+                        </div>
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Governance & Privacy Footer */}
+                  <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setShowDataGovernance(true);
+                      }}
+                      className="hover:text-indigo-600 transition-colors font-semibold cursor-pointer"
+                    >
+                      🛡️ DPDP Act Privacy
+                    </button>
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setShowBetaFeedback(true);
+                      }}
+                      className="hover:text-indigo-600 transition-colors font-semibold cursor-pointer"
+                    >
+                      💌 Beta Feedback
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-          )}
-        </header>
+          </div>
+        )}
 
       <main className="flex-grow flex flex-col">
         <div className="flex-grow w-full mx-auto animate-fade-in-up">
