@@ -130,4 +130,20 @@ describe('AppStore', () => {
     expect(updated.sleepSessions[0].id).toBe('sample_sleep_1');
     expect(updated.movementEntries[0].id).toBe('sample_move_1');
   });
+
+  it('successfully logs in Aarav demo persona with a complete, crash-safe sixteenType and topCareer', async () => {
+    const userId = await useAppStore.getState().loginDemo('teen');
+    expect(userId).toBe('demo-teen-001');
+
+    const state = useAppStore.getState();
+    expect(state.user?.name).toBe('Aarav Sharma');
+    expect(state.user?.role).toBe('teen');
+    expect(state.isAuthenticated).toBe(true);
+    expect(state.profile).not.toBeNull();
+    expect(state.profile?.sixteenType).toBeDefined();
+    expect(state.profile?.sixteenType?.definition?.name).toBeDefined();
+    expect(state.profile?.sixteenType?.definition?.role).toBeDefined();
+    expect(state.profile?.sixteenType?.dichotomies?.energy).toBeDefined();
+    expect(state.profile?.topCareer?.role).toBeDefined();
+  });
 });

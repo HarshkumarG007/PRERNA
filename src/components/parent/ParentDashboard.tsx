@@ -26,7 +26,7 @@ import { SomaticBreathingCompanion } from '../growth/SomaticBreathingCompanion';
 import { LifeBlueprintExport } from '../growth/LifeBlueprintExport';
 import { AtmaJnanaOriginModal } from '../common/AtmaJnanaOriginModal';
 import { AboutDeveloperModal } from '../common/AboutDeveloperModal';
-import { deriveSixteenType } from '../../engine/assessment/sixteenPersonalities';
+import { resolveSixteenType } from '../../engine/assessment/sixteenPersonalities';
 import { QrCameraScanner } from '../scanner/QrCameraScanner';
 import { 
   getPairedTeenInfo, 
@@ -56,17 +56,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ onExit }) => {
   const [showScannerModal, setShowScannerModal] = useState(false);
   const [pairedRecord, setPairedRecord] = useState(() => getPairedTeenInfo());
 
-  const sixteenType = React.useMemo(() => {
-    if (storeProfile?.sixteenType) return storeProfile.sixteenType;
-    if (storeProfile?.personality?.bigFive) {
-      try {
-        return deriveSixteenType(storeProfile.personality.bigFive);
-      } catch {
-        return null;
-      }
-    }
-    return null;
-  }, [storeProfile]);
+  const sixteenType = React.useMemo(() => resolveSixteenType(storeProfile), [storeProfile]);
 
   useEffect(() => {
     loadParentView();

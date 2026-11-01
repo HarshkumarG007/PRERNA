@@ -265,17 +265,20 @@ export function generateSelfImageComparison(
 ): SelfImageComparison {
   const typeDef = sixteenType?.definition;
   const firstName = (typeof name === 'string' && name.trim()) ? name.trim().split(' ')[0] : 'You';
+  const traits = Array.isArray(typeDef?.traits) ? typeDef.traits : [];
+  const growthAreas = Array.isArray(typeDef?.growthAreas) ? typeDef.growthAreas : [];
+  const careerDirections = Array.isArray(typeDef?.careerDirections) ? typeDef.careerDirections : [];
 
   return {
     currentSelf: {
       title: `${firstName}'s Current Foundation (${sixteenType?.fullCode || 'Current Self'})`,
-      description: `Today, you operate with natural strengths in ${typeDef?.traits.slice(0, 2).join(' and ') || 'curiosity and reflection'}, but occasionally face friction from ${typeDef?.growthAreas[0] || 'perfectionism and overthinking'}. You are discovering how to turn your inner intuition into consistent outer momentum.`,
+      description: `Today, you operate with natural strengths in ${traits.slice(0, 2).join(' and ') || 'curiosity and reflection'}, but occasionally face friction from ${growthAreas[0] || 'perfectionism and overthinking'}. You are discovering how to turn your inner intuition into consistent outer momentum.`,
       dominantStates: [
-        `Natural inclination toward ${typeDef?.traits[0] || 'deep thinking'}`,
-        `Energized by ${typeDef?.careerDirections[0] || 'creative exploration'}`,
+        `Natural inclination toward ${traits[0] || 'deep thinking'}`,
+        `Energized by ${careerDirections[0] || 'creative exploration'}`,
         'Searching for consistent focus routines amidst daily distractions'
       ],
-      frictionPoints: typeDef?.growthAreas || [
+      frictionPoints: growthAreas.length > 0 ? growthAreas : [
         'Overthinking outcomes before starting',
         'Struggling to say no to distracting peer requests',
         'Hesitating to share work until it feels flawless'
@@ -288,9 +291,9 @@ export function generateSelfImageComparison(
     },
     evolvedSelf: {
       title: `${firstName}'s Evolved Potential (The Self-Actualized ${typeDef?.name || 'Explorer'})`,
-      description: `The version of you that has learned to channel your ${typeDef?.traits[0] || 'unique strengths'} with grounded confidence, steady boundaries, and actionable clarity. You no longer let friction points freeze your momentum.`,
+      description: `The version of you that has learned to channel your ${traits[0] || 'unique strengths'} with grounded confidence, steady boundaries, and actionable clarity. You no longer let friction points freeze your momentum.`,
       unlockedCapacities: [
-        `Expresses ${typeDef?.traits[0] || 'natural strengths'} without fear of comparison`,
+        `Expresses ${traits[0] || 'natural strengths'} without fear of comparison`,
         'Acts decisively on goals without waiting for 100% certainty',
         'Maintains calm emotional balance through challenges and setbacks',
         'Sets healthy boundaries that preserve energy for what truly matters'

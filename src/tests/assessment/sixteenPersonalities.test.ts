@@ -3,7 +3,9 @@ import {
   deriveSixteenType, 
   SIXTEEN_TYPE_DEFINITIONS, 
   SIXTEEN_ROLES,
-  SixteenTypeCode 
+  SixteenTypeCode,
+  isCompleteSixteenType,
+  resolveSixteenType
 } from '../../engine/assessment/sixteenPersonalities';
 
 describe('16 Personality Types Engine', () => {
@@ -92,6 +94,55 @@ describe('16 Personality Types Engine', () => {
     expect(result.fullCode).toBe('ESFP-A');
     expect(result.definition.name).toBe('The Entertainer');
     expect(result.definition.role).toBe('explorers');
+  });
+
+  it('correctly validates complete SixteenTypeResult with isCompleteSixteenType', () => {
+    const valid = deriveSixteenType({
+      openness: 78,
+      conscientiousness: 72,
+      extraversion: 68,
+      agreeableness: 80,
+      neuroticism: 34,
+    });
+    expect(isCompleteSixteenType(valid)).toBe(true);
+
+    // Stubs or incomplete objects
+    expect(isCompleteSixteenType(null)).toBe(false);
+    expect(isCompleteSixteenType(undefined)).toBe(false);
+    expect(isCompleteSixteenType({ fullCode: 'ENFP' })).toBe(false);
+    expect(isCompleteSixteenType({
+      fullCode: 'ENFP',
+      definition: { name: 'The Campaigner', hindiName: 'प्रणेता' }
+    })).toBe(false);
+  });
+
+  it('robustly resolves sixteenType from profile or re-derives from Big Five', () => {
+    const bigFive = { openness: 78, conscientiousness: 72, extraversion: 68, agreeableness: 80, neuroticism: 34 };
+    
+    // Case 1: Corrupted stub profile (the Aarav webapp crash vector)
+    const corruptedProfile: any = {
+      personality: { bigFive },
+      sixteenType: {
+        fullCode: 'ENFP',
+        definition: { name: 'The Campaigner', hindiName: 'प्रणेता' }
+      }
+    };
+    const resolved = resolveSixteenType(corruptedProfile);
+    expect(resolved).not.toBeNull();
+    expect(isCompleteSixteenType(resolved)).toBe(true);
+    expect(resolved?.definition.role).toBe('diplomats');
+    expect(resolved?.dichotomies.energy.dominant).toBe('E');
+
+    // Case 2: Completely missing sixteenType
+    const missingProfile: any = {
+      personality: { bigFive }
+    };
+    const resolvedFromMissing = resolveSixteenType(missingProfile);
+    expect(resolvedFromMissing).not.toBeNull();
+    expect(isCompleteSixteenType(resolvedFromMissing)).toBe(true);
+
+    // Case 3: Null profile
+    expect(resolveSixteenType(null)).toBeNull();
   });
 });
 

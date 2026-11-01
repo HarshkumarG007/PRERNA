@@ -1,4 +1,5 @@
 import { invoke as tauriInvoke } from '@tauri-apps/api/core';
+import { deriveSixteenType, isCompleteSixteenType } from '../engine/assessment/sixteenPersonalities';
 
 const INITIAL_DEMO_USERS = [
   {
@@ -78,23 +79,36 @@ const INITIAL_DEMO_USERS = [
   }
 ];
 
+const AARAV_BIG_FIVE = { openness: 78, conscientiousness: 72, extraversion: 68, agreeableness: 80, neuroticism: 34 };
+
 const INITIAL_DEMO_PROFILES: Record<string, any> = {
   'demo-teen-001': {
     userId: 'demo-teen-001',
     generatedAt: '2026-10-31T00:00:00.000Z',
     personality: {
-      bigFive: { openness: 78, conscientiousness: 72, extraversion: 68, agreeableness: 80, neuroticism: 34 },
+      bigFive: AARAV_BIG_FIVE,
       riasec: { realistic: 52, investigative: 82, artistic: 76, social: 74, enterprising: 60, conventional: 50 },
       emotional: { resilience: 78, empathy: 84, emotionalAwareness: 80, impulseControl: 72, socialIntuition: 75 },
+    },
+    cognition: {
+      logicalReasoning: 78,
+      verbalFluency: 74,
+      spatialIntelligence: 68,
+      creativeDivergence: 82,
+      processingSpeed: 72,
+      workingMemory: 74,
+      learningStyle: 'mixed',
     },
     archetype: {
       name: 'The Navigator',
       description: 'An agile, empathetic explorer driven by curiosity and purposeful insight.',
       traits: ['Curious', 'Empathetic', 'Insightful']
     },
-    sixteenType: {
-      fullCode: 'ENFP',
-      definition: { name: 'The Campaigner', hindiName: 'प्रणेता' }
+    sixteenType: deriveSixteenType(AARAV_BIG_FIVE),
+    topCareer: {
+      role: 'Game Designer & Systems Thinker',
+      matchScore: 92,
+      description: 'Combines creative storytelling, algorithmic thinking, and human psychology.'
     },
     wellbeingScore: 85,
     strengths: ['Emotional Intuition', 'Curious Exploration', 'Adaptive Problem-Solving'],
@@ -116,6 +130,29 @@ const getMockDb = () => {
       crisisEvents: []
     };
     saveMockDb(db);
+  } else {
+    // Migration: self-heal any cached profile with partial or invalid sixteenType
+    let updated = false;
+    if (db.profiles) {
+      for (const key of Object.keys(db.profiles)) {
+        const p = db.profiles[key];
+        if (p && p.personality?.bigFive) {
+          if (!isCompleteSixteenType(p.sixteenType)) {
+            try {
+              p.sixteenType = deriveSixteenType(p.personality.bigFive);
+              updated = true;
+            } catch {}
+          }
+        }
+      }
+    }
+    if (!db.profiles['demo-teen-001'] || !isCompleteSixteenType(db.profiles['demo-teen-001'].sixteenType)) {
+      db.profiles['demo-teen-001'] = { ...INITIAL_DEMO_PROFILES['demo-teen-001'] };
+      updated = true;
+    }
+    if (updated) {
+      saveMockDb(db);
+    }
   }
   return db;
 };

@@ -7,7 +7,7 @@ import {
   BookOpen,
   Briefcase
 } from 'lucide-react';
-import { SixteenTypeResult, SIXTEEN_ROLES } from '../../engine/assessment/sixteenPersonalities';
+import { SixteenTypeResult, SIXTEEN_ROLES, DichotomyScore } from '../../engine/assessment/sixteenPersonalities';
 import { SixteenTypesExplorerModal } from './SixteenTypesExplorerModal';
 
 interface SixteenTypeCardProps {
@@ -18,8 +18,12 @@ interface SixteenTypeCardProps {
 export const SixteenTypeCard: React.FC<SixteenTypeCardProps> = ({ sixteenType }) => {
   const [showExplorer, setShowExplorer] = useState(false);
 
+  if (!sixteenType || !sixteenType.definition || !sixteenType.dichotomies) {
+    return null;
+  }
+
   const { code, fullCode, identity, definition, dichotomies } = sixteenType;
-  const roleMeta = SIXTEEN_ROLES[definition.role];
+  const roleMeta = (definition.role && SIXTEEN_ROLES[definition.role]) || SIXTEEN_ROLES.diplomats;
 
   const spectrumItems = [
     dichotomies.energy,
@@ -27,14 +31,26 @@ export const SixteenTypeCard: React.FC<SixteenTypeCardProps> = ({ sixteenType })
     dichotomies.nature,
     dichotomies.tactics,
     dichotomies.identity,
-  ];
+  ].filter((item): item is DichotomyScore => Boolean(item && typeof item === 'object' && item.dominant));
+
+  const avatar = definition.avatarEmoji || '✨';
+  const name = definition.name || 'The Explorer';
+  const hindiName = definition.hindiName || 'अन्वेषक';
+  const tagline = definition.tagline || 'Empowered self-discovery and mindful growth.';
+  const summary = definition.summary || 'A balanced personality driven by curiosity, empathy, and principled reflection.';
+  const studyTip = Array.isArray(definition.studyTips) && definition.studyTips.length > 0 
+    ? definition.studyTips[0] 
+    : 'Reflective journaling and active conceptual mapping.';
+  const careerList = Array.isArray(definition.careerDirections) && definition.careerDirections.length > 0
+    ? definition.careerDirections.slice(0, 3).join(' • ')
+    : 'Creative Design • Technology • Psychology';
 
   return (
     <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200/90 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
       {/* Ambient gradient glow in background */}
       <div 
         className="absolute -top-24 -right-24 w-72 h-72 rounded-full blur-[100px] pointer-events-none opacity-20"
-        style={{ backgroundColor: roleMeta.color }}
+        style={{ backgroundColor: roleMeta?.color || '#6366f1' }}
       />
 
       <div className="relative z-10 space-y-6">
@@ -42,7 +58,7 @@ export const SixteenTypeCard: React.FC<SixteenTypeCardProps> = ({ sixteenType })
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center text-3xl shadow-inner">
-              {definition.avatarEmoji}
+              {avatar}
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
@@ -50,14 +66,14 @@ export const SixteenTypeCard: React.FC<SixteenTypeCardProps> = ({ sixteenType })
                   {fullCode}
                 </span>
                 <span className="text-lg md:text-xl font-bold text-slate-700">
-                  {definition.name}
+                  {name}
                 </span>
                 <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                  {definition.hindiName}
+                  {hindiName}
                 </span>
               </div>
-              <p className="text-xs font-bold uppercase tracking-wider mt-0.5" style={{ color: roleMeta.color }}>
-                {roleMeta.name} ({roleMeta.hindiName}) • {identity} Identity
+              <p className="text-xs font-bold uppercase tracking-wider mt-0.5" style={{ color: roleMeta?.color || '#6366f1' }}>
+                {roleMeta?.name || 'Explorer'} ({roleMeta?.hindiName || 'अन्वेषक'}) • {identity || 'Assertive'} Identity
               </p>
             </div>
           </div>
@@ -75,10 +91,10 @@ export const SixteenTypeCard: React.FC<SixteenTypeCardProps> = ({ sixteenType })
         {/* Tagline & summary */}
         <div className="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/80">
           <p className="text-xs italic font-medium text-slate-600 mb-1.5">
-            "{definition.tagline}"
+            "{tagline}"
           </p>
           <p className="text-xs text-slate-600 leading-relaxed">
-            {definition.summary}
+            {summary}
           </p>
         </div>
 
@@ -139,7 +155,7 @@ export const SixteenTypeCard: React.FC<SixteenTypeCardProps> = ({ sixteenType })
               <BookOpen size={14} className="text-indigo-600" /> Ideal Study Technique
             </h5>
             <p className="text-xs text-indigo-900/80 font-medium leading-relaxed">
-              {definition.studyTips[0]}
+              {studyTip}
             </p>
           </div>
 
@@ -148,7 +164,7 @@ export const SixteenTypeCard: React.FC<SixteenTypeCardProps> = ({ sixteenType })
               <Briefcase size={14} className="text-emerald-600" /> Emerging Career Vectors
             </h5>
             <p className="text-xs text-emerald-900/80 font-medium leading-relaxed">
-              {definition.careerDirections.slice(0, 3).join(' • ')}
+              {careerList}
             </p>
           </div>
         </div>

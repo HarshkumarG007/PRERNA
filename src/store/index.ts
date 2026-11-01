@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { safeInvoke as invoke } from '../utils/mockBackend';
-import { SixteenTypeResult, deriveSixteenType } from '../engine/assessment/sixteenPersonalities';
+import { SixteenTypeResult, deriveSixteenType, isCompleteSixteenType } from '../engine/assessment/sixteenPersonalities';
 import { GrowthJournalEntry, MitigationStrategy } from '../engine/growth/selfEvolutionEngine';
 import { TrackedNeedItem } from '../engine/growth/maslowNeedsEngine';
 
@@ -385,6 +385,9 @@ export const useAppStore = create<AppState>()(
                 traits: ['Curious', 'Empathetic', 'Insightful']
               },
               sixteenType: deriveSixteenType(bigFive),
+              topCareer: {
+                role: 'Game Designer & Systems Thinker',
+              },
               wellbeingScore: 85,
               strengths: ['Emotional Intuition', 'Curious Exploration', 'Adaptive Problem-Solving'],
               growthAreas: ['Focus Consistency', 'Pacing & Rest'],
@@ -481,7 +484,7 @@ export const useAppStore = create<AppState>()(
       updateProfile: (newProfile) => {
         set((state) => {
           const merged = state.profile ? { ...state.profile, ...newProfile } : (newProfile as UnifiedProfile);
-          if (merged?.personality?.bigFive && !merged.sixteenType) {
+          if (merged?.personality?.bigFive && !isCompleteSixteenType(merged.sixteenType)) {
             try {
               merged.sixteenType = deriveSixteenType(merged.personality.bigFive);
             } catch (e) {
@@ -553,12 +556,17 @@ export const useAppStore = create<AppState>()(
           });
           
           if (profile) {
-            if (profile.personality?.bigFive && !profile.sixteenType) {
+            const currentProfile = get().profile;
+            const mergedProfile: UnifiedProfile = currentProfile 
+              ? { ...currentProfile, ...profile } 
+              : profile;
+
+            if (mergedProfile.personality?.bigFive && !isCompleteSixteenType(mergedProfile.sixteenType)) {
               try {
-                profile.sixteenType = deriveSixteenType(profile.personality.bigFive);
+                mergedProfile.sixteenType = deriveSixteenType(mergedProfile.personality.bigFive);
               } catch {}
             }
-            set({ profile, profileLoading: false });
+            set({ profile: mergedProfile, profileLoading: false });
           }
         } catch (error) {
           // Profile might not exist yet (new user)
@@ -578,14 +586,17 @@ export const useAppStore = create<AppState>()(
         let lastCheckIn = '';
         
         if (lastSession) {
-          const lastDate = lastSession.completedAt.split('T')[0];
-          const diffDays = Math.floor(
-            (new Date(today).getTime() - new Date(lastDate).getTime()) / (1000 * 60 * 60 * 24)
-          );
-          
-          if (diffDays <= 1) {
-            currentStreak = diffDays === 0 ? 1 : 2; // Simplified logic
-            lastCheckIn = lastDate;
+          const lastDateStr = lastSession.completedAt || (lastSession as any).completed_at || (lastSession as any).createdAt || '';
+          if (lastDateStr) {
+            const lastDate = lastDateStr.includes('T') ? lastDateStr.split('T')[0] : lastDateStr;
+            const diffDays = Math.floor(
+              (new Date(today).getTime() - new Date(lastDate).getTime()) / (1000 * 60 * 60 * 24)
+            );
+            
+            if (diffDays <= 1) {
+              currentStreak = diffDays === 0 ? 1 : 2; // Simplified logic
+              lastCheckIn = lastDate;
+            }
           }
         }
         
@@ -594,11 +605,14 @@ export const useAppStore = create<AppState>()(
         const todayIdx = new Date().getDay();
         
         sessions.slice(0, 7).forEach(session => {
-          const sessionDate = new Date(session.completedAt);
+          const rawDate = session.completedAt || (session as any).completed_at || (session as any).createdAt;
+          if (!rawDate) return;
+          const sessionDate = new Date(rawDate);
+          if (isNaN(sessionDate.getTime())) return;
           const daysAgo = Math.floor(
             (new Date().getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24)
           );
-          if (daysAgo < 7) {
+          if (daysAgo >= 0 && daysAgo < 7) {
             const idx = (todayIdx - daysAgo + 7) % 7;
             weeklyProgress[idx] = true;
           }

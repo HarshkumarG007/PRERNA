@@ -21,16 +21,14 @@ export interface InsightNarrativeResult {
 function validateCitation(citation: string, profile: UnifiedProfile): boolean {
   if (citation.startsWith('rag:')) return true; // Assume RAG citations are valid for this check, though could verify against manifest.
   
-  if (citation.includes('bigFive.openness')) return profile.personality.bigFive.openness !== undefined;
-  if (citation.includes('bigFive.conscientiousness')) return profile.personality.bigFive.conscientiousness !== undefined;
-  if (citation.includes('bigFive.extraversion')) return profile.personality.bigFive.extraversion !== undefined;
-  if (citation.includes('bigFive.agreeableness')) return profile.personality.bigFive.agreeableness !== undefined;
-  if (citation.includes('bigFive.neuroticism')) return profile.personality.bigFive.neuroticism !== undefined;
-  if (citation.includes('bigFive.openness')) return (profile as any).personality?.bigFive?.openness !== undefined;
-  if (citation.includes('bigFive.conscientiousness')) return (profile as any).personality?.bigFive?.conscientiousness !== undefined;
-  if (citation.includes('bigFive.extraversion')) return (profile as any).personality?.bigFive?.extraversion !== undefined;
-  if (citation.includes('bigFive.agreeableness')) return (profile as any).personality?.bigFive?.agreeableness !== undefined;
-  if (citation.includes('bigFive.neuroticism')) return (profile as any).personality?.bigFive?.neuroticism !== undefined;
+  const bigFive = profile?.personality?.bigFive;
+  if (!bigFive) return false;
+
+  if (citation.includes('bigFive.openness')) return bigFive.openness !== undefined;
+  if (citation.includes('bigFive.conscientiousness')) return bigFive.conscientiousness !== undefined;
+  if (citation.includes('bigFive.extraversion')) return bigFive.extraversion !== undefined;
+  if (citation.includes('bigFive.agreeableness')) return bigFive.agreeableness !== undefined;
+  if (citation.includes('bigFive.neuroticism')) return bigFive.neuroticism !== undefined;
   
   if (citation.includes('riasec.')) return true;
   

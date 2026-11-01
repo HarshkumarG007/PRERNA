@@ -12,7 +12,7 @@ import { PrernaLogo } from './components/common/PrernaLogo';
 import { SanctuaryFooter } from './components/common/SanctuaryFooter';
 import { PersonaAuthModal } from './components/security/PersonaAuthModal';
 import { PartnersGateModal } from './components/partners/auth/PartnersGateModal';
-import { deriveSixteenType } from './engine/assessment/sixteenPersonalities';
+import { deriveSixteenType, resolveSixteenType } from './engine/assessment/sixteenPersonalities';
 import { somaticAudio } from './utils/audioSynthesis';
 import { usePartnerStore } from './store/partnerStore';
 import { useAppStore } from './store';
@@ -888,7 +888,7 @@ function App() {
                 onClose={() => window.history.back()} 
                 user={user} 
                 profile={useAppStore.getState().profile} 
-                sixteenType={useAppStore.getState().profile?.sixteenType || deriveSixteenType(useAppStore.getState().profile?.personality?.bigFive || { openness: 60, conscientiousness: 60, extraversion: 60, agreeableness: 60, neuroticism: 40 })} 
+                sixteenType={resolveSixteenType(useAppStore.getState().profile)} 
               />
             </div>
           } />

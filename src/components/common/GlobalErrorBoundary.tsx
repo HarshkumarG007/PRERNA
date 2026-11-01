@@ -50,13 +50,28 @@ export class GlobalErrorBoundary extends Component<Props, State> {
               <p className="text-xs text-slate-500 font-mono">Error ID: {this.state.errorId}</p>
             </div>
             
-            <button
-              onClick={() => window.location.reload()}
-              className="w-full bg-white text-slate-900 hover:bg-slate-200 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors"
-            >
-              <RefreshCw size={18} />
-              Reload Application
-            </button>
+            <div className="space-y-2">
+              <button
+                onClick={() => window.location.reload()}
+                className="w-full bg-white text-slate-900 hover:bg-slate-200 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
+              >
+                <RefreshCw size={18} />
+                Reload Application
+              </button>
+              <button
+                onClick={() => {
+                  try {
+                    localStorage.removeItem('prerna_mock_db');
+                    localStorage.removeItem('prerna_last_user');
+                    sessionStorage.clear();
+                  } catch {}
+                  window.location.reload();
+                }}
+                className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-xs cursor-pointer border border-slate-700"
+              >
+                Reset Session Cache & Return
+              </button>
+            </div>
           </div>
         </div>
       );

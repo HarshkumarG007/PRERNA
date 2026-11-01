@@ -16,7 +16,7 @@ import { RadarChart } from './RadarChart';
 import { BadgeCabinet } from './BadgeCabinet';
 import { ActivityHistoryViewer } from './ActivityHistoryViewer';
 import { SixteenTypeCard } from '../personality/SixteenTypeCard';
-import { deriveSixteenType } from '../../engine/assessment/sixteenPersonalities';
+import { resolveSixteenType } from '../../engine/assessment/sixteenPersonalities';
 import { LifeBlueprintExport } from '../growth/LifeBlueprintExport';
 import { TeenPairingQrModal } from '../pairing/TeenPairingQrModal';
 import { getStoredPairingRequest } from '../../utils/pairingProtocol';
@@ -110,17 +110,7 @@ export const TeenProfileView: React.FC = () => {
     }
   }, []);
 
-  const sixteenType = React.useMemo(() => {
-    if (profile?.sixteenType) return profile.sixteenType;
-    if (profile?.personality?.bigFive) {
-      try {
-        return deriveSixteenType(profile.personality.bigFive);
-      } catch {
-        return null;
-      }
-    }
-    return null;
-  }, [profile]);
+  const sixteenType = React.useMemo(() => resolveSixteenType(profile), [profile]);
 
   React.useEffect(() => {
     if (user) {

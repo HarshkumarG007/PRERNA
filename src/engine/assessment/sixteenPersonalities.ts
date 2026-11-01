@@ -627,3 +627,46 @@ export function deriveSixteenType(bigFive: {
   };
 }
 
+/**
+ * Checks whether a given object is a fully formed SixteenTypeResult with all dichotomies and definition.
+ */
+export function isCompleteSixteenType(st: any): st is SixteenTypeResult {
+  return Boolean(
+    st &&
+    typeof st === 'object' &&
+    typeof st.fullCode === 'string' &&
+    st.definition &&
+    typeof st.definition.name === 'string' &&
+    typeof st.definition.role === 'string' &&
+    SIXTEEN_ROLES[st.definition.role as SixteenRole] &&
+    st.dichotomies &&
+    st.dichotomies.energy &&
+    st.dichotomies.mind &&
+    st.dichotomies.nature &&
+    st.dichotomies.tactics &&
+    st.dichotomies.identity
+  );
+}
+
+/**
+ * Robustly resolves a complete SixteenTypeResult from a profile.
+ * If the profile has a complete sixteenType, it returns it.
+ * If sixteenType is missing or a partial stub, it derives the complete typology from Big Five.
+ * Gracefully returns null if Big Five is absent.
+ */
+export function resolveSixteenType(profile?: { sixteenType?: any; personality?: { bigFive?: any } } | null): SixteenTypeResult | null {
+  if (!profile) return null;
+  if (isCompleteSixteenType(profile.sixteenType)) {
+    return profile.sixteenType;
+  }
+  if (profile.personality?.bigFive) {
+    try {
+      return deriveSixteenType(profile.personality.bigFive);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+

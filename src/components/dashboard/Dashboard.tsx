@@ -30,7 +30,7 @@ import { InsightsCard } from './InsightsCard';
 import { InsightNarrativeView } from '../synthesis/InsightNarrativeView';
 import { PrernaEmblem } from '../common/PrernaLogo';
 import { SixteenTypeCard } from '../personality/SixteenTypeCard';
-import { deriveSixteenType } from '../../engine/assessment/sixteenPersonalities';
+import { resolveSixteenType } from '../../engine/assessment/sixteenPersonalities';
 import { useNetworkStatus } from '../../hooks/useNetworkStatus';
 import { useAppStore, useUser, useProfile } from '../../store';
 import { SomaticBreathingCompanion } from '../growth/SomaticBreathingCompanion';
@@ -50,17 +50,7 @@ export const Dashboard: React.FC = () => {
   const [showDevModal, setShowDevModal] = useState(false);
   const navigate = useNavigate();
 
-  const sixteenType = React.useMemo(() => {
-    if (profile?.sixteenType) return profile.sixteenType;
-    if (profile?.personality?.bigFive) {
-      try {
-        return deriveSixteenType(profile.personality.bigFive);
-      } catch {
-        return null;
-      }
-    }
-    return null;
-  }, [profile]);
+  const sixteenType = React.useMemo(() => resolveSixteenType(profile), [profile]);
 
   useEffect(() => {
     // Set time-based greeting

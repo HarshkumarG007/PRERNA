@@ -40,7 +40,7 @@ import {
   MitigationStrategy,
   GrowthJournalEntry 
 } from '../../engine/growth/selfEvolutionEngine';
-import { deriveSixteenType } from '../../engine/assessment/sixteenPersonalities';
+import { resolveSixteenType } from '../../engine/assessment/sixteenPersonalities';
 import { MaslowNeedsCompass } from './MaslowNeedsCompass';
 import { AtmaJnanaOriginModal } from '../common/AtmaJnanaOriginModal';
 import { AboutDeveloperModal } from '../common/AboutDeveloperModal';
@@ -127,17 +127,7 @@ export const SelfEvolutionSanctuary: React.FC<SelfEvolutionSanctuaryProps> = ({
   const [journalFilter, setJournalFilter] = useState<'all' | 'strength' | 'growth_edge' | 'reflection'>('all');
 
   // Derive 16-type
-  const sixteenType = useMemo(() => {
-    if (profile?.sixteenType) return profile.sixteenType;
-    if (profile?.personality?.bigFive) {
-      try {
-        return deriveSixteenType(profile.personality.bigFive);
-      } catch {
-        return null;
-      }
-    }
-    return null;
-  }, [profile]);
+  const sixteenType = useMemo(() => resolveSixteenType(profile), [profile]);
 
   // Derive personalized Self-Image comparison
   const comparison = useMemo(() => {
