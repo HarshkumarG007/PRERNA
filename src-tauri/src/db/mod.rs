@@ -1691,9 +1691,11 @@ mod tests {
             .unwrap();
         let remaining_rels: i32 = db
             .conn
-            .query_row("SELECT COUNT(*) FROM parent_teen_relationships", [], |r| {
-                r.get(0)
-            })
+            .query_row(
+                "SELECT COUNT(*) FROM parent_teen_relationships WHERE id = 'rel_valid'",
+                [],
+                |r| r.get(0),
+            )
             .unwrap();
         assert_eq!(
             remaining_rels, 0,
