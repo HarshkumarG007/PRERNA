@@ -1,10 +1,10 @@
 # Memory — Project Context & History Log
 ## PRERNA — Personalized Real-time Engagement & Neural Resource Assistant
 
-**Version:** 1.1  
+**Version:** 1.2  
 **Status:** Living Document — update this after every significant session  
-**Last Updated:** 2026-10-30  
-**Baseline Commit:** `cdf334c`
+**Last Updated:** 2026-11-01  
+**Baseline Commit:** `d711737`
 
 > **How to use this file:** Before starting any new work session, read Sections 1–3. After completing work, update Section 4 (decisions), Section 5 (bugs), and Section 2 (current status). This file is the single source of truth for project state — more reliable than memory of "what was done last time."
 
@@ -48,12 +48,13 @@ A local-first, gamified self-discovery platform for Indian adolescents (ages 13+
 | Phase 5: Dashboard & Data Rights | ✅ Complete | SharedDashboard parity, verified deletion & export, 6 Indian languages i18n |
 | Phase 6: Beta Readiness | ✅ Complete | BetaOnboardingNotice, end-to-end integration lifecycle test suite passing |
 | Phase 7: Self-Evolution, 16-Types & Maslow Compass | ✅ Complete | 16 Personalities Typology, Current vs Evolved Self, Strengths Journal, Personalized Self-Management, Maslow Needs Compass, 432 Hz Somatic Companion, Life Blueprint PDF Export |
+| Phase 8: Sovereign Pilot Rollout & Supabase Gatekeeper | ✅ Complete | Supabase Cloud Gatekeeper with Hardware Device Binding, Instant URL Scrubbing, Single-Use Nonce Tokens, Native Indian Voice TTS (`en-IN`/`hi-IN`), VidyaPeeth Counselor Pilot Kit, Android APK CI Workflow, and H1–H4 Review Dossiers |
 
 **Verification & Quality Metrics:**
-- **Test Suite:** **126/126 tests passing across 28 test files**
+- **Test Suite:** **222/222 tests passing across 44 test files**
 - **TypeScript:** `tsc --noEmit` **0 errors**
-- **Production Bundle:** `dist/` built in **8.55s** with zero errors
-- **Platform Support:** Desktop (Windows/macOS/Linux) + Mobile (Android `arm64-v8a` signed release APK)
+- **Production Bundle:** `dist/` built in **9.40s** with zero errors
+- **Platform Support:** Desktop (Windows/macOS/Linux) + Mobile (Android `arm64-v8a` release APK via GitHub Actions) + PWA Web (`https://harshkumarg007.github.io/PRERNA/`) with Service Worker v3 offline caching
 
 **Human-Review Blockers (External Dependencies):**
 
@@ -120,6 +121,9 @@ Never mutate React state directly for anything that must persist. Never add clou
 | 2026-10-30 | Atma-Jnana Foundational Philosophy & "Self Realisation is God's Realisation" Creed | Anchored entire platform in the sacred verses of Sant Kabir Das (*आत्मज्ञान बिना नर भटके... सोई हंस तेरे घट माहि*); framed all psychometric, mirror, and distraction-shield tools as modern instruments turning minor attention inward toward the indwelling Divine Swan (*सोई हंस*) | Treating app as a disconnected behavioral utility without spiritual-philosophical anchor (rejected: contradicts founding vision) | ADR-0019 |
 | 2026-10-30 | 432 Hz Offline Mathematical Oscillator Audio Engine | Engineered pure Web Audio API oscillator synthesis (`audioSynthesis.ts`) producing Pythagorean harmonic 432 Hz base, overtone chime chords (864 Hz, 1296 Hz), and smooth swell envelopes with zero cloud latency and zero external asset dependencies | Bundling heavy static MP3/WAV audio files (rejected: bloats app bundle by 20-50MB and creates network streaming failure points) | ADR-0020 |
 | 2026-10-30 | Client-Side On-Device Life Blueprint PDF & Offline HTML Portfolio | Implemented printable and downloadable A4 Life Blueprint synthesis (`LifeBlueprintExport.tsx`) aggregating 16-personality typology, Big Five percentiles, The Mirror, Indian Career Pathways, and Keystone daily habits directly in memory; styled with `@media print` and offline HTML string generation | Cloud PDF generation microservice (rejected: violates DPDP Section 9 by transmitting minor psychometric profiles to third-party cloud servers) | ADR-0021 |
+| 2026-11-01 | PWA Service Worker v3 Offline Cache & Network-First HTML Routing | Engineered `public/sw.js` with Network-First strategy for HTML navigation requests (ensuring users always receive newest builds when online) while maintaining Cache-First offline fallback for hashed chunks and assets | Cache-First for HTML (rejected: caused users to get stuck on stale bundles without receiving updates) | ADR-0022 |
+| 2026-11-01 | Native Web Speech API Sovereign TTS for Indian Accents | Implemented on-device zero-token text-to-speech engine (`speechSynthesis.ts`) prioritizing `en-IN` and `hi-IN` voices with Devanagari character auto-detection for Kabir Dohas and AI Mentor messages | Cloud TTS API (e.g. ElevenLabs/Google Cloud TTS) (rejected: costs tokens, introduces cloud network lag, transmits user text to third-party servers) | ADR-0023 |
+| 2026-11-01 | Supabase Cloud Gatekeeper with Hardware Device Binding & URL Scrubbing | Engineered free-tier Supabase Gatekeeper verifying single-use invite tokens via atomic stored procedure; locks tokens to client `device_id` and scrubs query params from browser address bar within 1ms to prevent oversharing or leakages | Static hardcoded codes (rejected: oversharable and cannot be revoked without code deployment) OR Edge-level email OTP (rejected: high friction for adolescents and busy clinicians) | ADR-0024 |
 
 ---
 
@@ -140,6 +144,9 @@ Never mutate React state directly for anything that must persist. Never add clou
 | 2026-10-30 | BUG-07 | Browser crash when opening Teen Profile / Dashboard | Standard browser lacked Tauri IPC runtime; raw `@tauri-apps/api/core` `invoke` threw synchronous TypeError | Replaced raw `invoke` imports with `safeInvoke` fallback from `mockBackend.ts` | ✅ Resolved |
 | 2026-10-30 | BUG-08 | `TypeError: Cannot read properties of undefined (reading 'slice')` in ParentPermissionManager | Missing null checks on `fullProfile.careerMatches` | Added null-coalescing defaults `(fullProfile.careerMatches \|\| []).slice(0, 3)` | ✅ Resolved |
 | 2026-10-30 | BUG-09 | Duplicate Helpline link in header navigation | Redundant `<Link to="/support">Helplines</Link>` alongside button | Removed redundant link, preserved prominent single pill | ✅ Resolved |
+| 2026-11-01 | BUG-10 | Aarav login crash loop on GitHub Pages web app | Stale Service Worker cache served old pre-fix bundle; clicking reload remounted into corrupted cached profile | Pre-render `main.tsx` self-healer, bumped SW to v3 with Network-First HTML, and upgraded `GlobalErrorBoundary` with session reset & unregister | ✅ Resolved |
+| 2026-11-01 | BUG-11 | Unsafe property access on typology definition and dichotomies in `LifeBlueprintExport.tsx` and `AiMentorChat.tsx` | Missing optional chaining on `sixteenType?.definition.name` and `sixteenType?.dichotomies.energy` | Applied deep optional chaining (`sixteenType?.definition?.name`, `sixteenType?.dichotomies?.energy`) across all typology views | ✅ Resolved |
+| 2026-11-01 | BUG-12 | 1-Click invite link oversharing and address bar token leakage | Invite tokens remained in browser address bar and could be forwarded to unauthorized users | Added instant URL scrubbing (`history.replaceState`) and hardware device binding (`claimed_device_id`) in Supabase verifier | ✅ Resolved |
 
 ---
 
@@ -161,6 +168,9 @@ Never mutate React state directly for anything that must persist. Never add clou
 | 2026-10-30 | Atma-Jnana Foundational Creed Integration & Role Persistence Fix | Fixed session role persistence across reloads with header switcher; embedded Sant Kabir Das foundational Dohas (*आत्मज्ञान बिना नर भटके... सोई हंस तेरे घट माहि*) and "Self Realisation is God's Realisation" creator manifesto across `AtmaJnanaOriginModal`, `SelfEvolutionSanctuary` Tab 5, `Dashboard`, `WelcomeScreen`, `TeenProfileView`, and `README.md` | None | Verify test suite and production build |
 | 2026-10-30 | 432 Hz Somatic Breathing Companion & Life Blueprint PDF Export (Options 2 & 3) | Built pure Web Audio API oscillator synthesis engine (`audioSynthesis.ts`) with 432 Hz Pythagorean resonance and 4 evidence-based vagal protocols (`SomaticBreathingCompanion.tsx`); built client-side on-device A4 Life Blueprint printable portfolio & offline HTML generator (`LifeBlueprintExport.tsx`); integrated quick-launchers into Sanctuary, Dashboard, and Profile; created 7 new unit tests in `somaticAndBlueprint.test.tsx`; reached 126/126 tests passing across 28 suites; production build verified in 8.55s | None | External human reviewers (H1–H4) engagement & beta cohort rollout |
 | 2026-10-30 | Architect & Developer Profile Integration (Harsh Kumar Gupta) | Built comprehensive `AboutDeveloperModal.tsx` and routes (`/developer`, `/about-developer`); integrated polymathic matrix (MCA, MA Yoga & Science of Living, D.Pharm, B.Sc. Maths/Physics, 6+ yrs creator); documented 11 Google credentials & Credly wallet; honored spiritual lineage (Shri Prem Rawat & Father Dinesh Kumar); enriched `README.md`, `AtmaJnanaOriginModal`, `SelfEvolutionSanctuary`, and `Dashboard` | None | Human review gates (H1–H4) & beta cohort rollout |
+| 2026-11-01 | 5-Track Sovereign Rollout Execution | Completed PWA offline pre-caching (`public/sw.js`) and 1-click install pills; built Local LLM sidecar connection probe and live settings modal; automated Android ARM64 APK compilation via GitHub Actions; authored VidyaPeeth School Counselor pilot handbook & CSV token template; prepared formal human review packets H1–H4 per Rule 0.7 | None | Webapp crash hardening & live testing |
+| 2026-11-01 | Webapp Crash Hardening, Voice Narration & Expert Outreach | Fixed Aarav demo profile crash by pre-render self-healing in `main.tsx` and deep optional chaining in `LifeBlueprintExport.tsx` and `AiMentorChat.tsx`; engineered on-device Web Speech TTS for Hindi & Indian English; built Beta Feedback SUS rating; authored expert outreach briefs (`docs/outreach/expert-engagement-invitations.md`); reached 217/217 passing tests | None | Access control & gatekeeper architecture |
+| 2026-11-01 | Supabase Cloud Gatekeeper, Hardware Device Binding & Anti-Leak Defenses | Integrated `@supabase/supabase-js` cloud gatekeeper; built `PrivateBetaGate.tsx` locking app before Welcome screen; added instant URL scrubbing (`history.replaceState`) to prevent token leaking; implemented client hardware device UUID binding (`claimed_device_id`) preventing multi-device oversharing; scaled test suite to 222/222 passing tests across 44 suites; clean production build in 9.40s deployed to GitHub Pages | None | Distribute single-use invite tokens to H1–H4 and pilot schools |
 
 ---
 
@@ -174,6 +184,7 @@ Never mutate React state directly for anything that must persist. Never add clou
 | — | Crisis Escalation pulled out as own top-level component | Highest-stakes part of the system; needed dedicated design/review/test | Separate `crisis_events` table; isolated crisis/ module | ADR-0004 |
 | — | `parent_consents`, `crisis_events`, `access_audit_log` tables added | Required by consent redesign; did not exist in original schema | DB schema significantly expanded | — |
 | — | Removed `encryption_key_hash` from `users` table | Storing key hash in DB alongside data is weaker than OS keychain | Key material now in OS keychain only | ADR-0006 |
+| 2026-11-01 | Top-Level Sovereign Cloud Gatekeeper (`PrivateBetaGate.tsx`) | Restrict unauthenticated public access to pilot cohorts at $0 cost while strictly isolating cloud from local minor data | Placed at root of `App.tsx` before `WelcomeScreen`; all core features structurally depend on verified token seal | ADR-0024 |
 
 ---
 

@@ -530,6 +530,20 @@
   - [x] **Track 4: VidyaPeeth School Counselor Pilot Kit**: Created comprehensive institutional guide `docs/school-counselor-pilot-handbook.md`, standardized zero-PII token CSV template `docs/templates/classroom-token-roster-sample.csv`, and wired a 1-click handbook download in `InstitutionalAdminPortal.tsx`.
   - [x] **Track 5: Human-Review Packets & Dossiers (H1–H4)**: Prepared formal review dossiers `docs/human-review-packets-and-dossiers.md` with evaluation rubrics and print-ready attestation forms for Clinical Psychologists (H1), DPDP Legal Counsel (H2), Hindi Linguists (H3), and Adolescent Reading Specialists (H4) strictly adhering to Rule 0.7.
   - [x] **Regression Test & Build**: Scaled test suite to **213/213 passing tests across 42 test files** with verified `tsc && vite build` in 9.21s.
+- [x] **P7-36** Native Indian Voice Narration, Beta Feedback SUS Rating & Expert Outreach Briefs
+  - [x] **Native Web Speech TTS Engine**: Built `src/utils/speechSynthesis.ts` (`sovereignVoice`) prioritizing Indian English (`en-IN`) and Hindi (`hi-IN`) voices with zero cloud tokens and 100% on-device speech synthesis. Added audio listen triggers to Sant Kabir Dohas on `Dashboard.tsx` hero card, `AtmaJnanaOriginModal.tsx`, and AI Mentor responses in `AiMentorChat.tsx`.
+  - [x] **Beta Cohort Feedback Collector**: Enhanced `BetaFeedbackModal.tsx` with 1–5★ System Usability Scale (SUS) rating, friction categorization, DPDP Act 2023 §9 zero-telemetry protection, and on-demand JSON export.
+  - [x] **Formal Outreach Engagement Briefs**: Created `docs/outreach/expert-engagement-invitations.md` with structured email invitation templates for external specialists (H1 Clinical Psychologist, H2 DPDP Privacy Lawyer, H3 Hindi Cultural Linguist, H4 Youth Reading Specialist) honoring Rule 0.7.
+  - [x] **Webapp Crash Hardening & Self-Healing**: Hardened startup lifecycle with pre-render `localStorage` healing routine in `src/main.tsx`, guarded `sixteenType?.definition?.name` and `sixteenType?.dichotomies?.energy` in `LifeBlueprintExport.tsx`, `AiMentorChat.tsx`, and `SelfDiscoveryJourney.tsx`, and upgraded `GlobalErrorBoundary.tsx` with anti-trap cache reset.
+  - [x] **Test Verification**: Created `src/tests/utils/speechSynthesis.test.ts` (4/4 tests passed).
+- [x] **P7-37** Supabase Cloud Gatekeeper, Hardware Device Binding & Anti-Leak Protection
+  - [x] **Sovereign Cloud Gatekeeper Client**: Built `src/utils/supabaseClient.ts` with atomic stored procedure verification (`verify_beta_token`), preserving the Sovereign Privacy Boundary (zero minor PII, assessments, or chats in the cloud).
+  - [x] **Private Beta Gate Component**: Created `src/components/gate/PrivateBetaGate.tsx` locking the app before the Welcome Screen; supports manual invite tokens, 1-click magic link auto-detection (`?invite=...`), and "Request Access" email intent.
+  - [x] **Instant URL Scrubbing (Anti-Copy Leak)**: Added automatic address bar sanitization using `window.history.replaceState` within 1ms of page load so tokens cannot be accidentally leaked via copy-pasting or browser screenshots.
+  - [x] **Hardware Device Binding (`claimed_device_id`)**: Implemented cryptographic client device UUID binding in `getOrCreateDeviceId()`, locking single-use tokens permanently to the first physical device that redeems them and preventing multi-device oversharing.
+  - [x] **Real-Time Feedback Cloud Inbox**: Wired `BetaFeedbackModal.tsx` to sync anonymous bug reports, sentiment, and SUS scores to Supabase `beta_feedback` table in real time.
+  - [x] **Automated CI/CD Integration**: Configured `.github/workflows/deploy-pages.yml` to inject `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` from GitHub Repository Secrets. Created setup runbook `docs/supabase-access-gate-setup.md`.
+  - [x] **Test Suite & Build Verification**: Added `src/tests/gate/PrivateBetaGate.test.tsx` (5/5 tests passed). Test suite scaled to **222/222 tests passing across 44 test files**; production build clean in 9.40s. Deployed to GitHub Pages.
 
 ---
 
@@ -538,9 +552,9 @@
 - [x] `docs/dpdp-compliance-mapping.md` updated for any change touching consent, data collection, or crisis
 - [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
 - [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
-- [x] Pre-deployment regression test suite: **212/212 tests passed across 42 test files**
-- [x] Production bundle verified: `tsc && vite build` completed with zero errors (initial chunk 577 kB)
-- [x] Staged rollout: Beta cohort testing before broad public release (documented in `docs/beta-cohort-staged-rollout-dossier.md`)
+- [x] Pre-deployment regression test suite: **222/222 tests passed across 44 test files**
+- [x] Production bundle verified: `tsc && vite build` completed with zero errors in **9.40s** (initial chunk 594 kB)
+- [x] Staged rollout: Closed Beta cohort testing protected by Supabase Cloud Gatekeeper with single-use device binding & instant URL scrubbing (documented in `docs/supabase-access-gate-setup.md` and `docs/beta-cohort-staged-rollout-dossier.md`)
 
 ---
 
