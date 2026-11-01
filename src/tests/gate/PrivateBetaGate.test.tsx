@@ -84,10 +84,14 @@ describe('PrivateBetaGate Component', () => {
     }, { timeout: 2000 });
   });
 
-  it('exposes a request access button that opens email intent', () => {
+  it('opens in-app Request Access modal when clicking request invite', () => {
     render(<PrivateBetaGate onAccessGranted={vi.fn()} />);
     const requestBtn = screen.getByText(/Request Invite Token/i);
     expect(requestBtn).toBeInTheDocument();
+
+    fireEvent.click(requestBtn);
+    expect(screen.getByText(/Request Pilot Access/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/e\.g\. Dr\. Ananya Sen/i)).toBeInTheDocument();
   });
 
   it('rejects multi-device oversharing of single-use token', async () => {

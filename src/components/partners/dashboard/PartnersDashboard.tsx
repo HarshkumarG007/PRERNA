@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Heart, 
   Sparkles, 
@@ -25,6 +25,7 @@ import { PartnerPairingModal } from '../pairing/PartnerPairingModal';
 import { PartnersGateModal } from '../auth/PartnersGateModal';
 import { PartnerSubscriptionModal } from '../../subscription/PartnerSubscriptionModal';
 import { useSubscriptionStore } from '../../../store/subscriptionStore';
+import { sovereignSync } from '../../../utils/realtimeSync';
 import { Crown } from 'lucide-react';
 
 interface PartnersDashboardProps {
@@ -51,6 +52,21 @@ export const PartnersDashboard: React.FC<PartnersDashboardProps> = ({ onQuickExi
 
   const isLovers = profile.mode === 'lovers';
   const isPaired = connection.status === 'paired';
+
+  // Real-time synchronization subscription for paired partner
+  useEffect(() => {
+    if (!isPaired || !connection.pairingShortCode) return;
+
+    const unsubscribe = sovereignSync.subscribeToPartnerEvents(
+      connection.pairingShortCode,
+      (eventType, eventData) => {
+        console.log('[PartnerSync] Received live partner event:', eventType, eventData);
+        somaticAudio.playSoftChime();
+      }
+    );
+
+    return () => unsubscribe();
+  }, [isPaired, connection.pairingShortCode]);
 
   const handleQuickExit = () => {
     somaticAudio.playSoftChime();

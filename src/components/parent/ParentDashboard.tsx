@@ -35,6 +35,7 @@ import {
   confirmPairingHandshake 
 } from '../../utils/pairingProtocol';
 import { somaticAudio } from '../../utils/audioSynthesis';
+import { sovereignSync } from '../../utils/realtimeSync';
 
 interface ParentDashboardProps {
   onExit?: () => void;
@@ -61,6 +62,21 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ onExit }) => {
   useEffect(() => {
     loadParentView();
   }, [storeProfile, storeUser]);
+
+  // Real-time synchronization subscription for paired teen
+  useEffect(() => {
+    if (!pairedRecord?.teenId) return;
+
+    const unsubscribe = sovereignSync.subscribeToTeenParentUpdates(
+      pairedRecord.teenId,
+      (updated) => {
+        setProfile((prev) => prev ? { ...prev, ...updated } : (updated as ParentSafeProfile));
+        somaticAudio.playSoftChime();
+      }
+    );
+
+    return () => unsubscribe();
+  }, [pairedRecord?.teenId]);
 
   const loadParentView = async () => {
     try {

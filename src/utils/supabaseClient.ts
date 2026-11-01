@@ -44,6 +44,15 @@ export interface BetaFeedbackSubmission {
   role: string;
 }
 
+export interface BetaAccessRequestSubmission {
+  fullName: string;
+  email: string;
+  role: 'teen' | 'parent' | 'educator' | 'reviewer' | 'partner' | 'other';
+  purpose: string;
+  organization?: string;
+  discoverySource?: string;
+}
+
 class SovereignSupabaseService {
   private client: SupabaseClient | null = null;
 
@@ -222,6 +231,60 @@ class SovereignSupabaseService {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Submits an in-app request for beta access tokens.
+   */
+  public async submitAccessRequest(request: BetaAccessRequestSubmission): Promise<{ success: boolean; message: string }> {
+    if (!this.isConfigured() || !this.client) {
+      // Store locally so it isn't lost if offline
+      try {
+        const pending = JSON.parse(localStorage.getItem('prerna_pending_access_requests') || '[]');
+        pending.push({ ...request, timestamp: new Date().toISOString() });
+        localStorage.setItem('prerna_pending_access_requests', JSON.stringify(pending));
+      } catch {}
+      return { 
+        success: true, 
+        message: 'Request saved! (Offline fallback mode: please also email harshkumargupta007@gmail.com for expedited pass).' 
+      };
+    }
+
+    try {
+      const { error } = await this.client.from('beta_access_requests').insert([
+        {
+          full_name: request.fullName.trim(),
+          email: request.email.trim().toLowerCase(),
+          role: request.role,
+          purpose: request.purpose.trim(),
+          organization: request.organization?.trim() || null,
+          discovery_source: request.discoverySource || 'GitHub / Web',
+          created_at: new Date().toISOString()
+        }
+      ]);
+
+      if (error) {
+        console.warn('[Supabase] Access request insert failed:', error);
+        return { success: false, message: error.message || 'Unable to submit request. Please try again.' };
+      }
+
+      return { 
+        success: true, 
+        message: 'Your access request has been recorded! Founder Harsh Kumar Gupta will review and email your single-use pass.' 
+      };
+    } catch (e: any) {
+      return { success: false, message: e?.message || 'Failed to submit access request.' };
+    }
+  }
+
+  /**
+   * Provides access to Supabase Realtime broadcast channels for zero-cloud E2EE relay.
+   */
+  public getRealtimeChannel(topic: string) {
+    if (!this.isConfigured() || !this.client) {
+      return null;
+    }
+    return this.client.channel(topic);
   }
 }
 

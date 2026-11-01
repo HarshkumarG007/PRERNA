@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ShieldCheck, Key, ArrowRight, Mail, CheckCircle2, AlertCircle, RefreshCw, Database } from 'lucide-react';
 import { PrernaEmblem } from '../common/PrernaLogo';
 import { sovereignSupabase, BetaTokenVerificationResult } from '../../utils/supabaseClient';
+import { RequestAccessModal } from './RequestAccessModal';
 
 interface PrivateBetaGateProps {
   onAccessGranted: (result: BetaTokenVerificationResult) => void;
@@ -14,6 +15,7 @@ export const PrivateBetaGate: React.FC<PrivateBetaGateProps> = ({ onAccessGrante
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successResult, setSuccessResult] = useState<BetaTokenVerificationResult | null>(null);
   const [showConfigHelp, setShowConfigHelp] = useState(false);
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
 
   // Auto-detect magic invite parameter from URL on mount
   useEffect(() => {
@@ -80,11 +82,7 @@ export const PrivateBetaGate: React.FC<PrivateBetaGateProps> = ({ onAccessGrante
   };
 
   const handleRequestAccess = () => {
-    const subject = encodeURIComponent('Request for PRERNA Closed Beta Access Token');
-    const body = encodeURIComponent(
-      `Hello Harsh,\n\nI would like to request an access token for the PRERNA Adolescent Wellbeing platform.\n\nMy Details:\n- Name:\n- Organization / School / Role (Teen, Parent, Counselor, Reviewer):\n- Purpose:\n\nThank you!`
-    );
-    window.location.href = `mailto:hrslsha007@gmail.com?subject=${subject}&body=${body}`;
+    setIsRequestModalOpen(true);
   };
 
   return (
@@ -235,6 +233,12 @@ export const PrivateBetaGate: React.FC<PrivateBetaGateProps> = ({ onAccessGrante
           </motion.div>
         )}
       </motion.div>
+
+      {/* In-App Beta Access Request Modal */}
+      <RequestAccessModal
+        isOpen={isRequestModalOpen}
+        onClose={() => setIsRequestModalOpen(false)}
+      />
     </div>
   );
 };
