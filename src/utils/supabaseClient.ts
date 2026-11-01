@@ -246,7 +246,7 @@ class SovereignSupabaseService {
       } catch {}
       return { 
         success: true, 
-        message: 'Request saved! (Offline fallback mode: please also email harshkumargupta007@gmail.com for expedited pass).' 
+        message: 'Request saved! (Offline fallback mode: please also email hrslsha007@gmail.com for expedited pass).' 
       };
     }
 

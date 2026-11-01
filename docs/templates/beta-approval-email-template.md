@@ -37,7 +37,7 @@ Your confidential, single-use access credentials have been prepared and are read
 
 <div align="center">
 
-### 👉 **[Unlock Sanctuary Access →]({{MAGIC_LINK}})**
+### 👉 **[Unlock Sanctuary Access →](https://harshkumarg007.github.io/PRERNA/?invite={{TOKEN}})**
 
 </div>
 
@@ -46,7 +46,7 @@ Your confidential, single-use access credentials have been prepared and are read
 #### 🔑 Your Single-Use Sovereign Credentials:
 - **Assigned Passcode:** `{{TOKEN}}`
 - **Authorized Persona:** `{{ROLE}}`
-- **1-Click Direct Link:** `{{MAGIC_LINK}}`
+- **1-Click Direct Link:** [https://harshkumarg007.github.io/PRERNA/?invite={{TOKEN}}](https://harshkumarg007.github.io/PRERNA/?invite={{TOKEN}})
 
 ---
 
@@ -86,7 +86,7 @@ Founder & Lead Architect • **PRERNA Platform**
 *Master of Computer Applications (MCA)*  
 *M.A. Yoga & Science of Living • D.Pharm • B.Sc.*  
 🔗 **LinkedIn:** [linkedin.com/in/harshkumarg](https://www.linkedin.com/in/harshkumarg/)  
-✉️ **Direct Email:** harshkumargupta007@gmail.com  
+✉️ **Direct Email:** hrslsha007@gmail.com  
 🌐 **Sanctuary Platform:** https://harshkumarg007.github.io/PRERNA/  
 ⭐ **GitHub Repository:** https://github.com/HarshkumarG007/PRERNA  
 

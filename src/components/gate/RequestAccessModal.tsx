@@ -81,7 +81,7 @@ export const RequestAccessModal: React.FC<RequestAccessModalProps> = ({ isOpen, 
 
   const handleCopyEmailDraft = () => {
     const draft = `Subject: PRERNA Access Request — ${fullName} (${role.toUpperCase()})
-To: harshkumargupta007@gmail.com
+To: hrslsha007@gmail.com
 
 Hello Harsh,
 
@@ -106,7 +106,7 @@ Looking forward to receiving an invitation token. Thank you!`;
     const body = encodeURIComponent(
       `Hello Harsh,\n\nI would like to request pilot access to PRERNA:\n- Name: ${fullName}\n- Email: ${email}\n- Role: ${role}\n- Organization: ${organization || 'Independent'}\n- Discovery: ${discoverySource}\n- Purpose: ${purpose}\n\nThank you!`
     );
-    window.location.href = `mailto:harshkumargupta007@gmail.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:hrslsha007@gmail.com?subject=${subject}&body=${body}`;
   };
 
   return (
