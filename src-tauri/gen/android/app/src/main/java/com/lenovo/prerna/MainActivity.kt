@@ -1,15 +1,35 @@
 package com.lenovo.prerna
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.PermissionRequest
+import android.webkit.WebChromeClient
 import android.webkit.WebView
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 
 class MainActivity : TauriActivity() {
+  private var pendingPermissionRequest: PermissionRequest? = null
+
+  private val requestPermissionLauncher = registerForActivityResult(
+    ActivityResultContracts.RequestMultiplePermissions()
+  ) { permissions ->
+    val cameraGranted = permissions[Manifest.permission.CAMERA] ?: false
+    if (cameraGranted) {
+      pendingPermissionRequest?.grant(pendingPermissionRequest?.resources)
+    } else {
+      pendingPermissionRequest?.deny()
+    }
+    pendingPermissionRequest = null
+  }
+
   override fun onCreate(savedInstanceState: Bundle?) {
     try {
       enableEdgeToEdge()
@@ -44,6 +64,30 @@ class MainActivity : TauriActivity() {
           setSupportZoom(false)
           builtInZoomControls = false
           displayZoomControls = false
+        }
+
+        // Configure WebChromeClient to handle camera permissions for QR scanning
+        view.webChromeClient = object : WebChromeClient() {
+          override fun onPermissionRequest(request: PermissionRequest) {
+            val resources = request.resources
+            val needsCamera = resources.contains(PermissionRequest.RESOURCE_VIDEO_CAPTURE)
+
+            if (needsCamera) {
+              val hasCamera = ContextCompat.checkSelfPermission(
+                this@MainActivity,
+                Manifest.permission.CAMERA
+              ) == PackageManager.PERMISSION_GRANTED
+
+              if (hasCamera) {
+                request.grant(resources)
+              } else {
+                pendingPermissionRequest = request
+                requestPermissionLauncher.launch(arrayOf(Manifest.permission.CAMERA))
+              }
+            } else {
+              request.grant(resources)
+            }
+          }
         }
       } catch (e: Exception) {
         Log.w("PRERNA", "WebView config non-fatal: ${e.message}")

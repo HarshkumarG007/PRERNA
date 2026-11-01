@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ShieldCheck, Key, ArrowRight, Mail, CheckCircle2, AlertCircle, RefreshCw, Database } from 'lucide-react';
+import { ShieldCheck, Key, ArrowRight, Mail, CheckCircle2, AlertCircle, RefreshCw, Database, Wifi } from 'lucide-react';
 import { PrernaEmblem } from '../common/PrernaLogo';
 import { sovereignSupabase, BetaTokenVerificationResult } from '../../utils/supabaseClient';
 import { RequestAccessModal } from './RequestAccessModal';
@@ -54,6 +54,11 @@ export const PrivateBetaGate: React.FC<PrivateBetaGateProps> = ({ onAccessGrante
       return;
     }
 
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      setErrorMsg('No internet connection detected. Internet access is required only for this initial one-time verification to validate your invitation. Please connect to Wi-Fi or mobile data.');
+      return;
+    }
+
     setIsVerifying(true);
     setErrorMsg(null);
 
@@ -75,7 +80,7 @@ export const PrivateBetaGate: React.FC<PrivateBetaGateProps> = ({ onAccessGrante
         setErrorMsg(res.message || 'Access token is invalid or expired.');
       }
     } catch {
-      setErrorMsg('Verification failed. Please verify your connection.');
+      setErrorMsg('Verification failed. Please check your internet connection for this initial setup and try again.');
     } finally {
       setIsVerifying(false);
     }
@@ -137,6 +142,24 @@ export const PrivateBetaGate: React.FC<PrivateBetaGateProps> = ({ onAccessGrante
             </div>
           </motion.div>
         )}
+
+        {/* 1-Time Verification & Offline Sovereignty Notice */}
+        <div className="p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 text-left flex items-start gap-3">
+          <div className="w-7 h-7 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <Wifi size={14} className="text-indigo-400" />
+          </div>
+          <div className="text-[11px] space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-slate-100">1-Time Online Verification</span>
+              <span className="text-[9px] uppercase px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold border border-emerald-500/30">
+                100% Offline After
+              </span>
+            </div>
+            <p className="text-slate-400 leading-relaxed text-[11px]">
+              Active internet is required <strong className="text-slate-200 font-semibold">only once</strong> to validate your pilot token and cryptographically seal this device. Afterward, all assessments, journaling, and AI mentoring operate completely offline with zero minor data transmitted to any cloud.
+            </p>
+          </div>
+        </div>
 
         {/* Token Input Form */}
         {!successResult && (

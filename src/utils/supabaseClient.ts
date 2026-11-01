@@ -8,8 +8,16 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const DEFAULT_SUPABASE_URL = 'https://yfccmanwpgjwhqssfetp.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlmY2NtYW53cGdqd2hxc3NmZXRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1MjQyNDMsImV4cCI6MjEwOTEwMDI0M30.QxvzYFiFFBIVolobauqiN2kBuhHd6rWFEZRG9T7cDT4';
+
+const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_URL.trim() !== '')
+  ? import.meta.env.VITE_SUPABASE_URL.trim()
+  : DEFAULT_SUPABASE_URL;
+
+const SUPABASE_ANON_KEY = (import.meta.env.VITE_SUPABASE_ANON_KEY && import.meta.env.VITE_SUPABASE_ANON_KEY.trim() !== '')
+  ? import.meta.env.VITE_SUPABASE_ANON_KEY.trim()
+  : DEFAULT_SUPABASE_ANON_KEY;
 
 export interface BetaTokenVerificationResult {
   valid: boolean;
