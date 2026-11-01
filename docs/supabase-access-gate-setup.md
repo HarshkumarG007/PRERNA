@@ -223,3 +223,77 @@ You don't need to touch code or push to Git:
 2. **To Add a New Tester:** Click **Insert row**, type the token (e.g. `DELHI-PUBLIC-SCHOOL`), assign a name, set `max_uses`, and save.
 3. **To Revoke Access:** Find the token and uncheck `is_active` (or set `expires_at` to yesterday). The tester is locked out instantly on their next reload!
 
+---
+
+## 5. How to Review & Grant Access to Beta Applicants
+
+When someone requests access via the in-app modal, their application lands in `public.beta_access_requests`.
+
+### Option A: The 1-Click Automated SQL Function (Recommended)
+Add this helper function to your Supabase SQL Editor once:
+
+```sql
+create or replace function public.approve_beta_request(target_email text)
+returns table(
+  full_name text,
+  email text,
+  generated_token text,
+  magic_invite_link text
+)
+language plpgsql
+security definer
+as $$
+declare
+  req record;
+  new_token text;
+  random_suffix text;
+begin
+  select * into req
+  from public.beta_access_requests
+  where lower(trim(public.beta_access_requests.email)) = lower(trim(target_email))
+  order by created_at desc
+  limit 1;
+
+  if not found then
+    raise exception 'No beta access request found for email: %', target_email;
+  end if;
+
+  random_suffix := upper(substring(md5(random()::text) from 1 for 6));
+  new_token := 'PRN-' || upper(req.role) || '-' || random_suffix;
+
+  insert into public.beta_access_tokens (token, assigned_to, role, max_uses, is_active)
+  values (new_token, req.full_name || ' (' || req.email || ')', req.role, 1, true);
+
+  update public.beta_access_requests
+  set status = 'approved'
+  where id = req.id;
+
+  return query select 
+    req.full_name,
+    req.email,
+    new_token as generated_token,
+    'https://harshkumarg007.github.io/PRERNA/?invite=' || new_token as magic_invite_link;
+end;
+$$;
+```
+
+Then, whenever you want to approve someone, just run:
+```sql
+select * from public.approve_beta_request('applicant@example.com');
+```
+It instantly marks them approved, inserts a single-use token with hardware lock, and prints their ready-to-send magic link!
+
+### Option B: The Visual Table Editor (Zero Code)
+1. In Supabase Dashboard, click **Table Editor** -> `beta_access_requests`.
+2. Inspect the applicant's name, email, role, and why they want access.
+3. Change `status` from `pending` to `approved`.
+4. Switch to `beta_access_tokens` table -> click **Insert row**:
+   - `token`: `PRN-PILOT-` + their first name (e.g. `PRN-PILOT-ANANYA`)
+   - `assigned_to`: Applicant's name
+   - `role`: Their requested role (`teen`, `parent`, `educator`, `reviewer`)
+   - `max_uses`: `1` (strict single-use device lock)
+   - `is_active`: `true`
+5. Send them the link:
+   `https://harshkumarg007.github.io/PRERNA/?invite=PRN-PILOT-ANANYA`
+
+
