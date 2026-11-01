@@ -1129,7 +1129,7 @@ impl Database {
     }
 }
 
-fn get_db_path(app_handle: &tauri::AppHandle) -> AnyhowResult<PathBuf> {
+fn get_db_path(_app_handle: &tauri::AppHandle) -> AnyhowResult<PathBuf> {
     #[cfg(target_os = "android")]
     {
         // To avoid JNI startup deadlock on Android when app is launching,
@@ -1162,7 +1162,7 @@ fn get_db_path(app_handle: &tauri::AppHandle) -> AnyhowResult<PathBuf> {
     #[cfg(not(target_os = "android"))]
     {
         use tauri::Manager;
-        let app_dir = match app_handle.path().app_data_dir() {
+        let app_dir = match _app_handle.path().app_data_dir() {
             Ok(dir) => dir,
             Err(e) => {
                 log::warn!("Failed to get app_data_dir: {}. Attempting fallback...", e);

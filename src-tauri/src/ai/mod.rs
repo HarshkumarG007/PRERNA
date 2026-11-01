@@ -50,7 +50,7 @@ impl LocalLLM {
         #[cfg(any(target_os = "android", not(feature = "local-llm")))]
         {
             info!("Running AI in local mock/RAG mode (native local-llm feature disabled or mobile target)");
-            return Ok(Self {
+            Ok(Self {
                 _model_variant: MentorModel::RagHybrid {
                     base: PathBuf::new(),
                     retrieval: Arc::new(DomainRag::new()),
@@ -59,7 +59,7 @@ impl LocalLLM {
                 rag_engine: Arc::new(DomainRag::new()),
                 _max_tokens: 512,
                 mock_mode: true,
-            });
+            })
         }
 
         #[cfg(all(not(target_os = "android"), feature = "local-llm"))]
