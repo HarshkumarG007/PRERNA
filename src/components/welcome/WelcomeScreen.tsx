@@ -327,7 +327,10 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onAuthenticated })
             mode={authMode}
             initialLoginMode={authLoginMode}
             onClose={() => setShowAuth(false)}
-            onSuccess={onAuthenticated}
+            onSuccess={(userId) => {
+              setShowAuth(false);
+              onAuthenticated(userId);
+            }}
           />
         )}
       </AnimatePresence>

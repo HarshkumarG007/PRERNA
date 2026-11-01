@@ -20,16 +20,14 @@ const stepConfig = [
   { icon: <User size={20} />, title: 'Who are you?', color: 'from-violet-500 to-fuchsia-500' },
   { icon: <MapPin size={20} />, title: 'Where are you?', color: 'from-cyan-500 to-blue-500' },
   { icon: <Lock size={20} />, title: 'Secure your space', color: 'from-emerald-500 to-teal-500' },
-  { icon: <Sparkles size={20} />, title: 'Two-Factor Setup', color: 'from-amber-500 to-orange-500' },
 ];
 
-export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initialLoginMode, onClose }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initialLoginMode, onClose, onSuccess }) => {
   const [mode, setMode] = useState(initialMode);
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [mfaSetupData, setMfaSetupData] = useState<{ secret: string; qr_code_svg: string } | null>(null);
   const [mfaToken, setMfaToken] = useState('');
   const [tempUserId, setTempUserId] = useState<string | null>(null);
   const [powStatus, setPowStatus] = useState<string | null>(null);
@@ -58,25 +56,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
 
   const { signup, login, loginWithCredentials, loginWithPin, loginDemo } = useAppStore();
 
-  const handleSkipMfa = async () => {
-    if (!tempUserId) {
-      onClose();
-      return;
+  const handleClose = async () => {
+    if (tempUserId) {
+      try {
+        await login(tempUserId);
+        onSuccess?.(tempUserId);
+      } catch {}
     }
-    setIsLoading(true);
-    try {
-      await login(tempUserId);
-      onClose();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Login failed');
-      setIsLoading(false);
-    }
+    onClose();
   };
 
   const handleQuickDemo = async (role: 'teen' | 'adult' | 'parent' | 'educator' = 'teen') => {
     setIsLoading(true);
     try {
-      await loginDemo(role);
+      const demoId = await loginDemo(role);
+      onSuccess?.(demoId || 'demo');
       onClose();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Demo login failed');
@@ -119,43 +113,33 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
           await generateProofOfWork(4);
           setPowStatus('Proof generated. Creating account...');
           
-          // Create account without immediately unmounting the modal
-          const userId = await signup(formData as SignupData, false);
+          // Create account and auto-login immediately so session is active and verified
+          const userId = await signup(formData as SignupData, true);
           setTempUserId(userId);
+          setPowStatus(null);
           
-          try {
-            const mfaData = await invoke<{ secret: string; qr_code_svg: string }>('generate_mfa_secret', { userId });
-            setMfaSetupData(mfaData);
-            setStep(4);
-          } catch {
-            // Non-blocking MFA generation fallback
-            await login(userId);
-            onClose();
-            return;
-          }
-          setIsLoading(false);
+          onSuccess?.(userId);
+          onClose();
           return;
         }
 
         if (step === 4) {
-          if (!tempUserId) {
-            onClose();
-            return;
-          }
-          
-          if (mfaToken && mfaToken.length === 6) {
-            try {
-              const isValid = await invoke<boolean>('verify_mfa_setup', { 
-                userId: tempUserId, 
-                token: mfaToken 
-              });
-              if (!isValid) throw new Error('Invalid code. Please try again.');
-            } catch (mfaErr: any) {
-              if (mfaErr.message?.includes('Invalid code')) throw mfaErr;
+          if (tempUserId) {
+            if (mfaToken && mfaToken.length === 6) {
+              try {
+                const isValid = await invoke<boolean>('verify_mfa_setup', { 
+                  userId: tempUserId, 
+                  token: mfaToken 
+                });
+                if (!isValid) throw new Error('Invalid code. Please try again.');
+              } catch (mfaErr: any) {
+                if (mfaErr.message?.includes('Invalid code')) throw mfaErr;
+              }
             }
+            
+            await login(tempUserId);
+            onSuccess?.(tempUserId);
           }
-          
-          await login(tempUserId);
           onClose();
           return;
         }
@@ -167,7 +151,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
             setIsLoading(false);
             return;
           }
-          await loginWithPin(userId, formData.pin);
+          const authedId = await loginWithPin(userId, formData.pin);
+          onSuccess?.(authedId || userId);
           onClose();
         } else if (loginMode === 'full') {
           if (!formData.username || !formData.passwordInput) {
@@ -180,6 +165,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
              setIsLoading(false);
              return;
           }
+          if (response) {
+            onSuccess?.(typeof response === 'string' ? response : (response as any).id);
+          }
           onClose();
         } else if ((loginMode as any) === 'mfa') {
           if (!mfaToken || mfaToken.length < 6) throw new Error('Please enter a valid 6-digit code');
@@ -187,11 +175,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
           if (user) {
             localStorage.setItem('prerna_last_user', user.id);
             await login(user.id);
+            onSuccess?.(user.id);
             onClose();
           }
         }
       }
     } catch (err) {
+      setPowStatus(null);
       setError(err instanceof Error ? err.message : 'Authentication failed');
       setIsLoading(false);
     }
@@ -209,7 +199,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
         onClick={() => {
           // On mobile touchscreens, don't accidentally close when filling in multi-step signup
           if (mode === 'signup' && step > 1) return;
-          onClose();
+          handleClose();
         }}
         className="absolute inset-0 bg-black/70 backdrop-blur-md"
       />
@@ -242,7 +232,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
         {/* Header */}
         <div className="relative p-6 pb-4 flex-shrink-0 z-10">
           <button
-            onClick={onClose}
+            onClick={handleClose}
             aria-label="Close authentication modal"
             className="absolute top-4 right-4 p-2 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-colors"
           >
@@ -256,10 +246,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
               </div>
               <div>
                 <h2 className="text-xl font-black text-white tracking-tight">
-                  {step === 4 ? 'Secure Your Account (Optional)' : currentStepConfig?.title}
+                  {currentStepConfig?.title}
                 </h2>
                 <p className="text-sm text-white/40 font-medium">
-                  {step < 4 ? `Step ${step} of 3` : 'Final Step • Can be skipped'}
+                  {`Step ${step} of 3`}
                 </p>
               </div>
             </div>
@@ -326,7 +316,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
                   setFormData={setFormData}
                   showPassword={showPassword}
                   setShowPassword={setShowPassword}
-                  mfaSetupData={mfaSetupData}
+                  mfaSetupData={null}
                   mfaToken={mfaToken}
                   setMfaToken={setMfaToken}
                 />
@@ -356,24 +346,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
           >
             {powStatus || (isLoading ? 'Processing...' : (
               mode === 'login' ? 'Log In' : 
-              step === 4 ? (mfaToken && mfaToken.length === 6 ? 'Verify 2FA & Complete →' : 'Enter Sanctuary Directly →') : 
               step === 3 ? 'Create Account →' : 
               'Continue →'
             ))}
           </button>
-          
-          {mode === 'signup' && step === 4 && (
-            <button
-              type="button"
-              onClick={handleSkipMfa}
-              disabled={isLoading}
-              className="w-full mt-2.5 py-3 px-4 bg-white/10 hover:bg-white/15 text-violet-200 hover:text-white rounded-xl text-sm font-semibold transition-all border border-white/10 flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>Skip 2FA for Now & Enter Sanctuary →</span>
-            </button>
-          )}
 
-          {mode === 'signup' && step > 1 && step < 4 && (
+          {mode === 'signup' && step > 1 && (
             <button
               onClick={() => setStep(step - 1)}
               className="w-full mt-3 py-2 text-white/40 hover:text-white text-sm transition-colors"
@@ -393,10 +371,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
         </div>
 
         {/* Progress Bar */}
-        {mode === 'signup' && step < 4 && (
+        {mode === 'signup' && (
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/5">
             <motion.div
               className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
+              initial={{ width: '33%' }}
               animate={{ width: `${(step / 3) * 100}%` }}
               transition={{ duration: 0.4, ease: 'easeInOut' }}
             />

@@ -155,8 +155,19 @@ function App() {
   }
 
   if (!isAuthenticated || !user) {
-    // We pass an empty function or let AuthModal handle the state completely via Zustand
-    return <WelcomeScreen onAuthenticated={() => {}} />;
+    return (
+      <WelcomeScreen
+        onAuthenticated={async (userId) => {
+          if (!useAppStore.getState().isAuthenticated && userId) {
+            try {
+              await login(userId);
+            } catch (err) {
+              console.error('Failed to authenticate session:', err);
+            }
+          }
+        }}
+      />
+    );
   }
 
   if (isAuthenticated && user && !user.role) {

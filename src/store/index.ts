@@ -567,6 +567,8 @@ export const useAppStore = create<AppState>()(
               } catch {}
             }
             set({ profile: mergedProfile, profileLoading: false });
+          } else {
+            set({ profileLoading: false });
           }
         } catch (error) {
           // Profile might not exist yet (new user)
