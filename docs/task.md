@@ -545,13 +545,19 @@
   - [x] **Automated CI/CD Integration**: Configured `.github/workflows/deploy-pages.yml` to inject `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` from GitHub Repository Secrets. Created setup runbook `docs/supabase-access-gate-setup.md`. Added `.env.example` and configured `.env.local` for sovereign local development.
   - [x] **Live Supabase Gateway Connected & Verified**: Connected project `yfccmanwpgjwhqssfetp` (`https://yfccmanwpgjwhqssfetp.supabase.co`). Verified stored procedure `verify_beta_token` and `beta_feedback` RLS policies with live smoke tests. Refined anti-leak policy so strict 1-device lock binds single-use invites (`max_uses = 1`) while multi-use tokens (`PRERNA-FOUNDER-2026`, school cohorts) allow multi-device redemption.
   - [x] **Test Suite & Build Verification**: Added `src/tests/gate/PrivateBetaGate.test.tsx` (5/5 tests passed). Test suite scaled to **222/222 tests passing across 44 test files**; production build clean in 10.76s. Deployed to GitHub Pages.
-- [x] **P7-38** Official Release v1.2.1 • In-App Beta Request Modal, Token Automation, Realtime Sync & Cross-Platform Tag
+- [x] **P7-38** Official Release v1.2.1 • In-App Beta Request Modal, Token Automation, Realtime Sync & Cross-Platform Release Workflows
   - [x] **In-App Beta Access Request Modal**: Created `src/components/gate/RequestAccessModal.tsx` wired into `PrivateBetaGate.tsx`, allowing prospective pilot participants to apply directly without leaving the app.
   - [x] **Automated Supabase Access Token Trigger**: Engineered `trigger_auto_create_token` on `beta_access_requests` in PostgreSQL to automatically generate cryptographically unique tokens (`PRN-NAME-HEX`), provision entries in `beta_access_tokens` with `max_uses = 3` (Web, Android APK, Windows Desktop), and populate magic links on status change to `approved`.
   - [x] **Real-Time Synchronisation Engine**: Built `src/utils/realtimeSync.ts` implementing dual-layer synchronization (HTML5 `BroadcastChannel` for local zero-latency testing + Supabase Realtime WebSocket channels `sync_pair_*` / `sync_partner_*` for zero-cloud-psychometric cross-device linking).
   - [x] **Brand Email Approval Assets**: Created responsive HTML template (`docs/templates/beta-approval-email.html`) and markdown template (`docs/templates/beta-approval-email-template.md`) featuring authentic vector `PrernaEmblem`, founder credentials & LinkedIn, poetic GitHub star invitation, and `Copyright © 2026 PRERNA™. All Rights Reserved.`
   - [x] **Version Manifest Harmonization**: Synchronized version `1.2.1` across `package.json`, `package-lock.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, and `src/components/beta/BetaFeedbackModal.tsx`.
-  - [x] **Full Regression & Production Verification**: All 222/222 tests passing across 44 test files; clean production bundle build in 10.19s. Official git tag `v1.2.1` ready to trigger GitHub Actions release pipeline.
+  - [x] **Full Regression & Production Verification**: All 222/222 tests passing across 44 test files; clean production bundle build in 10.19s.
+  - [x] **Local Native Android ARM64 Release Build**: Compiled native Rust `libapp_lib.so` (16 KB page-aligned for Android 15) and assembled signed release APK `PRERNA-v1.2.1-arm64.apk` (12.47 MB).
+  - [x] **CI/CD Pipeline Hardening**:
+    - Upgraded `build-android.yml` to `setup-android@v4` and `setup-ndk@v1` to eliminate obsolete `tools` package.
+    - Scrubbed hardcoded Windows host paths from `.cargo/config.toml` and configured dynamic Linux NDK toolchain in CI.
+    - Removed empty code-signing secrets from `release.yml` to prevent macOS `security import` keychain failure.
+  - [x] **Official Release Tag**: Pushed official git tag `v1.2.1` to GitHub to trigger the release pipeline.
 
 ---
 
