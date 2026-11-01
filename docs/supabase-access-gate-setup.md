@@ -266,13 +266,13 @@ begin
     new.generated_token := new_token;
     new.magic_link := 'https://harshkumarg007.github.io/PRERNA/?invite=' || new_token;
 
-    -- Automatically insert into beta_access_tokens with single-use device lock
+    -- Automatically insert into beta_access_tokens (Quota = 3: Web + Android App + Windows Desktop)
     insert into public.beta_access_tokens (token, assigned_to, role, max_uses, is_active)
     values (
       new_token, 
       new.full_name || ' (' || new.email || ')', 
       coalesce(new.role, 'teen'), 
-      1, 
+      3, -- 3 redemptions: allows same tester to use Web, Android APK, and Windows EXE
       true
     )
     on conflict (token) do nothing;
