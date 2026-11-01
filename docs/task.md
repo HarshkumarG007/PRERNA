@@ -513,6 +513,16 @@
 - [x] **P7-33** Rust Native Build Decoupling & LLVM/MSVC Hardening
   - [x] Gated optional local C++ inference dependency (`llama-cpp-2`) under `local-llm` Cargo feature flag in `src-tauri/Cargo.toml`.
   - [x] Added fallback mock/RAG mode in `src-tauri/src/ai/mod.rs` allowing native Windows and Android targets to compile cleanly without requiring system-wide LLVM/Clang installation.
+- [x] **P7-34** GitHub Pages Web App Deployment & Aarav Demo Crash Hardening
+  - [x] **Automated Web Deployment**: Configured `.github/workflows/deploy-pages.yml` with SPA routing redirect (`404.html`) and verified live deployment at `https://harshkumarg007.github.io/PRERNA/`.
+  - [x] **Business Model & Subscriptions Documentation**: Updated `README.md` with sovereign Indian monetization architecture (Adolescent Sanctuary Tier 1 Free, Partner Pro Tier 2 @ ₹499/yr, VidyaPeeth Institutional Tier 3 @ ₹49,999/yr).
+  - [x] **Root-Cause Analysis of Webapp Crash**: Identified that `INITIAL_DEMO_PROFILES['demo-teen-001']` in `mockBackend.ts` provided an incomplete stub for `sixteenType` lacking `definition.role` and `dichotomies`, which triggered unhandled `TypeError` inside `SixteenTypeCard.tsx` and unmounted the React tree to `GlobalErrorBoundary`.
+  - [x] **Robust Typology Resolution**: Created `isCompleteSixteenType` and `resolveSixteenType` in `sixteenPersonalities.ts` to seamlessly validate and re-derive complete 16-type profiles from Big Five scores across all components (`Dashboard`, `TeenProfileView`, `SelfEvolutionSanctuary`, `ParentDashboard`, `LifeBlueprintExport`).
+  - [x] **Mock Database Self-Healing Migration**: Added auto-migration in `getMockDb()` inside `mockBackend.ts` to automatically detect and repair stale/corrupted cached profiles in `localStorage`.
+  - [x] **SixteenTypeCard Defensive Guards**: Added safe fallbacks for `roleMeta`, avatar emoji, and spectrum items so the component never throws on malformed props.
+  - [x] **Streak Calculation & Citation Guards**: Protected date parsing in `refreshStreak()` and optional chaining in `validateCitation()` against undefined fields.
+  - [x] **Sanctuary Recovery in ErrorBoundary**: Added "Reset Session Cache & Return" button to `GlobalErrorBoundary.tsx` so users are never trapped in bad local storage states.
+  - [x] **Test Suite & Build**: Added `src/tests/components/SixteenTypeCard.test.tsx` (2 tests) and verified Aarav login in `appStore.test.ts` — scaled test suite to **212/212 tests passing across 42 test files** with clean `npm run build`.
 
 ---
 
@@ -521,8 +531,8 @@
 - [x] `docs/dpdp-compliance-mapping.md` updated for any change touching consent, data collection, or crisis
 - [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
 - [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
-- [x] Pre-deployment regression test suite: **207/207 tests passed across 41 test files**
-- [x] Production bundle verified: `tsc && vite build` completed with zero errors (6.49s build time, initial chunk 566 kB)
+- [x] Pre-deployment regression test suite: **212/212 tests passed across 42 test files**
+- [x] Production bundle verified: `tsc && vite build` completed with zero errors (initial chunk 577 kB)
 - [x] Staged rollout: Beta cohort testing before broad public release (documented in `docs/beta-cohort-staged-rollout-dossier.md`)
 
 ---
