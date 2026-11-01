@@ -186,7 +186,7 @@ export const SelfDiscoveryJourney: React.FC<SelfDiscoveryJourneyProps> = ({ onCo
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-violet-500/20 border border-violet-500/30 text-violet-300 font-mono font-bold text-xs mb-3 shadow-sm">
                   <span>{sixteenType.fullCode}</span>
                   <span className="text-white/30">•</span>
-                  <span>{sixteenType.definition.name} ({sixteenType.definition.hindiName})</span>
+                  <span>{sixteenType.definition?.name || sixteenType.fullCode} ({sixteenType.definition?.hindiName || ''})</span>
                 </div>
               )}
               <p className="text-xl text-white/70 italic font-medium">"{archetype.tagline}"</p>

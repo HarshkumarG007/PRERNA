@@ -9,8 +9,9 @@ import { sendMessageToLLM, ChatMessage, UserContext, probeLocalSidecar, LocalSid
 import { useI18n } from '../../engine/localization/i18n';
 import { useAppStore } from '../../store';
 import { PrernaEmblem } from '../common/PrernaLogo';
-import { Mic, Square, Send, Bot, User as UserIcon, AlertTriangle, ArrowRight, ShieldCheck, Cpu, Settings, Check, X, RefreshCw } from 'lucide-react';
+import { Mic, Square, Send, Bot, User as UserIcon, AlertTriangle, ArrowRight, ShieldCheck, Cpu, Settings, Check, X, RefreshCw, Volume2 } from 'lucide-react';
 import { safeInvoke as invoke } from '../../utils/mockBackend';
+import { sovereignVoice } from '../../utils/speechSynthesis';
 
 interface AiMentorChatProps {
   userId: string;
@@ -116,7 +117,7 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
         riasec: profile?.personality?.riasec,
         name: (user as any)?.name || 'Learner',
         archetype: profile?.archetype?.name,
-        sixteenType: profile?.sixteenType ? `${profile.sixteenType.fullCode}: ${profile.sixteenType.definition.name}` : undefined,
+        sixteenType: profile?.sixteenType ? `${profile.sixteenType.fullCode}: ${profile.sixteenType.definition?.name || profile.sixteenType.fullCode}` : undefined,
       };
 
       const chatResponse = await sendMessageToLLM(
@@ -291,7 +292,7 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
                   </div>
                 )}
                 
-                <div className={`p-4 rounded-2xl shadow-sm backdrop-blur-md ${
+                <div className={`p-4 rounded-2xl shadow-sm backdrop-blur-md relative group ${
                   msg.role === 'user' 
                     ? 'bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white rounded-br-sm' 
                     : 'bg-white/10 border border-white/10 text-slate-100 rounded-bl-sm markdown-body'
@@ -299,9 +300,27 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
                   {msg.role === 'user' ? (
                     <p className="whitespace-pre-wrap">{msg.content}</p>
                   ) : (
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {msg.content}
-                    </ReactMarkdown>
+                    <div>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {msg.content}
+                      </ReactMarkdown>
+                      <div className="mt-2 pt-2 border-t border-white/10 flex justify-end">
+                        <button
+                          onClick={() => {
+                            if (sovereignVoice.isSpeaking()) {
+                              sovereignVoice.stop();
+                            } else {
+                              sovereignVoice.speak(msg.content);
+                            }
+                          }}
+                          className="text-[11px] font-bold text-violet-300 hover:text-white flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity cursor-pointer"
+                          title="Read aloud in native Indian voice"
+                        >
+                          <Volume2 size={12} />
+                          <span>Listen</span>
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </div>
 

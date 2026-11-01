@@ -192,13 +192,13 @@ export const LifeBlueprintExport: React.FC<LifeBlueprintExportProps> = ({
                       Core Persona & Typology
                     </span>
                     <h4 className="text-2xl font-black text-slate-900">
-                      {sixteenType?.definition.name || 'The Insightful Advocate'} ({sixteenType?.fullCode || 'INFJ'})
+                      {sixteenType?.definition?.name || 'The Insightful Advocate'} ({sixteenType?.fullCode || 'INFJ'})
                     </h4>
                     <p className="text-sm font-serif text-slate-600 italic mt-0.5">
-                      "{sixteenType?.definition.hindiName || 'गहन दृष्टा'}" — {sixteenType?.definition.tagline || 'Quietly inspiring visionary with profound empathy'}
+                      "{sixteenType?.definition?.hindiName || 'गहन दृष्टा'}" — {sixteenType?.definition?.tagline || 'Quietly inspiring visionary with profound empathy'}
                     </p>
                     <p className="text-xs text-slate-600 mt-3 leading-relaxed">
-                      {sixteenType?.definition.summary || 'Driven by deep intuition and grounded principles, you see beneath the surface and synthesize complex ideas.'}
+                      {sixteenType?.definition?.summary || 'Driven by deep intuition and grounded principles, you see beneath the surface and synthesize complex ideas.'}
                     </p>
                   </div>
 
@@ -209,38 +209,38 @@ export const LifeBlueprintExport: React.FC<LifeBlueprintExportProps> = ({
                     <div className="space-y-2 text-xs">
                       <div>
                         <div className="flex justify-between font-bold mb-1">
-                          <span>Energy: {sixteenType?.dichotomies.energy ? sixteenType.dichotomies.energy.dominant : 'Introversion (I)'}</span>
-                          <span>{sixteenType?.dichotomies.energy ? Math.max(sixteenType.dichotomies.energy.pctA, sixteenType.dichotomies.energy.pctB) : 70}%</span>
+                          <span>Energy: {sixteenType?.dichotomies?.energy ? sixteenType.dichotomies.energy.dominant : 'Introversion (I)'}</span>
+                          <span>{sixteenType?.dichotomies?.energy ? Math.max(sixteenType.dichotomies.energy.pctA, sixteenType.dichotomies.energy.pctB) : 70}%</span>
                         </div>
                         <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                          <div className="bg-indigo-600 h-full rounded-full" style={{ width: `${sixteenType?.dichotomies.energy ? Math.max(sixteenType.dichotomies.energy.pctA, sixteenType.dichotomies.energy.pctB) : 70}%` }} />
+                          <div className="bg-indigo-600 h-full rounded-full" style={{ width: `${sixteenType?.dichotomies?.energy ? Math.max(sixteenType.dichotomies.energy.pctA, sixteenType.dichotomies.energy.pctB) : 70}%` }} />
                         </div>
                       </div>
                       <div>
                         <div className="flex justify-between font-bold mb-1">
-                          <span>Mind: {sixteenType?.dichotomies.mind ? sixteenType.dichotomies.mind.dominant : 'Intuitive (N)'}</span>
-                          <span>{sixteenType?.dichotomies.mind ? Math.max(sixteenType.dichotomies.mind.pctA, sixteenType.dichotomies.mind.pctB) : 75}%</span>
+                          <span>Mind: {sixteenType?.dichotomies?.mind ? sixteenType.dichotomies.mind.dominant : 'Intuitive (N)'}</span>
+                          <span>{sixteenType?.dichotomies?.mind ? Math.max(sixteenType.dichotomies.mind.pctA, sixteenType.dichotomies.mind.pctB) : 75}%</span>
                         </div>
                         <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                          <div className="bg-purple-600 h-full rounded-full" style={{ width: `${sixteenType?.dichotomies.mind ? Math.max(sixteenType.dichotomies.mind.pctA, sixteenType.dichotomies.mind.pctB) : 75}%` }} />
+                          <div className="bg-purple-600 h-full rounded-full" style={{ width: `${sixteenType?.dichotomies?.mind ? Math.max(sixteenType.dichotomies.mind.pctA, sixteenType.dichotomies.mind.pctB) : 75}%` }} />
                         </div>
                       </div>
                       <div>
                         <div className="flex justify-between font-bold mb-1">
-                          <span>Nature: {sixteenType?.dichotomies.nature ? sixteenType.dichotomies.nature.dominant : 'Feeling (F)'}</span>
-                          <span>{sixteenType?.dichotomies.nature ? Math.max(sixteenType.dichotomies.nature.pctA, sixteenType.dichotomies.nature.pctB) : 65}%</span>
+                          <span>Nature: {sixteenType?.dichotomies?.nature ? sixteenType.dichotomies.nature.dominant : 'Feeling (F)'}</span>
+                          <span>{sixteenType?.dichotomies?.nature ? Math.max(sixteenType.dichotomies.nature.pctA, sixteenType.dichotomies.nature.pctB) : 65}%</span>
                         </div>
                         <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                          <div className="bg-rose-600 h-full rounded-full" style={{ width: `${sixteenType?.dichotomies.nature ? Math.max(sixteenType.dichotomies.nature.pctA, sixteenType.dichotomies.nature.pctB) : 65}%` }} />
+                          <div className="bg-rose-600 h-full rounded-full" style={{ width: `${sixteenType?.dichotomies?.nature ? Math.max(sixteenType.dichotomies.nature.pctA, sixteenType.dichotomies.nature.pctB) : 65}%` }} />
                         </div>
                       </div>
                       <div>
                         <div className="flex justify-between font-bold mb-1">
-                          <span>Tactics: {sixteenType?.dichotomies.tactics ? sixteenType.dichotomies.tactics.dominant : 'Judging (J)'}</span>
-                          <span>{sixteenType?.dichotomies.tactics ? Math.max(sixteenType.dichotomies.tactics.pctA, sixteenType.dichotomies.tactics.pctB) : 80}%</span>
+                          <span>Tactics: {sixteenType?.dichotomies?.tactics ? sixteenType.dichotomies.tactics.dominant : 'Judging (J)'}</span>
+                          <span>{sixteenType?.dichotomies?.tactics ? Math.max(sixteenType.dichotomies.tactics.pctA, sixteenType.dichotomies.tactics.pctB) : 80}%</span>
                         </div>
                         <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                          <div className="bg-emerald-600 h-full rounded-full" style={{ width: `${sixteenType?.dichotomies.tactics ? Math.max(sixteenType.dichotomies.tactics.pctA, sixteenType.dichotomies.tactics.pctB) : 80}%` }} />
+                          <div className="bg-emerald-600 h-full rounded-full" style={{ width: `${sixteenType?.dichotomies?.tactics ? Math.max(sixteenType.dichotomies.tactics.pctA, sixteenType.dichotomies.tactics.pctB) : 80}%` }} />
                         </div>
                       </div>
                     </div>

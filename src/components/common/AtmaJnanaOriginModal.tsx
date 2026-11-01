@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, Heart, Compass, BookOpen, Quote, Shield, Sun, Award, User } from 'lucide-react';
+import { X, Sparkles, Heart, Compass, BookOpen, Quote, Shield, Sun, Award, User, Volume2 } from 'lucide-react';
 import { PrernaEmblem } from './PrernaLogo';
 import { AboutDeveloperModal } from './AboutDeveloperModal';
+import { sovereignVoice } from '../../utils/speechSynthesis';
 
 interface AtmaJnanaOriginModalProps {
   isOpen: boolean;
@@ -125,13 +126,29 @@ export const AtmaJnanaOriginModal: React.FC<AtmaJnanaOriginModalProps> = ({ isOp
 
               {/* Verse 1: The Human Dilemma / External Wandering */}
               <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-indigo-500/40 transition-all space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <span className="px-3 py-1 rounded-full bg-rose-500/15 text-rose-300 text-xs font-bold border border-rose-500/30 flex items-center gap-1.5">
                     <Compass size={13} /> The Question: The External Wandering
                   </span>
-                  <span className="text-xs font-bold text-amber-400/90 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/20">
-                    Quote by: संत कबीर दास (Sant Kabir Das)
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        if (sovereignVoice.isSpeaking()) {
+                          sovereignVoice.stop();
+                        } else {
+                          sovereignVoice.speak("आत्मज्ञान बिना नर भटके, कोई मथुरा कोई काशी। जैसे मृगा नाभि कस्तूरी, वन-वन फिरत उदासी। जल में मीन प्यासी, मोहे सुन-सुन आवत हाँसि।", { lang: 'hi-IN' });
+                        }
+                      }}
+                      className="px-2.5 py-1 rounded-full bg-amber-400/20 hover:bg-amber-400/30 text-amber-200 text-xs font-bold transition-all border border-amber-400/30 flex items-center gap-1 cursor-pointer"
+                      title="Listen to Verse 1 in Native Audio"
+                    >
+                      <Volume2 size={13} />
+                      <span>Audio</span>
+                    </button>
+                    <span className="text-xs font-bold text-amber-400/90 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/20">
+                      Quote by: संत कबीर दास (Sant Kabir Das)
+                    </span>
+                  </div>
                 </div>
 
                 {/* Original Doha */}
@@ -162,13 +179,29 @@ export const AtmaJnanaOriginModal: React.FC<AtmaJnanaOriginModalProps> = ({ isOp
 
               {/* Verse 2: The Inner Awakening / The Supreme Indwelling Reality */}
               <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-emerald-500/40 transition-all space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <span className="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 text-xs font-bold border border-emerald-500/30 flex items-center gap-1.5">
                     <Sun size={13} /> The Answer: The Indwelling Light
                   </span>
-                  <span className="text-xs font-bold text-amber-400/90 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/20">
-                    Quote by: संत कबीर दास / संत वाणी परम्परा (Sant Kabir Das)
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        if (sovereignVoice.isSpeaking()) {
+                          sovereignVoice.stop();
+                        } else {
+                          sovereignVoice.speak("विधि हरि हर जाको ध्यान धरत हैं, मुनिजन सहज अठ्ठासी। सोई हंस तेरे घट माहि, अलख पुरुष अविनाशी!", { lang: 'hi-IN' });
+                        }
+                      }}
+                      className="px-2.5 py-1 rounded-full bg-emerald-400/20 hover:bg-emerald-400/30 text-emerald-200 text-xs font-bold transition-all border border-emerald-400/30 flex items-center gap-1 cursor-pointer"
+                      title="Listen to Verse 2 in Native Audio"
+                    >
+                      <Volume2 size={13} />
+                      <span>Audio</span>
+                    </button>
+                    <span className="text-xs font-bold text-amber-400/90 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/20">
+                      Quote by: संत कबीर दास / संत वाणी परम्परा (Sant Kabir Das)
+                    </span>
+                  </div>
                 </div>
 
                 {/* Original Doha */}

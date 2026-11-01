@@ -1,5 +1,5 @@
 // PRERNA Offline Service Worker (100% Local-First Cache)
-const CACHE_NAME = 'prerna-cache-v2';
+const CACHE_NAME = 'prerna-cache-v3';
 
 const CORE_ASSETS = [
   './',
@@ -33,9 +33,9 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   if (!event.request.url.startsWith('http')) return;
 
-  // SPA Navigation Request: If offline or navigating to any client route (e.g. /evolution, /quests),
-  // return network response if available, or fall back to cached index.html so React Router renders offline!
-  if (event.request.mode === 'navigate') {
+  // Network-First for Navigation & HTML Documents:
+  // Guarantees user receives newest deployed bundles while online, falling back to cache offline!
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
     event.respondWith(
       fetch(event.request)
         .then((networkResponse) => {

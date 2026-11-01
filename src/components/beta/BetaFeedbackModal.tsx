@@ -19,6 +19,7 @@ interface FeedbackItem {
   category: 'experience' | 'bug' | 'idea' | 'psychometrics' | 'vitality';
   role: string;
   sentiment: 'delighted' | 'neutral' | 'needs_work';
+  susScore?: number; // 1 to 5 System Usability Scale rating
   title: string;
   description: string;
   createdAt: string;
@@ -33,6 +34,7 @@ export const BetaFeedbackModal: React.FC<BetaFeedbackModalProps> = ({ isOpen, on
   const user = useUser();
   const [category, setCategory] = useState<'experience' | 'bug' | 'idea' | 'vitality'>('experience');
   const [sentiment, setSentiment] = useState<'delighted' | 'neutral' | 'needs_work'>('delighted');
+  const [susScore, setSusScore] = useState<number>(5);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -58,6 +60,7 @@ export const BetaFeedbackModal: React.FC<BetaFeedbackModalProps> = ({ isOpen, on
       category,
       role: user?.role || 'teen',
       sentiment,
+      susScore,
       title: title.trim(),
       description: description.trim(),
       createdAt: new Date().toISOString(),
@@ -189,6 +192,28 @@ export const BetaFeedbackModal: React.FC<BetaFeedbackModalProps> = ({ isOpen, on
                     >
                       <span className="text-sm">{s.emoji}</span>
                       <div className="text-[10px] text-slate-500 font-medium">{s.label}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  System Usability (SUS Ease of Use: 1 = Friction, 5 = Effortlessly Calm)
+                </label>
+                <div className="grid grid-cols-5 gap-2">
+                  {[1, 2, 3, 4, 5].map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setSusScore(val)}
+                      className={`py-2 rounded-xl border text-center transition-all cursor-pointer ${
+                        susScore === val
+                          ? 'bg-indigo-600 text-white border-indigo-600 font-black shadow-xs'
+                          : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 font-bold'
+                      }`}
+                    >
+                      <span className="text-sm">{val}★</span>
                     </button>
                   ))}
                 </div>

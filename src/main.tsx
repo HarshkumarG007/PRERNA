@@ -5,7 +5,38 @@ import App from "./App";
 import { I18nProvider } from "./engine/localization/i18n";
 import { ToastProvider } from "./components/common/Toast";
 import { GlobalErrorBoundary } from "./components/common/GlobalErrorBoundary";
+import { deriveSixteenType, isCompleteSixteenType } from "./engine/assessment/sixteenPersonalities";
 import "./App.css";
+
+// Startup Self-Healing: Repair any corrupted demo profiles cached in localStorage before render
+try {
+  const rawDb = localStorage.getItem('prerna_mock_db');
+  if (rawDb) {
+    const db = JSON.parse(rawDb);
+    let dirty = false;
+    if (db?.profiles) {
+      for (const key of Object.keys(db.profiles)) {
+        const prof = db.profiles[key];
+        if (prof && !isCompleteSixteenType(prof.sixteenType)) {
+          const bigFive = prof.personality?.bigFive || { openness: 78, conscientiousness: 72, extraversion: 68, agreeableness: 80, neuroticism: 34 };
+          prof.sixteenType = deriveSixteenType(bigFive);
+          dirty = true;
+        }
+        if (prof && !prof.topCareer) {
+          prof.topCareer = { role: 'Game Designer & Systems Thinker' };
+          dirty = true;
+        }
+      }
+    }
+    if (dirty) {
+      localStorage.setItem('prerna_mock_db', JSON.stringify(db));
+    }
+  }
+} catch {
+  try {
+    localStorage.removeItem('prerna_mock_db');
+  } catch {}
+}
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>

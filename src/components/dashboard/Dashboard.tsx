@@ -16,7 +16,8 @@ import {
   ShieldCheck,
   Wind,
   Printer,
-  Moon
+  Moon,
+  Volume2
 } from 'lucide-react';
 
 // Sub-components
@@ -38,6 +39,7 @@ import { LifeBlueprintExport } from '../growth/LifeBlueprintExport';
 import { AtmaJnanaOriginModal } from '../common/AtmaJnanaOriginModal';
 import { AboutDeveloperModal } from '../common/AboutDeveloperModal';
 import { InstallPwaPill } from '../common/InstallPwaPill';
+import { sovereignVoice } from '../../utils/speechSynthesis';
 
 export const Dashboard: React.FC = () => {
   const user = useUser();
@@ -215,6 +217,20 @@ export const Dashboard: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-1.5 self-end sm:self-center flex-shrink-0">
+                    <button
+                      onClick={() => {
+                        if (sovereignVoice.isSpeaking()) {
+                          sovereignVoice.stop();
+                        } else {
+                          sovereignVoice.speak("जैसे मृगा नाभि कस्तूरी, वन-वन फिरत उदासी... सोई हंस तेरे घट माहि, अलख पुरुष अविनाशी! Self Realisation is God's Realisation", { lang: 'hi-IN' });
+                        }
+                      }}
+                      className="px-2.5 py-1 rounded-lg bg-amber-400/20 hover:bg-amber-400/30 text-amber-200 text-[11px] font-bold transition-all border border-amber-400/30 flex items-center gap-1 cursor-pointer"
+                      title="Listen to Kabir Doha in Native Voice"
+                    >
+                      <Volume2 size={12} className="text-amber-300" />
+                      <span>Audio</span>
+                    </button>
                     <button
                       onClick={() => setShowAtmaModal(true)}
                       className="px-2.5 py-1 rounded-lg bg-amber-400/20 hover:bg-amber-400/30 text-amber-200 text-[11px] font-bold transition-all border border-amber-400/30 flex items-center gap-1 cursor-pointer"
