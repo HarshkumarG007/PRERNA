@@ -3,6 +3,8 @@ name: Build Android APK
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
 
@@ -23,11 +25,14 @@ jobs:
           java-version: '17'
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
-      - name: Install Android NDK
-        run: |
-          sdkmanager --install "ndk;26.1.10909125"
+      - name: Setup Android NDK
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r26d
+          link-to-sdk: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -50,7 +55,7 @@ jobs:
 
       - name: Build Android APK (Release)
         env:
-          NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/26.1.10909125
+          NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: |
           npx tauri android build --apk --target aarch64
 
