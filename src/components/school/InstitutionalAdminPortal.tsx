@@ -8,7 +8,8 @@ import {
   ShieldCheck, 
   FileSpreadsheet, 
   Sparkles, 
-  Receipt
+  Receipt,
+  BookOpen
 } from 'lucide-react';
 import { useSubscriptionStore } from '../../store/subscriptionStore';
 import { generateTaxInvoice, downloadTaxInvoiceReceipt } from '../../services/paymentGateway';
@@ -106,6 +107,44 @@ export const InstitutionalAdminPortal: React.FC = () => {
     setTimeout(() => setShowInvoiceAlert(false), 4000);
   };
 
+  const handleDownloadCounselorGuide = () => {
+    somaticAudio.playStarBeaconChime();
+    const guideText = `# PRERNA • VidyaPeeth School Counselor & Educator Pilot Handbook
+Institutional Guide for Adolescent Psychometric Discovery, Psychological Safety & Holistic Development
+
+1. EDUCATIONAL VISION & NEP 2020 ALIGNMENT
+- Zero Diagnostic Labeling: Non-stigmatizing psychometrics (Big Five IPIP, RIASEC, Somatic Circadian Rhythm).
+- Sant Kabir Creed: "Self Realisation is God's Realisation" (आत्म-साक्षात्कार ही ईश्वर-साक्षात्कार है).
+- DPDP Act 2023 Statutory Protection: 100% zero student PII collection (no names, phones, or emails).
+
+2. VIDYAPEETH B2B MODEL
+- Campus Capacity: 1,500 active student seats per license.
+- Differential Privacy (k >= 5): All cohort metrics suppress sub-threshold cohorts to protect individual anonymity.
+- GST Compliance: SAC Code 998431 (Educational Support Services).
+
+3. PILOT WORKFLOW
+1. Step 1: Admin generates pseudonymous tokens (e.g. PRERNA-Grade9-SecA-001-XXXX).
+2. Step 2: Export roster CSV and distribute cards to students during homeroom.
+3. Step 3: Students pair on web or tablet with zero signups.
+4. Step 4: Counselors monitor macro-level wellbeing trends (sleep, exam stress, focus).
+
+4. CRISIS ESCALATION PROTOCOL (Rule 0.1 Invariant)
+- Tele-MANAS (24/7 National Mental Health): 14416
+- Childline India: 1098
+- KIRAN Helpline: 1800-599-0019
+- Vandrevala Foundation: 9999 666 555
+`;
+    const blob = new Blob([guideText], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'PRERNA-VidyaPeeth-Counselor-Pilot-Handbook.md';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-8 text-left" role="region" aria-label="Institutional Admin Portal">
       {/* License & Stewardship Banner */}
@@ -129,6 +168,14 @@ export const InstitutionalAdminPortal: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={handleDownloadCounselorGuide}
+              className="px-4 py-2.5 rounded-2xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold text-xs flex items-center gap-2 transition-colors cursor-pointer shadow-xs"
+              title="Download VidyaPeeth School Counselor & Educator Pilot Handbook"
+            >
+              <BookOpen size={14} className="text-indigo-600" />
+              <span>Counselor Pilot Kit</span>
+            </button>
             <button
               onClick={handleDownloadInvoice}
               className="px-4 py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-2 transition-colors cursor-pointer shadow-xs"

@@ -523,6 +523,13 @@
   - [x] **Streak Calculation & Citation Guards**: Protected date parsing in `refreshStreak()` and optional chaining in `validateCitation()` against undefined fields.
   - [x] **Sanctuary Recovery in ErrorBoundary**: Added "Reset Session Cache & Return" button to `GlobalErrorBoundary.tsx` so users are never trapped in bad local storage states.
   - [x] **Test Suite & Build**: Added `src/tests/components/SixteenTypeCard.test.tsx` (2 tests) and verified Aarav login in `appStore.test.ts` — scaled test suite to **212/212 tests passing across 42 test files** with clean `npm run build`.
+- [x] **P7-35** Complete 5-Track Sovereign Rollout Execution
+  - [x] **Track 1: PWA Offline Mastery**: Pre-cached core shell assets in `public/sw.js`, implemented SPA client-side route fallback for offline navigation, and added 1-click `InstallPwaPill` across `WelcomeScreen.tsx` and `Dashboard.tsx`.
+  - [x] **Track 2: Local LLM Sidecar Integration**: Built `probeLocalSidecar()` detecting Ollama and llama.cpp OpenAI-compatible servers, enabled user-configured endpoints and models, added live connection test with status pill in `AiMentorChat.tsx`, and enforced strict Rule 0.1 safety filters and crisis helpline referrals.
+  - [x] **Track 3: Android APK & Native Tauri Packaging**: Created `.github/workflows/build-android.yml` automating Android APK compilation, artifact upload, and release attachment for ARM64 targets. Added `build:android` script to `package.json`.
+  - [x] **Track 4: VidyaPeeth School Counselor Pilot Kit**: Created comprehensive institutional guide `docs/school-counselor-pilot-handbook.md`, standardized zero-PII token CSV template `docs/templates/classroom-token-roster-sample.csv`, and wired a 1-click handbook download in `InstitutionalAdminPortal.tsx`.
+  - [x] **Track 5: Human-Review Packets & Dossiers (H1–H4)**: Prepared formal review dossiers `docs/human-review-packets-and-dossiers.md` with evaluation rubrics and print-ready attestation forms for Clinical Psychologists (H1), DPDP Legal Counsel (H2), Hindi Linguists (H3), and Adolescent Reading Specialists (H4) strictly adhering to Rule 0.7.
+  - [x] **Regression Test & Build**: Scaled test suite to **213/213 passing tests across 42 test files** with verified `tsc && vite build` in 9.21s.
 
 ---
 
