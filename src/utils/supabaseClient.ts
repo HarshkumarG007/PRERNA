@@ -115,8 +115,9 @@ class SovereignSupabaseService {
             return { valid: false, message: 'This beta access token has expired.' };
           }
 
-          // Anti-Oversharing Defense: Device Lock check
-          if (row.claimed_device_id && row.claimed_device_id !== deviceId) {
+          // Anti-Oversharing Defense: Device Lock check (enforced strictly on single-use tokens)
+          const isSingleUse = !row.max_uses || row.max_uses === 1;
+          if (isSingleUse && row.claimed_device_id && row.claimed_device_id !== deviceId) {
             return {
               valid: false,
               message: 'Security Alert: This single-use invitation has already been claimed on another device.'
@@ -128,13 +129,12 @@ class SovereignSupabaseService {
             return { valid: false, message: 'This invitation link has reached its maximum allowed redemptions.' };
           }
 
-          // Atomically bind to current device if first claim
-          const isFirstClaim = !row.claimed_device_id;
+          // Atomically bind to current device if first claim on a single-use token
           await this.client
             .from('beta_access_tokens')
             .update({
-              times_used: isFirstClaim ? (row.times_used || 0) + 1 : row.times_used,
-              claimed_device_id: row.claimed_device_id || deviceId
+              times_used: (row.times_used || 0) + 1,
+              claimed_device_id: isSingleUse ? (row.claimed_device_id || deviceId) : null
             })
             .eq('id', row.id);
 

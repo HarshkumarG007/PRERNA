@@ -76,27 +76,38 @@ begin
     );
   end if;
 
-  -- Anti-Leak Defense: Check if already locked to another physical device
-  if token_record.claimed_device_id is not null and input_device_id is not null and token_record.claimed_device_id <> input_device_id then
+  -- Anti-Leak Defense: Strict 1-device lock ONLY for single-use tokens (max_uses = 1)
+  if coalesce(token_record.max_uses, 1) = 1 and token_record.claimed_device_id is not null and input_device_id is not null and token_record.claimed_device_id <> input_device_id then
     return json_build_object(
       'valid', false,
       'message', 'Security Alert: This single-use invitation has already been claimed on another device.'
     );
   end if;
 
-  -- Check max uses for non-locked tokens
+  -- Check max uses
   if token_record.max_uses is not null and token_record.times_used >= token_record.max_uses and token_record.claimed_device_id <> input_device_id then
     return json_build_object(
       'valid', false,
-      'message', 'This single-use invitation has reached its maximum allowed redemptions.'
+      'message', 'This invitation has reached its maximum allowed redemptions.'
     );
   end if;
 
-  -- First claim on this device: Bind device and increment count
-  if token_record.claimed_device_id is null and input_device_id is not null then
+  -- First claim on this device: Bind device for single-use tokens, increment count
+  if coalesce(token_record.max_uses, 1) = 1 then
+    if token_record.claimed_device_id is null and input_device_id is not null then
+      update public.beta_access_tokens
+      set times_used = times_used + 1,
+          claimed_device_id = input_device_id
+      where id = token_record.id;
+    else
+      update public.beta_access_tokens
+      set times_used = times_used + 1
+      where id = token_record.id;
+    end if;
+  else
+    -- Multi-use token (founder, cohort, pilot school)
     update public.beta_access_tokens
-    set times_used = times_used + 1,
-        claimed_device_id = input_device_id
+    set times_used = times_used + 1
     where id = token_record.id;
   end if;
 

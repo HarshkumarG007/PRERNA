@@ -1,11 +1,45 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { PrivateBetaGate } from '../../components/gate/PrivateBetaGate';
+import { sovereignSupabase } from '../../utils/supabaseClient';
 
 describe('PrivateBetaGate Component', () => {
   beforeEach(() => {
     localStorage.clear();
     vi.restoreAllMocks();
+
+    // Mock verifyToken to ensure hermetic, fast, network-independent UI testing
+    vi.spyOn(sovereignSupabase, 'verifyToken').mockImplementation(async (rawToken: string, explicitDeviceId?: string) => {
+      const token = rawToken.trim().toUpperCase();
+      if (token === 'PRERNA-FOUNDER-2026') {
+        return {
+          valid: true,
+          assignedTo: 'Harsh Kumar Gupta (Founder)',
+          role: 'adult',
+          boundToDevice: true,
+          message: 'Access Granted'
+        };
+      }
+      if (token === 'PRERNA-H1-CLINICAL') {
+        const devId = explicitDeviceId || localStorage.getItem('prerna_device_id') || 'dev_curr';
+        const claim = localStorage.getItem('prerna_claimed_dev_PRERNA-H1-CLINICAL');
+        if (claim && claim !== devId) {
+          return {
+            valid: false,
+            message: 'Security Notice: This token was already claimed by another browser session.'
+          };
+        }
+        return {
+          valid: true,
+          assignedTo: 'Dr. Clinical Reviewer (Ticket H1)',
+          role: 'adult'
+        };
+      }
+      return {
+        valid: false,
+        message: 'Invalid token. Please contact Harsh Kumar Gupta.'
+      };
+    });
   });
 
   it('renders the Private Beta Access Gate with title and input', () => {
