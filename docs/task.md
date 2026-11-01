@@ -542,8 +542,9 @@
   - [x] **Instant URL Scrubbing (Anti-Copy Leak)**: Added automatic address bar sanitization using `window.history.replaceState` within 1ms of page load so tokens cannot be accidentally leaked via copy-pasting or browser screenshots.
   - [x] **Hardware Device Binding (`claimed_device_id`)**: Implemented cryptographic client device UUID binding in `getOrCreateDeviceId()`, locking single-use tokens permanently to the first physical device that redeems them and preventing multi-device oversharing.
   - [x] **Real-Time Feedback Cloud Inbox**: Wired `BetaFeedbackModal.tsx` to sync anonymous bug reports, sentiment, and SUS scores to Supabase `beta_feedback` table in real time.
-  - [x] **Automated CI/CD Integration**: Configured `.github/workflows/deploy-pages.yml` to inject `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` from GitHub Repository Secrets. Created setup runbook `docs/supabase-access-gate-setup.md`.
-  - [x] **Test Suite & Build Verification**: Added `src/tests/gate/PrivateBetaGate.test.tsx` (5/5 tests passed). Test suite scaled to **222/222 tests passing across 44 test files**; production build clean in 9.40s. Deployed to GitHub Pages.
+  - [x] **Automated CI/CD Integration**: Configured `.github/workflows/deploy-pages.yml` to inject `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` from GitHub Repository Secrets. Created setup runbook `docs/supabase-access-gate-setup.md`. Added `.env.example` and configured `.env.local` for sovereign local development.
+  - [x] **Live Supabase Gateway Connected & Verified**: Connected project `yfccmanwpgjwhqssfetp` (`https://yfccmanwpgjwhqssfetp.supabase.co`). Verified stored procedure `verify_beta_token` and `beta_feedback` RLS policies with live smoke tests. Refined anti-leak policy so strict 1-device lock binds single-use invites (`max_uses = 1`) while multi-use tokens (`PRERNA-FOUNDER-2026`, school cohorts) allow multi-device redemption.
+  - [x] **Test Suite & Build Verification**: Added `src/tests/gate/PrivateBetaGate.test.tsx` (5/5 tests passed). Test suite scaled to **222/222 tests passing across 44 test files**; production build clean in 10.76s. Deployed to GitHub Pages.
 
 ---
 
