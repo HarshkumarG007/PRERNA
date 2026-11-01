@@ -387,8 +387,6 @@ export const useAppStore = create<AppState>()(
               sixteenType: deriveSixteenType(bigFive),
               topCareer: {
                 role: 'Game Designer & Systems Thinker',
-                matchScore: 92,
-                description: 'Combines creative storytelling, algorithmic thinking, and human psychology.'
               },
               wellbeingScore: 85,
               strengths: ['Emotional Intuition', 'Curious Exploration', 'Adaptive Problem-Solving'],
@@ -558,12 +556,17 @@ export const useAppStore = create<AppState>()(
           });
           
           if (profile) {
-            if (profile.personality?.bigFive && !isCompleteSixteenType(profile.sixteenType)) {
+            const currentProfile = get().profile;
+            const mergedProfile: UnifiedProfile = currentProfile 
+              ? { ...currentProfile, ...profile } 
+              : profile;
+
+            if (mergedProfile.personality?.bigFive && !isCompleteSixteenType(mergedProfile.sixteenType)) {
               try {
-                profile.sixteenType = deriveSixteenType(profile.personality.bigFive);
+                mergedProfile.sixteenType = deriveSixteenType(mergedProfile.personality.bigFive);
               } catch {}
             }
-            set({ profile, profileLoading: false });
+            set({ profile: mergedProfile, profileLoading: false });
           }
         } catch (error) {
           // Profile might not exist yet (new user)

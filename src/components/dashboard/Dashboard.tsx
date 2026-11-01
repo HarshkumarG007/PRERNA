@@ -37,6 +37,7 @@ import { SomaticBreathingCompanion } from '../growth/SomaticBreathingCompanion';
 import { LifeBlueprintExport } from '../growth/LifeBlueprintExport';
 import { AtmaJnanaOriginModal } from '../common/AtmaJnanaOriginModal';
 import { AboutDeveloperModal } from '../common/AboutDeveloperModal';
+import { InstallPwaPill } from '../common/InstallPwaPill';
 
 export const Dashboard: React.FC = () => {
   const user = useUser();
@@ -108,6 +109,7 @@ export const Dashboard: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap self-end sm:self-auto">
+            <InstallPwaPill className="hidden sm:inline-flex" />
             <StreakTracker />
             
             {/* Quick Grounding Action Pills right in header */}

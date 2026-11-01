@@ -4,6 +4,7 @@ import { ArrowRight, LogIn, ChevronDown, Star, Heart, Brain } from 'lucide-react
 import { AuthModal } from './AuthModal';
 import { PrernaLogo, PrernaEmblem } from '../common/PrernaLogo';
 import { AtmaJnanaOriginModal } from '../common/AtmaJnanaOriginModal';
+import { InstallPwaPill } from '../common/InstallPwaPill';
 import { useAppStore } from '../../store';
 
 interface WelcomeScreenProps {
@@ -71,13 +72,16 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onAuthenticated })
         >
           <PrernaLogo variant="compact" size="md" animate={true} />
           
-          <button
-            onClick={openFullLogin}
-            className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white/70 hover:text-white transition-colors rounded-full hover:bg-white/5"
-          >
-            <LogIn size={16} />
-            Sign In
-          </button>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <InstallPwaPill />
+            <button
+              onClick={openFullLogin}
+              className="flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-bold text-white/70 hover:text-white transition-colors rounded-full hover:bg-white/5 cursor-pointer"
+            >
+              <LogIn size={16} />
+              Sign In
+            </button>
+          </div>
         </motion.nav>
 
         {/* Main Content */}
