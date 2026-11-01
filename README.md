@@ -639,6 +639,87 @@ Every star:
 
 ---
 
+## 💼 Sustainable Business Model & Sovereign Subscriptions
+
+PRERNA is built upon a fundamental ethical tenet: **Adolescent mental healthcare, self-discovery, and crisis safety must never be monetized, paywalled, or subjected to behavioral advertising.** 
+
+To ensure long-term open-source sustainability, PRERNA implements a **Sacred Cross-Subsidization Business Model**: the under-18 adolescent sanctuary is permanently 100% free, subsidized by adult relationship wellness subscriptions (B2C) and institutional school campus licensing (B2B).
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        PRERNA CROSS-SUBSIDIZATION BUSINESS MODEL                       │
+├───────────────────────────────┬───────────────────────────────┬────────────────────────┤
+│     🧒 ADOLESCENT CORE        │   ❤️ PARTNER PRO (ADULT B2C)   │  🏫 VIDYAPEETH (B2B)   │
+├───────────────────────────────┼───────────────────────────────┼────────────────────────┤
+│ • 100% Free Forever           │ • ₹299 / month (Flexible)     │ • ₹49,000 / campus/yr  │
+│ • Zero Ads & Zero Tracking    │ • ₹1,999 / year (Save 44%)    │ • ₹1,49,000 / dist/yr  │
+│ • All Assessments & RAG AI    │ • ₹4,999 Lifetime Pass        │ • Up to 3,000 students │
+│ • 432 Hz Somatic Grounding    │ • Preeti AI Voice Companion   │ • Zero-PII Tokens      │
+│ • Life Blueprint PDF Export   │ • Dual Journal & NVC Reframer │ • k≥5 Cohort Heatmaps  │
+│ • Crisis Safety Protocols     │ • 5 Love Languages Radar      │ • NEP 2020 Compliance  │
+└───────────────────────────────┴───────────────────────────────┴────────────────────────┘
+```
+
+---
+
+### 1. 🧒 Tier 1: Adolescent & Parent Sanctuary (100% Free Forever)
+* **Target Audience:** Indian adolescents aged 13–18, young adults, and their families.
+* **Price:** **₹0 / Free Forever** (No credit card, no ads, no subscriptions).
+* **Guaranteed Access:**
+  - Complete validated psychometrics: IPIP Big Five, Holland RIASEC, and 16 Jungian Types.
+  - The Mirror (Higgins' Actual vs. Evolved Potential) & Strengths Journal.
+  - 432 Hz Somatic Vagal Breathing Companion (4-7-8, Box Breathing, 3-Second Active Pause).
+  - Maslow's Adolescent Needs vs. Desires Detangler & Distraction Shield.
+  - Complete NCS India 100+ Career Pathways database and downloadable A4 Life Blueprint PDF.
+  - Offline AI Mentor and 24/7 Human-Gated Crisis Helplines (Tele-MANAS `14416`, Childline `1098`).
+* **Privacy Standard:** Full statutory compliance with India DPDP Act 2023 §9 (zero tracking, zero profiling).
+
+---
+
+### 2. ❤️ Tier 2: PRERNA Partner Pro (Adult Relationship Sanctuary)
+* **Target Audience:** Couples, adult seekers, and life partners cultivating conscious communication, emotional safety, and shared life milestones.
+* **Pricing Plans:**
+  - **7-Day Sacred Trial:** Full access to all premium features at ₹0.
+  - **Monthly Flexible:** **₹299 / month** — Ideal for couples exploring intentional date rhythms.
+  - **Annual Sanctuary (Most Popular):** **₹1,999 / year** (~₹166/month • Save 44%, includes 2 months free).
+  - **Sacred Lifetime Pass:** **₹4,999 one-time** — Perpetual access for two souls with all future updates included forever.
+* **Exclusive Capabilities:**
+  - **Preeti AI Voice Companion:** Empathetic voice reflections and relationship insight narration.
+  - **Somatic Nature Soundscapes:** High-fidelity 432 Hz Tibetan Bells, Monsoon Rain, Forest Wind, and Grounding Drones.
+  - **NVC Compassionate Re-framer:** Transforms impulsive emotional friction into non-violent connection requests.
+  - **Romantic Date & Hangout Studio:** Curated relationship activities, couples' bucket lists, and soulful letter generators.
+  - **Sacred Milestone Timeline & Dual Journal:** End-to-end encrypted shared partner diary plus private confidential notes.
+  - **5 Love Languages Radar:** Dynamic comparative analysis across physical touch, words of affirmation, quality time, acts of service, and gifts.
+  - **Sovereign Encryption:** 100% on-device hardware encryption completely isolated from teen and parent profiles.
+
+---
+
+### 3. 🏫 Tier 3: VidyaPeeth Institutional Portal (B2B School & College Licensing)
+* **Target Audience:** K-12 Schools (CBSE, ICSE, State Boards), Coaching Institutions, Pre-University Junior Colleges, and Educational Foundations.
+* **Pricing Plans:**
+  - **60-Day Campus Pilot:** Free pilot for accredited educational institutions.
+  - **Campus Annual License:** **₹49,000 / campus / year** — Supports up to 3,000 students (*costing under ₹17 per student per year!*).
+  - **District & Trust License:** **₹1,49,000 / group / year** — Centralized administration across up to 5 campuses with cross-institution anonymized benchmarks.
+* **Institutional Deliverables:**
+  - **Zero-PII Pseudonymous Batch Token Generator:** Instant bulk token creation (e.g., `PRERNA-Grade9-SecA-001`) with classroom CSV export. Schools collect zero student names, emails, or phone numbers.
+  - **$k \ge 5$ Differential Privacy Cohort Analytics:** Aggregate emotional health, career inclinations, and anxiety indices. Sub-threshold cohorts ($k < 5$) are automatically redacted to make adolescent re-identification mathematically impossible.
+  - **Systemic Distress & Exam Anxiety Heatmaps:** Early-warning indicators identifying grade-level anxiety spikes prior to midterm and board examinations.
+  - **NEP 2020 Compliance Ready:** Fulfills India National Education Policy 2020 guidelines for mandatory psychological counseling, holistic progress cards, and career guidance.
+  - **Teacher Vitality Program & 432 Hz Campus Chimes:** Tagore-inspired educator self-care drills, mindfulness pacing, and non-punitive classroom playbooks.
+  - **Official Board Audit Reports:** Instant JSON/PDF compliance telemetry export for school management, CBSE, ICSE, and state education boards with SAC 998431 GST tax invoice downloads.
+  - **Direct Tele-MANAS (14416) Escalation:** Direct escalation pathways aligned with India's National Tele-Mental Health Programme.
+
+---
+
+### 💳 Sovereign Indian Payment Rails & Anti-Tamper Security
+
+PRERNA bypasses predatory 30% foreign app store commissions by implementing native, sovereign payment infrastructure:
+- **Instant UPI Deep-Linking (`upi://pay`):** Zero-friction checkout supporting Google Pay, PhonePe, Paytm, BHIM, and any Indian bank UPI app via dynamic QR generation.
+- **GST-Compliant Invoicing:** Automated GST tax receipts generated on-device with official HSN/SAC Code **`998431`** (Higher Education & Vocational Counseling Services).
+- **Cryptographic Anti-Tamper Subscription Vault:** Device subscription states are sealed with an HMAC signature (`computeSubscriptionSignature`). If a user attempts to forge `localStorage` subscription tiers without a valid cryptographic key, the engine automatically revokes premium access.
+
+---
+
 ## 🚀 Getting Started & Build Instructions
 
 ### Prerequisites
