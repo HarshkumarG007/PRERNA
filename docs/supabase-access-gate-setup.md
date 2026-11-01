@@ -229,55 +229,84 @@ You don't need to touch code or push to Git:
 
 When someone requests access via the in-app modal, their application lands in `public.beta_access_requests`.
 
-### Option A: The 1-Click Automated SQL Function (Recommended)
-Add this helper function to your Supabase SQL Editor once:
+### Option A: 100% Automated Database Trigger (Just Change Status to 'approved'!)
+Run this SQL script in your Supabase SQL Editor once. It sets up an automatic trigger:
 
 ```sql
-create or replace function public.approve_beta_request(target_email text)
-returns table(
-  full_name text,
-  email text,
-  generated_token text,
-  magic_invite_link text
-)
+-- 1. Add generated_token and magic_link columns to beta_access_requests
+alter table public.beta_access_requests 
+add column if not exists generated_token text,
+add column if not exists magic_link text;
+
+-- 2. Create the Trigger Function
+create or replace function public.on_beta_request_approved()
+returns trigger
 language plpgsql
 security definer
 as $$
 declare
-  req record;
+  clean_name text;
+  random_hex text;
   new_token text;
-  random_suffix text;
 begin
-  select * into req
-  from public.beta_access_requests
-  where lower(trim(public.beta_access_requests.email)) = lower(trim(target_email))
-  order by created_at desc
-  limit 1;
+  -- Trigger ONLY when status transitions to 'approved' and token hasn't been generated yet
+  if new.status = 'approved' and (old.status is distinct from 'approved' or new.generated_token is null) then
+    
+    -- Extract first name without special characters, fallback to 'PILOT'
+    clean_name := upper(regexp_replace(split_part(trim(new.full_name), ' ', 1), '[^a-zA-Z0-9]', '', 'g'));
+    if clean_name = '' or clean_name is null then
+      clean_name := 'PILOT';
+    end if;
 
-  if not found then
-    raise exception 'No beta access request found for email: %', target_email;
+    -- Generate a clean, friendly token (e.g. PRN-ANANYA-4K92)
+    random_hex := upper(substring(md5(random()::text) from 1 for 4));
+    new_token := 'PRN-' || clean_name || '-' || random_hex;
+
+    -- Populate the token and ready-to-copy link directly in the request row
+    new.generated_token := new_token;
+    new.magic_link := 'https://harshkumarg007.github.io/PRERNA/?invite=' || new_token;
+
+    -- Automatically insert into beta_access_tokens with single-use device lock
+    insert into public.beta_access_tokens (token, assigned_to, role, max_uses, is_active)
+    values (
+      new_token, 
+      new.full_name || ' (' || new.email || ')', 
+      coalesce(new.role, 'teen'), 
+      1, 
+      true
+    )
+    on conflict (token) do nothing;
+
   end if;
 
-  random_suffix := upper(substring(md5(random()::text) from 1 for 6));
-  new_token := 'PRN-' || upper(req.role) || '-' || random_suffix;
-
-  insert into public.beta_access_tokens (token, assigned_to, role, max_uses, is_active)
-  values (new_token, req.full_name || ' (' || req.email || ')', req.role, 1, true);
-
-  update public.beta_access_requests
-  set status = 'approved'
-  where id = req.id;
-
-  return query select 
-    req.full_name,
-    req.email,
-    new_token as generated_token,
-    'https://harshkumarg007.github.io/PRERNA/?invite=' || new_token as magic_invite_link;
+  return new;
 end;
 $$;
+
+-- 3. Bind Trigger to beta_access_requests table
+drop trigger if exists trigger_auto_create_token on public.beta_access_requests;
+create trigger trigger_auto_create_token
+before update or insert on public.beta_access_requests
+for each row
+execute function public.on_beta_request_approved();
 ```
 
-Then, whenever you want to approve someone, just run:
+**How you use it:**
+1. Open Supabase Dashboard -> **Table Editor** -> `beta_access_requests`.
+2. Find the row for the applicant.
+3. Double-click the `status` cell and change `'pending'` -> `'approved'`.
+4. Press Enter.
+5. **Instant Result:**
+   - The token is automatically created in `beta_access_tokens`!
+   - In that exact same row, `generated_token` and `magic_link` are populated instantly!
+   - Just copy the link and send it to the tester.
+
+---
+
+### Option B: The 1-Click Automated SQL Function
+```sql
+select * from public.approve_beta_request('applicant@example.com');
+```
 ```sql
 select * from public.approve_beta_request('applicant@example.com');
 ```
