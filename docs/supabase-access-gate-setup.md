@@ -142,7 +142,27 @@ drop policy if exists "Allow anonymous feedback inserts" on public.beta_feedback
 create policy "Allow anonymous feedback inserts" on public.beta_feedback
   for insert with check (true);
 
--- 4. Insert Starter Pilot Tokens
+-- 4. Create In-App Pilot Access Requests Table (For GitHub / External Visitors)
+create table if not exists public.beta_access_requests (
+  id uuid primary key default gen_random_uuid(),
+  full_name text not null,
+  email text not null,
+  role text not null default 'teen', -- 'teen' | 'parent' | 'educator' | 'reviewer' | 'partner' | 'other'
+  purpose text not null,
+  organization text,
+  discovery_source text default 'GitHub / Web',
+  status text default 'pending', -- 'pending' | 'approved' | 'rejected'
+  created_at timestamptz default now()
+);
+
+alter table public.beta_access_requests enable row level security;
+grant select, insert on table public.beta_access_requests to anon, authenticated;
+
+drop policy if exists "Allow anonymous access requests" on public.beta_access_requests;
+create policy "Allow anonymous access requests" on public.beta_access_requests
+  for insert with check (true);
+
+-- 5. Insert Starter Pilot Tokens
 insert into public.beta_access_tokens (token, assigned_to, role, max_uses) values
 ('PRERNA-FOUNDER-2026', 'Harsh Kumar Gupta (Founder)', 'adult', 9999),
 ('PRERNA-H1-CLINICAL', 'Dr. Clinical Reviewer (Ticket H1)', 'adult', 20),
