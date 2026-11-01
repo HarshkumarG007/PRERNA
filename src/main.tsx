@@ -8,6 +8,33 @@ import { GlobalErrorBoundary } from "./components/common/GlobalErrorBoundary";
 import { deriveSixteenType, isCompleteSixteenType } from "./engine/assessment/sixteenPersonalities";
 import "./App.css";
 
+// Native Environment & Update Hygiene: Purge any stale Service Worker or CacheStorage
+// so local app updates (APK and Desktop) always load the newest bundled assets.
+try {
+  const isNative = Boolean(
+    (typeof window !== 'undefined' && (window as unknown as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__) ||
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === 'tauri.localhost'
+  );
+
+  if (isNative) {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const reg of registrations) {
+          reg.unregister().catch(() => {});
+        }
+      }).catch(() => {});
+    }
+    if ('caches' in window) {
+      caches.keys().then((keys) => {
+        for (const key of keys) {
+          caches.delete(key).catch(() => {});
+        }
+      }).catch(() => {});
+    }
+  }
+} catch {}
+
 // Startup Self-Healing: Repair any corrupted demo profiles cached in localStorage before render
 try {
   const rawDb = localStorage.getItem('prerna_mock_db');

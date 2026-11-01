@@ -21,7 +21,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' ipc: http://ipc.localhost http://*.localhost http://tauri.localhost https://*.supabase.co wss://*.supabase.co; img-src 'self' data: asset: blob: http://asset.localhost; media-src 'self' blob: data:;"
+      "csp": null
     }
   },
   "bundle": {
