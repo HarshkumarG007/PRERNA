@@ -571,18 +571,17 @@ function App() {
                 </div>
               </div>
 
-              {/* Universal Sliding Navigation Drawer Trigger */}
+              {/* Universal Sliding Navigation Drawer Trigger (Icon-only 3 bars) */}
               <button
                 onClick={() => {
                   somaticAudio.playSoftChime();
                   setMobileMenuOpen(true);
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 active:scale-95 border border-indigo-500 transition-all shadow-sm cursor-pointer"
+                className="flex items-center justify-center p-2 rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 active:scale-95 border border-indigo-500 transition-all shadow-sm cursor-pointer"
                 title="Open Navigation Menu"
                 aria-label="Open Navigation Menu"
               >
-                <Menu size={16} />
-                <span className="text-xs font-bold tracking-tight">Menu</span>
+                <Menu size={18} />
               </button>
             </div>
           </div>
