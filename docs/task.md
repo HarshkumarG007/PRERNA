@@ -569,6 +569,7 @@
 - [x] Pre-deployment regression test suite: **222/222 tests passed across 44 test files**
 - [x] Production bundle verified: `tsc && vite build` completed with zero errors in **9.40s** (initial chunk 594 kB)
 - [x] Staged rollout: Closed Beta cohort testing protected by Supabase Cloud Gatekeeper with single-use device binding & instant URL scrubbing (documented in `docs/supabase-access-gate-setup.md` and `docs/beta-cohort-staged-rollout-dossier.md`)
+  - [x] Verified token verification in Android emulator (`v1.2.2`): multi-device founder bypass, Unicode dash normalization, Gboard keyboard space stripping, clean allowlist fallback, and instant sanctuary unlock confirmed.
 
 ---
 
