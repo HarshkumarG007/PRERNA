@@ -7,11 +7,17 @@
   </p>
 
   <p align="center">
-    <img src="https://img.shields.io/badge/Platform-Desktop_%7C_Android_arm64_(Android_16_%26_OriginOS_Ready)-6366F1.svg" alt="Platforms" />
+    <img src="https://img.shields.io/badge/Platform-Web_PWA_%7C_Desktop_%7C_Android_arm64-6366F1.svg" alt="Platforms" />
     <img src="https://img.shields.io/badge/Privacy-DPDP_Act_2023_%C2%A79_Compliant-10B981.svg" alt="Privacy" />
     <img src="https://img.shields.io/badge/Tests-207%2F207_Passing_(41_Suites)-10B981.svg" alt="Tests" />
     <img src="https://img.shields.io/badge/Architecture-Tauri_2_%2B_React_19_%2B_Rust_(16KB_Aligned)-8B5CF6.svg" alt="Stack" />
     <img src="https://img.shields.io/badge/License-All_Rights_Reserved-red.svg" alt="License" />
+  </p>
+
+  <p align="center">
+    <a href="https://harshkumarg007.github.io/PRERNA/">
+      <img src="https://img.shields.io/badge/🌐_Live_Web_App-Launch_PRERNA_Sanctuary-4F46E5?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Live Web App" />
+    </a>
   </p>
 
   <p align="center">
