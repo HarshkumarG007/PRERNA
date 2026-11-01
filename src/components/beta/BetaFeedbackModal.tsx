@@ -13,6 +13,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useUser } from '../../store';
+import { sovereignSupabase } from '../../utils/supabaseClient';
 
 interface FeedbackItem {
   id: string;
@@ -69,6 +70,16 @@ export const BetaFeedbackModal: React.FC<BetaFeedbackModalProps> = ({ isOpen, on
     const updated = [newItem, ...feedbacks];
     setFeedbacks(updated);
     localStorage.setItem('prerna_beta_feedbacks', JSON.stringify(updated));
+
+    // Optionally sync anonymously to Supabase cloud if connected
+    sovereignSupabase.submitFeedback({
+      category,
+      sentiment,
+      susScore,
+      title: title.trim(),
+      description: description.trim(),
+      role: user?.role || 'teen',
+    }).catch(() => {});
 
     setTitle('');
     setDescription('');

@@ -16,6 +16,7 @@ import { deriveSixteenType, resolveSixteenType } from './engine/assessment/sixte
 import { somaticAudio } from './utils/audioSynthesis';
 import { usePartnerStore } from './store/partnerStore';
 import { useAppStore } from './store';
+import { PrivateBetaGate } from './components/gate/PrivateBetaGate';
 
 // Lazy-loaded Persona Dashboards & Modular Subsystems
 const AdultDashboard = lazy(() => import('./components/adult/AdultDashboard').then(m => ({ default: m.AdultDashboard })));
@@ -78,6 +79,16 @@ function App() {
   const [showPartnersGateModal, setShowPartnersGateModal] = useState(false);
   const [isInPartnersView, setIsInPartnersView] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [hasBetaAccess, setHasBetaAccess] = useState<boolean>(() => {
+    const hasInviteParam = window.location.search.includes('invite=') || 
+                           window.location.search.includes('access=') || 
+                           window.location.search.includes('code=') ||
+                           window.location.hash.includes('invite=') ||
+                           window.location.hash.includes('access=') ||
+                           window.location.hash.includes('code=');
+    if (hasInviteParam) return false;
+    return Boolean(localStorage.getItem('prerna_beta_access_token'));
+  });
   const { connection: partnerConnection } = usePartnerStore();
 
   const handleRoleAuthorize = (targetRole: 'teen' | 'adult' | 'parent' | 'educator') => {
@@ -127,6 +138,17 @@ function App() {
   }, [login]);
 
   // We don't use handleAuthenticated directly anymore, it's handled by AuthModal -> Zustand
+
+  // Closed Pilot Access Gate (Supabase Cloud + Sovereign Verification)
+  if (!hasBetaAccess) {
+    return (
+      <PrivateBetaGate
+        onAccessGranted={() => {
+          setHasBetaAccess(true);
+        }}
+      />
+    );
+  }
 
   if (isLoading) {
     return <LoadingScreen />;
