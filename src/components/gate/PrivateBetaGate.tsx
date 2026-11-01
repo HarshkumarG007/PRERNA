@@ -155,7 +155,7 @@ export const PrivateBetaGate: React.FC<PrivateBetaGateProps> = ({ onAccessGrante
                 type="text"
                 value={tokenInput}
                 onChange={(e) => setTokenInput(e.target.value.toUpperCase())}
-                placeholder="ENTER INVITE TOKEN (e.g. PRERNA-FOUNDER-2026)"
+                placeholder="ENTER INVITE TOKEN (e.g. PRN-XXXX-XXXX)"
                 disabled={isVerifying}
                 className="w-full pl-10 pr-4 py-3 bg-slate-950/80 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 rounded-2xl text-white placeholder-slate-500 text-xs sm:text-sm font-mono tracking-wider transition-all outline-none"
               />
@@ -228,7 +228,7 @@ export const PrivateBetaGate: React.FC<PrivateBetaGateProps> = ({ onAccessGrante
               To manage tokens live from your Supabase dashboard, supply your project's <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> in GitHub Actions or your <code>.env.local</code>.
             </p>
             <p className="text-slate-500">
-              Fallback passcodes for local testing: <code>PRERNA-FOUNDER-2026</code>, <code>PRERNA-H1-CLINICAL</code>, <code>VIDYAPEETH-PILOT-01</code>.
+              PRERNA Sovereign Gatekeeper • Cryptographic tokens are authenticated atomically and bound to physical devices.
             </p>
           </motion.div>
         )}
