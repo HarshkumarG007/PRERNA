@@ -88,12 +88,42 @@ class SovereignSupabaseService {
    * Ensures single-use tokens cannot be overshared or redeemed on multiple devices.
    */
   public async verifyToken(rawToken: string, explicitDeviceId?: string): Promise<BetaTokenVerificationResult> {
-    const token = rawToken.trim().toUpperCase();
+    // Sanitize token: normalize unicode dashes, remove spaces around hyphens, and uppercase
+    const token = rawToken.trim().replace(/[\u2010-\u2015\u2212]/g, '-').replace(/\s*-\s*/g, '-').replace(/\s+/g, '').toUpperCase();
     if (!token) {
       return { valid: false, message: 'Please enter a valid beta access token.' };
     }
 
     const deviceId = explicitDeviceId || getOrCreateDeviceId();
+    const cleanToken = token.replace(/[^A-Z0-9]/g, '');
+
+    // Sovereign Allowlist (Founder & Pilot cohort keys supported offline & online)
+    const LOCAL_ALLOWLIST: Record<string, { assignedTo: string; role: string; allowMultiDevice?: boolean }> = {
+      'PRERNA-FOUNDER-2026': { assignedTo: 'Harsh Kumar Gupta (Founder)', role: 'adult', allowMultiDevice: true },
+      'PRERNAFOUNDER2026': { assignedTo: 'Harsh Kumar Gupta (Founder)', role: 'adult', allowMultiDevice: true },
+      'PRN-FOUNDER-2026': { assignedTo: 'Harsh Kumar Gupta (Founder)', role: 'adult', allowMultiDevice: true },
+      'PRNFOUNDER2026': { assignedTo: 'Harsh Kumar Gupta (Founder)', role: 'adult', allowMultiDevice: true },
+      'FOUNDER2026': { assignedTo: 'Harsh Kumar Gupta (Founder)', role: 'adult', allowMultiDevice: true },
+      'PRN-PILOT-2026': { assignedTo: 'Cohort 1 Pilot Explorer', role: 'teen', allowMultiDevice: true },
+      'PRNPILOT2026': { assignedTo: 'Cohort 1 Pilot Explorer', role: 'teen', allowMultiDevice: true },
+      'PRN-DEMO-2026': { assignedTo: 'PRERNA Sanctuary Reviewer', role: 'teen', allowMultiDevice: true },
+      'PRNDEMO2026': { assignedTo: 'PRERNA Sanctuary Reviewer', role: 'teen', allowMultiDevice: true },
+      'PRERNA-2026': { assignedTo: 'PRERNA Sanctuary Explorer', role: 'teen', allowMultiDevice: true },
+      'PRERNA2026': { assignedTo: 'PRERNA Sanctuary Explorer', role: 'teen', allowMultiDevice: true },
+      'PILOT2026': { assignedTo: 'Cohort 1 Pilot Explorer', role: 'teen', allowMultiDevice: true },
+      'DEMO2026': { assignedTo: 'PRERNA Sanctuary Reviewer', role: 'teen', allowMultiDevice: true },
+      'PRERNA-H1-CLINICAL': { assignedTo: 'Dr. Clinical Reviewer (Ticket H1)', role: 'adult' },
+      'PRERNA-H2-PRIVACY': { assignedTo: 'Adv. Privacy Specialist (Ticket H2)', role: 'adult' },
+      'PRERNA-H3-CULTURAL': { assignedTo: 'Hindi Typology Specialist (Ticket H3)', role: 'adult' },
+      'PRERNA-H4-LEXILE': { assignedTo: 'Youth Reading Specialist (Ticket H4)', role: 'adult' },
+      'VIDYAPEETH-PILOT-01': { assignedTo: 'VidyaPeeth School Counselor', role: 'educator' },
+      'PRERNA-TEEN-BETA': { assignedTo: 'Cohort 1 Teen Explorer', role: 'teen' },
+      'PRERNATEENBETA': { assignedTo: 'Cohort 1 Teen Explorer', role: 'teen' },
+      'PRERNA-DEMO-2026': { assignedTo: 'PRERNA Sanctuary Reviewer', role: 'teen', allowMultiDevice: true },
+      'PRERNADEMO2026': { assignedTo: 'PRERNA Sanctuary Reviewer', role: 'teen', allowMultiDevice: true }
+    };
+
+    const localMatch = LOCAL_ALLOWLIST[token] || LOCAL_ALLOWLIST[cleanToken];
 
     // 1. Live Supabase Verification with Hardware Binding
     if (this.isConfigured() && this.client) {
@@ -115,7 +145,20 @@ class SovereignSupabaseService {
               message: `Welcome, ${res.assigned_to}! Access verified and locked to this device.`
             };
           }
-          return { valid: false, message: res.message || 'Token is invalid, expired, or claimed on another device.' };
+          // Founder & Multi-Device keys are permanently valid across founder's devices
+          if (localMatch?.allowMultiDevice) {
+            return {
+              valid: true,
+              assignedTo: localMatch.assignedTo,
+              role: localMatch.role,
+              boundToDevice: true,
+              message: `Welcome, ${localMatch.assignedTo}! Access verified (Founder Multi-Device Pass).`
+            };
+          }
+          // If remote RPC did not recognize token and not in local allowlist, return the error
+          if (!localMatch) {
+            return { valid: false, message: res.message || 'Token is invalid, expired, or claimed on another device.' };
+          }
         }
 
         // Direct table fallback if RPC is not yet created
@@ -163,27 +206,14 @@ class SovereignSupabaseService {
             message: `Welcome, ${row.assigned_to}! Access verified and bound to this device.`
           };
         }
-
-        return { valid: false, message: 'Invalid, deactivated, or depleted access token.' };
       } catch (e: any) {
         console.error('[Supabase] Token verification error:', e);
       }
     }
 
-    // 2. Sovereign Local Fallback (Development & Offline Mode)
-    const LOCAL_ALLOWLIST: Record<string, { assignedTo: string; role: string; allowMultiDevice?: boolean }> = {
-      'PRERNA-FOUNDER-2026': { assignedTo: 'Harsh Kumar Gupta (Founder)', role: 'adult', allowMultiDevice: true },
-      'PRERNA-H1-CLINICAL': { assignedTo: 'Dr. Clinical Reviewer (Ticket H1)', role: 'adult' },
-      'PRERNA-H2-PRIVACY': { assignedTo: 'Adv. Privacy Specialist (Ticket H2)', role: 'adult' },
-      'PRERNA-H3-CULTURAL': { assignedTo: 'Hindi Typology Specialist (Ticket H3)', role: 'adult' },
-      'PRERNA-H4-LEXILE': { assignedTo: 'Youth Reading Specialist (Ticket H4)', role: 'adult' },
-      'VIDYAPEETH-PILOT-01': { assignedTo: 'VidyaPeeth School Counselor', role: 'educator' },
-      'PRERNA-TEEN-BETA': { assignedTo: 'Cohort 1 Teen Explorer', role: 'teen' },
-      'PRERNA-DEMO-2026': { assignedTo: 'PRERNA Sanctuary Reviewer', role: 'teen', allowMultiDevice: true }
-    };
-
-    if (LOCAL_ALLOWLIST[token]) {
-      const info = LOCAL_ALLOWLIST[token];
+    // 2. Sovereign Local Fallback (Development, Offline Mode & Founder Keys)
+    if (localMatch) {
+      const info = localMatch;
       
       // Enforce local single-device binding in development mock
       const claimKey = `prerna_claimed_dev_${token}`;

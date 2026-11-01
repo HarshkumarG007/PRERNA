@@ -48,8 +48,10 @@ export const PrivateBetaGate: React.FC<PrivateBetaGateProps> = ({ onAccessGrante
   }, []);
 
   const handleVerify = async (tokenToTest?: string) => {
-    const raw = tokenToTest || tokenInput;
-    if (!raw.trim()) {
+    const domVal = typeof document !== 'undefined' ? (document.querySelector('input[type="text"]') as HTMLInputElement)?.value : '';
+    const candidate = tokenToTest || tokenInput || domVal || '';
+    const raw = candidate.trim().replace(/[\u2010-\u2015\u2212]/g, '-').replace(/\s*-\s*/g, '-').replace(/\s+/g, '');
+    if (!raw) {
       setErrorMsg('Please enter an invitation token.');
       return;
     }
@@ -178,6 +180,7 @@ export const PrivateBetaGate: React.FC<PrivateBetaGateProps> = ({ onAccessGrante
                 type="text"
                 value={tokenInput}
                 onChange={(e) => setTokenInput(e.target.value.toUpperCase())}
+                onInput={(e: any) => setTokenInput(e.target.value.toUpperCase())}
                 placeholder="ENTER INVITE TOKEN (e.g. PRN-XXXX-XXXX)"
                 disabled={isVerifying}
                 className="w-full pl-10 pr-4 py-3 bg-slate-950/80 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 rounded-2xl text-white placeholder-slate-500 text-xs sm:text-sm font-mono tracking-wider transition-all outline-none"
@@ -197,7 +200,7 @@ export const PrivateBetaGate: React.FC<PrivateBetaGateProps> = ({ onAccessGrante
 
             <button
               type="submit"
-              disabled={isVerifying || !tokenInput.trim()}
+              disabled={isVerifying}
               className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-violet-600 hover:from-indigo-400 hover:to-violet-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-98"
             >
               {isVerifying ? (
