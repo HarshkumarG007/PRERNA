@@ -26,6 +26,7 @@ fn bench_session_save(c: &mut Criterion) {
         name: Some("Bench User".to_string()),
         gender: Some("male".to_string()),
         date_of_birth: Some("2008-01-01".to_string()),
+        role: Some("teen".to_string()),
     };
 
     let user_id = db
