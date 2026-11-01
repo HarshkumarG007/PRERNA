@@ -55,4 +55,22 @@ describe('PrivateBetaGate Component', () => {
     const requestBtn = screen.getByText(/Request Invite Token/i);
     expect(requestBtn).toBeInTheDocument();
   });
+
+  it('rejects multi-device oversharing of single-use token', async () => {
+    // Simulate device 1 claiming PRERNA-H1-CLINICAL
+    localStorage.setItem('prerna_claimed_dev_PRERNA-H1-CLINICAL', 'device_first_claim_123');
+    localStorage.setItem('prerna_device_id', 'device_rogue_intruder_456');
+
+    render(<PrivateBetaGate onAccessGranted={vi.fn()} />);
+
+    const input = screen.getByPlaceholderText(/ENTER INVITE TOKEN/i);
+    fireEvent.change(input, { target: { value: 'PRERNA-H1-CLINICAL' } });
+
+    const submitBtn = screen.getByRole('button', { name: /Unlock Sanctuary Access/i });
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Security Notice: This token was already claimed/i)).toBeInTheDocument();
+    });
+  });
 });

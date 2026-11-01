@@ -36,7 +36,7 @@ PRERNA's access gate restricts entry exclusively to authorized pilot testers.
 -- PRERNA CLOSED BETA ACCESS GATE SCHEMA
 -- ==============================================================================
 
--- 1. Create Beta Access Tokens Table
+-- 1. Create Beta Access Tokens Table with Hardware Device Lock
 create table if not exists public.beta_access_tokens (
   id uuid primary key default gen_random_uuid(),
   token text unique not null,
@@ -44,6 +44,7 @@ create table if not exists public.beta_access_tokens (
   role text default 'teen', -- 'teen' | 'adult' | 'parent' | 'educator' | 'reviewer'
   max_uses int default 1,
   times_used int default 0,
+  claimed_device_id text, -- Cryptographic hardware lock (prevents multi-device oversharing)
   is_active boolean default true,
   expires_at timestamptz,
   created_at timestamptz default now()
@@ -52,33 +53,52 @@ create table if not exists public.beta_access_tokens (
 -- Enable Row-Level Security (Prevents public token enumeration)
 alter table public.beta_access_tokens enable row level security;
 
--- 2. Create the Atomic Verification Stored Procedure (RPC)
-create or replace function public.verify_beta_token(input_token text)
+-- 2. Create the Atomic Verification Stored Procedure (RPC) with Device Lock
+create or replace function public.verify_beta_token(input_token text, input_device_id text default null)
 returns json
 language plpgsql
 security definer
 as $$
 declare
   token_record record;
+  is_first_claim boolean := false;
 begin
   select * into token_record
   from public.beta_access_tokens
   where upper(token) = upper(trim(input_token))
     and is_active = true
-    and (expires_at is null or expires_at > now())
-    and (max_uses is null or times_used < max_uses);
+    and (expires_at is null or expires_at > now());
 
   if not found then
     return json_build_object(
       'valid', false, 
-      'message', 'Token is invalid, expired, or depleted.'
+      'message', 'Token is invalid or deactivated.'
     );
   end if;
 
-  -- Atomically increment usage
-  update public.beta_access_tokens
-  set times_used = times_used + 1
-  where id = token_record.id;
+  -- Anti-Leak Defense: Check if already locked to another physical device
+  if token_record.claimed_device_id is not null and input_device_id is not null and token_record.claimed_device_id <> input_device_id then
+    return json_build_object(
+      'valid', false,
+      'message', 'Security Alert: This single-use invitation has already been claimed on another device.'
+    );
+  end if;
+
+  -- Check max uses for non-locked tokens
+  if token_record.max_uses is not null and token_record.times_used >= token_record.max_uses and token_record.claimed_device_id <> input_device_id then
+    return json_build_object(
+      'valid', false,
+      'message', 'This single-use invitation has reached its maximum allowed redemptions.'
+    );
+  end if;
+
+  -- First claim on this device: Bind device and increment count
+  if token_record.claimed_device_id is null and input_device_id is not null then
+    update public.beta_access_tokens
+    set times_used = times_used + 1,
+        claimed_device_id = input_device_id
+    where id = token_record.id;
+  end if;
 
   return json_build_object(
     'valid', true,
@@ -90,7 +110,7 @@ end;
 $$;
 
 -- Allow public execution of the verifier function
-grant execute on function public.verify_beta_token(text) to anon, authenticated;
+grant execute on function public.verify_beta_token(text, text) to anon, authenticated;
 
 -- 3. Create Anonymous Beta Feedback Table (Optional Cloud Inbox)
 create table if not exists public.beta_feedback (
@@ -170,3 +190,4 @@ You don't need to touch code or push to Git:
 1. Open Supabase Dashboard -> **Table Editor** -> `beta_access_tokens`.
 2. **To Add a New Tester:** Click **Insert row**, type the token (e.g. `DELHI-PUBLIC-SCHOOL`), assign a name, set `max_uses`, and save.
 3. **To Revoke Access:** Find the token and uncheck `is_active` (or set `expires_at` to yesterday). The tester is locked out instantly on their next reload!
+

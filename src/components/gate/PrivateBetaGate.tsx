@@ -34,6 +34,11 @@ export const PrivateBetaGate: React.FC<PrivateBetaGateProps> = ({ onAccessGrante
 
       const magicToken = getParam('invite') || getParam('access') || getParam('code');
       if (magicToken) {
+        // Anti-Leak Defense: Scrub token from address bar immediately to prevent copying or forwarding leaks
+        if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+          const cleanUrl = window.location.origin + window.location.pathname + (window.location.hash ? window.location.hash.split('?')[0] : '');
+          window.history.replaceState(null, '', cleanUrl);
+        }
         setTokenInput(magicToken);
         handleVerify(magicToken);
       }
@@ -124,8 +129,13 @@ export const PrivateBetaGate: React.FC<PrivateBetaGateProps> = ({ onAccessGrante
           >
             <CheckCircle2 size={24} className="text-emerald-400 flex-shrink-0" />
             <div>
-              <p className="font-bold text-sm text-white">Access Granted</p>
-              <p className="text-emerald-300/90">{successResult.message}</p>
+              <div className="flex items-center gap-2">
+                <p className="font-bold text-sm text-white">Access Granted</p>
+                <span className="text-[10px] bg-emerald-500/30 text-emerald-200 px-2 py-0.5 rounded-full font-mono">
+                  🔒 Device Locked
+                </span>
+              </div>
+              <p className="text-emerald-300/90 mt-0.5">{successResult.message}</p>
             </div>
           </motion.div>
         )}
