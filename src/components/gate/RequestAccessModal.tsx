@@ -369,3 +369,4 @@ Looking forward to receiving an invitation token. Thank you!`;
     </div>
   );
 };
+
