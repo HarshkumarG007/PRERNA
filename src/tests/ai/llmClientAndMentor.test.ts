@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { sendMessageToLLM, buildMentorPrompt, UserContext } from '../../ai/llmClient';
+import { sendMessageToLLM, buildMentorPrompt, probeLocalSidecar, UserContext } from '../../ai/llmClient';
 
 describe('Local LLM Integration & AI Mentor Chat (P3-1 & P3-2)', () => {
   const fixtureContext: UserContext = {
@@ -108,6 +108,13 @@ describe('Local LLM Integration & AI Mentor Chat (P3-1 & P3-2)', () => {
     expect(result.sentiment).toBe('distress');
     expect(result.response).toMatch(/KIRAN|1800-599-0019|helpline/i);
     expect(result.suggested_actions).toContain('Call KIRAN Helpline (1800-599-0019)');
+  });
+
+  it('probes local sidecar gracefully when offline without throwing unhandled exceptions', async () => {
+    const status = await probeLocalSidecar('http://127.0.0.1:99999');
+    expect(status).toBeDefined();
+    expect(status.isReachable).toBe(false);
+    expect(status.endpoint).toBe('http://127.0.0.1:99999');
   });
 });
 

@@ -5,11 +5,11 @@ import remarkGfm from 'remark-gfm';
 import { CURRENT_DISCLOSURES } from '../../engine/assessment/disclosures';
 import { validateSessionCreation, SessionConfig } from '../../engine/consent/sessionGate';
 import { checkForCrisisIndicators } from '../../engine/crisis/escalationRouter';
-import { sendMessageToLLM, ChatMessage, UserContext } from '../../ai/llmClient';
+import { sendMessageToLLM, ChatMessage, UserContext, probeLocalSidecar, LocalSidecarStatus } from '../../ai/llmClient';
 import { useI18n } from '../../engine/localization/i18n';
 import { useAppStore } from '../../store';
 import { PrernaEmblem } from '../common/PrernaLogo';
-import { Mic, Square, Send, Bot, User as UserIcon, AlertTriangle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Mic, Square, Send, Bot, User as UserIcon, AlertTriangle, ArrowRight, ShieldCheck, Cpu, Settings, Check, X, RefreshCw } from 'lucide-react';
 import { safeInvoke as invoke } from '../../utils/mockBackend';
 
 interface AiMentorChatProps {
@@ -38,6 +38,24 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const disclosure = CURRENT_DISCLOSURES.ai_mentor;
+
+  const [showSidecarModal, setShowSidecarModal] = useState(false);
+  const [sidecarStatus, setSidecarStatus] = useState<LocalSidecarStatus | null>(null);
+  const [sidecarEndpoint, setSidecarEndpoint] = useState(() => localStorage.getItem('prerna_local_llm_endpoint') || 'http://127.0.0.1:11434');
+  const [sidecarModel, setSidecarModel] = useState(() => localStorage.getItem('prerna_local_llm_model') || 'llama3.2:1b');
+  const [isSidecarEnabled, setIsSidecarEnabled] = useState(() => localStorage.getItem('prerna_local_llm_enabled') === 'true');
+  const [isProbing, setIsProbing] = useState(false);
+
+  const checkSidecar = async (endpoint?: string) => {
+    setIsProbing(true);
+    const status = await probeLocalSidecar(endpoint || sidecarEndpoint);
+    setSidecarStatus(status);
+    setIsProbing(false);
+  };
+
+  useEffect(() => {
+    checkSidecar();
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -228,6 +246,22 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
             </p>
           </div>
         </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowSidecarModal(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/80 hover:text-white border border-white/10 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+            title="Configure Local LLM Sidecar (Ollama / llama.cpp)"
+          >
+            <Cpu size={14} className={sidecarStatus?.isReachable ? "text-emerald-400" : "text-violet-400"} />
+            <span className="hidden sm:inline">
+              {sidecarStatus?.isReachable && isSidecarEnabled 
+                ? `Sidecar: ${sidecarStatus.model || 'Connected'}` 
+                : 'Sovereign Engine'}
+            </span>
+            <Settings size={12} className="text-white/40 ml-0.5" />
+          </button>
+        </div>
       </div>
 
       {/* AI Transparency Banner */}
@@ -386,6 +420,126 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
           <Send size={20} />
         </button>
       </form>
+
+      {/* Local LLM Sidecar Settings Modal */}
+      {showSidecarModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+          <div className="bg-[#0b1120] border border-white/10 rounded-3xl p-6 max-w-md w-full shadow-2xl relative text-white space-y-5">
+            <button
+              onClick={() => setShowSidecarModal(false)}
+              className="absolute top-4 right-4 p-2 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center text-violet-300">
+                <Cpu size={22} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white">Local AI Sidecar</h3>
+                <p className="text-xs text-white/50">Run private on-device LLMs via Ollama or llama.cpp</p>
+              </div>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              <div className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/10">
+                <div>
+                  <span className="font-bold text-white block">Enable Local HTTP Sidecar</span>
+                  <span className="text-white/50 text-[11px]">Stream responses directly from your local hardware</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={isSidecarEnabled}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setIsSidecarEnabled(checked);
+                    localStorage.setItem('prerna_local_llm_enabled', checked ? 'true' : 'false');
+                  }}
+                  className="w-5 h-5 accent-violet-500 cursor-pointer"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-white/70 uppercase tracking-wider">Sidecar Server URL</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={sidecarEndpoint}
+                    onChange={(e) => setSidecarEndpoint(e.target.value)}
+                    placeholder="http://127.0.0.1:11434"
+                    className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-white/15 text-white placeholder-white/30 text-xs focus:outline-none focus:border-violet-500 font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      localStorage.setItem('prerna_local_llm_endpoint', sidecarEndpoint);
+                      checkSidecar(sidecarEndpoint);
+                    }}
+                    disabled={isProbing}
+                    className="px-3 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs transition-colors cursor-pointer flex items-center gap-1.5"
+                  >
+                    <RefreshCw size={12} className={isProbing ? "animate-spin" : ""} />
+                    <span>Test</span>
+                  </button>
+                </div>
+                <p className="text-[10px] text-white/40">Default for Ollama: <code>http://127.0.0.1:11434</code> • llama.cpp server: <code>http://127.0.0.1:8080</code></p>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-white/70 uppercase tracking-wider">Model Identifier</label>
+                <input
+                  type="text"
+                  value={sidecarModel}
+                  onChange={(e) => {
+                    setSidecarModel(e.target.value);
+                    localStorage.setItem('prerna_local_llm_model', e.target.value);
+                  }}
+                  placeholder="llama3.2:1b"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-white/15 text-white placeholder-white/30 text-xs focus:outline-none focus:border-violet-500 font-mono"
+                />
+              </div>
+
+              {/* Status Box */}
+              <div className={`p-3.5 rounded-2xl border flex items-start gap-2.5 ${
+                sidecarStatus?.isReachable 
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' 
+                  : 'bg-slate-900 border-white/10 text-slate-400'
+              }`}>
+                {sidecarStatus?.isReachable ? (
+                  <Check size={16} className="text-emerald-400 shrink-0 mt-0.5" />
+                ) : (
+                  <AlertTriangle size={16} className="text-amber-400 shrink-0 mt-0.5" />
+                )}
+                <div>
+                  <p className="font-bold text-xs">
+                    {sidecarStatus?.isReachable 
+                      ? `Connected to Local Sidecar (${sidecarStatus.model || 'Ready'})` 
+                      : 'Sidecar Offline or Not Detected'}
+                  </p>
+                  <p className="text-[11px] opacity-80 mt-0.5">
+                    {sidecarStatus?.isReachable
+                      ? 'PRERNA will run inference privately over localhost with zero data leaving your machine.'
+                      : 'PRERNA is using its built-in sovereign offline psychometric reasoning engine.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                localStorage.setItem('prerna_local_llm_endpoint', sidecarEndpoint);
+                localStorage.setItem('prerna_local_llm_model', sidecarModel);
+                localStorage.setItem('prerna_local_llm_enabled', isSidecarEnabled ? 'true' : 'false');
+                setShowSidecarModal(false);
+              }}
+              className="w-full py-3 rounded-xl bg-white text-slate-950 font-bold text-xs hover:bg-slate-200 transition-colors cursor-pointer"
+            >
+              Save Configuration
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

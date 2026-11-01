@@ -23,6 +23,65 @@ export interface ChatResponse {
   sentiment: string;
   suggested_actions: string[];
   latencyMs?: number;
+  engine?: 'tauri_ipc' | 'local_sidecar' | 'sovereign_client';
+}
+
+export interface LocalSidecarStatus {
+  isConfigured: boolean;
+  isReachable: boolean;
+  endpoint: string;
+  model?: string;
+  error?: string;
+}
+
+/**
+ * Probes a local LLM server (Ollama, llama.cpp, LM Studio, etc.)
+ */
+export async function probeLocalSidecar(customEndpoint?: string): Promise<LocalSidecarStatus> {
+  const endpoint = customEndpoint || (typeof localStorage !== 'undefined' ? localStorage.getItem('prerna_local_llm_endpoint') : null) || 'http://127.0.0.1:11434';
+  
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 1500);
+    
+    // Check Ollama tags or OpenAI /v1/models
+    const res = await fetch(`${endpoint.replace(/\/+$/, '')}/api/tags`, {
+      method: 'GET',
+      signal: controller.signal
+    }).catch(async () => {
+      return fetch(`${endpoint.replace(/\/+$/, '')}/v1/models`, {
+        method: 'GET',
+        signal: controller.signal
+      });
+    });
+    
+    clearTimeout(timeoutId);
+
+    if (res && res.ok) {
+      const data = await res.json().catch(() => ({}));
+      const modelName = data?.models?.[0]?.name || data?.data?.[0]?.id || 'Local Neural Engine';
+      return {
+        isConfigured: true,
+        isReachable: true,
+        endpoint,
+        model: modelName
+      };
+    }
+
+    return {
+      isConfigured: typeof localStorage !== 'undefined' && Boolean(localStorage.getItem('prerna_local_llm_endpoint')),
+      isReachable: false,
+      endpoint,
+      error: `HTTP ${res?.status || 500}`
+    };
+  } catch (err: any) {
+    return {
+      isConfigured: typeof localStorage !== 'undefined' && Boolean(localStorage.getItem('prerna_local_llm_endpoint')),
+      isReachable: false,
+      endpoint,
+      error: err?.message || 'Offline'
+    };
+  }
 }
 
 /**
@@ -95,6 +154,62 @@ export async function sendMessageToLLM(
     };
   } catch (error) {
     console.warn('[LLM Client] IPC call failed, falling back to local client processor:', error);
+
+    // Check if user enabled local HTTP sidecar (e.g. Ollama on localhost:11434 or llama.cpp on localhost:8080)
+    const localSidecarEnabled = typeof localStorage !== 'undefined' && localStorage.getItem('prerna_local_llm_enabled') === 'true';
+    if (localSidecarEnabled) {
+      const endpoint = localStorage.getItem('prerna_local_llm_endpoint') || 'http://127.0.0.1:11434';
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
+        
+        // Standard OpenAI-compatible format supported by Ollama /v1/chat/completions and llama.cpp
+        const response = await fetch(`${endpoint.replace(/\/+$/, '')}/v1/chat/completions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            model: localStorage.getItem('prerna_local_llm_model') || 'llama3.2:1b',
+            messages: [
+              { role: 'system', content: "You are PRERNA, a supportive AI mentor for Indian adolescents. You are an AI, NOT a doctor or therapist. Keep answers concise, warm, and culturally empathetic." },
+              ...recentMessages.slice(-4),
+              { role: 'user', content: newMessage }
+            ],
+            temperature: 0.7,
+            max_tokens: 200
+          })
+        });
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+          const result = await response.json();
+          const content = result.choices?.[0]?.message?.content?.trim();
+          if (content) {
+            // Apply Mandatory Safety Filter on raw output
+            if (/\b(suicide|kill myself|end my life|die|self harm|hurt myself|cutter|cutting)\b/i.test(newMessage + ' ' + content)) {
+              return {
+                response: "It sounds like you are going through a really painful moment right now. Please know that you are not alone and help is available. Would you be willing to speak with someone who can support you? You can call KIRAN (1800-599-0019) or Vandrevala Foundation (9999-666-555) 24/7 for free, confidential guidance.",
+                conversation_id: conversationId || 'sidecar-' + Date.now(),
+                sentiment: 'distress',
+                suggested_actions: ['Call KIRAN Helpline (1800-599-0019)', 'Connect with a trusted adult'],
+                latencyMs: Math.round(performance.now() - startTime),
+                engine: 'local_sidecar'
+              };
+            }
+            return {
+              response: content,
+              conversation_id: conversationId || 'sidecar-' + Date.now(),
+              sentiment: 'supportive',
+              suggested_actions: ['Reflect on this insight', 'Ask follow-up question'],
+              latencyMs: Math.round(performance.now() - startTime),
+              engine: 'local_sidecar'
+            };
+          }
+        }
+      } catch (sidecarErr) {
+        console.warn('[LLM Client] Local sidecar attempt failed, smoothly falling back to sovereign processor:', sidecarErr);
+      }
+    }
 
     // Fallback client-side generator to ensure zero-latency degradation during offline/test modes
     const latencyMs = Math.round(performance.now() - startTime);
