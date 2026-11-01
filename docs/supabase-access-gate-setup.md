@@ -126,7 +126,8 @@ create table if not exists public.beta_feedback (
 
 alter table public.beta_feedback enable row level security;
 
--- Allow anonymous inserts for feedback
+-- Allow anonymous inserts for feedback (Idempotent)
+drop policy if exists "Allow anonymous feedback inserts" on public.beta_feedback;
 create policy "Allow anonymous feedback inserts" on public.beta_feedback
   for insert with check (true);
 
