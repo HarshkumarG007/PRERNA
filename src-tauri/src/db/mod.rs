@@ -435,10 +435,18 @@ impl Database {
             }
         };
 
-        let enc_india = self.encrypt_field("India - Delhi").unwrap_or_else(|_| "enc_india".to_string());
-        let enc_mumbai = self.encrypt_field("India - Maharashtra").unwrap_or_else(|_| "enc_mumbai".to_string());
-        let enc_chennai = self.encrypt_field("India - Tamil Nadu").unwrap_or_else(|_| "enc_chennai".to_string());
-        let enc_lang = self.encrypt_field("en").unwrap_or_else(|_| "enc_en".to_string());
+        let enc_india = self
+            .encrypt_field("India - Delhi")
+            .unwrap_or_else(|_| "enc_india".to_string());
+        let enc_mumbai = self
+            .encrypt_field("India - Maharashtra")
+            .unwrap_or_else(|_| "enc_mumbai".to_string());
+        let enc_chennai = self
+            .encrypt_field("India - Tamil Nadu")
+            .unwrap_or_else(|_| "enc_chennai".to_string());
+        let enc_lang = self
+            .encrypt_field("en")
+            .unwrap_or_else(|_| "enc_en".to_string());
         let now = chrono::Utc::now().to_rfc3339();
 
         // 1. Aarav (Teen Demo)
@@ -1155,7 +1163,10 @@ fn get_db_path(_app_handle: &tauri::AppHandle) -> AnyhowResult<PathBuf> {
         // Fallback to std::env::temp_dir()
         let temp_dir = std::env::temp_dir();
         let _ = std::fs::create_dir_all(&temp_dir);
-        info!("Using Android temp directory fallback for database: {:?}", temp_dir);
+        info!(
+            "Using Android temp directory fallback for database: {:?}",
+            temp_dir
+        );
         Ok(temp_dir.join("prerna_encrypted.db"))
     }
 
