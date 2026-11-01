@@ -1,6 +1,6 @@
 [package]
 name = "prerna-core"
-version = "0.1.0"
+version = "1.2.1"
 description = "PRERNA - Local-first AI guidance platform"
 authors = ["you"]
 edition = "2021"
