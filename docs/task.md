@@ -688,6 +688,10 @@
   - Deployed output binary to root `PRERNA-v1.2.3-arm64.apk` and artifact repository.
 - [x] **WP6-3** Git Release Tagging:
   - Tagged commit `b7038d6` with annotated git tag `v1.2.3`.
+- [x] **WP6-4** Cryptographic Entitlements & Webhook Verification (Audit C-04 / WP6):
+  - Built `src/services/entitlementService.ts` providing signed `EntitlementToken` issuance/verification, Razorpay/Cashfree webhook HMAC-SHA256 verification, and 10-minute replay attack window protection with idempotency caching.
+  - Integrated `applyEntitlementToken` into `src/store/subscriptionStore.ts` to cryptographically enforce commercial tiers.
+  - Added test suite `src/tests/subscription/entitlementService.test.ts` (6 tests passing).
 
 ### Work Package 10 (WP10) — Master Governance & Directive Architecture Suite
 - [x] **WP10-1** `THREAT_MODEL.md`: Formal STRIDE threat model across Untrusted Renderer, Tauri 2 IPC Bridge, Trusted Rust Core, and SQLite/FBE Storage Domain with mapped security regression tests.
@@ -703,7 +707,7 @@
 - [x] `docs/dpdp-compliance-mapping.md` updated for any change touching consent, data collection, or crisis
 - [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
 - [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
-- [x] Pre-deployment regression test suite: **230/230 tests passed across 47 test files** (TypeScript/Vitest) and **51/51 tests passed** (Rust unit, security, and crisis matrix)
+- [x] Pre-deployment regression test suite: **236/236 tests passed across 48 test files** (TypeScript/Vitest) and **51/51 tests passed** (Rust unit, security, and crisis matrix)
 - [x] Production bundle verified: `tsc && vite build` completed with zero errors (built in 13.13s)
 - [x] Native Android ARM64 Release APK (`PRERNA-v1.2.3-arm64.apk` — 12.50 MB / 12,496,961 bytes) compiled and verified in root directory
 - [x] Official Git tag `v1.2.3` created

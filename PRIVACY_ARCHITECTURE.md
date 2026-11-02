@@ -150,3 +150,4 @@ Under Section 13 of the DPDP Act 2023, data principals have the right to accessi
 - **Statutory Acknowledgement SLA:** Within **72 hours** of notice receipt.
 - **Statutory Resolution SLA:** Within **30 calendar days**.
 - **Appellate Recourse:** Data Protection Board of India (DPBI) upon exhaustion of internal redressal.
+

@@ -86,3 +86,4 @@ In accordance with Directive §4 and Audit Finding H-07:
    The product does **not** claim to provide live 24/7 in-house clinical monitoring or direct dispatch of emergency personnel. Marketing and UI copy has been rigorously sanitized to reflect truthful on-device safety planning.
 3. **Emergency Escalation Activation:**
    Live cloud dispatch channels and institutional counselor queues remain pending formal clinical team onboarding and human-review gate completion (Tickets H1 & H2).
+

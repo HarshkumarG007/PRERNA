@@ -145,3 +145,4 @@ Every threat mitigation documented above is mapped to an automated regression te
 | **Vitest Multi-Persona Isolation**| `src/tests/integration/MultiPersonaJourney.test.tsx` | 5 | ✅ 5 / 5 PASS |
 
 **Total Invariant Benchmark:** 51 Rust Tests + 230 Vitest Tests = **281 Tests Passing (100% Green)**.
+

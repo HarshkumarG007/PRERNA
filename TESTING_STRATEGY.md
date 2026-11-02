@@ -124,3 +124,4 @@ cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
 .\scratch\build_apk.ps1
 ```
 *(Produces `PRERNA-v1.2.3-arm64.apk` with 16 KB page-aligned shared libraries).*
+

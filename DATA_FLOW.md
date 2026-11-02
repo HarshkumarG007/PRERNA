@@ -197,3 +197,4 @@ flowchart TD
 - **Zero-Network Invariant:** Network socket inspections confirm zero outbound requests during assessment completion, journal persistence, and crisis evaluation.
 - **Erase-All Assertion:** Cold-start inspection after `delete_user_data` confirms zero database records and empty `localStorage`.
 - **Identity Isolation Assertion:** Regression test `test_t15_7_cross_user_isolation` confirms that multiple user profiles on a shared device have zero cross-read capabilities.
+

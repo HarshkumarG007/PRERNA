@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { computeSubscriptionSignature, verifySubscriptionSignature } from '../utils/cryptoVault';
+import { EntitlementToken, verifyEntitlementToken } from '../services/entitlementService';
 
 export type PartnerPlanTier = 'free' | 'trial' | 'partner_pro_monthly' | 'partner_pro_annual' | 'partner_lifetime';
 export type SchoolLicenseTier = 'pilot' | 'campus_annual' | 'district_annual';
@@ -18,13 +19,15 @@ export interface SubscriptionState {
   schoolActivatedAt: string | null;
   schoolExpiresAt: string | null;
 
-  // Cryptographic Anti-Tamper Seal
+  // Cryptographic Anti-Tamper Seal & Entitlement Token
   integritySignature?: string;
+  entitlementToken?: EntitlementToken | null;
 
   // Actions
   upgradePartnerPlan: (tier: PartnerPlanTier) => void;
   cancelPartnerPlan: () => void;
   upgradeSchoolLicense: (tier: SchoolLicenseTier) => void;
+  applyEntitlementToken: (token: EntitlementToken, secret: string) => boolean;
   setDemoPartnerPlan: (tier: PartnerPlanTier) => void;
   setDemoSchoolLicense: (tier: SchoolLicenseTier) => void;
 
@@ -125,6 +128,47 @@ export const useSubscriptionStore = create<SubscriptionState>()(
 
         setDemoSchoolLicense: (tier: SchoolLicenseTier) => {
           get().upgradeSchoolLicense(tier);
+        },
+
+        applyEntitlementToken: (token: EntitlementToken, secret: string) => {
+          const verification = verifyEntitlementToken(token, secret);
+          if (!verification.isValid) {
+            return false;
+          }
+
+          const { tier, expiresAt } = token.payload;
+          if (
+            tier === 'partner_pro_monthly' ||
+            tier === 'partner_pro_annual' ||
+            tier === 'partner_lifetime' ||
+            tier === 'trial'
+          ) {
+            const currentSchool = get().schoolLicense;
+            const currentSchoolExpires = get().schoolExpiresAt;
+            const sig = computeSubscriptionSignature(tier, expiresAt, currentSchool, currentSchoolExpires);
+            set({
+              partnerPlan: tier,
+              partnerExpiresAt: expiresAt,
+              entitlementToken: token,
+              integritySignature: sig,
+            });
+            return true;
+          }
+
+          if (tier === 'campus_annual' || tier === 'district_annual') {
+            const currentPartner = get().partnerPlan;
+            const currentPartnerExpires = get().partnerExpiresAt;
+            const sig = computeSubscriptionSignature(currentPartner, currentPartnerExpires, tier, expiresAt);
+            set({
+              schoolLicense: tier,
+              schoolExpiresAt: expiresAt,
+              entitlementToken: token,
+              integritySignature: sig,
+            });
+            return true;
+          }
+
+          return false;
         },
 
         isPartnerPro: () => {
