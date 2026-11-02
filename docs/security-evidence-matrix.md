@@ -18,7 +18,7 @@ Evidence status must progress monotonically:
 | Cross-user isolation enforced for crisis events | Session ID binding | `T15.7` | Pending | N/A | **IMPLEMENTED** | Integration |
 | Duplicate crisis signals are preserved | Unique Event ID generation | `T15.8` | Pending | N/A | **IMPLEMENTED** | Integration |
 | Reviewer ownership enforced for resolutions | Crisis DB assignment checks | `T15.9` | Pending | N/A | **IMPLEMENTED** | Integration |
-| Guardian notification ordering enforced | Backend state machine | `T15.10` | Pending | Clinical/legal review | **IMPLEMENTED** | Integration |
+| Guardian notification ordering enforced | Backend state machine | `T15.10` | Pending | Clinical/legal review | **PARTIALLY IMPLEMENTED (Ordering enforced in state machine; external dispatch channel pending)** | Integration |
 | Small cohorts suppressed below k-threshold | Aggregate disclosure controls | — | — | Required | **PENDING** | All |
 | Crisis criteria clinically valid | — | — | — | Required | **PENDING** | All |
 

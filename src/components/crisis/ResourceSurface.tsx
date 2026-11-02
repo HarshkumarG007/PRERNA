@@ -2,70 +2,9 @@ import React, { useState } from 'react';
 import { HeartHandshake, PhoneCall, ShieldCheck, Sparkles, UserPlus } from 'lucide-react';
 import { CopingSkills } from '../activities/CopingSkills';
 import { TrustedAdultConnector } from './TrustedAdultConnector';
+import { VERIFIED_HELPLINES, type HelplineResource } from '../../data/helplines';
 
-export interface HelplineResource {
-  name: string;
-  numbers: string[];
-  hours: string;
-  organization: string;
-  language: string;
-  badge?: string;
-}
-
-export const VERIFIED_HELPLINES: HelplineResource[] = [
-  {
-    name: 'National Emergency Helpline (Pan-India)',
-    numbers: ['112'],
-    hours: '24/7 (Immediate Emergency)',
-    organization: 'Ministry of Home Affairs (Govt. of India)',
-    language: 'All Indian Languages',
-    badge: 'Immediate Response',
-  },
-  {
-    name: 'Tele-MANAS (Govt. of India)',
-    numbers: ['14416', '1800-891-4416'],
-    hours: '24/7 (Toll-Free)',
-    organization: 'Ministry of Health & Family Welfare',
-    language: '20+ Indian Languages',
-    badge: 'National Mental Health',
-  },
-  {
-    name: 'Childline India',
-    numbers: ['1098'],
-    hours: '24/7 (Toll-Free)',
-    organization: 'Ministry of Women & Child Development',
-    language: 'Pan-India',
-    badge: 'Children & Adolescents',
-  },
-  {
-    name: 'KIRAN Mental Health Helpline',
-    numbers: ['1800-599-0019'],
-    hours: '24/7 (Toll-Free)',
-    organization: 'Department of Empowerment of Persons with Disabilities',
-    language: '13 Languages',
-  },
-  {
-    name: 'Vandrevala Foundation',
-    numbers: ['9999 666 555'],
-    hours: '24/7 (Free Counseling)',
-    organization: 'Cyrus & Priya Vandrevala Foundation',
-    language: 'English, Hindi, Regional',
-  },
-  {
-    name: 'iCall Psychosocial Helpline',
-    numbers: ['9152987821'],
-    hours: 'Mon - Sat (10:00 AM – 8:00 PM)',
-    organization: 'Tata Institute of Social Sciences (TISS)',
-    language: 'English, Hindi, Marathi, etc.',
-  },
-  {
-    name: 'NIMHANS Psychosocial Support',
-    numbers: ['080-46110007'],
-    hours: '24/7',
-    organization: 'National Institute of Mental Health and Neurosciences',
-    language: 'English, Hindi, Kannada',
-  },
-];
+export { VERIFIED_HELPLINES, type HelplineResource };
 
 interface ResourceSurfaceProps {
   mode?: 'banner' | 'page';
