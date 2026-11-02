@@ -401,6 +401,13 @@ impl Database {
     }
 
     pub fn seed_demo_users_if_needed(&mut self) -> AnyhowResult<()> {
+        #[cfg(not(debug_assertions))]
+        {
+            // SECURITY INVARIANT (Audit H-02):
+            // Production builds must never seed hardcoded credentials or demo accounts.
+            return Ok(());
+        }
+
         let count: i64 = self
             .conn
             .query_row("SELECT COUNT(*) FROM users", [], |row| row.get(0))

@@ -261,42 +261,48 @@ export const AuthModal: React.FC<AuthModalProps> = ({ mode: initialMode, initial
               <div>
                 <h2 className="text-xl font-bold text-white">Welcome Back</h2>
                 <p className="text-sm text-white/50">
-                  {loginMode === 'pin' ? 'Enter PIN to unlock (Demo: 1234)' : ((loginMode as any) === 'mfa' ? 'Two-Factor Authentication' : 'Enter credentials (Demo: demo / demo123)')}
+                  {loginMode === 'pin' 
+                    ? (import.meta.env.DEV ? 'Enter PIN to unlock (Demo: 1234)' : 'Enter PIN to unlock') 
+                    : ((loginMode as any) === 'mfa' 
+                        ? 'Two-Factor Authentication' 
+                        : (import.meta.env.DEV ? 'Enter credentials (Demo: demo / demo123)' : 'Enter your credentials'))}
                 </p>
               </div>
             </div>
           )}
 
-          {/* Quick Demo Shortcut */}
-          <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-xs">
-            <span className="text-white/40 font-medium">1-Click Demo:</span>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <button
-                type="button"
-                onClick={() => handleQuickDemo('teen')}
-                className="px-2.5 py-1 rounded-lg bg-violet-500/20 hover:bg-violet-500/30 text-violet-300 font-bold border border-violet-500/30 transition-all cursor-pointer"
-                title="Log in instantly as Aarav (Teen, age 16)"
-              >
-                ⚡ Aarav (Teen)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickDemo('adult')}
-                className="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold border border-rose-500/30 transition-all cursor-pointer"
-                title="Log in instantly as Priya (Adult)"
-              >
-                👤 Adult
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickDemo('parent')}
-                className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-bold border border-emerald-500/30 transition-all cursor-pointer"
-                title="Log in instantly as Rajesh (Parent)"
-              >
-                👨‍👩‍👧 Parent
-              </button>
+          {/* Quick Demo Shortcut (DEV only) */}
+          {import.meta.env.DEV && (
+            <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-xs">
+              <span className="text-white/40 font-medium">1-Click Demo:</span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => handleQuickDemo('teen')}
+                  className="px-2.5 py-1 rounded-lg bg-violet-500/20 hover:bg-violet-500/30 text-violet-300 font-bold border border-violet-500/30 transition-all cursor-pointer"
+                  title="Log in instantly as Aarav (Teen, age 16)"
+                >
+                  ⚡ Aarav (Teen)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickDemo('adult')}
+                  className="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold border border-rose-500/30 transition-all cursor-pointer"
+                  title="Log in instantly as Priya (Adult)"
+                >
+                  👤 Adult
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickDemo('parent')}
+                  className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-bold border border-emerald-500/30 transition-all cursor-pointer"
+                  title="Log in instantly as Rajesh (Parent)"
+                >
+                  👨‍👩‍👧 Parent
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Content */}

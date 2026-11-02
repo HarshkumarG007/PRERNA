@@ -30,6 +30,23 @@ pub fn create_user(
     session: State<ActiveSession>,
     mut user: NewUser,
 ) -> Result<String, String> {
+    // SECURITY INVARIANT (Audit C-02):
+    // Role self-assignment protection. Privileged roles ('reviewer', 'admin', 'educator', 'clinician')
+    // cannot be self-provisioned via public signup. Only unprivileged consumer roles are permitted.
+    if let Some(ref r) = user.role {
+        let normalized = r.to_lowercase();
+        match normalized.as_str() {
+            "teen" | "adult" | "parent" => {
+                user.role = Some(normalized);
+            }
+            _ => {
+                return Err("Unauthorized: Cannot self-assign privileged or institutional role. Privileged accounts require administrator provisioning.".to_string());
+            }
+        }
+    } else {
+        user.role = Some("teen".to_string());
+    }
+
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
 
@@ -68,12 +85,23 @@ pub fn authenticate_pin(
     user_id: String,
     pin: String,
 ) -> Result<PublicUser, String> {
-    let db = state.0.lock().map_err(|e| e.to_string())?;
-    let target_id = if user_id.is_empty() || user_id == "demo" || user_id == "default" {
-        "demo-teen-001".to_string()
+    let trimmed_id = user_id.trim();
+    let target_id = if trimmed_id.is_empty() {
+        return Err("User ID is required for PIN authentication.".to_string());
+    } else if trimmed_id == "demo" || trimmed_id == "default" {
+        #[cfg(debug_assertions)]
+        {
+            "demo-teen-001".to_string()
+        }
+        #[cfg(not(debug_assertions))]
+        {
+            return Err("Demo user alias is not permitted in production builds.".to_string());
+        }
     } else {
-        user_id
+        trimmed_id.to_string()
     };
+
+    let db = state.0.lock().map_err(|e| e.to_string())?;
     let user = db
         .get_user(&target_id)
         .map_err(|e| e.to_string())?
@@ -89,6 +117,13 @@ pub fn authenticate_pin(
         .verify_password(pin.as_bytes(), &parsed_hash)
         .is_ok()
     {
+        // SECURITY INVARIANT (Audit H-01):
+        // PIN authentication must respect MFA. If MFA is enabled, PIN alone cannot authenticate.
+        if user.mfa_enabled {
+            session.set_pending_mfa(user.id.clone())?;
+            return Err("MFA_REQUIRED: Multi-factor authentication is required for this account. Please authenticate with your password and TOTP token.".to_string());
+        }
+
         session.set_authenticated(user.id.clone())?;
         Ok(PublicUser::from(&user))
     } else {
@@ -102,13 +137,32 @@ pub fn resume_session(
     session: State<ActiveSession>,
     user_id: String,
 ) -> Result<PublicUser, String> {
+    // SECURITY INVARIANT (Audit C-01):
+    // Never allow arbitrary unauthenticated user_id to assume an active session.
+    // resume_session can ONLY succeed if the backend ActiveSession is already authenticated
+    // for this exact user, or in debug/demo mode for fast persona switching.
+    let active_result = session.get_user_id();
+    let is_authenticated_self = active_result.as_ref().map(|id| id == &user_id).unwrap_or(false);
+
+    #[cfg(debug_assertions)]
+    let is_dev_demo = user_id.starts_with("demo-");
+    #[cfg(not(debug_assertions))]
+    let is_dev_demo = false;
+
+    if !is_authenticated_self && !is_dev_demo {
+        return Err("Unauthorized: No active session. Please authenticate with PIN or credentials.".to_string());
+    }
+
     let db = state.0.lock().map_err(|e| e.to_string())?;
     let user = db
         .get_user(&user_id)
         .map_err(|e| e.to_string())?
         .ok_or_else(|| "User not found".to_string())?;
 
-    session.set_authenticated(user.id.clone())?;
+    if is_dev_demo && !is_authenticated_self {
+        session.set_authenticated(user.id.clone())?;
+    }
+
     Ok(PublicUser::from(&user))
 }
 

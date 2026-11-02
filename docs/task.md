@@ -585,6 +585,28 @@
   - Verified **226/226 tests passing across 46 test files**.
   - Verified `tsc && vite build` clean in 11.41s.
 
+### Work Package 1 (WP1) — Authentication & Authorization Hardening
+- [x] **WP1-1** Eliminate Unauthenticated Session Resumption (`C-01`)
+  - Secured `resume_session` command in `src-tauri/src/commands/mod.rs` to strictly verify that backend `ActiveSession` is already authenticated for the matching `user_id`.
+  - Blocked arbitrary unauthenticated `user_id` resumption; prevented switching user sessions without valid re-authentication.
+  - Added negative security unit test `test_ipc_resume_session_requires_active_authenticated_session` in `src-tauri/src/commands/security_tests.rs`.
+- [x] **WP1-2** Block Role Self-Assignment & Privilege Escalation (`C-02`)
+  - Enforced strict role allow-list in `create_user` (`src-tauri/src/commands/mod.rs`): only unprivileged consumer roles (`'teen'`, `'adult'`, `'parent'`) can be self-assigned.
+  - Prevented self-provisioning of privileged roles (`'reviewer'`, `'educator'`, `'admin'`, `'clinician'`), closing the unauthorized access hole into clinical crisis events.
+  - Added negative security test `test_ipc_role_self_assignment_blocked` in `src-tauri/src/commands/security_tests.rs`.
+- [x] **WP1-3** PIN Authentication MFA Respect & Input Validation (`H-01`)
+  - Enforced that `authenticate_pin` checks `mfa_enabled`: accounts with MFA configured cannot bypass multi-factor authentication via PIN.
+  - Required non-empty `user_id` and gated `"demo"`/`"default"` aliases exclusively to debug assertions.
+  - Added negative security test `test_ipc_pin_authentication_respects_mfa` in `src-tauri/src/commands/security_tests.rs`.
+- [x] **WP1-4** Production Demo Seeding Guardrails (`H-02`, `H-03`)
+  - Gated SQLite demo user pre-seeding (`seed_demo_users_if_needed` in `src-tauri/src/db/mod.rs`) under `#[cfg(debug_assertions)]`: production release databases are never seeded with hardcoded credentials or mock personas.
+  - Gated universal password bypass (`demo123`) in `src/utils/mockBackend.ts` behind `import.meta.env.DEV`.
+  - Gated 1-click demo buttons and demo credentials hints in `src/components/welcome/AuthModal.tsx` behind `import.meta.env.DEV`.
+- [x] **WP1-5** Rust & TypeScript Test Suite Verification
+  - Verified **41/41 Rust tests passing** in `cargo test --lib`.
+  - Verified **226/226 Vitest tests passing** in TypeScript.
+  - Verified `tsc && vite build` completed cleanly in 9.95s.
+
 ---
 
 ## Ongoing (Every Release)

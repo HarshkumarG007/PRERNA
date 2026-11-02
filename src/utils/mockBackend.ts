@@ -255,9 +255,11 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
 
     case 'authenticate_user': {
       const { username, passwordInput } = args;
+      const isDevBypass = Boolean(import.meta.env.DEV && passwordInput === 'demo123');
+      const isDemoAlias = Boolean(import.meta.env.DEV && username === 'demo');
       const user = db.users.find((u: any) => 
-        (u.username === username || (username === 'demo' && (u.id === 'demo-user-001' || u.id === 'demo-teen-001'))) && 
-        (u.password_hash === passwordInput || passwordInput === 'demo123')
+        (u.username === username || (isDemoAlias && (u.id === 'demo-user-001' || u.id === 'demo-teen-001'))) && 
+        (u.password_hash === passwordInput || isDevBypass)
       );
       if (user) {
         if (user.mfaEnabled) {

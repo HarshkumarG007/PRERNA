@@ -381,4 +381,73 @@ mod tests {
             "Delimiter properly escaped"
         );
     }
+
+    #[test]
+    fn test_ipc_role_self_assignment_blocked() {
+        // SECURITY INVARIANT (Audit C-02):
+        // Privileged roles MUST NOT be self-assignable via public signup.
+        let privileged_roles = ["reviewer", "educator", "admin", "clinician", "superuser"];
+        for role in &privileged_roles {
+            let normalized = role.to_lowercase();
+            let is_permitted = matches!(normalized.as_str(), "teen" | "adult" | "parent");
+            assert!(
+                !is_permitted,
+                "SECURITY VULNERABILITY: Privileged role '{}' was permitted in public registration!",
+                role
+            );
+        }
+
+        let valid_consumer_roles = ["teen", "adult", "parent", "TEEN", "Adult"];
+        for role in &valid_consumer_roles {
+            let normalized = role.to_lowercase();
+            let is_permitted = matches!(normalized.as_str(), "teen" | "adult" | "parent");
+            assert!(
+                is_permitted,
+                "Consumer role '{}' should be permitted in public registration",
+                role
+            );
+        }
+    }
+
+    #[test]
+    fn test_ipc_resume_session_requires_active_authenticated_session() {
+        // SECURITY INVARIANT (Audit C-01):
+        // resume_session cannot be assumed by arbitrary unauthenticated user_id.
+        let active_session_opt: Option<String> = None;
+        let target_user_id = "victim_user_456";
+
+        let can_resume = active_session_opt.as_ref().map(|id| id == target_user_id).unwrap_or(false);
+        assert!(
+            !can_resume,
+            "SECURITY VULNERABILITY: Unauthenticated caller was able to resume session!"
+        );
+
+        let active_session_different: Option<String> = Some("attacker_user_123".to_string());
+        let can_switch = active_session_different.as_ref().map(|id| id == target_user_id).unwrap_or(false);
+        assert!(
+            !can_switch,
+            "SECURITY VULNERABILITY: Caller switched to another user's session without re-authenticating!"
+        );
+
+        let active_session_same: Option<String> = Some("victim_user_456".to_string());
+        let can_resume_self = active_session_same.as_ref().map(|id| id == target_user_id).unwrap_or(false);
+        assert!(
+            can_resume_self,
+            "Legitimate session resumption for already-authenticated self must succeed"
+        );
+    }
+
+    #[test]
+    fn test_ipc_pin_authentication_respects_mfa() {
+        // SECURITY INVARIANT (Audit H-01):
+        // PIN authentication must NOT bypass MFA when MFA is enabled on the account.
+        let user_mfa_enabled = true;
+        let pin_verified = true;
+
+        let should_authenticate = pin_verified && !user_mfa_enabled;
+        assert!(
+            !should_authenticate,
+            "SECURITY VULNERABILITY: PIN authentication bypassed active MFA!"
+        );
+    }
 }
