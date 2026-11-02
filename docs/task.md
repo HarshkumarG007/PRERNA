@@ -561,6 +561,32 @@
 
 ---
 
+## Phase 8 — Production Readiness Audit Remediation (WP0–WP5)
+
+> **Reference:** `PRODUCTION_READINESS_AUDIT.md` (Commit baseline: `b77c2d9` → Current: `077548c`).
+
+### Work Package 0 (WP0) — Baseline Safety, Truthful Copy & Bleeding Stoppage
+- [x] **WP0-1** Crisis Pattern Detector Clinical Safety Invariant (`H-08` / Probe B.2)
+  - Evaluated high-severity patterns (`severe_distress`, `abuse_or_threat`) **before** benign slang checks in `src/engine/crisis/patternDetection.ts`.
+  - Added true-positive ideation patterns in Hindi and Hinglish (`"mujhe jeena nahi hai"`, `"मैं मरना चाहता हूँ"`, `"आत्महत्या करना चाहता हूँ"`, `"everyone would be better off without me"`, `"don't want to be alive"`).
+  - Aligned Rust detector in `src-tauri/src/ai/safety.rs` with matching vocabulary.
+  - Added regression test suite in `src/tests/crisis/patternDetection.test.ts` verifying compound distress phrases (e.g., *"that exam killed me, I want to kill myself"*) are strictly flagged.
+- [x] **WP0-2** National Emergency 112 & Verified Helplines (`M-08`)
+  - Integrated National Emergency Helpline `112` (Pan-India 24/7 Immediate Emergency Response) into `src/components/crisis/ResourceSurface.tsx`.
+  - Verified assertions in `src/tests/components/CrisisAndSharedDashboard.test.tsx`.
+- [x] **WP0-3** Monetization & Tax Guardrails (`C-04`, `H-13`)
+  - Gated Developer Fast-Testing Controls (`Test Sim: Trial/Monthly/Lifetime/Pilot`) behind `import.meta.env.DEV` in `PartnerSubscriptionModal.tsx` and `SchoolLicensingModal.tsx`, stripping them from production builds.
+  - Corrected supplier GSTIN check digit via Luhn mod-36 algorithm from `4` to `D` (`27AAACP0126P1ZD`) in `src/services/paymentGateway.ts`.
+  - Added explicit receipt notice: `PROVISIONAL ACKNOWLEDGEMENT RECEIPT (PILOT EVALUATION)`.
+  - Updated test assertions in `src/tests/subscription/paymentGateway.test.ts`.
+- [x] **WP0-4** Truthful Safety & Escalation Copy (`H-07`, `H-16`)
+  - Replaced unstaffed clinician routing claims in `DataSovereigntyModal.tsx` and `MultiPersonaTourModal.tsx` with honest on-device coping safety plan and verified helpline referral language.
+- [x] **WP0-5** Regression Verification & Production Build
+  - Verified **226/226 tests passing across 46 test files**.
+  - Verified `tsc && vite build` clean in 11.41s.
+
+---
+
 ## Ongoing (Every Release)
 
 - [x] `docs/dpdp-compliance-mapping.md` updated for any change touching consent, data collection, or crisis

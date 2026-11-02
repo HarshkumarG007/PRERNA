@@ -46,8 +46,12 @@ const BENIGN_IDIOMS = [
 export const CRISIS_PATTERNS = {
   severe_distress: [
     /\b(suicide|suicidal|kill myself|want to die|end (it all|my life)|hang myself|jump off|cut(ting)? my(self| wrists?))\b/i,
-    /\b(mar jaunga|marna chahta hoon|zindagi khatam|jaan de dunga|zeher|khudkushi)\b/i,
-    /\b(nobody cares if i die|better off dead|no reason to live)\b/i,
+    /\b(don'?t want to (be alive|live)|better off without me|better off dead|no reason to live|nobody cares if i die)\b/i,
+    /\b(everyone would be better off without me)\b/i,
+    // Hinglish expressions
+    /\b(mar jaunga|marna chahta hoon|zindagi khatam|jaan de dunga|zeher|khudkushi|mujhe jeena nahi hai|jeena nahi hai)\b/i,
+    // Devanagari Hindi expressions
+    /(मरना चाहता हूँ|मरना चाहती हूँ|आत्महत्या|मुझे जीना नहीं है|जान दे दूँगा|जान दे दूंगी)/u,
   ],
   abuse_or_threat: [
     /\b(touching me inappropriately|threatened to (hit|beat|kill) me|domestic violence|forced me to)\b/i,
@@ -62,19 +66,17 @@ export const CRISIS_PATTERNS = {
 /**
  * Evaluates whether text content contains genuine distress indicators,
  * explicitly screening out benign colloquialisms.
+ *
+ * CRITICAL CLINICAL SAFETY INVARIANT (Audit H-08):
+ * Severe distress patterns (suicidal ideation, self-harm, sexual/physical abuse)
+ * MUST be evaluated first. Benign colloquial slang (e.g. "that exam killed me")
+ * can ONLY exempt text if NO severe distress pattern is present in the statement.
  */
 export function evaluateTextDistress(text: string): { flagged: boolean; severity?: 'high' | 'medium'; reason?: string } {
   const trimmed = text.trim();
   if (!trimmed) return { flagged: false };
 
-  // 1. Negative controls check: Benign adolescent slang/idioms are exempt
-  for (const idiom of BENIGN_IDIOMS) {
-    if (idiom.test(trimmed)) {
-      return { flagged: false };
-    }
-  }
-
-  // 2. High severity checks (suicide, immediate self-harm, abuse/threat)
+  // 1. High severity checks (suicide, immediate self-harm, abuse/threat)
   for (const pattern of CRISIS_PATTERNS.severe_distress) {
     if (pattern.test(trimmed)) {
       return { flagged: true, severity: 'high', reason: 'Explicit self-harm or suicidal ideation pattern' };
@@ -84,6 +86,13 @@ export function evaluateTextDistress(text: string): { flagged: boolean; severity
   for (const pattern of CRISIS_PATTERNS.abuse_or_threat) {
     if (pattern.test(trimmed)) {
       return { flagged: true, severity: 'high', reason: 'Abuse, threat, or exploitation indicator' };
+    }
+  }
+
+  // 2. Negative controls check: Benign adolescent slang/idioms are exempt ONLY IF no severe distress was matched
+  for (const idiom of BENIGN_IDIOMS) {
+    if (idiom.test(trimmed)) {
+      return { flagged: false };
     }
   }
 

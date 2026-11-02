@@ -439,7 +439,7 @@ export const DataSovereigntyModal: React.FC<DataSovereigntyModalProps> = ({
                       <span className="text-emerald-700 font-mono text-[10px]">STANDBY ✓</span>
                     </div>
                     <p className="text-slate-500 text-[11px]">
-                      Crisis disclosures strictly route to licensed human clinicians with Tele-MANAS (14416) escalation playbooks, never autonomous guardian alarms.
+                      Crisis disclosures provide instant on-device safety planning and verified helpline referrals (Tele-MANAS 14416, 112, 1098), strictly preventing autonomous unverified guardian alerts.
                     </p>
                   </div>
                 </div>

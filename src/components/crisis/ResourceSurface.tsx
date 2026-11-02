@@ -14,12 +14,20 @@ export interface HelplineResource {
 
 export const VERIFIED_HELPLINES: HelplineResource[] = [
   {
+    name: 'National Emergency Helpline (Pan-India)',
+    numbers: ['112'],
+    hours: '24/7 (Immediate Emergency)',
+    organization: 'Ministry of Home Affairs (Govt. of India)',
+    language: 'All Indian Languages',
+    badge: 'Immediate Response',
+  },
+  {
     name: 'Tele-MANAS (Govt. of India)',
     numbers: ['14416', '1800-891-4416'],
     hours: '24/7 (Toll-Free)',
     organization: 'Ministry of Health & Family Welfare',
     language: '20+ Indian Languages',
-    badge: 'National Helpline',
+    badge: 'National Mental Health',
   },
   {
     name: 'Childline India',

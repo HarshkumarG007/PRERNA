@@ -88,7 +88,7 @@ export function generateTaxInvoice(details: PaymentDetails, txnId: string, email
     invoiceNumber,
     date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
     supplierName: 'PRERNA SOVEREIGN MENTAL HEALTH & WELLBEING FOUNDATION',
-    supplierGstin: '27AAACP0126P1Z4', // Standard Indian format
+    supplierGstin: '27AAACP0126P1ZD', // Standard Indian format with valid Mod-36 check character D
     sacCode: '998431',
     customerEmail: email,
     planName: details.planTitle,
@@ -107,13 +107,14 @@ export function generateTaxInvoice(details: PaymentDetails, txnId: string, email
 export function downloadTaxInvoiceReceipt(invoice: GstInvoice) {
   const textContent = `
 ================================================================================
-                    PRERNA SOVEREIGN SANCTUARY • TAX INVOICE
+                    PRERNA SOVEREIGN SANCTUARY • RECEIPT
 ================================================================================
 Invoice No:    ${invoice.invoiceNumber}
 Date:          ${invoice.date}
 SAC Code:      ${invoice.sacCode} (Online Cognitive & Relational Guidance)
 Supplier GSTIN:${invoice.supplierGstin}
 Supplier:      ${invoice.supplierName}
+Notice:        PROVISIONAL ACKNOWLEDGEMENT RECEIPT (PILOT EVALUATION)
 
 BILL TO:
 Customer:      ${invoice.customerEmail}

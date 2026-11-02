@@ -288,38 +288,40 @@ export const PartnerSubscriptionModal: React.FC<PartnerSubscriptionModalProps> =
           {/* Footer Bar & Checkout Button */}
           <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
             
-            {/* Developer Fast-Testing Controls */}
-            <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
-              <span className="font-bold uppercase tracking-wider text-slate-400">Test Sim:</span>
-              <button
-                type="button"
-                onClick={() => upgradePartnerPlan('trial')}
-                className="px-2 py-0.5 rounded bg-white hover:bg-slate-200 border border-slate-300 font-semibold cursor-pointer"
-              >
-                Trial
-              </button>
-              <button
-                type="button"
-                onClick={() => upgradePartnerPlan('partner_pro_monthly')}
-                className="px-2 py-0.5 rounded bg-white hover:bg-slate-200 border border-slate-300 font-semibold cursor-pointer"
-              >
-                Monthly
-              </button>
-              <button
-                type="button"
-                onClick={() => upgradePartnerPlan('partner_lifetime')}
-                className="px-2 py-0.5 rounded bg-white hover:bg-slate-200 border border-slate-300 font-semibold cursor-pointer"
-              >
-                Lifetime
-              </button>
-              <button
-                type="button"
-                onClick={() => cancelPartnerPlan()}
-                className="px-2 py-0.5 rounded bg-white hover:bg-red-50 text-red-600 border border-red-200 font-semibold cursor-pointer"
-              >
-                Free
-              </button>
-            </div>
+            {/* Developer Fast-Testing Controls (Gated strictly to DEV mode per Audit C-04) */}
+            {import.meta.env.DEV && (
+              <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
+                <span className="font-bold uppercase tracking-wider text-slate-400">Test Sim:</span>
+                <button
+                  type="button"
+                  onClick={() => upgradePartnerPlan('trial')}
+                  className="px-2 py-0.5 rounded bg-white hover:bg-slate-200 border border-slate-300 font-semibold cursor-pointer"
+                >
+                  Trial
+                </button>
+                <button
+                  type="button"
+                  onClick={() => upgradePartnerPlan('partner_pro_monthly')}
+                  className="px-2 py-0.5 rounded bg-white hover:bg-slate-200 border border-slate-300 font-semibold cursor-pointer"
+                >
+                  Monthly
+                </button>
+                <button
+                  type="button"
+                  onClick={() => upgradePartnerPlan('partner_lifetime')}
+                  className="px-2 py-0.5 rounded bg-white hover:bg-slate-200 border border-slate-300 font-semibold cursor-pointer"
+                >
+                  Lifetime
+                </button>
+                <button
+                  type="button"
+                  onClick={() => cancelPartnerPlan()}
+                  className="px-2 py-0.5 rounded bg-white hover:bg-red-50 text-red-600 border border-red-200 font-semibold cursor-pointer"
+                >
+                  Free
+                </button>
+              </div>
+            )}
 
             {/* Subscribe Action Button */}
             <div className="flex items-center gap-3 w-full sm:w-auto">

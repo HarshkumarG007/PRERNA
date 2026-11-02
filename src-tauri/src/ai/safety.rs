@@ -140,6 +140,13 @@ impl SafetyFilter {
             "marna chahti",
             "mar jaana chahta",
             "jaan dena chahta",
+            "mujhe jeena nahi hai",
+            "jeena nahi hai",
+            // Devanagari Hindi
+            "मरना चाहता",
+            "मरना चाहती",
+            "आत्महत्या",
+            "जीना नहीं",
         ];
 
         // Tier 2: Indirect/paraphrased (broader recall, reviewed against false-positive risk)
@@ -149,6 +156,8 @@ impl SafetyFilter {
             "don't want to wake up",
             "never wake up",
             "won't wake up",
+            "don't want to be alive",
+            "dont want to be alive",
             "everyone would be better off without me",
             "better off without me",
             "no reason to live",

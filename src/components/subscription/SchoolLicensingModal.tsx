@@ -258,31 +258,33 @@ export const SchoolLicensingModal: React.FC<SchoolLicensingModalProps> = ({
           {/* Footer Bar */}
           <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
             
-            {/* Developer Fast-Testing Controls */}
-            <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
-              <span className="font-bold uppercase tracking-wider text-slate-400">Test Sim:</span>
-              <button
-                type="button"
-                onClick={() => upgradeSchoolLicense('pilot')}
-                className="px-2 py-0.5 rounded bg-white hover:bg-slate-200 border border-slate-300 font-semibold cursor-pointer"
-              >
-                Pilot
-              </button>
-              <button
-                type="button"
-                onClick={() => upgradeSchoolLicense('campus_annual')}
-                className="px-2 py-0.5 rounded bg-white hover:bg-slate-200 border border-slate-300 font-semibold cursor-pointer"
-              >
-                Campus
-              </button>
-              <button
-                type="button"
-                onClick={() => upgradeSchoolLicense('district_annual')}
-                className="px-2 py-0.5 rounded bg-white hover:bg-slate-200 border border-slate-300 font-semibold cursor-pointer"
-              >
-                District
-              </button>
-            </div>
+            {/* Developer Fast-Testing Controls (Gated strictly to DEV mode per Audit C-04) */}
+            {import.meta.env.DEV && (
+              <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
+                <span className="font-bold uppercase tracking-wider text-slate-400">Test Sim:</span>
+                <button
+                  type="button"
+                  onClick={() => upgradeSchoolLicense('pilot')}
+                  className="px-2 py-0.5 rounded bg-white hover:bg-slate-200 border border-slate-300 font-semibold cursor-pointer"
+                >
+                  Pilot
+                </button>
+                <button
+                  type="button"
+                  onClick={() => upgradeSchoolLicense('campus_annual')}
+                  className="px-2 py-0.5 rounded bg-white hover:bg-slate-200 border border-slate-300 font-semibold cursor-pointer"
+                >
+                  Campus
+                </button>
+                <button
+                  type="button"
+                  onClick={() => upgradeSchoolLicense('district_annual')}
+                  className="px-2 py-0.5 rounded bg-white hover:bg-slate-200 border border-slate-300 font-semibold cursor-pointer"
+                >
+                  District
+                </button>
+              </div>
+            )}
 
             {/* Action Button */}
             <div className="flex items-center gap-3 w-full sm:w-auto">

@@ -13,6 +13,8 @@ describe('Crisis Pattern Detection Engine (P4-2)', () => {
         'I am thinking of committing suicide tonight',
         'Nobody cares if I die, I want to end my life',
         'I have been cutting my wrists in secret',
+        'everyone would be better off without me',
+        "I don't want to be alive anymore",
       ];
 
       for (const phrase of phrases) {
@@ -22,12 +24,15 @@ describe('Crisis Pattern Detection Engine (P4-2)', () => {
       }
     });
 
-    it('detects Hinglish distress expressions', () => {
+    it('detects Hinglish and Devanagari Hindi distress expressions', () => {
       const hinglishPhrases = [
         'Main ab marna chahta hoon, sab khatam ho gaya',
         'Zindagi se tang aa gaya hoon, mar jaunga',
         'Jaan de dunga agar marks nahi aaye toh',
         'Mujhe zeher khana hai',
+        'mujhe jeena nahi hai',
+        'मैं मरना चाहता हूँ',
+        'आत्महत्या करना चाहता हूँ',
       ];
 
       for (const phrase of hinglishPhrases) {
@@ -80,6 +85,19 @@ describe('Crisis Pattern Detection Engine (P4-2)', () => {
       for (const phrase of benignPhrases) {
         const result = evaluateTextDistress(phrase);
         expect(result.flagged).toBe(false);
+      }
+    });
+
+    it('ensures severe distress is NOT suppressed when mixed with benign slang (Audit H-08 / Probe B.2)', () => {
+      const compoundDistressPhrases = [
+        'that exam killed me, I want to kill myself',
+        'I am literally dead inside and I want to die',
+      ];
+
+      for (const phrase of compoundDistressPhrases) {
+        const result = evaluateTextDistress(phrase);
+        expect(result.flagged).toBe(true);
+        expect(result.severity).toBe('high');
       }
     });
   });

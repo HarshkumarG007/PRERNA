@@ -40,7 +40,7 @@ describe('PaymentGateway & GST Tax Invoicing (Phase 7-28)', () => {
     expect(invoice.invoiceNumber).toMatch(/^PRN-INV-2026-\d{4}$/);
     expect(invoice.sacCode).toBe('998431');
     expect(invoice.totalAmountInr).toBe(1999);
-    expect(invoice.supplierGstin).toBe('27AAACP0126P1Z4');
+    expect(invoice.supplierGstin).toBe('27AAACP0126P1ZD');
     expect(invoice.customerEmail).toBe('lover@prerna.sovereign');
     expect(invoice.utrOrTxnId).toBe(txnRef);
 

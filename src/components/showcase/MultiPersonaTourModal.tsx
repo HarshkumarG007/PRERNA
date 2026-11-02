@@ -175,7 +175,7 @@ const PERSONA_SLIDES: PersonaSlide[] = [
       },
       {
         title: 'Institutional Care & Non-Punitive Playbooks',
-        description: 'Proactive detection of exam stress spikes and early seasonal anxiety with Tele-MANAS (14416) escalation playbooks.',
+        description: 'Proactive detection of exam stress spikes and early seasonal anxiety with Tele-MANAS (14416) and 112 emergency escalation protocols.',
         tag: 'Care Vectors'
       },
       {

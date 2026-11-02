@@ -10,11 +10,15 @@ describe('Phase 4 & 5 UI Components: Crisis Resources & Shared Dashboard', () =>
   describe('P4-3: Always-On Resource Surface', () => {
     it('verifies all mandatory Indian national helplines are present at build time', () => {
       const names = VERIFIED_HELPLINES.map((h) => h.name);
+      expect(names).toContain('National Emergency Helpline (Pan-India)');
       expect(names).toContain('Tele-MANAS (Govt. of India)');
       expect(names).toContain('Childline India');
       expect(names).toContain('KIRAN Mental Health Helpline');
       expect(names).toContain('Vandrevala Foundation');
       expect(names).toContain('iCall Psychosocial Helpline');
+
+      const emergency112 = VERIFIED_HELPLINES.find((h) => h.name.includes('Emergency'));
+      expect(emergency112?.numbers).toContain('112');
 
       const kiran = VERIFIED_HELPLINES.find((h) => h.name.includes('KIRAN'));
       expect(kiran?.numbers).toContain('1800-599-0019');
