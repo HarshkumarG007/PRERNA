@@ -713,6 +713,11 @@
 - [x] Official Git tag `v1.2.3` created
 - [x] Staged rollout: Closed Beta cohort testing protected by Supabase Cloud Gatekeeper with single-use device binding & instant URL scrubbing (documented in `docs/supabase-access-gate-setup.md` and `docs/beta-cohort-staged-rollout-dossier.md`)
   - [x] Verified token verification in Android emulator (`v1.2.3`): multi-device founder bypass, Unicode dash normalization, Gboard keyboard space stripping, clean allowlist fallback, and instant sanctuary unlock confirmed.
+  - [x] Provisioned 78 closed beta tokens across 3 cohorts (`scripts/generate-cohort-tokens.js`):
+    - **Cohort 1 (Teen & Family Sanctuary):** 25 tokens (`PRN-TEEN-*`, 3 uses max).
+    - **Cohort 2 (VidyaPeeth Model Schools):** 3 institutional tokens (`PRN-SCH-*`, 50 seats max).
+    - **Cohort 3 (Adult Sanctuary & Partners):** 50 tokens (`PRN-ADULT-*`, 2 uses max).
+  - [x] Generated ready-to-run Supabase SQL script (`docs/cohort-tokens-provision.sql`) and distribution roster with magic unlock links (`docs/cohort-distribution-roster.csv`).
 
 ---
 
