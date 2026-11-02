@@ -7,9 +7,11 @@
   </p>
 
   <p align="center">
+    <img src="https://img.shields.io/badge/Release-v1.2.3_Production-6366F1.svg" alt="Release" />
     <img src="https://img.shields.io/badge/Platform-Web_PWA_%7C_Desktop_%7C_Android_arm64-6366F1.svg" alt="Platforms" />
     <img src="https://img.shields.io/badge/Privacy-DPDP_Act_2023_%C2%A79_Compliant-10B981.svg" alt="Privacy" />
-    <img src="https://img.shields.io/badge/Tests-207%2F207_Passing_(41_Suites)-10B981.svg" alt="Tests" />
+    <img src="https://img.shields.io/badge/Tests-230%2F230_Passing_(47_Suites)-10B981.svg" alt="Tests" />
+    <img src="https://img.shields.io/badge/Rust_Tests-51%2F51_Passing-10B981.svg" alt="Rust Tests" />
     <img src="https://img.shields.io/badge/Architecture-Tauri_2_%2B_React_19_%2B_Rust_(16KB_Aligned)-8B5CF6.svg" alt="Stack" />
     <img src="https://img.shields.io/badge/License-All_Rights_Reserved-red.svg" alt="License" />
   </p>
@@ -79,58 +81,72 @@ Every capability in PRERNA is deliberately architected to turn the adolescent mi
 
 ---
 
-## 📱 Visual Walkthrough: The Adolescent Journey
+## 📱 Visual Walkthrough: The Adolescent Journey (Android 15 Production v1.2.3)
 
-Below is the verified end-to-end journey experienced by an adolescent using PRERNA on a real Android device (captured on Android 15 & 16 ARM64 runtime):
+Below is the verified end-to-end journey experienced by an adolescent using PRERNA on a real Android device (captured on Android 15 ARM64 release runtime, build `10203`):
 
 <div align="center">
 
 ### Step 1: Onboarding & 1-Click Persona Awakening
 *A warm, transparent, non-threatening entry where adolescents explore immediately or authenticate with local cryptographic keys. No cloud accounts, no social logins, no third-party tracking cookies.*
 <br/><br/>
-<img src="docs/screenshots/01_teen_onboarding_welcome.png" alt="PRERNA Onboarding Welcome Screen" width="340" />
+<img src="docs/screenshots/01_teen_onboarding_welcome.png" alt="PRERNA Onboarding Welcome Screen (v1.2.3)" width="340" />
 
 ---
 
 ### Step 2: The Pristine Sanctuary Dashboard
-*The central adolescent dashboard displaying the seeker's name, grade, stream, and core archetypes. Notice the clean top bar: PRERNA branding on the left, Emergency Helplines, Language Selector, and the sleek 3-bar hamburger navigation trigger on the right — zero overlapping, zero clutter, responsive across all smartphone aspect ratios.*
+*The central adolescent sanctuary displaying the seeker's name, daily streak, and live Wellness Pulse. Notice the clean top bar: PRERNA branding on the left, Emergency Helplines (Heart icon), 6-language switcher, and the 3-bar hamburger navigation trigger on the right — zero overlapping, zero clutter, responsive across all smartphone aspect ratios.*
 <br/><br/>
-<img src="docs/screenshots/02_teen_dashboard_clean.png" alt="PRERNA Teen Dashboard Clean Interface" width="340" />
+<img src="docs/screenshots/02_teen_dashboard_clean.png" alt="PRERNA Teen Dashboard Clean Interface (v1.2.3)" width="340" />
 
 ---
 
 ### Step 3: Responsive Right Slide-Out Navigation Drawer
 *Tapping the 3-bar icon smoothly slides open the complete sanctuary navigation from the right. Organised into Persona Identity, Spiritual Lineage, Growth Sanctuaries (Life Quests, Skill Arena, Mood Mirror, Social Compass, AI Mentor, Self-Evolution, 432 Hz Breathe), and DPDP Governance.*
 <br/><br/>
-<img src="docs/screenshots/03_teen_navigation_drawer.png" alt="PRERNA Navigation Drawer Slide-Out" width="340" />
+<img src="docs/screenshots/03_teen_navigation_drawer.png" alt="PRERNA Navigation Drawer Slide-Out (v1.2.3)" width="340" />
 
 ---
 
-### Step 4: Spiritual Foundation & Creed (Atma-Jnana)
+### Step 4: Always-On Verified Crisis & National Helplines
+*Tapping the heart icon opens the immediate crisis safety surface featuring pan-India 24/7 verified resources: National Emergency Helpline **112**, Tele-MANAS (`14416` / `1800-891-4416`), Childline India (`1098`), KIRAN Mental Health (`1800-599-0019`), and somatic grounding reset exercises — fully functional offline without internet access.*
+<br/><br/>
+<img src="docs/screenshots/04_verified_crisis_helplines.png" alt="PRERNA Verified Helplines Directory (v1.2.3)" width="340" />
+
+---
+
+### Step 5: Spiritual Foundation & Creed (Atma-Jnana)
 *The core spiritual compass anchored in Sant Kabir Das's timeless poetry and the indwelling truth: "Self-Realisation is God's Realisation". Grounding the adolescent before exams, decisions, or emotional turbulence.*
 <br/><br/>
-<img src="docs/screenshots/04_atma_jnana_spiritual_creed.png" alt="PRERNA Atma-Jnana Spiritual Creed Modal" width="340" />
+<img src="docs/screenshots/05_atma_jnana_spiritual_creed.png" alt="PRERNA Atma-Jnana Spiritual Creed Modal" width="340" />
 
 ---
 
-### Step 5: Multi-Persona Ecosystem Tour
+### Step 6: Multi-Persona Ecosystem Tour
 *Transparent visual tour walking the user through the 4 sovereign roles (Teen, Parent, Adult, School) and how their data boundaries are strictly isolated by design.*
 <br/><br/>
-<img src="docs/screenshots/05_multi_persona_tour.png" alt="PRERNA Multi-Persona Ecosystem Tour" width="340" />
+<img src="docs/screenshots/06_multi_persona_tour.png" alt="PRERNA Multi-Persona Ecosystem Tour" width="340" />
 
 ---
 
-### Step 6: Empirical Psychometric Discovery
-*Validated IPIP Big Five & O*NET RIASEC instruments. Zero forced ranking, reverse-scored calibration, and instant on-device statistical percentile calculations.*
+### Step 7: Empirical Psychometric Discovery
+*Validated IPIP Big Five & O*NET RIASEC instruments with dynamic confidence scoring. Zero forced ranking, reverse-scored calibration, and instant on-device statistical percentile calculations.*
 <br/><br/>
-<img src="docs/screenshots/06_psychometric_assessment.png" alt="PRERNA Psychometric Discovery Instrument" width="340" />
+<img src="docs/screenshots/07_psychometric_assessment.png" alt="PRERNA Psychometric Discovery Instrument" width="340" />
 
 ---
 
-### Step 7: Local-First Cryptographic Security & DPDP Compliance
-*Zero-knowledge storage verified through on-device Proof-of-Work rate-limiting, SQLite FBE encryption, and instant export/erasure conforming to India DPDP Act 2023 §9.*
+### Step 8: Local-First Cryptographic Security & DPDP Compliance
+*Zero-knowledge storage verified through on-device Proof-of-Work rate-limiting, SQLite FBE encryption, and instant export/erasure conforming to India DPDP Act 2023 §9, §11, and §12.*
 <br/><br/>
-<img src="docs/screenshots/07_dpdp_local_security.png" alt="PRERNA Local Security and DPDP Proof of Work" width="340" />
+<img src="docs/screenshots/08_dpdp_local_security.png" alt="PRERNA Local Security and DPDP Proof of Work" width="340" />
+
+---
+
+### Step 9: Architect & Creator Lineage
+*Transparent founder credentials, polymathic journey across AI/ML, yogic philosophy, and clinical pharmacology, alongside official public domain IPIP and USDOL/ETA O*NET 28.0 licensing attribution.*
+<br/><br/>
+<img src="docs/screenshots/09_developer_lineage_modal.png" alt="PRERNA Architect and Developer Profile (v1.2.3)" width="340" />
 
 </div>
 
