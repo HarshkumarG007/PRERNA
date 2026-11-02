@@ -143,7 +143,10 @@ pub fn resume_session(
     // resume_session can ONLY succeed if the backend ActiveSession is already authenticated
     // for this exact user, or in debug/demo mode for fast persona switching.
     let active_result = session.get_user_id();
-    let is_authenticated_self = active_result.as_ref().map(|id| id == &user_id).unwrap_or(false);
+    let is_authenticated_self = active_result
+        .as_ref()
+        .map(|id| id == &user_id)
+        .unwrap_or(false);
 
     #[cfg(debug_assertions)]
     let is_dev_demo = user_id.starts_with("demo-");
@@ -151,7 +154,10 @@ pub fn resume_session(
     let is_dev_demo = false;
 
     if !is_authenticated_self && !is_dev_demo {
-        return Err("Unauthorized: No active session. Please authenticate with PIN or credentials.".to_string());
+        return Err(
+            "Unauthorized: No active session. Please authenticate with PIN or credentials."
+                .to_string(),
+        );
     }
 
     let db = state.0.lock().map_err(|e| e.to_string())?;
@@ -929,8 +935,7 @@ pub fn export_all_user_data(
     }
 
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    db.export_user_data(&target_id)
-        .map_err(|e| e.to_string())
+    db.export_user_data(&target_id).map_err(|e| e.to_string())
 }
 
 #[tauri::command]

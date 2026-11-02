@@ -416,21 +416,30 @@ mod tests {
         let active_session_opt: Option<String> = None;
         let target_user_id = "victim_user_456";
 
-        let can_resume = active_session_opt.as_ref().map(|id| id == target_user_id).unwrap_or(false);
+        let can_resume = active_session_opt
+            .as_ref()
+            .map(|id| id == target_user_id)
+            .unwrap_or(false);
         assert!(
             !can_resume,
             "SECURITY VULNERABILITY: Unauthenticated caller was able to resume session!"
         );
 
         let active_session_different: Option<String> = Some("attacker_user_123".to_string());
-        let can_switch = active_session_different.as_ref().map(|id| id == target_user_id).unwrap_or(false);
+        let can_switch = active_session_different
+            .as_ref()
+            .map(|id| id == target_user_id)
+            .unwrap_or(false);
         assert!(
             !can_switch,
             "SECURITY VULNERABILITY: Caller switched to another user's session without re-authenticating!"
         );
 
         let active_session_same: Option<String> = Some("victim_user_456".to_string());
-        let can_resume_self = active_session_same.as_ref().map(|id| id == target_user_id).unwrap_or(false);
+        let can_resume_self = active_session_same
+            .as_ref()
+            .map(|id| id == target_user_id)
+            .unwrap_or(false);
         assert!(
             can_resume_self,
             "Legitimate session resumption for already-authenticated self must succeed"
