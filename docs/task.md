@@ -689,6 +689,13 @@
 - [x] **WP6-3** Git Release Tagging:
   - Tagged commit `b7038d6` with annotated git tag `v1.2.3`.
 
+### Work Package 10 (WP10) — Master Governance & Directive Architecture Suite
+- [x] **WP10-1** `THREAT_MODEL.md`: Formal STRIDE threat model across Untrusted Renderer, Tauri 2 IPC Bridge, Trusted Rust Core, and SQLite/FBE Storage Domain with mapped security regression tests.
+- [x] **WP10-2** `PRIVACY_ARCHITECTURE.md`: Technical specification of statutory DPDP Act 2023 compliance (§9, §11, §12, §13), zero-telemetry invariant, fail-closed consent gate, and data sanitization protocol.
+- [x] **WP10-3** `DATA_FLOW.md`: Complete sequence & flow diagrams for user lifecycle, psychometric scoring, crisis detection triage, parent firewall, and $k \ge 5$ school analytics.
+- [x] **WP10-4** `CHILD_SAFETY_POLICY.md`: Codification of the Seven Inviolable Clinical Safety Invariants (Rule 0.1 through Rule 0.7), 180-day helpline freshness SLA, and unstaffed operating mode disclosures.
+- [x] **WP10-5** `TESTING_STRATEGY.md`: Test pyramid architecture documenting 51 Rust invariant tests, 230 Vitest suites across 47 files, CI/CD quality gates, and local reproduction workflows.
+
 ---
 
 ## Ongoing (Every Release)
