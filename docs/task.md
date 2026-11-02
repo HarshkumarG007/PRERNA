@@ -673,6 +673,22 @@
   - Aligned `version = "1.2.2"` and author details in `src-tauri/Cargo.toml`.
   - Updated cache name in `public/sw.js` to `prerna-cache-v1.2.2`.
 
+### Work Package 6 (WP6) — Production Version v1.2.3 Harmonization & Release Packaging
+- [x] **WP6-1** Comprehensive Manifest Harmonization:
+  - `package.json`: Version bumped to `1.2.3`.
+  - `src-tauri/Cargo.toml`: Version bumped to `1.2.3`, author set to `Harshkumar G. <harshkumarg007@gmail.com>`.
+  - `src-tauri/Cargo.lock`: Synchronized `prerna-core` package entry to `1.2.3`.
+  - `src-tauri/tauri.conf.json`: Product version set to `1.2.3`.
+  - `src-tauri/gen/android/app/build.gradle.kts`: `versionCode = 10203`, `versionName = "1.2.3"`.
+  - `public/sw.js`: Service worker cache name set to `prerna-cache-v1.2.3`.
+  - `src/components/beta/BetaFeedbackModal.tsx` & `src/utils/mockBackend.ts`: UI version display updated to `1.2.3`.
+- [x] **WP6-2** Native Android ARM64 Release APK Build:
+  - Compiled native 16 KB page-aligned shared library `libapp_lib.so` via NDK r28 Clang toolchain.
+  - Assembled signed release APK: `src-tauri/gen/android/app/build/outputs/apk/arm64/release/app-arm64-release.apk` (12,496,961 bytes / 12.50 MB).
+  - Deployed output binary to root `PRERNA-v1.2.3-arm64.apk` and artifact repository.
+- [x] **WP6-3** Git Release Tagging:
+  - Tagged commit `b7038d6` with annotated git tag `v1.2.3`.
+
 ---
 
 ## Ongoing (Every Release)
@@ -680,10 +696,12 @@
 - [x] `docs/dpdp-compliance-mapping.md` updated for any change touching consent, data collection, or crisis
 - [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
 - [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
-- [x] Pre-deployment regression test suite: **222/222 tests passed across 44 test files**
-- [x] Production bundle verified: `tsc && vite build` completed with zero errors in **9.40s** (initial chunk 594 kB)
+- [x] Pre-deployment regression test suite: **230/230 tests passed across 47 test files** (TypeScript/Vitest) and **51/51 tests passed** (Rust unit, security, and crisis matrix)
+- [x] Production bundle verified: `tsc && vite build` completed with zero errors (built in 13.13s)
+- [x] Native Android ARM64 Release APK (`PRERNA-v1.2.3-arm64.apk` — 12.50 MB / 12,496,961 bytes) compiled and verified in root directory
+- [x] Official Git tag `v1.2.3` created
 - [x] Staged rollout: Closed Beta cohort testing protected by Supabase Cloud Gatekeeper with single-use device binding & instant URL scrubbing (documented in `docs/supabase-access-gate-setup.md` and `docs/beta-cohort-staged-rollout-dossier.md`)
-  - [x] Verified token verification in Android emulator (`v1.2.2`): multi-device founder bypass, Unicode dash normalization, Gboard keyboard space stripping, clean allowlist fallback, and instant sanctuary unlock confirmed.
+  - [x] Verified token verification in Android emulator (`v1.2.3`): multi-device founder bypass, Unicode dash normalization, Gboard keyboard space stripping, clean allowlist fallback, and instant sanctuary unlock confirmed.
 
 ---
 
