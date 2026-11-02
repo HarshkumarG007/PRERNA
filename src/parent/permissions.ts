@@ -31,20 +31,20 @@ export class ParentPermissionManager {
   static async getPreferences(userId: string): Promise<SharingPreferences> {
     try {
       const stored = await invoke<SharingPreferences>('get_sharing_preferences', { userId });
-      if (stored) return stored;
+      if (stored && stored.shares) return stored;
     } catch (e) {
-      console.warn("Failed to get preferences from backend, using defaults", e);
+      console.warn("Failed to get preferences from backend, failing closed (default-deny)", e);
     }
     
-    // Default: minimal sharing
+    // Default-deny: zero sharing until teen explicitly opts in per DPDP Section 9
     return {
       userId,
       lastUpdated: new Date().toISOString(),
       shares: {
-        wellbeingScore: true,
-        careerInterests: true,
-        strengths: true,
-        dailyCheckIn: true,
+        wellbeingScore: false,
+        careerInterests: false,
+        strengths: false,
+        dailyCheckIn: false,
         concerns: false, // Opt-in only
       },
       requiresApproval: {
@@ -61,6 +61,7 @@ export class ParentPermissionManager {
       await invoke('update_sharing_preferences', { preferences: prefs });
     } catch (e) {
       console.error("Failed to update preferences", e);
+      throw e;
     }
   }
 
@@ -119,14 +120,17 @@ export class ParentPermissionManager {
     }
 
     // Map safe personality dimensions (omit neuroticism and clinical markers)
-    safe.bigFive = {
-      openness: fullProfile.personality?.bigFive?.openness ?? 50,
-      conscientiousness: fullProfile.personality?.bigFive?.conscientiousness ?? 50,
-      extraversion: fullProfile.personality?.bigFive?.extraversion ?? 50,
-      agreeableness: fullProfile.personality?.bigFive?.agreeableness ?? 50,
-    };
+    // Only populated when teen explicitly shares career interests or strengths
+    if (prefs.shares.careerInterests || prefs.shares.strengths) {
+      safe.bigFive = {
+        openness: fullProfile.personality?.bigFive?.openness ?? 50,
+        conscientiousness: fullProfile.personality?.bigFive?.conscientiousness ?? 50,
+        extraversion: fullProfile.personality?.bigFive?.extraversion ?? 50,
+        agreeableness: fullProfile.personality?.bigFive?.agreeableness ?? 50,
+      };
 
-    safe.riasec = { ...(fullProfile.personality?.riasec || {}) } as Record<string, number>;
+      safe.riasec = { ...(fullProfile.personality?.riasec || {}) } as Record<string, number>;
+    }
 
     // Generate conversation starters
     safe.conversationStarters = this.generateConversationStarters(fullProfile, prefs);

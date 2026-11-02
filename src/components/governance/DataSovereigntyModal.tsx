@@ -223,11 +223,11 @@ export const DataSovereigntyModal: React.FC<DataSovereigntyModalProps> = ({
                     DPDP Act 2023 • Data Sovereignty Vault
                   </h3>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                    §9 & §13 Rights
+                    §9, §11 & §12 Rights
                   </span>
                 </div>
                 <p className="text-xs text-slate-300 mt-0.5">
-                  Exercise statutory rights of Data Portability, Rectification, and Permanent Erasure
+                  Exercise statutory rights of Access, Data Portability (§11), and Cryptographic Erasure (§12)
                 </p>
               </div>
             </div>
@@ -288,7 +288,7 @@ export const DataSovereigntyModal: React.FC<DataSovereigntyModalProps> = ({
                     Download Your Complete Sovereign Archive (JSON)
                   </h4>
                   <p className="text-xs text-slate-500 leading-relaxed mt-1">
-                    Under Section 13 of India's Digital Personal Data Protection Act 2023, you have an unconditional legal right to receive all personal data processed by this system in a machine-readable format.
+                    Under Section 11 (Right to Access) of India's Digital Personal Data Protection Act 2023, you have an unconditional legal right to receive all personal data processed by this system in a machine-readable format.
                   </p>
                 </div>
 

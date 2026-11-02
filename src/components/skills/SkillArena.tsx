@@ -240,7 +240,7 @@ const SkillArenaInner: React.FC<{ onExit: () => void }> = ({ onExit }) => {
               animate={{ opacity: 1, y: 0 }}
               className="mt-16 p-8 md:p-12 bg-gradient-to-r from-emerald-900/40 to-teal-900/40 backdrop-blur-xl rounded-[2rem] border border-emerald-500/30 text-center max-w-3xl mx-auto shadow-[0_0_50px_rgba(16,185,129,0.1)] relative overflow-hidden"
             >
-              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay" />
+              <div className="absolute inset-0 bg-white/5 opacity-10 mix-blend-overlay" />
               
               <div className="relative z-10">
                 <p className="text-emerald-400 mb-6 font-bold tracking-widest uppercase text-sm flex items-center justify-center gap-2">

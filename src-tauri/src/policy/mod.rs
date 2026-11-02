@@ -7,7 +7,7 @@ impl PolicyEngine {
     pub fn enforce_disclosure_invariant(disclosure_version: &str) -> Result<(), String> {
         if disclosure_version.trim().is_empty() {
             return Err(
-                "Cannot save session: no disclosure was recorded. Violates DPDP Section 9(3)."
+                "Cannot save session: no disclosure was recorded. Violates DPDP Section 9(2) and Section 5 notice requirements."
                     .into(),
             );
         }
@@ -34,7 +34,7 @@ impl PolicyEngine {
     ) -> Result<(), String> {
         if tracking_enabled && *age_range != crate::db::models::AgeBand::Adult18Plus {
             return Err(
-                "Behavioral tracking is strictly prohibited for users under 18. Violates DPDP Section 9(2)."
+                "Behavioral tracking is strictly prohibited for users under 18. Violates DPDP Section 9(3)."
                     .into(),
             );
         }

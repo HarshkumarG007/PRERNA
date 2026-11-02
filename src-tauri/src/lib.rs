@@ -146,9 +146,12 @@ pub fn run() {
             commands::get_unified_profile,
             commands::get_parent_view,
             commands::update_sharing_preferences,
+            commands::get_sharing_preferences,
             commands::export_user_data,
+            commands::export_all_user_data,
             commands::import_user_data,
             commands::get_user_sessions,
+            commands::update_user_role,
 
             // Trait commands
             commands::save_trait_snapshot,
@@ -166,6 +169,8 @@ pub fn run() {
             // Data management
             commands::delete_user_data,
             commands::get_health_metrics,
+            commands::get_access_audit_log,
+            commands::log_error,
 
             // AI Commands
             commands::ai::chat_with_mentor,

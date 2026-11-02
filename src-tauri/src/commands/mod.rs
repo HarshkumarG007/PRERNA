@@ -16,6 +16,7 @@ use argon2::{
     Argon2,
 };
 use base64::{engine::general_purpose::STANDARD as b64, Engine};
+use serde::{Deserialize, Serialize};
 use tauri::State;
 
 use qrcode::render::svg;
@@ -713,6 +714,36 @@ pub fn update_sharing_preferences(
 }
 
 #[tauri::command]
+pub fn get_sharing_preferences(
+    state: State<DbState>,
+    session_state: State<ActiveSession>,
+    user_id: Option<String>,
+) -> Result<Option<crate::db::models::SharingPreferences>, String> {
+    let session_user_id = session_state.get_user_id()?;
+    let target_id = user_id.unwrap_or_else(|| session_user_id.clone());
+
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+
+    // Authorization: User can only read their own preferences unless authorized parent
+    if session_user_id != target_id {
+        let is_rel: bool = db
+            .conn
+            .query_row(
+                "SELECT 1 FROM parent_teen_relationships WHERE parent_user_id = ?1 AND teen_user_id = ?2 AND status = 'active'",
+                rusqlite::params![session_user_id, target_id],
+                |_| Ok(true),
+            )
+            .unwrap_or(false);
+        if !is_rel {
+            return Err("Unauthorized to view sharing preferences for this user".to_string());
+        }
+    }
+
+    db.get_sharing_preferences(&target_id)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 pub fn get_parent_view(
     state: State<DbState>,
     session_state: State<ActiveSession>,
@@ -882,6 +913,24 @@ pub fn export_user_data(
         nonce: b64.encode(nonce_bytes),
         ciphertext: b64.encode(ciphertext),
     })
+}
+
+#[tauri::command]
+pub fn export_all_user_data(
+    state: State<DbState>,
+    session: State<ActiveSession>,
+    user_id: Option<String>,
+) -> Result<crate::db::models::PortableUserData, String> {
+    let session_user_id = session.get_user_id()?;
+    let target_id = user_id.unwrap_or_else(|| session_user_id.clone());
+
+    if session_user_id != target_id {
+        return Err("Unauthorized to export data of another user".to_string());
+    }
+
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    db.export_user_data(&target_id)
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -1236,6 +1285,73 @@ pub fn get_health_metrics(
         db_size_bytes: 0, // Would need to check file size
         encryption_status: "SQLCipher AES-256".to_string(),
     })
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AuditLogEntryResponse {
+    pub id: i64,
+    pub timestamp: String,
+    pub action: String,
+    pub details: String,
+}
+
+#[tauri::command]
+pub fn get_access_audit_log(
+    state: State<DbState>,
+    session_state: State<ActiveSession>,
+) -> Result<Vec<AuditLogEntryResponse>, String> {
+    let _session_user_id = session_state.get_user_id()?;
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    let mut stmt = db
+        .conn
+        .prepare("SELECT id, timestamp, action, COALESCE(details, '') FROM audit_log ORDER BY id DESC LIMIT 100")
+        .map_err(|e| e.to_string())?;
+
+    let entries = stmt
+        .query_map([], |row| {
+            Ok(AuditLogEntryResponse {
+                id: row.get(0)?,
+                timestamp: row.get(1)?,
+                action: row.get(2)?,
+                details: row.get(3)?,
+            })
+        })
+        .map_err(|e| e.to_string())?
+        .filter_map(Result::ok)
+        .collect();
+
+    Ok(entries)
+}
+
+#[tauri::command]
+pub fn update_user_role(
+    state: State<DbState>,
+    session_state: State<ActiveSession>,
+    role: String,
+) -> Result<(), String> {
+    let session_user_id = session_state.get_user_id()?;
+    let role_lower = role.to_lowercase();
+    let allowed_self_roles = ["teen", "adult", "parent"];
+    if !allowed_self_roles.contains(&role_lower.as_str()) {
+        return Err(format!(
+            "Role '{}' cannot be self-assigned. Privileged roles require verified institutional provisioning.",
+            role
+        ));
+    }
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+    db.conn
+        .execute(
+            "UPDATE users SET role = ?1 WHERE id = ?2",
+            rusqlite::params![role_lower, session_user_id],
+        )
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn log_error(message: String, context: Option<String>) -> Result<(), String> {
+    log::error!("Client error report: {} (context: {:?})", message, context);
+    Ok(())
 }
 
 // === AUDIT LOG (INTERNAL ONLY) ===

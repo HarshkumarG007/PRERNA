@@ -54,7 +54,7 @@ mod tests {
 
         assert!(
             ipc_result.is_err(),
-            "SECURITY VULNERABILITY: DPDP Section 9(2) tracking prohibition bypassed!"
+            "SECURITY VULNERABILITY: DPDP Section 9(3) tracking prohibition bypassed!"
         );
     }
 

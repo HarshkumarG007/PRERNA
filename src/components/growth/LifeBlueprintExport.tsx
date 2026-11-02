@@ -41,10 +41,12 @@ export const LifeBlueprintExport: React.FC<LifeBlueprintExportProps> = ({
 <head>
   <meta charset="UTF-8">
   <title>PRERNA Life Blueprint - ${user?.name || 'Explorer'}</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; color: #1e293b; padding: 2rem; line-height: 1.5; }
+    .max-w-4xl { max-width: 56rem; margin: 0 auto; }
     @media print {
-      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 0; background: #fff; }
     }
   </style>
 </head>
