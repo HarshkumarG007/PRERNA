@@ -9,12 +9,23 @@ function rightRotate(value: number, amount: number): number {
   return (value >>> amount) | (value << (32 - amount));
 }
 
-export function sha256Hex(ascii: string): string {
+export function sha256Hex(input: string): string {
   let i = 0, j = 0;
   let result = '';
 
+  const bytes = new TextEncoder().encode(input);
+  const bitLength = bytes.length * 8;
   const words: number[] = [];
-  const asciiBitLength = ascii.length * 8;
+
+  for (let idx = 0; idx < bytes.length; idx++) {
+    words[idx >> 2] |= bytes[idx] << (24 - (idx % 4) * 8);
+  }
+  words[bitLength >> 5] |= 0x80 << (24 - (bitLength % 32));
+  
+  const totalWords = (((bitLength + 64) >> 9) << 4) + 16;
+  while (words.length < totalWords) words.push(0);
+  words[totalWords - 1] = bitLength & 0xffffffff;
+  words[totalWords - 2] = Math.floor(bitLength / 0x100000000);
 
   // Initial hash values: first 32 bits of the fractional parts of the square roots of the first 8 primes 2..19
   let hash: number[] = [
@@ -33,28 +44,6 @@ export function sha256Hex(ascii: string): string {
     0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
   ];
-
-  let compositeClear = true;
-  for (let candidate = 2; candidate < 312; candidate++) {
-    compositeClear = true;
-    for (let factor = 2; factor * factor <= candidate; factor++) {
-      if (candidate % factor === 0) {
-        compositeClear = false;
-        break;
-      }
-    }
-    if (compositeClear) {
-      // Precomputed in arrays above
-    }
-  }
-
-  // UTF-8 encode and pad message
-  for (i = 0; i < ascii.length; i++) {
-    const code = ascii.charCodeAt(i);
-    words[i >> 2] |= code << (24 - (i % 4) * 8);
-  }
-  words[asciiBitLength >> 5] |= 0x80 << (24 - (asciiBitLength % 32));
-  words[(((asciiBitLength + 64) >> 9) << 4) + 15] = asciiBitLength;
 
   const w = new Array(64);
   for (i = 0; i < words.length; i += 16) {
@@ -115,13 +104,23 @@ export function hashPasscode(passcode: string): string {
 
 /**
  * Validates a user-supplied passcode against stored hash.
- * Handles legacy plaintext fallback for graceful user migration.
+ * SECURITY INVARIANT (Audit H-14):
+ * When stored value is a 64-character hash, strictly verify against hashPasscode.
+ * The stored hash value itself is NEVER accepted as input.
  */
 export function verifyPasscode(inputPasscode: string, storedHashOrPlain: string | null): boolean {
   if (!storedHashOrPlain || !inputPasscode) return false;
-  const computedHash = hashPasscode(inputPasscode);
-  // Match against SHA-256 hash OR legacy plaintext
-  return storedHashOrPlain === computedHash || storedHashOrPlain === inputPasscode;
+  const trimmed = inputPasscode.trim();
+  const computedHash = hashPasscode(trimmed);
+
+  // If the stored value is a 64-char hex hash, strictly require computed hash match
+  if (storedHashOrPlain.length === 64 && /^[0-9a-f]{64}$/i.test(storedHashOrPlain)) {
+    return storedHashOrPlain === computedHash;
+  }
+
+  // Legacy plaintext fallback for short passcodes (e.g. 4-digit PINs from older versions)
+  // Strictly prevent stored hash strings from being accepted as plaintext
+  return storedHashOrPlain === trimmed;
 }
 
 /**

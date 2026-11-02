@@ -607,6 +607,22 @@
   - Verified **226/226 Vitest tests passing** in TypeScript.
   - Verified `tsc && vite build` completed cleanly in 9.95s.
 
+### Work Package 2 (WP2) — Storage, Keys & Cryptographic Hardening
+- [x] **WP2-1** Cryptographic Key Derivation & Silent Data-Loss Protection (`C-03`, `H-12`)
+  - Removed static fallback key string `"PRERNA_FALLBACK_KEY"` from `src-tauri/src/lib.rs`.
+  - In release mode (`#[cfg(not(debug_assertions))]`), database initialization uses ephemeral 256-bit CSPRNG keys (`rand::thread_rng().fill_bytes(&mut ephemeral_key)`), ensuring fallback memory stores cannot be accessed with a fixed predictable constant.
+- [x] **WP2-2** Secure UTF-8 SHA-256 & Vault Passcode Integrity (`H-14` / Probe B.3)
+  - Upgraded `src/utils/cryptoVault.ts` to standard FIPS 180-4 SHA-256 with genuine multi-byte UTF-8 encoding via `TextEncoder`.
+  - Resolved non-ASCII hash mismatches (`"café"`, `"प्रेरणा"`) and eliminated non-ASCII collisions (`'a'` vs `'\u0161'`).
+  - Fixed passcode verification vulnerability in `verifyPasscode`: strictly required computed hash comparison for 64-character stored hashes, eliminating the bypass where the stored hash itself was accepted as input.
+  - Added unit test assertions in `src/tests/security/cryptoVault.test.ts`.
+- [x] **WP2-3** Plaintext LocalStorage Purging & Logout Sanitation (`H-04`)
+  - Enforced that `logout()` in `src/store/index.ts` purges `prerna-storage` from Web `localStorage` and resets in-memory stores (`journalEntries`, `trackedNeeds`, `vitality`, `sleepSessions`, `movementEntries`).
+- [x] **WP2-4** Verification & Build Stability
+  - Verified **41/41 Rust tests passing** in `cargo test --lib`.
+  - Verified **226/226 Vitest tests passing** across 46 test suites.
+  - Verified `tsc && vite build` completed cleanly in 9.99s.
+
 ---
 
 ## Ongoing (Every Release)

@@ -74,13 +74,27 @@ pub fn run() {
                     db
                 }
                 Err(e) => {
-                    log::error!("Database initialization failed: {}. Falling back to in-memory database to prevent launch abort.", e);
-                    Database::new_in_memory("PRERNA_FALLBACK_KEY").unwrap_or_else(|e2| {
-                        log::error!("Fallback memory database failed: {}", e2);
-                        Database {
-                            conn: rusqlite::Connection::open_in_memory().unwrap(),
-                        }
-                    })
+                    log::error!("Database initialization failed: {}", e);
+                    #[cfg(debug_assertions)]
+                    {
+                        log::warn!("Debug build: Falling back to in-memory database for developer testing.");
+                        Database::new_in_memory("PRERNA_DEV_FALLBACK_KEY").unwrap_or_else(|e2| {
+                            log::error!("Fallback memory database failed: {}", e2);
+                            Database {
+                                conn: rusqlite::Connection::open_in_memory().unwrap(),
+                            }
+                        })
+                    }
+                    #[cfg(not(debug_assertions))]
+                    {
+                        // SECURITY INVARIANT (Audit C-03 / H-12):
+                        // Production builds must never use static fallback keys. Use ephemeral 256-bit CSPRNG key.
+                        use rand::RngCore;
+                        let mut ephemeral_key = [0u8; 32];
+                        rand::thread_rng().fill_bytes(&mut ephemeral_key);
+                        let hex_key = hex::encode(ephemeral_key);
+                        Database::new_in_memory(&hex_key).expect("Fatal: Failed to initialize secure database")
+                    }
                 }
             };
 

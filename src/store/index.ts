@@ -448,19 +448,26 @@ export const useAppStore = create<AppState>()(
       },
 
       logout: () => {
-        // Clear sensitive data
+        // Clear sensitive psychological, biometric, and session data
         set({
           user: null,
           isAuthenticated: false,
           profile: null,
           sessions: [],
           todaySessions: [],
+          journalEntries: [],
+          completedMitigations: {},
+          customMitigations: [],
+          trackedNeeds: [],
+          sleepSessions: [],
+          movementEntries: [],
         });
         
-        // Clear last user and role from localStorage
+        // Clear last user, role, and persisted state from localStorage (Audit H-04)
         localStorage.removeItem('prerna_last_user');
         localStorage.removeItem('prerna_user_role');
         localStorage.removeItem('prerna_parent_linked');
+        localStorage.removeItem('prerna-storage');
 
         // Invoke backend logout to clear active session and conversation history
         invoke('logout').catch(() => {});
