@@ -90,7 +90,7 @@ export const BetaFeedbackModal: React.FC<BetaFeedbackModalProps> = ({ isOpen, on
   const handleExport = () => {
     const payload = {
       app: 'PRERNA Sanctuary',
-      version: '1.2.1',
+      version: '1.2.3',
       exportedAt: new Date().toISOString(),
       userPersona: user?.role || 'teen',
       totalEntries: feedbacks.length,

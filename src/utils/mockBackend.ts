@@ -535,7 +535,7 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
           dpdp_section_9_compliant: true,
           behavioral_tracking: false,
           storage_mode: 'local_encrypted_sqlite',
-          version: '1.2.1',
+          version: '1.2.3',
         },
       } as any;
     }

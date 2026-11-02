@@ -21,8 +21,8 @@ android {
         applicationId = "com.lenovo.prerna"
         minSdk = 24
         targetSdk = 35
-        versionCode = tauriProperties.getProperty("tauri.android.versionCode", "10202").toInt()
-        versionName = tauriProperties.getProperty("tauri.android.versionName", "1.2.2")
+        versionCode = tauriProperties.getProperty("tauri.android.versionCode", "10203").toInt()
+        versionName = tauriProperties.getProperty("tauri.android.versionName", "1.2.3")
     }
     packaging {
         jniLibs {
