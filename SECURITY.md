@@ -30,3 +30,4 @@ Please include:
 - **Initial Triage:** Within 48 hours.
 - **Status Update:** Within 7 business days with a remediation timeline.
 - **Resolution:** Critical and High severity issues will be remediated and released as priority patch releases.
+

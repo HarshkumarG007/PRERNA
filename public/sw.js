@@ -1,5 +1,5 @@
 // PRERNA Offline Service Worker (100% Local-First Cache)
-const CACHE_NAME = 'prerna-cache-v3';
+const CACHE_NAME = 'prerna-cache-v1.2.2';
 
 const CORE_ASSETS = [
   './',

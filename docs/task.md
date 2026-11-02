@@ -623,6 +623,56 @@
   - Verified **226/226 Vitest tests passing** across 46 test suites.
   - Verified `tsc && vite build` completed cleanly in 9.99s.
 
+### Work Package 3 (WP3) — Truthful Assessments & Psychometric Soundness
+- [x] **WP3-1** Dynamic Psychometric Confidence Scoring (`C-05`)
+  - Replaced constant `confidence_score: 0.9` in `src/engine/assessment/fusionEngine.ts` with construct-grounded dynamic calculation scaling monotonically with measured domains (`(measuredDomainsCount / 11) * 0.95`).
+  - Added unit test validation ensuring sparse inputs yield lower confidence scores without inflating certainty.
+- [x] **WP3-2** Institutional Attribution & Taxonomy Licensing (`H-17`)
+  - Added formal public domain IPIP and CC BY 4.0 USDOL/ETA O*NET 28.0 attribution banner to `src/components/common/AboutDeveloperModal.tsx`.
+  - Added root `NOTICE` file specifying psychometric instrument provenance.
+
+### Work Package 4 (WP4) — Crisis Safety & Verified Helplines Directory
+- [x] **WP4-1** Centralized Helplines Directory (`M-08`)
+  - Created `src/data/helplines.ts` as the single source of truth for all Indian national hotlines (National Emergency 112, Tele-MANAS 14416 / 1800-891-4416, Childline 1098, KIRAN, Vandrevala, iCall, NIMHANS).
+  - Explicitly recorded official government source URLs, verified dates, and operational status (including KIRAN integration with Tele-MANAS).
+  - Re-exported directory from `src/components/crisis/ResourceSurface.tsx`.
+- [x] **WP4-2** Helpline Staleness CI Gate
+  - Added test suite `src/tests/crisis/helplinesData.test.ts` verifying all statutory contact numbers and failing if directory data is older than 180 days.
+- [x] **WP4-3** Truthful Escalation Channel Status (`H-07`)
+  - Updated `docs/security-evidence-matrix.md` to reflect that backend state-machine ordering is enforced, while live external notification dispatch channels remain pending clinical team onboarding.
+
+### Work Package 5 (WP5) — Privacy, Consent, Web CSP & Native IPC Parity
+- [x] **WP5-1** Default-Deny Parent Sharing & Fail-Closed Privacy (`H-06`)
+  - Updated `src/parent/permissions.ts` so all preference flags default to `false` when backend storage is uninitialized or unreachable.
+  - Omitted Big Five and RIASEC metrics from parent safe profiles unless explicitly shared by the adolescent.
+  - Propagated backend synchronization errors in `updatePreferences` rather than silently swallowing them.
+- [x] **WP5-2** DPDP Act Statutory Citation Correction (`M-13`)
+  - Corrected swapped citations in `src-tauri/src/policy/mod.rs` and `security_tests.rs`: Section 9(3) for child tracking/monitoring prohibitions; Section 9(2) & Section 5 for disclosure and well-being protection.
+  - Updated `src/components/governance/DataSovereigntyModal.tsx` citations to Section 11 (Access/Export Archive), Section 12 (Erasure), and Section 13 (Grievance Redressal).
+- [x] **WP5-3** Web CSP & Zero Third-Party Requests (`M-05`)
+  - Removed Google Fonts `@import` from `src/App.css`, adopting offline system font stacks.
+  - Removed external Tailwind CDN script from `src/components/growth/LifeBlueprintExport.tsx` in favor of self-contained print styling.
+  - Stripped external image texture from `src/components/skills/SkillArena.tsx`.
+  - Added strict `<meta http-equiv="Content-Security-Policy">` to `index.html`.
+- [x] **WP5-4** Mobile Accessibility Zoom Fix (`M-09`)
+  - Removed `maximum-scale=1.0, user-scalable=no` from `index.html` viewport meta tag to conform with WCAG 1.4.4.
+- [x] **WP5-5** Native IPC Command Parity (`H-05`)
+  - Implemented and registered missing Tauri commands in `src-tauri/src/commands/mod.rs` and `src-tauri/src/lib.rs`:
+    - `get_sharing_preferences`: Authenticated preference retrieval.
+    - `export_all_user_data`: Authenticated user export.
+    - `update_user_role`: Controlled unprivileged role switching (`teen`, `adult`, `parent`).
+    - `get_access_audit_log`: Local audit trail viewer.
+    - `log_error`: Frontend-to-backend error telemetry.
+
+### Governance & Hygiene
+- [x] **GH-1** Gitignore Hardening (`L-04`): Added `*.jks`, `*.keystore`, `*.p12`, `*.pem`, and `local.properties` to `.gitignore`.
+- [x] **GH-2** Root Governance Files (`L-05`): Created `SECURITY.md` (vulnerability disclosure policy and SLAs) and `NOTICE` (statutory & academic attributions).
+- [x] **GH-3** Template Cleanup & Version Harmonization (`L-01`, `L-03`, `L-06`):
+  - Removed unused template files `public/tauri.svg` and `public/vite.svg`.
+  - Replaced static `"key_placeholder"` in `src-tauri/src/db/mod.rs` with user-derived SHA-256 key hash.
+  - Aligned `version = "1.2.2"` and author details in `src-tauri/Cargo.toml`.
+  - Updated cache name in `public/sw.js` to `prerna-cache-v1.2.2`.
+
 ---
 
 ## Ongoing (Every Release)

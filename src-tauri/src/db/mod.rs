@@ -540,6 +540,9 @@ impl Database {
         let encrypted_lang = self.encrypt_field(lang)?;
         let role = user.role.as_deref().unwrap_or("teen");
 
+        use sha2::{Digest, Sha256};
+        let key_hash = hex::encode(Sha256::digest(format!("{}:prerna:user_key", id).as_bytes()));
+
         self.conn.execute(
             "INSERT INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled, role, tenant_id, pin_hash, has_completed_questionnaire, name, gender, date_of_birth)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 0, ?9, NULL, ?10, 0, ?11, ?12, ?13)",
@@ -551,7 +554,7 @@ impl Database {
                 &user.age_range,
                 encrypted_region,
                 encrypted_lang,
-                "key_placeholder",
+                &key_hash,
                 role,
                 pin_hash,
                 &user.name,
