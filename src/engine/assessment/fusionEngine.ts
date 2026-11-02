@@ -140,6 +140,11 @@ export function scoreFusionProfile(responses: RawFusionResponse[], oldProfileFal
     }
   }
 
+  // Dynamic confidence score: 11 total psychometric constructs (5 Big Five + 6 RIASEC)
+  // Reflects real item sampling coverage (Audit C-05) rather than hardcoded 0.9
+  const measuredDomainsCount = Object.values(counts).filter(c => c > 0).length;
+  const confidence_score = Number(Math.min(0.95, Math.max(0.2, (measuredDomainsCount / 11) * 0.95)).toFixed(2));
+
   const rawSnapshot = {
     id: "generated-id",
     user_id: "user",
@@ -165,7 +170,7 @@ export function scoreFusionProfile(responses: RawFusionResponse[], oldProfileFal
       percentiles,
       scoreBands,
     },
-    confidence_score: 0.9,
+    confidence_score,
   };
 
   // Validate with Zod before returning (FE-1 schema logic requirement)

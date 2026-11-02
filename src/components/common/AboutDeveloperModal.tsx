@@ -862,6 +862,16 @@ export const AboutDeveloperModal: React.FC<AboutDeveloperModalProps> = ({ isOpen
 
           </div>
 
+          {/* Psychometric & Instrument Attributions (Audit H-17 / O*NET Developer License) */}
+          <div className="px-6 py-2.5 bg-black/40 border-t border-white/5 text-[11px] text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <span>
+              Psychometrics incorporate constructs adapted from the <strong className="text-slate-300">O*NET Interest Profiler</strong> (USDOL/ETA) &amp; <strong className="text-slate-300">IPIP Big-Five Factor Markers</strong>.
+            </span>
+            <span className="text-[10px] text-slate-500">
+              O*NET™ is a trademark of USDOL/ETA.
+            </span>
+          </div>
+
           {/* Modal Footer */}
           <div className="p-6 border-t border-white/10 bg-white/[0.02] flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2 text-xs text-slate-400">
