@@ -789,8 +789,8 @@
 - [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
 - [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
 - [x] Pre-deployment regression test suite: **240/240 tests passed across 48 test files** (TypeScript/Vitest) and **54/54 tests passed** (Rust unit, security, and crisis matrix)
-- [x] Production bundle verified: `tsc && vite build` completed with zero errors (built in 13.13s)
-- [x] Native Android ARM64 Release APK (`PRERNA-v1.2.3-arm64.apk` — 12.50 MB / 12,496,961 bytes) compiled and verified in root directory
+- [x] Production bundle verified: `tsc && vite build` completed with zero errors (built in 12.27s)
+- [x] Native Android ARM64 Release APK (`PRERNA-v1.2.3-arm64.apk` — 14.16 MB / 14,162,935 bytes) compiled and verified in root directory
 - [x] Official Git tag `v1.2.3` created
 - [x] Staged rollout: Closed Beta cohort testing protected by Supabase Cloud Gatekeeper with single-use device binding & instant URL scrubbing (documented in `docs/supabase-access-gate-setup.md` and `docs/beta-cohort-staged-rollout-dossier.md`)
   - [x] Verified token verification in Android emulator (`v1.2.3`): multi-device founder bypass, Unicode dash normalization, Gboard keyboard space stripping, clean allowlist fallback, and instant sanctuary unlock confirmed.

@@ -394,14 +394,23 @@ Every architectural decision in PRERNA was chosen to satisfy strict privacy, har
 
 ### 1. Tauri 2 + Rust + React 19 + TypeScript + Tailwind CSS v4
 - **Why not Electron?** Electron ships a full Chromium browser and Node.js runtime, ballooning installer sizes to 150–250 MB and idling at 180–300 MB of RAM. For Indian adolescents using modest laptops or budget Android devices, this overhead causes severe thermal throttling and sluggish responsiveness.
-- **Why Tauri 2?** Tauri 2 leverages the operating system's native webview (System WebView on Android, WebView2 on Windows, WebKit on macOS) combined with a high-performance, memory-safe Rust backend. The resulting release APK is only **11.3 MB** and cold boots in under 400 milliseconds.
+- **Why Tauri 2?** Tauri 2 leverages the operating system's native webview (System WebView on Android, WebView2 on Windows, WebKit on macOS) combined with a high-performance, memory-safe Rust backend. The resulting release APK is only **~14.2 MB** and cold boots in under 400 milliseconds.
 - **Why Rust?** Security boundaries (AuthStatus state machine, session eviction, crypto proof-of-work, and slang-aware crisis gates) cannot be spoofed by inspecting or modifying JavaScript in the renderer. Rust guarantees thread safety, memory safety, and zero garbage collection pauses.
 
 ### 2. 16 KB Kernel Page Alignment for Android 15 & 16 (`ARMv9.2`)
 - **The Modern Hardware Challenge:** Flagship and mid-range devices powered by MediaTek Dimensity 9400 (e.g., Vivo X200 series) and Qualcomm Snapdragon 8 Elite run Android 15 and 16 Baklava with 16 KB kernel page sizes enabled by default for maximum memory bandwidth.
-- **The Decision:** Configured `.cargo/config.toml` with:
+- **The Decision:** Configured `.cargo/config.toml` across all four Android architectures (`aarch64`, `armv7`, `i686`, `x86_64`) with:
   ```toml
   [target.aarch64-linux-android]
+  rustflags = ["-C", "link-arg=-Wl,-z,max-page-size=16384"]
+
+  [target.armv7-linux-androideabi]
+  rustflags = ["-C", "link-arg=-Wl,-z,max-page-size=16384"]
+
+  [target.i686-linux-android]
+  rustflags = ["-C", "link-arg=-Wl,-z,max-page-size=16384"]
+
+  [target.x86_64-linux-android]
   rustflags = ["-C", "link-arg=-Wl,-z,max-page-size=16384"]
   ```
   This forces the LLVM linker to align all ELF `LOAD` segments to `0x4000` (16,384 bytes). Standard 4 KB-aligned binaries crash on Android 16 with fatal dynamic linker aborts before any Java or Rust code executes.
