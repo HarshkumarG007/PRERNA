@@ -817,6 +817,7 @@
     - **Cohort 2 (VidyaPeeth Model Schools):** 3 institutional tokens (`PRN-SCH-*`, 50 seats max).
     - **Cohort 3 (Adult Sanctuary & Partners):** 50 tokens (`PRN-ADULT-*`, 2 uses max).
   - [x] Generated ready-to-run Supabase SQL script (`docs/cohort-tokens-provision.sql`) and distribution roster with magic unlock links (`docs/cohort-distribution-roster.csv`).
+  - [x] **Database Activation Complete:** `docs/supabase-gate-hardening.sql` and `docs/cohort-tokens-provision.sql` executed on production Supabase instance. Server-authoritative RPC `verify_beta_token` verified live via network probe (invalid token rejected; provisioned cohort tokens return `{ valid: true, role }` with device binding).
 
 ---
 
