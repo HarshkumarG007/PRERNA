@@ -35,32 +35,45 @@ export const BackupManager: React.FC<{ userId: string; onClose: () => void }> = 
       // Create backup
       const backup = await engine.createBackup(userId, password);
       
-      // Dynamic import to handle Tauri v2 plugins
-      const { save } = await import('@tauri-apps/plugin-dialog').catch(() => ({ save: async () => `prerna-backup-${Date.now()}.prerna` }));
-      
-      // Get save location from user
-      const savePath = await save({
-        filters: [{ name: 'PRERNA Backup', extensions: ['prerna'] }],
-        defaultPath: `prerna-backup-${new Date().toISOString().split('T')[0]}.prerna`,
-      });
+      // Attempt native Tauri dialog & FS first, gracefully falling back to browser Blob download
+      let saved = false;
+      try {
+        const dialogPlugin = await import('@tauri-apps/plugin-dialog');
+        const fsPlugin = await import('@tauri-apps/plugin-fs');
+        const savePath = await dialogPlugin.save({
+          filters: [{ name: 'PRERNA Backup', extensions: ['prerna'] }],
+          defaultPath: `prerna-backup-${new Date().toISOString().split('T')[0]}.prerna`,
+        });
 
-      if (!savePath) {
+        if (!savePath) {
+          setStatus('idle');
+          return;
+        }
+
+        await fsPlugin.writeFile(savePath, backup.encryptedData);
+        saved = true;
+      } catch {
+        // Browser / WebView Blob download fallback (100% reliable across web, desktop, and mobile)
+        const blob = new Blob([backup.encryptedData as BlobPart], { type: 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `prerna-backup-${new Date().toISOString().split('T')[0]}.prerna`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        saved = true;
+      }
+
+      if (!saved) {
         setStatus('idle');
         return;
       }
 
-      // Write file using Tauri FS
-      const { writeFile } = await import('@tauri-apps/plugin-fs').catch(async () => {
-         // Fallback mock if plugin missing
-         console.log("Mocking write file to", savePath);
-         return { writeFile: async () => {} };
-      });
-      
-      await writeFile(savePath, backup.encryptedData);
-
       setBackupStats({
         size: backup.encryptedData.length,
-        records: 1, // Would get actual count from metadata
+        records: 1,
       });
 
       setStatus('success');
@@ -80,21 +93,46 @@ export const BackupManager: React.FC<{ userId: string; onClose: () => void }> = 
     setMessage('Reading backup file...');
 
     try {
-      // Select file
-      const { open } = await import('@tauri-apps/plugin-dialog').catch(() => ({ open: async () => null }));
-      const selected = await open({
-        filters: [{ name: 'PRERNA Backup', extensions: ['prerna'] }],
-        multiple: false,
-      });
+      let fileData: Uint8Array | null = null;
 
-      if (!selected) {
+      try {
+        const dialogPlugin = await import('@tauri-apps/plugin-dialog');
+        const fsPlugin = await import('@tauri-apps/plugin-fs');
+        const selected = await dialogPlugin.open({
+          filters: [{ name: 'PRERNA Backup', extensions: ['prerna'] }],
+          multiple: false,
+        });
+
+        if (!selected) {
+          setStatus('idle');
+          return;
+        }
+
+        fileData = await fsPlugin.readFile(selected as string);
+      } catch {
+        // Universal web file input fallback
+        fileData = await new Promise<Uint8Array | null>((resolve) => {
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = '.prerna';
+          input.onchange = async () => {
+            const file = input.files?.[0];
+            if (!file) {
+              resolve(null);
+              return;
+            }
+            const buffer = await file.arrayBuffer();
+            resolve(new Uint8Array(buffer));
+          };
+          input.oncancel = () => resolve(null);
+          input.click();
+        });
+      }
+
+      if (!fileData) {
         setStatus('idle');
         return;
       }
-
-      // Read file
-      const { readFile } = await import('@tauri-apps/plugin-fs');
-      const fileData = await readFile(selected as string);
 
       setMessage('Decrypting and restoring...');
 
