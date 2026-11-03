@@ -22,10 +22,13 @@ pub struct SchoolAnalyticsReport {
     pub remaining_query_budget: usize,
 }
 
+pub type QueryHistory = (Vec<HashSet<String>>, usize);
+pub type PrivacyLedger = HashMap<String, QueryHistory>;
+
 // In-memory ledger tracking educator query history:
 // Map: caller_id -> (past_query_sets, remaining_budget)
-static PRIVACY_LEDGER: Mutex<Option<HashMap<String, (Vec<HashSet<String>>, usize)>>> =
-    Mutex::new(None);
+#[allow(clippy::type_complexity)]
+static PRIVACY_LEDGER: Mutex<Option<PrivacyLedger>> = Mutex::new(None);
 
 pub fn reset_privacy_ledger() {
     if let Ok(mut lock) = PRIVACY_LEDGER.lock() {
