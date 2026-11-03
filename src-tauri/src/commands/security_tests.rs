@@ -263,6 +263,120 @@ mod tests {
     }
 
     #[test]
+    fn test_differencing_attack_detection() {
+        use crate::school_api::{check_and_update_privacy_budget, reset_privacy_ledger};
+        use std::collections::HashSet;
+
+        reset_privacy_ledger();
+        let educator = "educator_test_diff_1";
+
+        // Query 1: Cohort of 5 students
+        let q1: HashSet<String> = ["s1", "s2", "s3", "s4", "s5"]
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
+        let res1 = check_and_update_privacy_budget(educator, &q1, 5);
+        assert!(res1.is_ok(), "Initial valid cohort query must succeed");
+
+        // Query 2: Attempt differencing attack by swapping 1 student (differ by 2: s5 removed, s6 added)
+        let q2: HashSet<String> = ["s1", "s2", "s3", "s4", "s6"]
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
+        let res2 = check_and_update_privacy_budget(educator, &q2, 5);
+        assert!(
+            res2.is_err(),
+            "SECURITY VULNERABILITY (Audit H-09): Differencing attack swapping 1 student was not blocked!"
+        );
+        let err_msg = res2.unwrap_err();
+        assert!(
+            err_msg.contains("differencing attack detected"),
+            "Error must explicitly identify differencing attack violation: {}",
+            err_msg
+        );
+
+        // Query 3: Attempt differencing attack by appending 1 student (differ by 1: s6 added)
+        let q3: HashSet<String> = ["s1", "s2", "s3", "s4", "s5", "s6"]
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
+        let res3 = check_and_update_privacy_budget(educator, &q3, 5);
+        assert!(
+            res3.is_err(),
+            "SECURITY VULNERABILITY (Audit H-09): Differencing attack appending 1 student was not blocked!"
+        );
+
+        // Query 4: Safe non-overlapping cohort (differ by 10)
+        let q4: HashSet<String> = ["t1", "t2", "t3", "t4", "t5"]
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
+        let res4 = check_and_update_privacy_budget(educator, &q4, 5);
+        assert!(
+            res4.is_ok(),
+            "Safe non-overlapping cohort query must succeed"
+        );
+    }
+
+    #[test]
+    fn test_privacy_budget_exhaustion() {
+        use crate::school_api::{check_and_update_privacy_budget, reset_privacy_ledger};
+        use std::collections::HashSet;
+
+        reset_privacy_ledger();
+        let educator = "educator_budget_test";
+
+        // Execute 10 disjoint cohort queries consuming all 10 query tokens
+        for i in 0..10 {
+            let cohort: HashSet<String> = (0..5).map(|j| format!("user_{}_{}", i, j)).collect();
+            let res = check_and_update_privacy_budget(educator, &cohort, 5);
+            assert!(
+                res.is_ok(),
+                "Query {} within allowable budget must succeed",
+                i + 1
+            );
+        }
+
+        // 11th query must be rejected due to budget exhaustion
+        let cohort_11: HashSet<String> = (0..5).map(|j| format!("user_11_{}", j)).collect();
+        let res_11 = check_and_update_privacy_budget(educator, &cohort_11, 5);
+        assert!(
+            res_11.is_err(),
+            "SECURITY VULNERABILITY (Audit H-09): Query exceeding privacy budget was not blocked!"
+        );
+        let err = res_11.unwrap_err();
+        assert!(
+            err.contains("Privacy budget exhausted"),
+            "Error must specify budget exhaustion: {}",
+            err
+        );
+    }
+
+    #[test]
+    fn test_school_small_cell_suppression() {
+        use crate::school_api::apply_small_cell_suppression;
+
+        let mut counts = vec![
+            ("Helping Professions".to_string(), 5),
+            ("Technology".to_string(), 3),
+            ("Arts".to_string(), 2),
+            ("Rare Craft".to_string(), 1),
+        ];
+
+        apply_small_cell_suppression(&mut counts, 3);
+
+        assert_eq!(counts.len(), 2);
+        assert_eq!(counts[0].0, "Helping Professions");
+        assert_eq!(counts[1].0, "Technology");
+        assert!(
+            !counts
+                .iter()
+                .any(|(name, _)| name == "Arts" || name == "Rare Craft"),
+            "Sub-threshold attributes (< 3 students) must be suppressed from cohort reports"
+        );
+    }
+
+    #[test]
     fn test_age_band_mapping() {
         use crate::db::models::AgeBand;
         assert_eq!(AgeBand::from_age(13), AgeBand::Teen13To15);

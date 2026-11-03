@@ -707,6 +707,25 @@
 - [x] **WP7-4** Partner AI Safety Regression Test Suite:
   - Added 4 test suites in `src/tests/partners/partnerStore.test.ts` (17/17 tests passing; Vitest total: **240/240 passing across 48 files**).
 
+### Work Package 8 (WP8) — VidyaPeeth School Cohort Privacy & Tenant Model (`H-09`)
+- [x] **WP8-1** Differencing Attack Prevention Engine (`src-tauri/src/school_api.rs`):
+  - Added query intersection tracking and symmetric difference guard ($|Q_{new} \Delta Q_{past}| \ge k$).
+  - Overlapping queries that differ by fewer than 5 individuals are automatically blocked with a fail-closed `Privacy violation (differencing attack detected)` error, making reconstruction of individual student scores mathematically impossible.
+- [x] **WP8-2** Privacy Budget Accounting & Rate Limiting (`src-tauri/src/school_api.rs`):
+  - Implemented per-educator session query ledger (`INITIAL_QUERY_BUDGET = 10`).
+  - Budget exhaustion fail-closed enforcement rejects queries once the allowable privacy budget is consumed.
+- [x] **WP8-3** Laplace Differential Privacy Noise Injection ($\epsilon = 1.0$):
+  - Injected calibrated Laplace noise ($b = \Delta f / \epsilon$, where $\Delta f = 100/N$) into average wellbeing scores.
+  - Clamped noisy aggregates strictly to $[0, 100]$ bounds.
+- [x] **WP8-4** Small-Cell Suppression ($\tau = 3$):
+  - Suppressed all career cluster and cognitive strength categories containing fewer than 3 students to prevent re-identification through rare attributes.
+- [x] **WP8-5** Rust Security Unit Tests:
+  - Added 3 security regression tests in `src-tauri/src/commands/security_tests.rs`:
+    - `test_differencing_attack_detection`: Validates swapping/adding 1 student triggers differencing attack error.
+    - `test_privacy_budget_exhaustion`: Validates query 11 fails closed upon budget exhaustion.
+    - `test_school_small_cell_suppression`: Validates categories $< 3$ are stripped.
+  - Rust test suite updated to **54/54 tests passing** (44 in `app_lib`, 10 in `t15_crisis_matrix`).
+
 ### Work Package 10 (WP10) — Master Governance & Directive Architecture Suite
 - [x] **WP10-1** `THREAT_MODEL.md`: Formal STRIDE threat model across Untrusted Renderer, Tauri 2 IPC Bridge, Trusted Rust Core, and SQLite/FBE Storage Domain with mapped security regression tests.
 - [x] **WP10-2** `PRIVACY_ARCHITECTURE.md`: Technical specification of statutory DPDP Act 2023 compliance (§9, §11, §12, §13), zero-telemetry invariant, fail-closed consent gate, and data sanitization protocol.
@@ -721,7 +740,7 @@
 - [x] `docs/dpdp-compliance-mapping.md` updated for any change touching consent, data collection, or crisis
 - [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
 - [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
-- [x] Pre-deployment regression test suite: **240/240 tests passed across 48 test files** (TypeScript/Vitest) and **51/51 tests passed** (Rust unit, security, and crisis matrix)
+- [x] Pre-deployment regression test suite: **240/240 tests passed across 48 test files** (TypeScript/Vitest) and **54/54 tests passed** (Rust unit, security, and crisis matrix)
 - [x] Production bundle verified: `tsc && vite build` completed with zero errors (built in 13.13s)
 - [x] Native Android ARM64 Release APK (`PRERNA-v1.2.3-arm64.apk` — 12.50 MB / 12,496,961 bytes) compiled and verified in root directory
 - [x] Official Git tag `v1.2.3` created
