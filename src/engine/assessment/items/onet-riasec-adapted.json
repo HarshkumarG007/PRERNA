@@ -2,17 +2,109 @@
   {
     "item_id": "ONET_60_R1",
     "domain": "Realistic",
-    "original_english": "Build kitchen cabinets",
-    "adapted_english": "Build or repair wooden furniture like cabinets or tables.",
-    "adapted_hindi": "कैबिनेट या टेबल जैसे लकड़ी के फर्नीचर बनाना या उनकी मरम्मत करना।",
+    "keyed": "positive",
+    "original_english": "Build kitchen cabinets.",
+    "adapted_english": "I enjoy assembling physical machinery, building things, or doing hands-on projects.",
+    "adapted_hindi": "मुझे मशीनों को जोड़ना, चीजों का निर्माण करना या व्यावहारिक काम करना पसंद है।",
+    "source": "O*NET Interest Profiler Short Form (60-item)"
+  },
+  {
+    "item_id": "ONET_60_R2",
+    "domain": "Realistic",
+    "keyed": "positive",
+    "original_english": "Repair electronic equipment.",
+    "adapted_english": "I like repairing electronic gadgets, wiring, or working with physical tools.",
+    "adapted_hindi": "मुझे इलेक्ट्रॉनिक गैजेट्स सुधारना या उपकरणों के साथ काम करना अच्छा लगता है।",
     "source": "O*NET Interest Profiler Short Form (60-item)"
   },
   {
     "item_id": "ONET_60_I1",
     "domain": "Investigative",
-    "original_english": "Develop a new medicine",
-    "adapted_english": "Develop a new medicine or research cures for diseases.",
-    "adapted_hindi": "एक नई दवा विकसित करना या बीमारियों के इलाज पर शोध करना।",
+    "keyed": "positive",
+    "original_english": "Develop a new medicine.",
+    "adapted_english": "I enjoy researching scientific puzzles, analyzing data, or solving complex equations.",
+    "adapted_hindi": "मुझे वैज्ञानिक पहेलियों पर शोध करना, डेटा विश्लेषण या जटिल समस्याओं को सुलझाना पसंद है।",
+    "source": "O*NET Interest Profiler Short Form (60-item)"
+  },
+  {
+    "item_id": "ONET_60_I2",
+    "domain": "Investigative",
+    "keyed": "positive",
+    "original_english": "Study the structure of the human brain.",
+    "adapted_english": "I like discovering how biological systems, algorithms, or natural laws function.",
+    "adapted_hindi": "मुझे यह समझना पसंद है कि जैविक प्रणालियाँ, एल्गोरिदम या प्राकृतिक नियम कैसे काम करते हैं।",
+    "source": "O*NET Interest Profiler Short Form (60-item)"
+  },
+  {
+    "item_id": "ONET_60_A1",
+    "domain": "Artistic",
+    "keyed": "positive",
+    "original_english": "Write books or plays.",
+    "adapted_english": "I love expressing myself through creative writing, storytelling, poetry, or drama.",
+    "adapted_hindi": "मुझे रचनात्मक लेखन, कहानी सुनाने, कविता या कलात्मक प्रस्तुति के माध्यम से खुद को व्यक्त करना पसंद है।",
+    "source": "O*NET Interest Profiler Short Form (60-item)"
+  },
+  {
+    "item_id": "ONET_60_A2",
+    "domain": "Artistic",
+    "keyed": "positive",
+    "original_english": "Design graphic art or multimedia animations.",
+    "adapted_english": "I enjoy designing visual graphics, musical sounds, or digital art experiences.",
+    "adapted_hindi": "मुझे विजुअल ग्राफिक्स, संगीत या डिजिटल कला डिजाइन करना पसंद है।",
+    "source": "O*NET Interest Profiler Short Form (60-item)"
+  },
+  {
+    "item_id": "ONET_60_S1",
+    "domain": "Social",
+    "keyed": "positive",
+    "original_english": "Teach an individual an exercise routine.",
+    "adapted_english": "I enjoy mentoring friends, teaching new skills, or helping people improve their lives.",
+    "adapted_hindi": "मुझे दोस्तों का मार्गदर्शन करना, नए कौशल सिखाना या लोगों की भलाई में मदद करना अच्छा लगता है।",
+    "source": "O*NET Interest Profiler Short Form (60-item)"
+  },
+  {
+    "item_id": "ONET_60_S2",
+    "domain": "Social",
+    "keyed": "positive",
+    "original_english": "Help people resolve conflicts calmly.",
+    "adapted_english": "I like listening with empathy and providing compassionate emotional support to others.",
+    "adapted_hindi": "मुझे सहानुभूति के साथ सुनना और दूसरों को संवेदनशील भावनात्मक सहारा देना पसंद है।",
+    "source": "O*NET Interest Profiler Short Form (60-item)"
+  },
+  {
+    "item_id": "ONET_60_E1",
+    "domain": "Enterprising",
+    "keyed": "positive",
+    "original_english": "Manage a department or start a new venture.",
+    "adapted_english": "I enjoy leading a team, organizing initiatives, or starting an entrepreneurial venture.",
+    "adapted_hindi": "मुझे किसी टीम का नेतृत्व करना, नई पहल शुरू करना या उद्यमशीलता से काम करना पसंद है।",
+    "source": "O*NET Interest Profiler Short Form (60-item)"
+  },
+  {
+    "item_id": "ONET_60_E2",
+    "domain": "Enterprising",
+    "keyed": "positive",
+    "original_english": "Negotiate contracts and speak in public.",
+    "adapted_english": "I like persuading others, public speaking, or pitching creative proposals.",
+    "adapted_hindi": "मुझे दूसरों को अपनी बात समझाना, जन संवाद करना या रचनात्मक प्रस्ताव पेश करना पसंद है।",
+    "source": "O*NET Interest Profiler Short Form (60-item)"
+  },
+  {
+    "item_id": "ONET_60_C1",
+    "domain": "Conventional",
+    "keyed": "positive",
+    "original_english": "Develop a spreadsheet using computer software.",
+    "adapted_english": "I like maintaining orderly schedules, structured databases, and precise records.",
+    "adapted_hindi": "मुझे व्यवस्थित समय-सारणी, सुव्यवस्थित डेटाबेस और सटीक रिकॉर्ड बनाए रखना पसंद है।",
+    "source": "O*NET Interest Profiler Short Form (60-item)"
+  },
+  {
+    "item_id": "ONET_60_C2",
+    "domain": "Conventional",
+    "keyed": "positive",
+    "original_english": "Verify compliance with regulations and procedures.",
+    "adapted_english": "I enjoy organizing files, checking accuracy, and following reliable guidelines.",
+    "adapted_hindi": "मुझे फ़ाइलों को व्यवस्थित करना, सटीकता की जांच करना और विश्वसनीय दिशानिर्देशों का पालन करना अच्छा लगता है।",
     "source": "O*NET Interest Profiler Short Form (60-item)"
   }
 ]

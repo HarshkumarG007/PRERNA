@@ -1,4 +1,4 @@
-package com.lenovo.prerna
+package com.prerna.sanctuary
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -61,8 +61,9 @@ class MainActivity : TauriActivity() {
         view.settings.apply {
           useWideViewPort = true
           loadWithOverviewMode = true
-          setSupportZoom(false)
-          builtInZoomControls = false
+          // WCAG 1.4.4 accessibility: allow pinch-zoom, conceal redundant on-screen zoom buttons
+          setSupportZoom(true)
+          builtInZoomControls = true
           displayZoomControls = false
         }
 
@@ -99,3 +100,4 @@ class MainActivity : TauriActivity() {
     }
   }
 }
+

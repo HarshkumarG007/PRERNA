@@ -49,8 +49,9 @@ export const FusionSchema = z.object({
 
 /**
  * Generates an assessment combining IPIP and O*NET items, dynamically loaded from the item bank.
+ * Supports 'quick' (11 items: 1 per domain across all 5 Big Five + 6 RIASEC) and 'full' (all 22 items with balanced keying).
  */
-export function generateAssessment(): FusionItem[] {
+export function generateAssessment(mode: 'quick' | 'full' = 'full'): FusionItem[] {
   const combined: FusionItem[] = [];
 
   // Map IPIP
@@ -75,8 +76,19 @@ export function generateAssessment(): FusionItem[] {
     });
   }
 
-  // Randomize presentation to prevent section bias
-  return combined.sort(() => Math.random() - 0.5);
+  if (mode === 'quick') {
+    const seenDomains = new Set<string>();
+    const quickItems: FusionItem[] = [];
+    for (const item of combined) {
+      if (!seenDomains.has(item.domain)) {
+        seenDomains.add(item.domain);
+        quickItems.push(item);
+      }
+    }
+    return quickItems;
+  }
+
+  return combined;
 }
 
 /**
@@ -91,7 +103,7 @@ export function scoreFusionProfile(responses: RawFusionResponse[], oldProfileFal
   const responseMap = new Map<string, number>(responses.map(r => [r.itemId, r.score]));
 
   // Re-generate the full list to know what's what
-  const items = generateAssessment();
+  const items = generateAssessment('full');
 
   const sums: Record<string, number> = {
     // Big Five

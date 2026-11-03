@@ -69,7 +69,7 @@ All data flows through Tauri's Inter-Process Communication (IPC). The frontend n
 *   **Detail**: Allows schools to run a command `generate_school_report(student_ids)`. It has a hardcoded **K-Anonymity Guard** (`k_threshold = 5`). If the requested cohort size is less than 5, it returns empty data, making it mathematically impossible for a school admin to single out a specific teenager's mental health profile.
 
 #### `src-tauri/tauri.conf.json`
-*   **Detail**: Configures the app bundle (`com.lenovo.prerna`), window size, and build scripts. Defines that the frontend lives in `../dist`.
+*   **Detail**: Configures the app bundle (`com.prerna.sanctuary`), window size, and build scripts. Defines that the frontend lives in `../dist`.
 
 ---
 

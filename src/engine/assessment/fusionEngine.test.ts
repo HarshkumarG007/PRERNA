@@ -54,4 +54,33 @@ describe('FusionEngine', () => {
     expect(profile.id).toBe("fallback-id");
     expect(profile.big_five.openness).toBe(99);
   });
+
+  it('measures all 11 domains with dynamic confidence reaching 0.95 in full mode (C-05)', () => {
+    const quickItems = generateAssessment('quick');
+    expect(quickItems.length).toBe(11);
+    const quickDomains = new Set(quickItems.map(i => i.domain));
+    expect(quickDomains.size).toBe(11);
+
+    const fullItems = generateAssessment('full');
+    expect(fullItems.length).toBe(22);
+
+    const responses: RawFusionResponse[] = fullItems.map(item => ({
+      itemId: item.id,
+      score: 4,
+    }));
+
+    const profile = scoreFusionProfile(responses);
+    expect(profile.confidence_score).toBe(0.95);
+    expect(profile.big_five.openness).toBeDefined();
+    expect(profile.big_five.conscientiousness).toBeDefined();
+    expect(profile.big_five.extraversion).toBeDefined();
+    expect(profile.big_five.agreeableness).toBeDefined();
+    expect(profile.big_five.neuroticism).toBeDefined();
+    expect(profile.riasec.realistic).toBeDefined();
+    expect(profile.riasec.investigative).toBeDefined();
+    expect(profile.riasec.artistic).toBeDefined();
+    expect(profile.riasec.social).toBeDefined();
+    expect(profile.riasec.enterprising).toBeDefined();
+    expect(profile.riasec.conventional).toBeDefined();
+  });
 });

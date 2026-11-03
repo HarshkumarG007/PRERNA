@@ -10,6 +10,8 @@ pub mod schema;
 use models::*;
 use schema::SCHEMA_SQL;
 
+static EPHEMERAL_PROCESS_KEY: std::sync::OnceLock<Zeroizing<String>> = std::sync::OnceLock::new();
+
 pub struct Database {
     pub conn: Connection,
 }
@@ -61,13 +63,15 @@ impl Database {
             if let Ok(entry) = keyring::Entry::new(service, username) {
                 match entry.get_password() {
                     Ok(key) => {
-                        info!("Retrieved existing encryption key from keyring");
-                        return Ok(Zeroizing::new(key));
+                        if hex::decode(&key).map(|b| b.len() == 32).unwrap_or(false) {
+                            info!("Retrieved existing 256-bit encryption key from keyring");
+                            return Ok(Zeroizing::new(key));
+                        }
                     }
                     Err(_) => {
                         if let Ok(new_key) = Self::generate_secure_key() {
                             if entry.set_password(new_key.as_str()).is_ok() {
-                                info!("Generated and stored new encryption key");
+                                info!("Generated and stored new 256-bit encryption key in keyring");
                                 return Ok(new_key);
                             }
                         }
@@ -76,9 +80,52 @@ impl Database {
             }
         }
 
-        // Fallback for mobile / environments without secret-service keyring (must be exactly 32 bytes)
-        let fallback_key = Zeroizing::new(hex::encode(b"PRERNA_FALLBACK_SECURE_STORAGE32"));
-        Ok(fallback_key)
+        // Secure file-backed key storage for Android & environments without desktop secret-service
+        let key_file_candidates = [
+            PathBuf::from("/data/user/0/com.prerna.sanctuary/files/.prerna_master.key"),
+            PathBuf::from("/data/data/com.prerna.sanctuary/files/.prerna_master.key"),
+            PathBuf::from("/data/user/0/com.lenovo.prerna/files/.prerna_master.key"),
+            std::env::temp_dir().join(".prerna_master.key"),
+        ];
+
+        for path in &key_file_candidates {
+            if path.exists() {
+                if let Ok(content) = std::fs::read_to_string(path) {
+                    let trimmed = content.trim();
+                    if trimmed.len() == 64
+                        && hex::decode(trimmed).map(|b| b.len() == 32).unwrap_or(false)
+                    {
+                        return Ok(Zeroizing::new(trimmed.to_string()));
+                    }
+                }
+            }
+        }
+
+        // Generate a cryptographically secure 256-bit key (CSPRNG)
+        let fresh_key = Self::generate_secure_key()?;
+
+        // Attempt persistence to first writable candidate with restricted permissions
+        for path in &key_file_candidates {
+            if let Some(parent) = path.parent() {
+                let _ = std::fs::create_dir_all(parent);
+            }
+            if std::fs::write(path, fresh_key.as_str()).is_ok() {
+                #[cfg(unix)]
+                {
+                    use std::os::unix::fs::PermissionsExt;
+                    let _ = std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600));
+                }
+                info!(
+                    "Persisted fresh 256-bit CSPRNG key to sandboxed storage: {:?}",
+                    path
+                );
+                return Ok(fresh_key);
+            }
+        }
+
+        // Ephemeral in-memory process key fallback (unique per process lifecycle, never static constant)
+        let process_key = EPHEMERAL_PROCESS_KEY.get_or_init(|| fresh_key.clone());
+        Ok(process_key.clone())
     }
 
     #[allow(dead_code)]
@@ -1033,7 +1080,11 @@ impl Database {
         let key = Self::get_or_create_key()?;
         let mut key_bytes = hex::decode(&*key)?;
         if key_bytes.len() != 32 {
-            key_bytes.resize(32, 0x42);
+            key_bytes.zeroize();
+            anyhow::bail!(
+                "Invalid master key length: expected 32 bytes, got {}",
+                key_bytes.len()
+            );
         }
         let cipher_key = Key::<Aes256Gcm>::from_slice(&key_bytes);
         let cipher = Aes256Gcm::new(cipher_key);
@@ -1059,7 +1110,11 @@ impl Database {
         let key = Self::get_or_create_key()?;
         let mut key_bytes = hex::decode(&*key)?;
         if key_bytes.len() != 32 {
-            key_bytes.resize(32, 0x42);
+            key_bytes.zeroize();
+            anyhow::bail!(
+                "Invalid master key length: expected 32 bytes, got {}",
+                key_bytes.len()
+            );
         }
         let cipher_key = Key::<Aes256Gcm>::from_slice(&key_bytes);
         let cipher = Aes256Gcm::new(cipher_key);
@@ -1150,13 +1205,30 @@ impl Database {
 fn get_db_path(_app_handle: &tauri::AppHandle) -> AnyhowResult<PathBuf> {
     #[cfg(target_os = "android")]
     {
-        // To avoid JNI startup deadlock on Android when app is launching,
-        // we directly probe standard sandbox paths without synchronously blocking the main thread.
+        // First try standard Tauri app_data_dir resolver (handles multi-user, work profile, Android 15 Private Space)
+        use tauri::Manager;
+        if let Ok(dir) = _app_handle.path().app_data_dir() {
+            if dir.exists() || std::fs::create_dir_all(&dir).is_ok() {
+                let test_file = dir.join(".prerna_init_probe");
+                if std::fs::write(&test_file, b"1").is_ok() {
+                    let _ = std::fs::remove_file(test_file);
+                    info!(
+                        "Selected standard Tauri app_data_dir for Android: {:?}",
+                        dir
+                    );
+                    return Ok(dir.join("prerna_encrypted.db"));
+                }
+            }
+        }
+
+        // Direct sandbox path candidates for Android (com.prerna.sanctuary with legacy fallback)
         let candidates = [
+            PathBuf::from("/data/user/0/com.prerna.sanctuary/files"),
+            PathBuf::from("/data/data/com.prerna.sanctuary/files"),
+            PathBuf::from("/data/user/0/com.prerna.sanctuary"),
+            PathBuf::from("/data/data/com.prerna.sanctuary"),
             PathBuf::from("/data/user/0/com.lenovo.prerna/files"),
             PathBuf::from("/data/data/com.lenovo.prerna/files"),
-            PathBuf::from("/data/user/0/com.lenovo.prerna"),
-            PathBuf::from("/data/data/com.lenovo.prerna"),
         ];
 
         for dir in &candidates {

@@ -40,7 +40,7 @@ PRERNA/
 │   │   └── school_api.rs           # Logic for any external school integrations
 │   ├── Cargo.toml                  # Rust dependencies (rusqlite, sqlcipher, etc.)
 │   ├── build.rs                    # Rust build script
-│   └── tauri.conf.json             # Tauri configuration (bundle ID: com.lenovo.prerna)
+│   └── tauri.conf.json             # Tauri configuration (bundle ID: com.prerna.sanctuary)
 ├── src/                            # REACT / TYPESCRIPT FRONTEND
 │   ├── ai/                         # Frontend AI interfaces mapping to Rust
 │   │   ├── careerClassifier.ts

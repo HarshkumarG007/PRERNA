@@ -31,7 +31,7 @@ export const SelfDiscoveryJourney: React.FC<SelfDiscoveryJourneyProps> = ({ onCo
   const { updateProfile } = useAppStore();
   
   const assessmentItems = React.useMemo(() => {
-    return generateAssessment().map(item => ({
+    return generateAssessment('quick').map(item => ({
       id: item.id,
       text: item.text,
       category: (item.source === 'IPIP' ? 'personality' : 'career') as 'personality' | 'career' | 'emotional',

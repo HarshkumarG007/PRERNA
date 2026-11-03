@@ -377,7 +377,7 @@ PRERNA/
 │   │   ├── lib.rs                  # Cross-platform Tauri mobile & desktop entry
 │   │   └── main.rs                 # Native desktop binary entry
 │   ├── gen/android/                # Native Android Studio project
-│   │   └── app/src/main/java/com/lenovo/prerna/
+│   │   └── app/src/main/java/com/prerna/sanctuary/
 │   │       └── MainActivity.kt     # Insets listener for Android 15/16 edge-to-edge
 │   ├── Cargo.toml                  # Rust dependencies, target configs & feature flags
 │   └── tauri.conf.json             # Security CSP, window settings, custom-protocol
@@ -417,11 +417,11 @@ Every architectural decision in PRERNA was chosen to satisfy strict privacy, har
 
 ### 3. Local-First, Zero-Knowledge Storage under DPDP Act 2023 §9
 - **The Legal & Ethical Reality:** Section 9 of the India Digital Personal Data Protection Act 2023 strictly prohibits tracking, behavioral monitoring, or targeted advertising directed at children. Storing adolescent psychometric logs or emotional reflections in a centralized corporate cloud creates an inherent breach vulnerability.
-- **The Decision:** User profiles, test scores, and journal entries are written directly to local on-device storage. On desktop, data is protected by SQLCipher AES-256; on Android, it resides in sandboxed private storage (`/data/user/0/com.lenovo.prerna/databases`) protected by Android File-Based Encryption (FBE) and POSIX permissions (`0600`). No cloud database exists to be breached.
+- **The Decision:** User profiles, test scores, and journal entries are written directly to local on-device storage. On desktop, data is protected by SQLCipher AES-256; on Android, it resides in sandboxed private storage (`/data/user/0/com.prerna.sanctuary/databases`) protected by Android File-Based Encryption (FBE) and POSIX permissions (`0600`). No cloud database exists to be breached.
 
 ### 4. Safe JNI Path Resolution with In-Memory SQLite Fallback
 - **The Android Startup Race:** Calling Android Java context methods (`app_handle.path().app_data_dir()`) over JNI during native library initialization can lock or deadlock the UI thread on certain OEM Android skins (OriginOS, HyperOS, ColorOS).
-- **The Decision:** Direct POSIX path resolution targeting `/data/user/0/com.lenovo.prerna/databases` without blocking JNI queries. If any filesystem permission error occurs, the engine automatically falls back to an in-memory SQLite database (`:memory:`), ensuring the application never crashes with a frozen white splash screen.
+- **The Decision:** Direct POSIX path resolution targeting `/data/user/0/com.prerna.sanctuary/databases` without blocking JNI queries. If any filesystem permission error occurs, the engine automatically falls back to an in-memory SQLite database (`:memory:`), ensuring the application never crashes with a frozen white splash screen.
 
 ### 5. Pure Web Audio API Oscillator for 432 Hz Pythagorean Resonance
 - **Why not MP3 or WAV audio files?** Audio files require network bandwidth to stream or inflate app bundle size by dozens of megabytes. They also introduce decoding latency and loop stuttering during continuous breathing sessions.
@@ -451,7 +451,7 @@ Building a high-performance cross-platform application spanning cutting-edge mob
 - **Symptom:** On certain Android OEM distributions, the app would intermittently freeze on a pure white screen upon initial launch.
 - **Root Cause Investigation:** In `src-tauri/src/db/mod.rs`, the database initialization invoked `app_handle.path().app_data_dir()`, which makes a synchronous JNI call back to Java's `Context.getFilesDir()`. During native library loading, the main Android UI thread was waiting for Rust while Rust was blocked waiting for Java JNI, creating a classic lock inversion deadlock.
 - **Solution:** 
-  1. Refactored `get_db_path()` on Android to directly resolve `/data/user/0/com.lenovo.prerna/databases` using native POSIX APIs.
+  1. Refactored `get_db_path()` on Android to directly resolve `/data/user/0/com.prerna.sanctuary/databases` using native POSIX APIs.
   2. Wrapped directory creation in idempotent Rust `fs::create_dir_all`.
   3. Added an instant fallback to in-memory SQLite (`sqlite::memory:`) if disk I/O ever fails, completely eliminating cold-boot hangs.
 

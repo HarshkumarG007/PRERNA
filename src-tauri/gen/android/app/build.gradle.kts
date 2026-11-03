@@ -15,10 +15,10 @@ val tauriProperties = Properties().apply {
 
 android {
     compileSdk = 35
-    namespace = "com.lenovo.prerna"
+    namespace = "com.prerna.sanctuary"
     defaultConfig {
         manifestPlaceholders["usesCleartextTraffic"] = "false"
-        applicationId = "com.lenovo.prerna"
+        applicationId = "com.prerna.sanctuary"
         minSdk = 24
         targetSdk = 35
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "10203").toInt()
@@ -27,6 +27,18 @@ android {
     packaging {
         jniLibs {
             useLegacyPackaging = true
+        }
+    }
+    signingConfigs {
+        create("release") {
+            val keystorePath = System.getenv("ANDROID_KEYSTORE_PATH") ?: "release.keystore"
+            val keystoreFile = file(keystorePath)
+            if (keystoreFile.exists()) {
+                storeFile = keystoreFile
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD") ?: ""
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS") ?: "prerna"
+                keyPassword = System.getenv("ANDROID_KEY_PASSWORD") ?: ""
+            }
         }
     }
     buildTypes {
@@ -44,7 +56,12 @@ android {
             }
         }
         getByName("release") {
-            signingConfig = signingConfigs.getByName("debug")
+            val keystorePath = System.getenv("ANDROID_KEYSTORE_PATH") ?: "release.keystore"
+            if (file(keystorePath).exists() && System.getenv("ANDROID_KEYSTORE_PASSWORD") != null) {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                signingConfig = signingConfigs.getByName("debug")
+            }
             isMinifyEnabled = false
             proguardFiles(
                 *fileTree(".") { include("**/*.pro") }

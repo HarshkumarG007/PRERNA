@@ -16,6 +16,8 @@ export interface PairingPayload {
   exp: number; // Expiration epoch ms (15 minutes validity)
   scope: string[];
   createdAt: string;
+  publicKeyHex?: string;    // Ephemeral ECDH P-256 public key (H-19 E2EE)
+  e2eeChannelId?: string;   // 128-bit unguessable random sync channel (H-19)
 }
 
 export interface VerifiedPairingData {
@@ -30,6 +32,8 @@ export interface PairedTeenRecord {
   pairedAt: string;
   scope: string[];
   handshakeNonce: string;
+  peerPublicKeyHex?: string;
+  e2eeChannelId?: string;
 }
 
 const STORAGE_KEY_ACTIVE_REQ = 'prerna_active_pairing_request';
