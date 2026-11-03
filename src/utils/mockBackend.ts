@@ -1,5 +1,6 @@
 import { invoke as tauriInvoke } from '@tauri-apps/api/core';
 import { deriveSixteenType, isCompleteSixteenType } from '../engine/assessment/sixteenPersonalities';
+import { getSecureRandomString } from './cryptoVault';
 
 const INITIAL_DEMO_USERS = [
   {
@@ -192,7 +193,7 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
   switch (cmd) {
     case 'create_user': {
       const user = args.user;
-      const id = 'mock-' + Math.random().toString(36).substring(2, 9);
+      const id = 'mock-' + getSecureRandomString(8).toLowerCase();
       db.users.push({
         id,
         username: user.username,
@@ -274,7 +275,7 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
       const user = db.users.find((u: any) => u.id === args.userId);
       if (!user) return null as any;
       
-      const mockSecret = "MOCK-SECRET-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+      const mockSecret = "MOCK-SECRET-" + getSecureRandomString(6);
       user.tempMfaSecret = mockSecret;
       saveMockDb(db);
       
@@ -393,7 +394,7 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
     }
 
     case 'create_crisis_event': {
-      const eventId = 'crisis-' + Math.random().toString(36).substring(2, 9);
+      const eventId = 'crisis-' + getSecureRandomString(8).toLowerCase();
       if (!db.crisisEvents) db.crisisEvents = [];
       db.crisisEvents.push({
         id: eventId,

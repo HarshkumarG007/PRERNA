@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { hashPasscode, verifyPasscode } from '../utils/cryptoVault';
+import { hashPasscode, verifyPasscode, getSecureRandomInt, getSecureRandomString } from '../utils/cryptoVault';
 import { evaluateCrisisPatterns } from '../engine/crisis/patternDetection';
 
 export type RelationshipMode = 'lovers' | 'besties';
@@ -347,8 +347,8 @@ export const usePartnerStore = create<PartnerState>()(
 
       // Pairing Actions
       initiatePairing: () => {
-        const shortCode = 'LOVE-' + Math.floor(100 + Math.random() * 900);
-        const nonce = 'prn_pair_' + Math.random().toString(36).substring(2, 10);
+        const shortCode = 'LOVE-' + getSecureRandomInt(100000, 999999);
+        const nonce = 'prn_pair_' + getSecureRandomString(12).toLowerCase();
         set((state) => ({
           connection: {
             ...state.connection,

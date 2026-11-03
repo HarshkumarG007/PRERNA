@@ -7,6 +7,7 @@
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { getSecureRandomString } from './cryptoVault';
 
 const DEFAULT_SUPABASE_URL = 'https://yfccmanwpgjwhqssfetp.supabase.co';
 const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlmY2NtYW53cGdqd2hxc3NmZXRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1MjQyNDMsImV4cCI6MjEwOTEwMDI0M30.QxvzYFiFFBIVolobauqiN2kBuhHd6rWFEZRG9T7cDT4';
@@ -34,7 +35,7 @@ export function getOrCreateDeviceId(): string {
     if (!id) {
       id = 'dev_' + (typeof crypto !== 'undefined' && crypto.randomUUID 
         ? crypto.randomUUID() 
-        : Math.random().toString(36).substring(2, 15) + Date.now().toString(36));
+        : getSecureRandomString(24).toLowerCase());
       localStorage.setItem('prerna_device_id', id);
     }
     return id;

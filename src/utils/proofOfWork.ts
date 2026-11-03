@@ -1,3 +1,5 @@
+import { getSecureRandomString } from './cryptoVault';
+
 /**
  * Generates a cryptographic Proof of Work (PoW) locally.
  * This runs an invisible mathematical challenge in the browser/app before allowing account creation.
@@ -6,7 +8,7 @@
  */
 
 export async function generateProofOfWork(difficulty: number = 4): Promise<string> {
-  const challenge = Math.random().toString(36).substring(2);
+  const challenge = getSecureRandomString(16);
   let nonce = 0;
   
   // Create a target string of leading zeros (e.g., '0000')

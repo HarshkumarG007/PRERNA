@@ -9,7 +9,7 @@
  * Client state cannot forge entitlements without a cryptographically valid token.
  */
 
-import { sha256Hex } from '../utils/cryptoVault';
+import { sha256Hex, getSecureRandomBytes } from '../utils/cryptoVault';
 
 export type CommercialTier = 
   | 'free'
@@ -77,13 +77,8 @@ export function issueEntitlementToken(
   const now = new Date();
   const expiresAt = durationDays ? new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000).toISOString() : null;
   
-  // 128-bit CSPRNG nonce
-  const nonceBytes = new Uint8Array(16);
-  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-    crypto.getRandomValues(nonceBytes);
-  } else {
-    for (let i = 0; i < 16; i++) nonceBytes[i] = Math.floor(Math.random() * 256);
-  }
+  // 128-bit CSPRNG nonce (M-01)
+  const nonceBytes = getSecureRandomBytes(16);
   const nonce = Array.from(nonceBytes).map(b => b.toString(16).padStart(2, '0')).join('');
   const tokenId = `ENT-${Date.now()}-${nonce.slice(0, 8)}`;
 

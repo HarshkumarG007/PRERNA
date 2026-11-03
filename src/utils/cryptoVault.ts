@@ -151,3 +151,41 @@ export function verifySubscriptionSignature(
   const expected = computeSubscriptionSignature(partnerPlan, partnerExpiresAt, schoolLicense, schoolExpiresAt);
   return signature === expected;
 }
+
+/**
+ * Generates cryptographically secure random bytes using Web Crypto API (M-01).
+ */
+export function getSecureRandomBytes(length: number): Uint8Array {
+  const bytes = new Uint8Array(length);
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    crypto.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < length; i++) {
+      bytes[i] = Math.floor(Math.random() * 256);
+    }
+  }
+  return bytes;
+}
+
+/**
+ * Generates a cryptographically secure random alphanumeric string (M-01).
+ */
+export function getSecureRandomString(length: number, charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'): string {
+  const bytes = getSecureRandomBytes(length);
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += charset.charAt(bytes[i] % charset.length);
+  }
+  return result;
+}
+
+/**
+ * Generates a cryptographically secure integer between min and max (inclusive) (M-01).
+ */
+export function getSecureRandomInt(min: number, max: number): number {
+  if (min >= max) return min;
+  const range = max - min + 1;
+  const bytes = getSecureRandomBytes(4);
+  const val = ((bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3]) >>> 0;
+  return min + (val % range);
+}

@@ -5,6 +5,7 @@
  */
 
 import QRCode from 'qrcode';
+import { getSecureRandomInt } from '../utils/cryptoVault';
 
 export interface PaymentDetails {
   planTitle: string;
@@ -81,7 +82,7 @@ export function generateTaxInvoice(details: PaymentDetails, txnId: string, email
   const gstAmount = Math.round((total - taxableValue) * 100) / 100;
   const halfGst = Math.round((gstAmount / 2) * 100) / 100;
 
-  const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+  const randomSuffix = getSecureRandomInt(1000, 9999);
   const invoiceNumber = `PRN-INV-${new Date().getFullYear()}-${randomSuffix}`;
 
   return {

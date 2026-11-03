@@ -2,6 +2,7 @@
 
 import { safeInvoke as invoke } from '../../utils/mockBackend';
 import { CrisisEvent } from './patternDetection';
+import { getSecureRandomString } from '../../utils/cryptoVault';
 
 export interface MoodLogOrChatMessage {
   userId: string;
@@ -106,7 +107,7 @@ export async function dispatchGuardianNotification(
     teenInformedAt: payload.teenInformedAt,
   });
 
-  const deliveryId = 'deliv-' + Math.random().toString(36).substring(2, 9);
+  const deliveryId = 'deliv-' + getSecureRandomString(8).toLowerCase();
   const result: NotificationResult = {
     dispatched: true,
     deliveryId,

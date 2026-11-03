@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { ShieldAlert, RefreshCw } from 'lucide-react';
+import { getSecureRandomString } from '../../utils/cryptoVault';
 
 interface Props {
   children?: ReactNode;
@@ -18,7 +19,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
 
   public static getDerivedStateFromError(_: Error): State {
     // Update state so the next render will show the fallback UI.
-    return { hasError: true, errorId: Math.random().toString(36).substring(2, 9) };
+    return { hasError: true, errorId: getSecureRandomString(8).toLowerCase() };
   }
 
   public componentDidCatch(error: Error, _errorInfo: ErrorInfo) {

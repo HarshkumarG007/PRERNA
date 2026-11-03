@@ -4,6 +4,7 @@ import { safeInvoke as invoke } from '../utils/mockBackend';
 import { SixteenTypeResult, deriveSixteenType, isCompleteSixteenType } from '../engine/assessment/sixteenPersonalities';
 import { GrowthJournalEntry, MitigationStrategy } from '../engine/growth/selfEvolutionEngine';
 import { TrackedNeedItem } from '../engine/growth/maslowNeedsEngine';
+import { getSecureRandomString } from '../utils/cryptoVault';
 
 // Types
 export interface User {
@@ -686,7 +687,7 @@ export const useAppStore = create<AppState>()(
       addJournalEntry: (entry) => {
         const newEntry: GrowthJournalEntry = {
           ...entry,
-          id: `entry_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+          id: `entry_${Date.now()}_${getSecureRandomString(8).toLowerCase()}`,
           createdAt: new Date().toISOString(),
         };
         set(state => ({
@@ -712,7 +713,7 @@ export const useAppStore = create<AppState>()(
       addCustomMitigation: (strategyData) => {
         const custom: MitigationStrategy = {
           ...strategyData,
-          id: `custom_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          id: `custom_${Date.now()}_${getSecureRandomString(8).toLowerCase()}`,
           isCustom: true,
         };
         set(state => ({
@@ -729,7 +730,7 @@ export const useAppStore = create<AppState>()(
       addTrackedNeed: (itemData) => {
         const item: TrackedNeedItem = {
           ...itemData,
-          id: `need_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          id: `need_${Date.now()}_${getSecureRandomString(8).toLowerCase()}`,
           createdAt: new Date().toISOString(),
         };
         set(state => ({
@@ -793,7 +794,7 @@ export const useAppStore = create<AppState>()(
       logSleepSession: (sessionData) => {
         const session: SleepSession = {
           ...sessionData,
-          id: `sleep_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          id: `sleep_${Date.now()}_${getSecureRandomString(8).toLowerCase()}`,
           createdAt: new Date().toISOString(),
         };
         set(state => ({
@@ -810,7 +811,7 @@ export const useAppStore = create<AppState>()(
       logMovementEntry: (entryData) => {
         const entry: MovementEntry = {
           ...entryData,
-          id: `move_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          id: `move_${Date.now()}_${getSecureRandomString(8).toLowerCase()}`,
         };
         set(state => ({
           movementEntries: [entry, ...state.movementEntries]

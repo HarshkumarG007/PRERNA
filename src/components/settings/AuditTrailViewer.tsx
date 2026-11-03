@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { safeInvoke as invoke } from '../../utils/mockBackend';
 import { ShieldCheck, Clock, UserCheck, Server } from 'lucide-react';
+import { getSecureRandomString } from '../../utils/cryptoVault';
 
 export interface AuditLogEntry {
   id: string;
@@ -52,7 +53,7 @@ export const AuditTrailViewer: React.FC<AuditTrailViewerProps> = ({ logs: propLo
           if (Array.isArray(res) && res.length > 0) {
             setLogs(
               res.map((item: any) => ({
-                id: item.id || 'log-' + Math.random(),
+                id: item.id || 'log-' + getSecureRandomString(8).toLowerCase(),
                 accessedBy: item.accessedBy || 'self',
                 dataScope: item.dataScope || 'Profile Data',
                 accessedAt: item.accessedAt ? new Date(item.accessedAt) : new Date(),

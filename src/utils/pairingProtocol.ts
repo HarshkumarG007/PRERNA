@@ -4,6 +4,8 @@
  * Zero external servers, zero cloud telemetry.
  */
 
+import { getSecureRandomBytes } from './cryptoVault';
+
 export interface PairingPayload {
   prerna_v: '1.0';
   type: 'parent_teen_pair';
@@ -35,29 +37,26 @@ const STORAGE_KEY_PAIRED_TEEN = 'prerna_paired_teen_record';
 const STORAGE_KEY_PARENT_LINKED = 'prerna_parent_linked';
 
 /**
- * Generates a random, human-friendly 6-character shortcode (e.g. "PRN-739" or "K8P-2M9").
+ * Generates a cryptographically strong, human-friendly 6-character shortcode (e.g. "PRN-739" or "K8P-2M9") (M-01).
  */
 export function generateShortCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // omit ambiguous 0, O, 1, I
   let part1 = '';
   let part2 = '';
+  const bytes = getSecureRandomBytes(6);
   for (let i = 0; i < 3; i++) {
-    part1 += chars.charAt(Math.floor(Math.random() * chars.length));
-    part2 += chars.charAt(Math.floor(Math.random() * chars.length));
+    part1 += chars.charAt(bytes[i] % chars.length);
+    part2 += chars.charAt(bytes[i + 3] % chars.length);
   }
   return `${part1}-${part2}`;
 }
 
 /**
- * Generates a cryptographically strong 128-bit hex nonce.
+ * Generates a cryptographically strong 128-bit hex nonce (M-01).
  */
 function generateCryptoNonce(): string {
-  if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
-    const array = new Uint8Array(16);
-    window.crypto.getRandomValues(array);
-    return Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
-  }
-  return 'nonce_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+  const array = getSecureRandomBytes(16);
+  return Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
 }
 
 /**

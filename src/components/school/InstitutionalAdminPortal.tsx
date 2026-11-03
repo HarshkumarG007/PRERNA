@@ -14,6 +14,7 @@ import {
 import { useSubscriptionStore } from '../../store/subscriptionStore';
 import { generateTaxInvoice, downloadTaxInvoiceReceipt } from '../../services/paymentGateway';
 import { somaticAudio } from '../../utils/audioSynthesis';
+import { getSecureRandomString } from '../../utils/cryptoVault';
 
 interface StudentToken {
   id: string;
@@ -46,7 +47,7 @@ export const InstitutionalAdminPortal: React.FC = () => {
     
     for (let i = 1; i <= studentCount; i++) {
       const paddedNum = String(i).padStart(3, '0');
-      const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const randomHex = getSecureRandomString(4);
       newTokens.push({
         id: `tok_${Date.now()}_${i}`,
         token: `PRERNA-${prefix}-${paddedNum}-${randomHex}`,

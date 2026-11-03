@@ -135,7 +135,7 @@ describe('PartnerStore Ecosystem & Isolation', () => {
     const store = usePartnerStore.getState();
     const result = store.initiatePairing();
 
-    expect(result.shortCode).toMatch(/^LOVE-\d{3}$/);
+    expect(result.shortCode).toMatch(/^LOVE-\d{6}$/);
     expect(result.nonce).toMatch(/^prn_pair_/);
 
     const conn = usePartnerStore.getState().connection;
