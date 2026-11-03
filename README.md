@@ -10,8 +10,8 @@
     <img src="https://img.shields.io/badge/Release-v1.2.3_Production-6366F1.svg" alt="Release" />
     <img src="https://img.shields.io/badge/Platform-Web_PWA_%7C_Desktop_%7C_Android_arm64-6366F1.svg" alt="Platforms" />
     <img src="https://img.shields.io/badge/Privacy-DPDP_Act_2023_%C2%A79_Compliant-10B981.svg" alt="Privacy" />
-    <img src="https://img.shields.io/badge/Tests-230%2F230_Passing_(47_Suites)-10B981.svg" alt="Tests" />
-    <img src="https://img.shields.io/badge/Rust_Tests-51%2F51_Passing-10B981.svg" alt="Rust Tests" />
+    <img src="https://img.shields.io/badge/Tests-240%2F240_Passing_(48_Suites)-10B981.svg" alt="Tests" />
+    <img src="https://img.shields.io/badge/Rust_Tests-54%2F54_Passing-10B981.svg" alt="Rust Tests" />
     <img src="https://img.shields.io/badge/Architecture-Tauri_2_%2B_React_19_%2B_Rust_(16KB_Aligned)-8B5CF6.svg" alt="Stack" />
     <img src="https://img.shields.io/badge/License-All_Rights_Reserved-red.svg" alt="License" />
   </p>
@@ -38,13 +38,16 @@
 
 **A local-first, zero-surveillance self-discovery, career navigation, somatic grounding, and AI-assisted mentoring platform engineered for adolescents, parents, adults, and educational institutions.**
 
-PRERNA combines empirical psychometric instruments (IPIP Big Five & O*NET RIASEC), localized career exploration (100+ pathways aligned with India's National Career Service & O*NET), non-pathologizing self-evolution mirrors (Higgins' Self-Discrepancy framework), Maslow's adolescent needs vs. desires detangler, 432 Hz somatic vagal grounding, an offline AI mentor, human-gated crisis safeguards, and four strictly isolated persona environments (Teen, Parent, Adult, School).
+PRERNA combines empirical psychometric instruments (IPIP Big Five & O*NET RIASEC), localized career exploration aligned with India's National Career Service & O*NET, non-pathologizing self-evolution mirrors (Higgins' Self-Discrepancy framework), Maslow's adolescent needs vs. desires detangler, 432 Hz somatic vagal grounding, an offline AI mentor, human-gated crisis safeguards, and four strictly isolated persona environments (Teen, Parent, Adult, School).
 
 The project is governed by an inviolable foundational standard:
 
-> **The human being using PRERNA owns their data completely. They must always understand what the system computes, why it computes it, and who can see it. Zero profile telemetry is gathered prior to informed, voluntary consent. Zero data leaves the physical device.**
+> **The human being using PRERNA owns their data completely. They must always understand what the system computes, why it computes it, and who can see it. Zero profile telemetry is gathered prior to informed, voluntary consent. All sensitive adolescent data—journals, psychological assessments, CBT reflections, and mentor dialogues—resides strictly on the physical device.**
 
-PRERNA is built as a **local-first sanctuary**: core user data, psychometric scores, journals, and conversation states remain encrypted on the physical device (via SQLCipher AES-256 on desktop and Android File-Based Encryption with application UID sandboxing on mobile).
+**Architectural Boundaries & Sovereign Cloud Gatekeeper:**
+- **Local-First Core:** All psychometric assessments, journals, CBT reflections, and AI mentor conversations are stored strictly on-device (SQLCipher AES-256 on desktop; Android File-Based Encryption with private application sandboxing on mobile). Zero minor journals or psychometrics ever leave the device.
+- **Sovereign Cloud Gatekeeper (Supabase):** Cloud integration is strictly bounded to server-authoritative closed-beta invitation verification (with rate limiting and hardware binding), administrative token provisioning, and anonymous voluntary pilot feedback.
+- **Relay Synchronization:** Cross-device family/partner synchronization is maintained in a local-only mode (`BroadcastChannel`) pending the deployment of peer-to-peer authenticated end-to-end encrypted (E2EE) channels.
 
 > [!IMPORTANT]
 > **Safety Notice:** PRERNA is an advanced engineering implementation and is **not certified as a clinical, medical, legal, or emergency child-safety dispatch system**. Independent clinical review (H1–H3) and certified legal counsel sign-off (H4) remain mandatory gates prior to public clinical deployment.
@@ -295,29 +298,15 @@ The PRERNA repository is structured into modular layers separating frontend pres
 PRERNA/
 │
 ├── .cargo/
-│   └── config.toml                 # aarch64 linker flags (-Wl,-z,max-page-size=16384 for Android 16)
+│   └── config.toml                 # Multi-target linker flags (-Wl,-z,max-page-size=16384 across all 4 Android ABIs)
 │
-├── data/                           # Real Empirical Datasets
-│   ├── careers/                    # 100+ NCS India & O*NET career pathways database
-│   │   ├── pathways.json           # Streams, degrees, salary ranges, entry tracks
-│   │   └── clusters.json           # Vocational, STEM, Humanities, Commerce groupings
-│   └── psychometrics/              # Real IPIP Big Five & O*NET RIASEC item banks
-│       ├── ipip_neo_120.json       # Validated 120-item personality bank with reverse scoring
-│       └── riasec_60.json          # Holland Code interest assessment instruments
-│
-├── docs/                           # Architecture, Clinical Briefs & Visuals
-│   ├── architecture.md             # Core system design & boundary documentation
-│   ├── crisis-protocol.md          # Clinician escalation & emergency response specification
-│   ├── dpdp-compliance-mapping.md  # India DPDP Act 2023 legal-technical alignment
-│   ├── PRD.md                      # Product Requirements Document
+├── docs/                           # Architecture, Clinical Briefs, Security Policies & Migrations
+│   ├── THREAT_MODEL.md             # Formal STRIDE threat model across all trust boundaries
+│   ├── PRIVACY_ARCHITECTURE.md     # India DPDP Act 2023 technical compliance mapping
+│   ├── CHILD_SAFETY_POLICY.md      # Seven Inviolable Clinical Safety Invariants
+│   ├── TESTING_STRATEGY.md         # Test pyramid (Rust security tests + Vitest suites)
+│   ├── supabase-gate-hardening.sql # Production PostgreSQL RLS & rate-limiting migration
 │   └── screenshots/                # Verified live application runtime screenshots
-│       ├── 01_teen_onboarding_welcome.png
-│       ├── 02_teen_dashboard_clean.png
-│       ├── 03_teen_navigation_drawer.png
-│       ├── 04_atma_jnana_spiritual_creed.png
-│       ├── 05_multi_persona_tour.png
-│       ├── 06_psychometric_assessment.png
-│       └── 07_dpdp_local_security.png
 │
 ├── public/                         # Static Brand Assets
 │   ├── prerna-logo.svg             # Main PRERNA typographic logo
@@ -325,7 +314,14 @@ PRERNA/
 │
 ├── src/                            # Frontend Application (React 19 + TypeScript + Tailwind v4)
 │   ├── ai/                         # RAG hybrid engine, career classifier, insight narrator
-│   ├── assessment/                 # Assessment scoring, norm tables, fusion engine
+│   ├── data/                       # Structured empirical data & verified helplines
+│   │   ├── careers/careerTaxonomy.ts   # Curated career pathways database
+│   │   ├── psychometrics/ipipNorms.ts  # Big Five & RIASEC normative tables
+│   │   └── helplines.ts                # Verified Indian national emergency helplines
+│   ├── engine/                     # Psychometrics, localization, and privacy safeguards
+│   │   ├── assessment/             # Scoring engines, 16-types, and questionnaire data
+│   │   ├── consent/                # Age tier gating, audit logging, session gates
+│   │   └── crisis/                 # Safety filters, pattern detectors, escalation router
 │   ├── components/                 # UI Component Sanctuaries
 │   │   ├── activities/             # Mood Mirror, Social Compass, Life Quests
 │   │   ├── adult/                  # Adult career transition & habit crucible
@@ -718,7 +714,7 @@ To ensure long-term open-source sustainability, PRERNA implements a **Sacred Cro
   - **District & Trust License:** **₹1,49,000 / group / year** — Centralized administration across up to 5 campuses with cross-institution anonymized benchmarks.
 * **Institutional Deliverables:**
   - **Zero-PII Pseudonymous Batch Token Generator:** Instant bulk token creation (e.g., `PRERNA-Grade9-SecA-001`) with classroom CSV export. Schools collect zero student names, emails, or phone numbers.
-  - **$k \ge 5$ Differential Privacy Cohort Analytics:** Aggregate emotional health, career inclinations, and anxiety indices. Sub-threshold cohorts ($k < 5$) are automatically redacted to make adolescent re-identification mathematically impossible.
+  - **Calibrated Laplace Differential Privacy & Differencing Defense:** Aggregate emotional health scores inject calibrated Laplace noise ($\epsilon = 1.0$) with small-cell suppression ($\tau = 3$) and active differencing query tracking ($|Q_{new} \Delta Q_{past}| \ge 5$) to mathematically prevent student re-identification.
   - **Systemic Distress & Exam Anxiety Heatmaps:** Early-warning indicators identifying grade-level anxiety spikes prior to midterm and board examinations.
   - **NEP 2020 Compliance Ready:** Fulfills India National Education Policy 2020 guidelines for mandatory psychological counseling, holistic progress cards, and career guidance.
   - **Teacher Vitality Program & 432 Hz Campus Chimes:** Tagore-inspired educator self-care drills, mindfulness pacing, and non-punitive classroom playbooks.
@@ -731,7 +727,7 @@ To ensure long-term open-source sustainability, PRERNA implements a **Sacred Cro
 
 PRERNA bypasses predatory 30% foreign app store commissions by implementing native, sovereign payment infrastructure:
 - **Instant UPI Deep-Linking (`upi://pay`):** Zero-friction checkout supporting Google Pay, PhonePe, Paytm, BHIM, and any Indian bank UPI app via dynamic QR generation.
-- **GST-Compliant Invoicing:** Automated GST tax receipts generated on-device with official HSN/SAC Code **`998431`** (Higher Education & Vocational Counseling Services).
+- **GST-Compliant Invoicing:** Automated GST tax receipts generated on-device with sample HSN/SAC Code **`998431`** (Higher Education & Vocational Counseling Services; pilot demonstration).
 - **Cryptographic Anti-Tamper Subscription Vault:** Device subscription states are sealed with an HMAC signature (`computeSubscriptionSignature`). If a user attempts to forge `localStorage` subscription tiers without a valid cryptographic key, the engine automatically revokes premium access.
 
 ---
