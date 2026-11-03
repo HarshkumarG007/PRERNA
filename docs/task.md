@@ -766,6 +766,20 @@
   - Removed `READ_EXTERNAL_STORAGE`, `WRITE_EXTERNAL_STORAGE`, and `READ_MEDIA_IMAGES` from `src-tauri/gen/android/app/src/main/AndroidManifest.xml`.
 - [x] **WP-S-6** Enforce Local On-Device TTS Voices (`M-19`):
   - Prioritized `voice.localService === true` in `src/utils/speechSynthesis.ts` to eliminate voice data egress to remote cloud TTS servers.
+- [x] **WP-S-7** Cryptographic Randomness (CSPRNG) Hardening (`M-01`):
+  - Replaced predictable `Math.random` across all security-relevant tokens, nonces, and identifiers with `crypto.getRandomValues` via `getSecureRandomBytes`, `getSecureRandomString`, and `getSecureRandomInt` in `src/utils/cryptoVault.ts`.
+  - Upgraded pairing protocol nonces to 128-bit hex CSPRNG in `src/utils/pairingProtocol.ts`.
+  - Upgraded partner pairing shortcodes to 6-digit CSPRNG `LOVE-XXXXXX` (900,000 combinations) and 12-char CSPRNG nonces in `src/store/partnerStore.ts` and `src/tests/partners/partnerStore.test.ts`.
+  - Hardened institutional batch tokens (`InstitutionalAdminPortal.tsx`), payment invoice suffixes (`paymentGateway.ts`), entitlement nonces (`entitlementService.ts`), proof-of-work challenges (`proofOfWork.ts`), and device/user ID generators across all stores.
+- [x] **WP-S-8** Tauri Attack Surface Minimization & Resilient Backup Storage (`M-04`):
+  - Pruned unused `tauri-plugin-shell = "2.0"` from `src-tauri/Cargo.toml` and `.plugin(tauri_plugin_shell::init())` from `src-tauri/src/lib.rs`.
+  - Upgraded `src/components/backup/BackupManager.tsx` with universal Web Blob download and file input fallbacks so encrypted backup/restore never crashes or mocks silently across Web, Mobile, and Desktop WebView2.
+- [x] **WP-S-9** Release Automation Hardening (`M-17`):
+  - Enforced `releaseDraft: true` in `.github/workflows/release.yml` and `draft: true` in `.github/workflows/build-android.yml` ensuring all GitHub release artifacts default to drafts requiring explicit human verification.
+- [x] **WP-S-10** Repository Governance Documentation Set (`L-05`):
+  - Added `.github/CODEOWNERS` assigning maintainership to `@HarshkumarG007`.
+  - Added `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1 adapted for adolescent wellbeing).
+  - Added `CONTRIBUTING.md` defining local-first invariants, child safety policies, and test requirements.
 
 ---
 

@@ -39,3 +39,4 @@ npm run build
 - Branch from `main` using descriptive naming: `feat/...`, `fix/...`, `security/...`.
 - Keep changes atomic, focused, and backed by automated unit/integration tests.
 - Maintain documentation integrity and update relevant threat models and architecture documents when modifying trust boundaries.
+
