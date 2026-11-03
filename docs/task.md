@@ -726,6 +726,17 @@
     - `test_school_small_cell_suppression`: Validates categories $< 3$ are stripped.
   - Rust test suite updated to **54/54 tests passing** (44 in `app_lib`, 10 in `t15_crisis_matrix`).
 
+### Work Package 9 (WP9) — Quality, CI/CD Pipeline Hardening & DevSecOps (`M-12`, `M-16`)
+- [x] **WP9-1** Principle of Least Privilege in Workflows (`M-12`):
+  - Added top-level `permissions: contents: read` blocks across `.github/workflows/ci.yml`, `test.yml`, `lint.yml`, and `security.yml`.
+- [x] **WP9-2** CI Linting & Vitest Flag Fixes:
+  - Added explicit `"lint": "tsc --noEmit"` script to `package.json` to eliminate swallowing errors in CI (`npm run lint`).
+  - Corrected test flag invocation in `ci.yml` from `npm run test --passWithNoTests` to `npm test -- --passWithNoTests`.
+- [x] **WP9-3** Security Workflow Push Triggers:
+  - Configured `security.yml` to trigger on pushes to `main` as well as scheduled weekly cron and PR paths.
+- [x] **WP9-4** Build Reproducibility (`M-16`):
+  - Cleaned `.cargo/config.toml` of host-specific NDK absolute paths and machine usernames, retaining generic 16 KB page-aligned linker flags (`-Wl,-z,max-page-size=16384`) across all 4 Android architectures (`aarch64`, `armv7`, `i686`, `x86_64`).
+
 ### Work Package 10 (WP10) — Master Governance & Directive Architecture Suite
 - [x] **WP10-1** `THREAT_MODEL.md`: Formal STRIDE threat model across Untrusted Renderer, Tauri 2 IPC Bridge, Trusted Rust Core, and SQLite/FBE Storage Domain with mapped security regression tests.
 - [x] **WP10-2** `PRIVACY_ARCHITECTURE.md`: Technical specification of statutory DPDP Act 2023 compliance (§9, §11, §12, §13), zero-telemetry invariant, fail-closed consent gate, and data sanitization protocol.

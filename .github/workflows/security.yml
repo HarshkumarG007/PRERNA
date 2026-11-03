@@ -1,6 +1,8 @@
 name: Security Auditing
 
 on:
+  push:
+    branches: [ "main" ]
   schedule:
     - cron: '0 0 * * 1' # Runs every Monday at midnight
   pull_request:
@@ -9,6 +11,9 @@ on:
       - 'package-lock.json'
       - 'src-tauri/Cargo.toml'
       - 'src-tauri/Cargo.lock'
+
+permissions:
+  contents: read
 
 jobs:
   audit-npm:

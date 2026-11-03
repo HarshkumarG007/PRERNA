@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Code Quality and Tests
@@ -28,8 +31,8 @@ jobs:
       
     - name: Frontend Lints & Tests
       run: |
-        npm run lint || echo "No lint script found, skipping"
-        npm run test --passWithNoTests
+        npm run lint
+        npm test -- --passWithNoTests
         
     - name: Build Frontend Assets
       run: npm run build
