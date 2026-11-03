@@ -84,8 +84,8 @@ class SovereignSupabaseService {
 
   /**
    * Verifies an invite token with hardware device binding and anti-leak protection.
-   * If Supabase is connected, executes the atomic verify_beta_token stored procedure.
-   * Ensures single-use tokens cannot be overshared or redeemed on multiple devices.
+   * Server-authoritative: executes the atomic, rate-limited verify_beta_token stored procedure (H-18, H-22).
+   * Ensures single-use tokens cannot be overshared, and revoked tokens fail immediately on all platforms.
    */
   public async verifyToken(rawToken: string, explicitDeviceId?: string): Promise<BetaTokenVerificationResult> {
     // Sanitize token: normalize unicode dashes, remove spaces around hyphens, and uppercase
@@ -95,152 +95,73 @@ class SovereignSupabaseService {
     }
 
     const deviceId = explicitDeviceId || getOrCreateDeviceId();
-    const cleanToken = token.replace(/[^A-Z0-9]/g, '');
 
-    // Sovereign Allowlist (Founder & Pilot cohort keys supported offline & online)
-    const LOCAL_ALLOWLIST: Record<string, { assignedTo: string; role: string; allowMultiDevice?: boolean }> = {
-      'PRERNA-FOUNDER-2026': { assignedTo: 'Harsh Kumar Gupta (Founder)', role: 'adult', allowMultiDevice: true },
-      'PRERNAFOUNDER2026': { assignedTo: 'Harsh Kumar Gupta (Founder)', role: 'adult', allowMultiDevice: true },
-      'PRN-FOUNDER-2026': { assignedTo: 'Harsh Kumar Gupta (Founder)', role: 'adult', allowMultiDevice: true },
-      'PRNFOUNDER2026': { assignedTo: 'Harsh Kumar Gupta (Founder)', role: 'adult', allowMultiDevice: true },
-      'FOUNDER2026': { assignedTo: 'Harsh Kumar Gupta (Founder)', role: 'adult', allowMultiDevice: true },
-      'PRN-PILOT-2026': { assignedTo: 'Cohort 1 Pilot Explorer', role: 'teen', allowMultiDevice: true },
-      'PRNPILOT2026': { assignedTo: 'Cohort 1 Pilot Explorer', role: 'teen', allowMultiDevice: true },
-      'PRN-DEMO-2026': { assignedTo: 'PRERNA Sanctuary Reviewer', role: 'teen', allowMultiDevice: true },
-      'PRNDEMO2026': { assignedTo: 'PRERNA Sanctuary Reviewer', role: 'teen', allowMultiDevice: true },
-      'PRERNA-2026': { assignedTo: 'PRERNA Sanctuary Explorer', role: 'teen', allowMultiDevice: true },
-      'PRERNA2026': { assignedTo: 'PRERNA Sanctuary Explorer', role: 'teen', allowMultiDevice: true },
-      'PILOT2026': { assignedTo: 'Cohort 1 Pilot Explorer', role: 'teen', allowMultiDevice: true },
-      'DEMO2026': { assignedTo: 'PRERNA Sanctuary Reviewer', role: 'teen', allowMultiDevice: true },
-      'PRERNA-H1-CLINICAL': { assignedTo: 'Dr. Clinical Reviewer (Ticket H1)', role: 'adult' },
-      'PRERNA-H2-PRIVACY': { assignedTo: 'Adv. Privacy Specialist (Ticket H2)', role: 'adult' },
-      'PRERNA-H3-CULTURAL': { assignedTo: 'Hindi Typology Specialist (Ticket H3)', role: 'adult' },
-      'PRERNA-H4-LEXILE': { assignedTo: 'Youth Reading Specialist (Ticket H4)', role: 'adult' },
-      'VIDYAPEETH-PILOT-01': { assignedTo: 'VidyaPeeth School Counselor', role: 'educator' },
-      'PRERNA-TEEN-BETA': { assignedTo: 'Cohort 1 Teen Explorer', role: 'teen' },
-      'PRERNATEENBETA': { assignedTo: 'Cohort 1 Teen Explorer', role: 'teen' },
-      'PRERNA-DEMO-2026': { assignedTo: 'PRERNA Sanctuary Reviewer', role: 'teen', allowMultiDevice: true },
-      'PRERNADEMO2026': { assignedTo: 'PRERNA Sanctuary Reviewer', role: 'teen', allowMultiDevice: true }
-    };
-
-    const localMatch = LOCAL_ALLOWLIST[token] || LOCAL_ALLOWLIST[cleanToken];
-
-    // 1. Live Supabase Verification with Hardware Binding
+    // 1. Authoritative Live Supabase Verification with Hardware Binding & Rate Limiting (H-18, H-22)
     if (this.isConfigured() && this.client) {
       try {
-        // Try stored procedure RPC first (atomic & secure with Row Level Security)
         const { data, error } = await this.client.rpc('verify_beta_token', {
           input_token: token,
           input_device_id: deviceId
         });
 
-        if (!error && data) {
-          const res = typeof data === 'string' ? JSON.parse(data) : data;
-          if (res.valid) {
-            return {
-              valid: true,
-              assignedTo: res.assigned_to,
-              role: res.role || 'teen',
-              boundToDevice: true,
-              message: `Welcome, ${res.assigned_to}! Access verified and locked to this device.`
-            };
-          }
-          // Founder & Multi-Device keys are permanently valid across founder's devices
-          if (localMatch?.allowMultiDevice) {
-            return {
-              valid: true,
-              assignedTo: localMatch.assignedTo,
-              role: localMatch.role,
-              boundToDevice: true,
-              message: `Welcome, ${localMatch.assignedTo}! Access verified (Founder Multi-Device Pass).`
-            };
-          }
-          // If remote RPC did not recognize token and not in local allowlist, return the error
-          if (!localMatch) {
-            return { valid: false, message: res.message || 'Token is invalid, expired, or claimed on another device.' };
-          }
+        if (error) {
+          console.warn('[Supabase] RPC verification error:', error);
+          return {
+            valid: false,
+            message: error.message || 'Token verification service unavailable. Please try again.'
+          };
         }
 
-        // Direct table fallback if RPC is not yet created
-        const { data: row, error: tableErr } = await this.client
-          .from('beta_access_tokens')
-          .select('*')
-          .ilike('token', token)
-          .eq('is_active', true)
-          .single();
-
-        if (!tableErr && row) {
-          // Check expiration
-          if (row.expires_at && new Date(row.expires_at).getTime() < Date.now()) {
-            return { valid: false, message: 'This beta access token has expired.' };
-          }
-
-          // Anti-Oversharing Defense: Device Lock check (enforced strictly on single-use tokens)
-          const isSingleUse = !row.max_uses || row.max_uses === 1;
-          if (isSingleUse && row.claimed_device_id && row.claimed_device_id !== deviceId) {
+        if (data) {
+          const res = typeof data === 'string' ? JSON.parse(data) : data;
+          if (res.valid) {
+            const role = res.role || 'teen';
+            const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
             return {
-              valid: false,
-              message: 'Security Alert: This single-use invitation has already been claimed on another device.'
+              valid: true,
+              assignedTo: res.assigned_to || `Pilot Participant (${roleLabel})`,
+              role,
+              boundToDevice: true,
+              message: `Welcome! Access verified and securely bound to this device.`
             };
           }
 
-          // Check max uses
-          if (row.max_uses && row.times_used >= row.max_uses && row.claimed_device_id !== deviceId) {
-            return { valid: false, message: 'This invitation link has reached its maximum allowed redemptions.' };
-          }
-
-          // Atomically bind to current device if first claim on a single-use token
-          await this.client
-            .from('beta_access_tokens')
-            .update({
-              times_used: (row.times_used || 0) + 1,
-              claimed_device_id: isSingleUse ? (row.claimed_device_id || deviceId) : null
-            })
-            .eq('id', row.id);
-
+          // Authoritative server rejection: token expired, invalid, revoked, or throttled
           return {
-            valid: true,
-            assignedTo: row.assigned_to,
-            role: row.role || 'teen',
-            boundToDevice: true,
-            message: `Welcome, ${row.assigned_to}! Access verified and bound to this device.`
+            valid: false,
+            message: res.message || 'Token is invalid, expired, or claimed on another device.'
           };
         }
       } catch (e: any) {
-        console.error('[Supabase] Token verification error:', e);
+        console.error('[Supabase] Token verification network exception:', e);
+        return {
+          valid: false,
+          message: 'Unable to reach the verification server. Please verify your internet connection.'
+        };
       }
     }
 
-    // 2. Sovereign Local Fallback (Development, Offline Mode & Founder Keys)
-    if (localMatch) {
-      const info = localMatch;
-      
-      // Enforce local single-device binding in development mock
-      const claimKey = `prerna_claimed_dev_${token}`;
-      const existingClaim = localStorage.getItem(claimKey);
-      if (existingClaim && existingClaim !== deviceId && !info.allowMultiDevice) {
+    // 2. Offline / Development Fallback ONLY when Supabase cloud is not configured
+    if (!this.isConfigured()) {
+      if (token === 'DEMO-2026' || token === 'PRERNA-DEMO-2026') {
         return {
-          valid: false,
-          message: 'Security Notice: This token was already claimed by another browser session.'
+          valid: true,
+          assignedTo: 'Offline Development Explorer',
+          role: 'teen',
+          boundToDevice: true,
+          message: 'Access granted (Offline Development Fallback).',
+          isMockFallback: true
         };
       }
-      localStorage.setItem(claimKey, deviceId);
-
       return {
-        valid: true,
-        assignedTo: info.assignedTo,
-        role: info.role,
-        boundToDevice: true,
-        message: `Welcome, ${info.assignedTo}! Access granted (Local Sovereign Passcode).`,
-        isMockFallback: true
+        valid: false,
+        message: 'Verification service offline. Please configure VITE_SUPABASE_URL or use DEMO-2026.'
       };
     }
 
     return {
       valid: false,
-      message: this.isConfigured()
-        ? 'Invalid beta access token. Please contact Harsh Kumar Gupta.'
-        : 'Invalid token. (Supabase cloud not connected; accepted local passcodes include PRERNA-FOUNDER-2026 or PRERNA-DEMO-2026).'
+      message: 'Invalid beta access token.'
     };
   }
 
@@ -284,7 +205,7 @@ class SovereignSupabaseService {
       } catch {}
       return { 
         success: true, 
-        message: 'Request saved! (Offline fallback mode: please also email hrslsha007@gmail.com for expedited pass).' 
+        message: 'Request saved! (Offline mode: please contact the PRERNA team for an expedited invitation).' 
       };
     }
 
@@ -297,7 +218,6 @@ class SovereignSupabaseService {
           purpose: request.purpose.trim(),
           organization: request.organization?.trim() || null,
           discovery_source: request.discoverySource || 'GitHub / Web',
-          created_at: new Date().toISOString()
         }
       ]);
 

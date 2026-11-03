@@ -95,7 +95,7 @@ export const BetaFeedbackModal: React.FC<BetaFeedbackModalProps> = ({ isOpen, on
       userPersona: user?.role || 'teen',
       totalEntries: feedbacks.length,
       feedbacks,
-      dataPrivacyNotice: '100% on-device zero telemetry export per India DPDP Act 2023 Section 9.',
+      dataPrivacyNotice: 'Sovereign pilot feedback export. Contains user ratings and improvement suggestions. Never includes personal journals, clinical responses, or psychometric assessment data (India DPDP Act 2023 Section 9).',
     };
 
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -131,7 +131,7 @@ export const BetaFeedbackModal: React.FC<BetaFeedbackModalProps> = ({ isOpen, on
                     Cohort v0.1
                   </span>
                 </h3>
-                <p className="text-xs text-indigo-200/80">100% On-Device • Zero Telemetry • DPDP §9 Protected</p>
+                <p className="text-xs text-indigo-200/80">Sovereign Feedback • Non-Identifiable • DPDP §9 Compliant</p>
               </div>
             </div>
             <button
@@ -145,10 +145,10 @@ export const BetaFeedbackModal: React.FC<BetaFeedbackModalProps> = ({ isOpen, on
           {/* Body */}
           <div className="p-6 overflow-y-auto space-y-6 flex-grow">
             {/* DPDP Section 9 Invariant Callout */}
-            <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-start gap-2.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-2xl bg-indigo-50 border border-indigo-200 text-indigo-900 text-xs flex items-start gap-2.5">
+              <ShieldCheck className="w-4 h-4 text-indigo-600 flex-shrink-0 mt-0.5" />
               <div>
-                <span className="font-bold">Zero-Cloud Telemetry Guarantee:</span> Feedback entered here is never transmitted to any cloud servers or third parties. It is stored securely on your local device only. You can download the JSON export to share voluntarily with Harsh Kumar Gupta.
+                <span className="font-bold">Sovereign Pilot Feedback Disclosure:</span> Feedback entered here (category, ratings, and improvement suggestions) is stored locally and synced to our sovereign Supabase feedback table to improve the pilot. No personal journals, psychological traits, or chat transcripts are ever transmitted or stored in the cloud. You can also download the JSON export to share voluntarily.
               </div>
             </div>
 

@@ -17,6 +17,7 @@ import { somaticAudio } from './utils/audioSynthesis';
 import { usePartnerStore } from './store/partnerStore';
 import { useAppStore } from './store';
 import { PrivateBetaGate } from './components/gate/PrivateBetaGate';
+import { sovereignSupabase, BetaTokenVerificationResult } from './utils/supabaseClient';
 
 // Lazy-loaded Persona Dashboards & Modular Subsystems
 const AdultDashboard = lazy(() => import('./components/adult/AdultDashboard').then(m => ({ default: m.AdultDashboard })));
@@ -87,8 +88,24 @@ function App() {
                            window.location.hash.includes('access=') ||
                            window.location.hash.includes('code=');
     if (hasInviteParam) return false;
-    return Boolean(localStorage.getItem('prerna_beta_access_token'));
+    const token = localStorage.getItem('prerna_beta_access_token');
+    const grantee = localStorage.getItem('prerna_beta_grantee');
+    return Boolean(token && grantee && token.trim().length >= 8);
   });
+
+  // Revalidate stored beta token against server on mount (H-18: enforce server-side revocation)
+  useEffect(() => {
+    const token = localStorage.getItem('prerna_beta_access_token');
+    if (token && sovereignSupabase.isConfigured()) {
+      sovereignSupabase.verifyToken(token).then((res: BetaTokenVerificationResult) => {
+        if (!res.valid) {
+          localStorage.removeItem('prerna_beta_access_token');
+          localStorage.removeItem('prerna_beta_grantee');
+          setHasBetaAccess(false);
+        }
+      }).catch(() => {});
+    }
+  }, []);
   const { connection: partnerConnection } = usePartnerStore();
 
   const handleRoleAuthorize = (targetRole: 'teen' | 'adult' | 'parent' | 'educator') => {

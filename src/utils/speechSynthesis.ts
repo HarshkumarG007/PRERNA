@@ -54,11 +54,16 @@ class SovereignVoiceNarrator {
 
   /**
    * Finds the most culturally resonant voice for the given language.
-   * Prioritizes en-IN / hi-IN specific Indian accents where available.
+   * Prioritizes en-IN / hi-IN specific Indian accents where available,
+   * strictly preferring on-device local voices (localService === true) to prevent cloud voice egress (M-19).
    */
   private findBestVoice(lang: string): SpeechSynthesisVoice | null {
-    const voices = this.getAvailableVoices();
-    if (voices.length === 0) return null;
+    const allVoices = this.getAvailableVoices();
+    if (allVoices.length === 0) return null;
+
+    // Filter for local on-device synthesis voices first to prevent off-device data egress
+    const localVoices = allVoices.filter(v => v.localService === true);
+    const voices = localVoices.length > 0 ? localVoices : allVoices;
 
     if (lang === 'hi-IN') {
       // Prioritize Hindi voices

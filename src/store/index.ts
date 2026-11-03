@@ -254,10 +254,14 @@ export const useAppStore = create<AppState>()(
           }
           
           if (user) {
-            const savedRole = (localStorage.getItem('prerna_user_role') || undefined) as User['role'];
+            // Security Invariant (H-18): Authenticated user.role from backend is authoritative.
+            // Never allow client-side role escalation to 'reviewer' or 'educator' via localStorage.
+            const savedRole = localStorage.getItem('prerna_user_role');
+            const safeSavedRole = (savedRole === 'reviewer' || savedRole === 'educator') ? undefined : (savedRole as User['role'] | undefined);
+            const effectiveRole = user.role || safeSavedRole || 'teen';
             const normalizedUser: User = {
               ...user,
-              role: user.role || savedRole,
+              role: effectiveRole,
               ageRange: user.ageRange || user.age_range,
               createdAt: user.createdAt || user.created_at,
               hasCompletedQuestionnaire: user.hasCompletedQuestionnaire ?? user.has_completed_questionnaire ?? false,
@@ -288,10 +292,14 @@ export const useAppStore = create<AppState>()(
           const targetId = userId || localStorage.getItem('prerna_last_user') || 'demo-teen-001';
           const user = await invoke<any>('authenticate_pin', { userId: targetId, pin });
           if (user) {
-            const savedRole = (localStorage.getItem('prerna_user_role') || undefined) as User['role'];
+            // Security Invariant (H-18): Authenticated user.role from backend is authoritative.
+            // Never allow client-side role escalation to 'reviewer' or 'educator' via localStorage.
+            const savedRole = localStorage.getItem('prerna_user_role');
+            const safeSavedRole = (savedRole === 'reviewer' || savedRole === 'educator') ? undefined : (savedRole as User['role'] | undefined);
+            const effectiveRole = user.role || safeSavedRole || 'teen';
             const normalizedUser: User = {
               ...user,
-              role: user.role || savedRole,
+              role: effectiveRole,
               ageRange: user.ageRange || user.age_range,
               createdAt: user.createdAt || user.created_at,
               hasCompletedQuestionnaire: user.hasCompletedQuestionnaire ?? user.has_completed_questionnaire ?? false,

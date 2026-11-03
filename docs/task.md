@@ -744,6 +744,29 @@
 - [x] **WP10-4** `CHILD_SAFETY_POLICY.md`: Codification of the Seven Inviolable Clinical Safety Invariants (Rule 0.1 through Rule 0.7), 180-day helpline freshness SLA, and unstaffed operating mode disclosures.
 - [x] **WP10-5** `TESTING_STRATEGY.md`: Test pyramid architecture documenting 51 Rust invariant tests, 230 Vitest suites across 47 files, CI/CD quality gates, and local reproduction workflows.
 
+### Work Package WP-S — Audit Addendum 1 & Supabase Cloud Gate Hardening (`H-18`–`H-22`, `M-18`, `M-19`)
+- [x] **WP-S-1** Restore Native Tauri Content-Security-Policy (`H-20`):
+  - Re-enabled strict CSP in `src-tauri/tauri.conf.json` (`default-src 'self'`, `script-src 'self'`, `connect-src 'self' ipc: http://ipc.localhost https://*.supabase.co wss://*.supabase.co`, `img-src 'self' data: blob:`, `style-src 'self' 'unsafe-inline'`, `font-src 'self' data:`).
+  - Cleaned `index.html` inline script into `src/main.tsx` module to enforce zero `'unsafe-inline'` script requirements.
+- [x] **WP-S-2** Truthful Pilot Feedback & Zero-Cloud Telemetry Copy (`H-21`):
+  - Corrected `BetaFeedbackModal.tsx` to transparently disclose that feedback ratings and improvement suggestions are transmitted to sovereign Supabase feedback table while personal journals and psychometrics remain strictly on-device.
+  - Aligned JSON export data privacy notice to cite DPDP Section 9 non-identifiable feedback parameters.
+  - Aligned `docs/releases/v1.2.1.md` and `docs/school-counselor-pilot-handbook.md`.
+- [x] **WP-S-3** Server-Authoritative Beta Access Gate & Token Verifier (`H-18`, `H-22`):
+  - Removed client-side 22-token `LOCAL_ALLOWLIST` in `src/utils/supabaseClient.ts` to ensure server-side revocation cannot be bypassed.
+  - Updated verification client to expect hardened `{ valid, role }` schema without leaking applicant PII.
+  - Guarded `src/App.tsx` against arbitrary string bypass and added background token re-validation on launch.
+  - Enforced server-authoritative role binding in `src/store/index.ts` to block client-side privilege escalation to `reviewer` or `educator` via `localStorage`.
+  - Omitted `created_at` from `beta_access_requests` insert to comply with PostgreSQL column-level grants.
+  - Staged `docs/supabase-gate-hardening.sql` and `docs/migrations/001_supabase_gate_hardening.sql`.
+- [x] **WP-S-4** Realtime Relay Isolation (`H-19`):
+  - Removed unsupported "E2EE relay" comments in `src/utils/realtimeSync.ts`.
+  - Kept cloud WebSocket publishing unplugged and restricted subscriptions to local `BroadcastChannel` pending authenticating device-to-device E2EE key exchange.
+- [x] **WP-S-5** Prune Over-Broad Android Permissions (`M-18`):
+  - Removed `READ_EXTERNAL_STORAGE`, `WRITE_EXTERNAL_STORAGE`, and `READ_MEDIA_IMAGES` from `src-tauri/gen/android/app/src/main/AndroidManifest.xml`.
+- [x] **WP-S-6** Enforce Local On-Device TTS Voices (`M-19`):
+  - Prioritized `voice.localService === true` in `src/utils/speechSynthesis.ts` to eliminate voice data egress to remote cloud TTS servers.
+
 ---
 
 ## Ongoing (Every Release)

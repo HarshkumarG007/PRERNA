@@ -32,6 +32,12 @@ try {
         }
       }).catch(() => {});
     }
+  } else if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js?v=4').then((reg) => {
+        reg.update().catch(() => {});
+      }).catch(() => {});
+    });
   }
 } catch {}
 

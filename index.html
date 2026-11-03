@@ -5,28 +5,13 @@
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' data: blob:; font-src 'self' data:; object-src 'none'; base-uri 'self';" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' data: blob: https://*.supabase.co wss://*.supabase.co ipc: http://ipc.localhost; font-src 'self' data:; object-src 'none'; base-uri 'self';" />
     <title>PRERNA | प्रेरणा • Adolescent Self-Discovery &amp; Wellbeing Sanctuary</title>
     <meta name="description" content="Local-first AI mentorship, psychometrics, and wellbeing guidance for Indian adolescents." />
     <meta name="theme-color" content="#0B0F1E" />
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <script>
-      // Only register PWA Service Worker on public production web hosts (not inside native Tauri WebViews)
-      (function() {
-        var isLocal = window.location.hostname === 'localhost' || 
-                      window.location.hostname === 'tauri.localhost' || 
-                      window.location.hostname === '127.0.0.1';
-        if (!isLocal && 'serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
-          window.addEventListener('load', function() {
-            navigator.serviceWorker.register('./sw.js?v=4').then(function(reg) {
-              reg.update().catch(function() {});
-            }).catch(function() {});
-          });
-        }
-      })();
-    </script>
   </head>
 
   <body style="margin: 0; background-color: #070A14; color: #E2E8F0; overflow-x: hidden;">

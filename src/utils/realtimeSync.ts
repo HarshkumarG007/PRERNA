@@ -1,18 +1,19 @@
 /**
  * PRERNA • Sovereign Real-Time Synchronization Engine
  * 
- * Manages dual-channel real-time sync for:
- * 1. Teen <-> Parent Shared Wellbeing Window (DPDP Act 2023 §9 compliant)
- * 2. Partner <-> Partner Sanctuary (Lovers & Besties E2EE Realtime Relay)
+ * Manages local real-time synchronization for:
+ * 1. Teen <-> Parent Shared Wellbeing Window (Local broadcast)
+ * 2. Partner <-> Partner Sanctuary (Local broadcast)
  * 
  * Transport Layers:
- * - Local Layer: HTML5 BroadcastChannel (Zero-network, instant multi-tab sync)
- * - Cloud Relay Layer: Supabase Realtime WebSockets (Free-tier blind relay, <100ms cross-device)
- * - Sovereign Invariant: Cloud acts purely as an ephemeral relay; zero minor journals, 
- *   raw chats, or sensitive data are stored unencrypted in the cloud.
+ * - Local Layer: HTML5 BroadcastChannel (Zero-network, instant multi-tab/same-device sync)
+ * - Cloud Relay Layer: Intentionally UNPLUGGED per Audit Addendum 1 (H-19) until
+ *   cryptographic device-to-device end-to-end encryption (E2EE) and authenticated
+ *   private channels are implemented.
+ * - Sovereign Invariant: Zero minor journals, psychometrics, or private relationship
+ *   events are ever broadcast in plaintext to unauthenticated public cloud channels.
  */
 
-import { sovereignSupabase } from './supabaseClient';
 import { ParentSafeProfile } from '../parent/permissions';
 
 export interface SyncMessage<T = any> {
@@ -44,6 +45,7 @@ class SovereignRealtimeSyncService {
 
   /**
    * Teen device publishes a consent-screened wellbeing snapshot to the paired parent.
+   * Broadcasts locally via BroadcastChannel. Cloud broadcast is kept unplugged per H-19.
    */
   public publishTeenParentUpdate(teenId: string, profile: Partial<ParentSafeProfile>): void {
     const channelId = `sync_pair_${teenId.trim()}`;
@@ -58,8 +60,7 @@ class SovereignRealtimeSyncService {
     // 1. Broadcast locally (for same-device / multi-tab parent testing)
     this.broadcastLocal(message);
 
-    // 2. Broadcast via Supabase Realtime (for cross-device phone-to-laptop sync)
-    this.broadcastCloud(channelId, 'parent_update', message);
+    // 2. Cloud broadcast is disabled per H-19 until authenticated E2EE is implemented
   }
 
   /**
@@ -89,26 +90,10 @@ class SovereignRealtimeSyncService {
       this.localBus.addEventListener('message', localHandler);
     }
 
-    // Listen on Supabase Realtime WebSocket Channel
-    let cloudChannel: any = null;
-    const realtime = sovereignSupabase.getRealtimeChannel(channelId);
-    if (realtime) {
-      cloudChannel = realtime
-        .on('broadcast', { event: 'parent_update' }, (response: any) => {
-          if (response?.payload) {
-            handleMessage(response.payload);
-          }
-        })
-        .subscribe();
-    }
-
     // Return cleanup function
     return () => {
       if (this.localBus) {
         this.localBus.removeEventListener('message', localHandler);
-      }
-      if (cloudChannel) {
-        cloudChannel.unsubscribe();
       }
     };
   }
@@ -119,6 +104,7 @@ class SovereignRealtimeSyncService {
 
   /**
    * Partner device publishes an interaction event (prompt answered, bucket item checked, etc.)
+   * Broadcasts locally via BroadcastChannel. Cloud broadcast is kept unplugged per H-19.
    */
   public publishPartnerEvent(pairingCode: string, eventType: string, eventData: any): void {
     const cleanCode = pairingCode.toUpperCase().replace(/[\s-]+/g, '');
@@ -138,8 +124,7 @@ class SovereignRealtimeSyncService {
     // 1. Broadcast locally
     this.broadcastLocal(message);
 
-    // 2. Broadcast via Supabase Realtime
-    this.broadcastCloud(channelId, 'partner_delta', message);
+    // 2. Cloud broadcast is disabled per H-19 until authenticated E2EE is implemented
   }
 
   /**
@@ -168,24 +153,9 @@ class SovereignRealtimeSyncService {
       this.localBus.addEventListener('message', localHandler);
     }
 
-    let cloudChannel: any = null;
-    const realtime = sovereignSupabase.getRealtimeChannel(channelId);
-    if (realtime) {
-      cloudChannel = realtime
-        .on('broadcast', { event: 'partner_delta' }, (response: any) => {
-          if (response?.payload) {
-            handleMessage(response.payload);
-          }
-        })
-        .subscribe();
-    }
-
     return () => {
       if (this.localBus) {
         this.localBus.removeEventListener('message', localHandler);
-      }
-      if (cloudChannel) {
-        cloudChannel.unsubscribe();
       }
     };
   }
@@ -200,21 +170,6 @@ class SovereignRealtimeSyncService {
         this.localBus.postMessage(message);
       } catch (err) {
         console.warn('[Sync] Local broadcast failed:', err);
-      }
-    }
-  }
-
-  private broadcastCloud(channelId: string, eventName: string, message: SyncMessage): void {
-    const channel = sovereignSupabase.getRealtimeChannel(channelId);
-    if (channel) {
-      try {
-        channel.send({
-          type: 'broadcast',
-          event: eventName,
-          payload: message,
-        });
-      } catch (err) {
-        console.warn('[Sync] Supabase Realtime broadcast failed:', err);
       }
     }
   }

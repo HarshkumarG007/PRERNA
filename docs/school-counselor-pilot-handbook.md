@@ -16,9 +16,9 @@ PRERNA (प्रेरणा) is engineered to operationalize the mandate of th
 
 Under the **VidyaPeeth B2B Institutional Tier (₹49,999/yr + 18% GST)**:
 - **Campus Capacity**: 1,500 active student seats per license.
-- **GST Compliance**: Tax invoice issued under SAC Code 998431 (Educational Support Services).
+- **Tax Invoice Specification (Sample Pilot)**: Sample tax invoice issued under SAC Code 998431 (Educational Support Services; pilot demonstration pending formal registration).
 - **Zero-Cloud Student Data**: Student journal entries and psychometric assessments are stored strictly on student devices or local SQLite databases.
-- **Differential Privacy ($k \ge 5$)**: The school administration portal suppresses any cohort metric where fewer than 5 students share a trait or vulnerability, mathematically preventing student re-identification.
+- **Differential Privacy & Differencing Attack Defense**: The school administration portal injects calibrated Laplace noise ($\epsilon = 1.0$) into average wellbeing metrics, enforces small-cell suppression ($\tau = 3$), and actively blocks differencing queries ($|Q_{new} \Delta Q_{past}| < 5$) to mathematically prevent student re-identification.
 
 ---
 
