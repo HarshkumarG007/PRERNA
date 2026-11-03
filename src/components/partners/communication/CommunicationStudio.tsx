@@ -8,10 +8,110 @@ import {
   Send, 
   Flame,
   Volume2,
-  VolumeX
+  VolumeX,
+  ShieldAlert,
+  PhoneCall
 } from 'lucide-react';
 import { usePartnerStore } from '../../../store/partnerStore';
 import { somaticAudio } from '../../../utils/audioSynthesis';
+import { evaluateCrisisPatterns } from '../../../engine/crisis/patternDetection';
+
+export interface NvcBreakdown {
+  isCrisis: boolean;
+  crisisMessage?: string;
+  observation: string;
+  feeling: string;
+  need: string;
+  request: string;
+  fullMessage: string;
+}
+
+/**
+ * Context-preserving Nonviolent Communication (NVC) generator per Marshall Rosenberg & Gottman principles.
+ * Strictly checks for clinical distress, abuse, or domestic threats first (Audit M-07 / Rule 0.1).
+ */
+export function generateNvcReframe(rawText: string): NvcBreakdown {
+  const trimmed = rawText.trim();
+  const distress = evaluateCrisisPatterns(trimmed);
+
+  if (distress.flagged) {
+    const isAbuse = distress.reason?.toLowerCase().includes('abuse') || distress.reason?.toLowerCase().includes('threat');
+    return {
+      isCrisis: true,
+      crisisMessage: isAbuse
+        ? 'Clinical Safety Notice: If you are experiencing domestic intimidation, violence, coercion, or relationship abuse, nonviolent reframing is not safe or suitable. Your physical and emotional safety is the absolute priority. Please reach out to emergency helplines immediately: National Emergency 112, National Commission for Women (NCW) Helpline 7827170170 / 1091, or Tele-MANAS 14416.'
+        : 'Crisis Safety Notice: Severe distress or self-harm indicators were detected. Please know you are not alone and professional support is available right now: call National Emergency 112 or Tele-MANAS 14416 / 1800-891-4416 (24/7 free mental health counseling).',
+      observation: '',
+      feeling: '',
+      need: '',
+      request: '',
+      fullMessage: '',
+    };
+  }
+
+  const lower = trimmed.toLowerCase();
+  let observation = '';
+  let feeling = '';
+  let need = '';
+  let request = '';
+
+  if (lower.includes('phone') || lower.includes('screen') || lower.includes('scroll') || lower.includes('instagram')) {
+    observation = 'When we are spending time together and our phones or screens are out';
+    feeling = 'I feel disconnected and lonely';
+    need = 'because having undivided, focused presence with you matters so much to me';
+    request = 'Would you be open to putting our phones on silent and enjoying 30 minutes of uninterrupted connection together?';
+  } else if (lower.includes('clean') || lower.includes('chore') || lower.includes('mess') || lower.includes('dish') || lower.includes('laundry')) {
+    observation = 'When chores and household tasks accumulate without a shared plan';
+    feeling = 'I feel exhausted and overwhelmed';
+    need = 'because I need equal teamwork and mutual consideration to feel relaxed in our shared home';
+    request = 'Could we put on some music and spend 15 minutes tackling these tasks together as partners?';
+  } else if (lower.includes('late') || lower.includes('cancel') || lower.includes('delay') || lower.includes('plan')) {
+    observation = 'When plans we made are changed or delayed at the last minute';
+    feeling = 'I feel unsettled and anxious';
+    need = 'because predictability and honoring commitments help me feel secure and valued in our relationship';
+    request = 'In the future, could you give me a brief heads-up as soon as you know your schedule might shift?';
+  } else if (lower.includes('listen') || lower.includes('interrupt') || lower.includes('talk over') || lower.includes('hear me')) {
+    observation = 'When I am sharing something on my mind and get interrupted or feel unheard';
+    feeling = 'I feel frustrated and invisible';
+    need = 'because feeling emotionally heard and received is essential for my sense of closeness with you';
+    request = 'Would you be willing to listen to me for just 3 minutes without giving advice, just letting me know you hear me?';
+  } else if (lower.includes('money') || lower.includes('spend') || lower.includes('budget') || lower.includes('cost') || lower.includes('expense')) {
+    observation = 'When unexpected expenses or financial decisions happen without a joint discussion';
+    feeling = 'I feel anxious and uncertain about our future';
+    need = 'because transparency and mutual agreement around finances give me a sense of security and trust';
+    request = 'Could we sit down this weekend with a warm drink and do a gentle 20-minute financial alignment check-in?';
+  } else if (lower.includes('tone') || lower.includes('yell') || lower.includes('shout') || lower.includes('snap') || lower.includes('harsh')) {
+    observation = 'When our voices get raised or harsh tones are used in our conversation';
+    feeling = 'I feel guarded, frightened, and shut down';
+    need = 'because I need gentleness and emotional safety in order to stay open and communicative with you';
+    request = 'Can we take a 10-minute pause to take some deep breaths, and then resume talking in a calmer tone?';
+  } else {
+    // Dynamic context preservation: cleanse accusatory absolutes while retaining substantive core
+    let sanitizedContext = trimmed
+      .replace(/\b(you always|you never|you constantly|you only|why do you always|why do you never|you don't even)\b/gi, '')
+      .replace(/\b(you are|you're)\b/gi, 'there is')
+      .replace(/\b(me)\b/gi, 'us')
+      .replace(/[!]+/g, '.')
+      .trim();
+    if (!sanitizedContext.endsWith('.')) sanitizedContext += '.';
+
+    observation = `When ${sanitizedContext.toLowerCase().replace(/^\./, '').trim() || 'situations like this occur'}`;
+    feeling = 'I feel vulnerable, heavy, and a little distant';
+    need = 'because emotional safety, mutual understanding, and clear communication are deeply important to me';
+    request = 'Would you be willing to sit down with me tonight for a quiet, gentle conversation so we can understand each other better?';
+  }
+
+  const fullMessage = `${observation}, ${feeling.toLowerCase()} ${need}. ${request}`;
+
+  return {
+    isCrisis: false,
+    observation,
+    feeling,
+    need,
+    request,
+    fullMessage,
+  };
+}
 
 export const CommunicationStudio: React.FC = () => {
   const { conversationPrompts, answerPrompt } = usePartnerStore();
@@ -32,7 +132,7 @@ export const CommunicationStudio: React.FC = () => {
 
   // NVC Re-framer state
   const [rawImpulsiveText, setRawImpulsiveText] = useState('');
-  const [reframedNvc, setReframedNvc] = useState<string | null>(null);
+  const [nvcBreakdown, setNvcBreakdown] = useState<NvcBreakdown | null>(null);
 
   // Gratitude Jar state
   const [gratitudes, setGratitudes] = useState<string[]>([
@@ -59,21 +159,8 @@ export const CommunicationStudio: React.FC = () => {
   const handleReframing = () => {
     if (!rawImpulsiveText.trim()) return;
     somaticAudio.playSoftChime();
-
-    const lower = rawImpulsiveText.toLowerCase();
-    let reframe = '';
-
-    if (lower.includes('never') || lower.includes('always')) {
-      reframe = `I notice that when plans change, I feel anxious and disconnected because consistency and predictability are important to me. Would you be open to giving me a quick heads-up next time?`;
-    } else if (lower.includes('listen') || lower.includes('phone') || lower.includes('busy')) {
-      reframe = `I really treasure our time together, and when phones are out during dinner, I feel a bit lonely. Could we do 30 minutes of uninterrupted screen-free time tonight?`;
-    } else if (lower.includes('chore') || lower.includes('clean') || lower.includes('mess')) {
-      reframe = `I feel overwhelmed by the housework right now and I need support to keep our sanctuary calm. Could we divide these tasks together for 15 minutes?`;
-    } else {
-      reframe = `When this happened, I felt vulnerable because my need for emotional reassurance was heightened. I love you and would appreciate holding space for a quiet conversation about this.`;
-    }
-
-    setReframedNvc(reframe);
+    const result = generateNvcReframe(rawImpulsiveText);
+    setNvcBreakdown(result);
   };
 
   const handleAddGratitude = () => {
@@ -304,47 +391,130 @@ export const CommunicationStudio: React.FC = () => {
             </button>
           </div>
 
-          {reframedNvc && (
-            <div className="p-6 rounded-2xl bg-emerald-50 border-2 border-emerald-200/80 space-y-3 animate-fade-in">
-              <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                Reframed Compassionate Message:
-              </span>
-              <p className="text-sm font-semibold text-emerald-950 italic leading-relaxed">
-                "{reframedNvc}"
+          {/* Clinical Distress / Abuse Emergency Warning Banner */}
+          {nvcBreakdown?.isCrisis && (
+            <div className="p-6 rounded-3xl bg-rose-50 border-2 border-rose-300 space-y-4 animate-fade-in text-rose-950">
+              <div className="flex items-center gap-2.5 text-rose-800">
+                <ShieldAlert size={22} className="flex-shrink-0" />
+                <h5 className="text-sm font-black uppercase tracking-wider">
+                  Safety & Emergency Protocol Alert
+                </h5>
+              </div>
+              <p className="text-xs leading-relaxed font-medium">
+                {nvcBreakdown.crisisMessage}
               </p>
-              <div className="pt-2 flex flex-wrap items-center gap-2 text-xs">
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(reframedNvc);
-                    somaticAudio.playSoftChime();
-                    alert('Copied reframed message to clipboard!');
-                  }}
-                  className="px-3 py-1.5 bg-white border border-emerald-300 rounded-lg text-emerald-800 font-bold hover:bg-emerald-100 transition-colors cursor-pointer"
+              <div className="pt-2 flex flex-wrap gap-2 text-xs font-bold">
+                <a
+                  href="tel:112"
+                  className="px-4 py-2 bg-rose-600 text-white rounded-xl flex items-center gap-1.5 shadow-sm hover:bg-rose-700 transition-colors"
                 >
-                  Copy to Share
-                </button>
+                  <PhoneCall size={14} /> Call 112 (National Emergency)
+                </a>
+                <a
+                  href="tel:14416"
+                  className="px-4 py-2 bg-white border border-rose-300 text-rose-900 rounded-xl flex items-center gap-1.5 hover:bg-rose-100 transition-colors"
+                >
+                  <PhoneCall size={14} /> Tele-MANAS (14416)
+                </a>
+                <a
+                  href="tel:7827170170"
+                  className="px-4 py-2 bg-white border border-rose-300 text-rose-900 rounded-xl flex items-center gap-1.5 hover:bg-rose-100 transition-colors"
+                >
+                  <PhoneCall size={14} /> NCW Helpline (7827170170)
+                </a>
+              </div>
+            </div>
+          )}
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (isSpeakingReframe) {
-                      somaticAudio.stopSpeaking();
-                      setIsSpeakingReframe(false);
-                    } else {
-                      setIsSpeakingReframe(true);
-                      somaticAudio.speakText(reframedNvc, () => setIsSpeakingReframe(false));
-                    }
-                  }}
-                  className={`px-3 py-1.5 rounded-lg border font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${
-                    isSpeakingReframe
-                      ? 'bg-emerald-200 text-emerald-900 border-emerald-400 animate-pulse'
-                      : 'bg-white border-emerald-300 text-emerald-800 hover:bg-emerald-100'
-                  }`}
-                  title={isSpeakingReframe ? 'Stop audio' : 'Listen with Preeti voice'}
-                >
-                  {isSpeakingReframe ? <VolumeX size={14} /> : <Volume2 size={14} />}
-                  <span>{isSpeakingReframe ? 'Stop Audio' : 'Listen Cadence'}</span>
-                </button>
+          {/* Genuine 4-Step OFNR Breakdown & Reframed Message */}
+          {nvcBreakdown && !nvcBreakdown.isCrisis && (
+            <div className="space-y-4 animate-fade-in">
+              {/* 4-Step OFNR Model Breakdown */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-1">
+                  <div className="flex items-center gap-1.5 text-amber-900 font-black text-[11px] uppercase tracking-wider">
+                    <span>🌿 Step 1: Observation (तथ्य)</span>
+                  </div>
+                  <p className="text-slate-700 leading-relaxed text-[11px]">
+                    {nvcBreakdown.observation}
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-rose-50/70 border border-rose-200/80 space-y-1">
+                  <div className="flex items-center gap-1.5 text-rose-900 font-black text-[11px] uppercase tracking-wider">
+                    <span>🕊️ Step 2: Feeling (संवेदना)</span>
+                  </div>
+                  <p className="text-slate-700 leading-relaxed text-[11px]">
+                    {nvcBreakdown.feeling}
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-teal-50/70 border border-teal-200/80 space-y-1">
+                  <div className="flex items-center gap-1.5 text-teal-900 font-black text-[11px] uppercase tracking-wider">
+                    <span>⚓ Step 3: Universal Need (मूल आवश्यकता)</span>
+                  </div>
+                  <p className="text-slate-700 leading-relaxed text-[11px]">
+                    {nvcBreakdown.need}
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-indigo-50/70 border border-indigo-200/80 space-y-1">
+                  <div className="flex items-center gap-1.5 text-indigo-900 font-black text-[11px] uppercase tracking-wider">
+                    <span>🤝 Step 4: Actionable Request (अनुरोध)</span>
+                  </div>
+                  <p className="text-slate-700 leading-relaxed text-[11px]">
+                    {nvcBreakdown.request}
+                  </p>
+                </div>
+              </div>
+
+              {/* Complete Reframed Compassionate Statement */}
+              <div className="p-6 rounded-3xl bg-emerald-50 border-2 border-emerald-200/90 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    Reframed Compassionate Message (OFNR):
+                  </span>
+                  <span className="text-[10px] text-emerald-700 font-semibold hidden sm:inline">
+                    Marshall Rosenberg Model
+                  </span>
+                </div>
+                <p className="text-sm font-semibold text-emerald-950 italic leading-relaxed">
+                  "{nvcBreakdown.fullMessage}"
+                </p>
+                <div className="pt-2 flex flex-wrap items-center gap-2 text-xs">
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(nvcBreakdown.fullMessage);
+                      somaticAudio.playSoftChime();
+                      alert('Copied reframed message to clipboard!');
+                    }}
+                    className="px-3.5 py-1.5 bg-white border border-emerald-300 rounded-xl text-emerald-800 font-bold hover:bg-emerald-100 transition-colors cursor-pointer shadow-2xs"
+                  >
+                    Copy to Share
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isSpeakingReframe) {
+                        somaticAudio.stopSpeaking();
+                        setIsSpeakingReframe(false);
+                      } else {
+                        setIsSpeakingReframe(true);
+                        somaticAudio.speakText(nvcBreakdown.fullMessage, () => setIsSpeakingReframe(false));
+                      }
+                    }}
+                    className={`px-3.5 py-1.5 rounded-xl border font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs ${
+                      isSpeakingReframe
+                        ? 'bg-emerald-200 text-emerald-900 border-emerald-400 animate-pulse'
+                        : 'bg-white border-emerald-300 text-emerald-800 hover:bg-emerald-100'
+                    }`}
+                    title={isSpeakingReframe ? 'Stop audio' : 'Listen with Preeti voice'}
+                  >
+                    {isSpeakingReframe ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                    <span>{isSpeakingReframe ? 'Stop Audio' : 'Listen Cadence'}</span>
+                  </button>
+                </div>
               </div>
             </div>
           )}

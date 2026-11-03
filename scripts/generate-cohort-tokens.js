@@ -59,3 +59,4 @@ fs.writeFileSync(csvPath, csvRows.join('\n'), 'utf-8');
 console.log(`Successfully provisioned 78 closed beta tokens across 3 cohorts!`);
 console.log(`1. SQL Script: ${sqlPath}`);
 console.log(`2. Distribution Roster CSV: ${csvPath}`);
+

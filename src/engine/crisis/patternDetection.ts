@@ -107,6 +107,11 @@ export function evaluateTextDistress(text: string): { flagged: boolean; severity
 }
 
 /**
+ * Alias for evaluateTextDistress, matching WP7 clinical safety screening specifications.
+ */
+export const evaluateCrisisPatterns = evaluateTextDistress;
+
+/**
  * Evaluates a longitudinal sequence of mood valence scores (0 to 100).
  * Detects chronic depressive trajectory:
  * - 3 consecutive sessions in severe distress (<= 25).

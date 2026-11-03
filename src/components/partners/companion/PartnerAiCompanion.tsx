@@ -14,7 +14,8 @@ import {
   CloudRain,
   Bell,
   Wind,
-  Radio
+  Radio,
+  ShieldAlert
 } from 'lucide-react';
 import { usePartnerStore } from '../../../store/partnerStore';
 import { somaticAudio } from '../../../utils/audioSynthesis';
@@ -112,7 +113,7 @@ export const PartnerAiCompanion: React.FC = () => {
                 Preeti • प्रेरणा साथी
               </h3>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
-                Relationship AI Companion
+                Relationship AI Companion • Non-Clinical
               </span>
             </div>
             <p className="text-[11px] text-slate-500">
@@ -255,6 +256,19 @@ export const PartnerAiCompanion: React.FC = () => {
           <GraduationCap size={14} className={activeMode === 'learning' ? 'text-indigo-600' : ''} />
           <span>Mode 3: Wisdom & Masterclass</span>
         </button>
+      </div>
+
+      {/* AI Limits & Clinical Safety Disclosure Banner (Audit M-07 / Rule 0.1) */}
+      <div className="px-6 py-2.5 bg-amber-500/10 border-b border-amber-200/70 flex items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2 text-amber-900 leading-tight">
+          <ShieldAlert size={15} className="text-amber-700 flex-shrink-0" />
+          <p className="text-[11px] font-medium">
+            <strong className="font-bold">Educational Reflection Guide:</strong> Preeti is an automated educational reflection companion (non-clinical, scripted guidance). It is not a licensed therapist, clinical counselor, or medical provider. In an emergency or severe distress, call <strong className="font-bold text-amber-950">112</strong> (National Emergency) or <strong className="font-bold text-amber-950">14416</strong> (Tele-MANAS 24/7).
+          </p>
+        </div>
+        <span className="text-[10px] uppercase tracking-wider font-bold text-amber-800 bg-amber-200/80 px-2 py-0.5 rounded-md whitespace-nowrap hidden sm:inline">
+          Non-Clinical
+        </span>
       </div>
 
       {/* Mode Isolation Notice Banner */}

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { hashPasscode, verifyPasscode } from '../utils/cryptoVault';
+import { evaluateCrisisPatterns } from '../engine/crisis/patternDetection';
 
 export type RelationshipMode = 'lovers' | 'besties';
 export type RelationshipType = 'romantic_partner' | 'spouse' | 'dating' | 'best_friend' | 'soul_companion';
@@ -487,28 +488,50 @@ export const usePartnerStore = create<PartnerState>()(
           mode,
         };
 
-        // Empathetic companion response generation
+        // CLINICAL SAFETY INVARIANT (Audit M-07 / Rule 0.1):
+        // Screen all input text for suicidal ideation, self-harm, domestic violence, or abuse.
+        const distressCheck = evaluateCrisisPatterns(text);
         let reply = '';
-        const lower = text.toLowerCase();
-        if (mode === 'personal') {
-          if (lower.includes('hurt') || lower.includes('sad') || lower.includes('angry') || lower.includes('fight')) {
-            reply = 'I hear how heavy this feels. Before reacting, take a deep breath. Your feelings are completely valid. What unmet emotional need do you think is underneath this pain?';
-          } else if (lower.includes('love') || lower.includes('grateful') || lower.includes('happy')) {
-            reply = 'What a sacred, beautiful reflection. Taking a moment to honor positive affection nurtures long-term relational roots.';
+
+        if (distressCheck.flagged) {
+          if (distressCheck.reason?.toLowerCase().includes('abuse') || distressCheck.reason?.toLowerCase().includes('threat')) {
+            reply = 'I hear how difficult and distressing this situation is, and your physical and emotional safety must always come first. If you are experiencing intimidation, threats, or domestic violence, please reach out to these free, confidential emergency services immediately:\n\n• National Emergency Helpline: 112 (Immediate 24/7 Police, Medical, & Emergency Dispatch)\n• National Commission for Women (NCW) Helpline: 7827170170 or 1091 (24/7 Women in Distress & Abuse Support)\n• Tele-MANAS: 14416 or 1800-891-4416 (24/7 Mental Health Crisis Support)\n\nPreeti is an automated educational reflection companion and cannot intervene in emergencies or provide legal/clinical protection. Please connect with verified authorities or helplines right away.';
           } else {
-            reply = 'Thank you for sharing this private contemplation with me. Giving voice to your inner thoughts is the first step toward clear, authentic vulnerability.';
-          }
-        } else if (mode === 'shared') {
-          if (lower.includes('date') || lower.includes('weekend') || lower.includes('surprise')) {
-            reply = 'Here is a soulful idea: Plan an evening where one person plans the music and the other cooks a heritage recipe. Focus on uninterrupted eye contact and curious questions.';
-          } else if (lower.includes('misunderstanding') || lower.includes('conflict')) {
-            reply = 'Let’s reframe this together: Try sharing using "I feel... when... and what would help me feel connected is...". Avoid generalizations like "you always" or "you never".';
-          } else {
-            reply = 'Both of your perspectives are vital notes in the same symphony. When we listen with the intent to understand rather than to reply, understanding naturally flowers.';
+            reply = 'I can hear how much pain and overwhelm you are carrying right now. Please know you do not have to carry this alone, and compassionate professional support is available right now:\n\n• National Emergency Helpline: 112 (Pan-India 24/7 Immediate Emergency Services)\n• Tele-MANAS: 14416 or 1800-891-4416 (24/7 Free National Mental Health Helpline, Government of India)\n• Vandrevala Foundation: 9999 666 555 (24/7 Crisis Intervention & Emotional Counseling)\n\nPreeti is an educational reflection tool, not a therapist, psychiatrist, or crisis counselor. Please reach out to one of these free, confidential services immediately.';
           }
         } else {
-          // Learning mode
-          reply = 'According to relational science (Gottman & Marshall Rosenberg’s NVC), healthy couples do not avoid conflict—they master the art of the 5-minute repair attempt. A gentle smile or soft touch can de-escalate 80% of physiological stress.';
+          // Grounded, non-clinical educational reflection
+          const lower = text.toLowerCase();
+          if (mode === 'personal') {
+            if (lower.includes('hurt') || lower.includes('sad') || lower.includes('angry') || lower.includes('fight') || lower.includes('argument')) {
+              reply = 'I hear how heavy and tender this feels. Before responding, take three conscious breaths to let your nervous system settle. Relational psychology suggests that beneath anger or withdrawal, there is often a vulnerable, unmet need—such as reassurance, appreciation, or safety. What do you think your heart is asking for right now?';
+            } else if (lower.includes('space') || lower.includes('alone') || lower.includes('overwhelm') || lower.includes('tired')) {
+              reply = 'Honoring your need for restorative space is healthy, not selfish. You might share with your partner: "I care about you deeply. My nervous system is feeling overstimulated right now, so I need 30 minutes of quiet rest to recharge so I can be fully present with you."';
+            } else if (lower.includes('love') || lower.includes('grateful') || lower.includes('happy') || lower.includes('joy')) {
+              reply = 'What a beautiful reflection to pause upon. Relational research shows that consciously naming and savoring micro-moments of gratitude creates emotional resilience that anchors partnerships through stressful seasons.';
+            } else {
+              reply = 'Thank you for sharing this private contemplation. Giving words to your unspoken feelings without self-judgment is the first step toward relational clarity. How would you like to nurture this part of yourself today?';
+            }
+          } else if (mode === 'shared') {
+            if (lower.includes('date') || lower.includes('weekend') || lower.includes('surprise') || lower.includes('fun')) {
+              reply = 'Here is a mindful connection idea: Plan an evening where one person curates a calming acoustic playlist and the other cooks a simple comfort dish. Dedicate the first 20 minutes to phones-away tea time, asking: "What was something you experienced this week that felt meaningful to you?"';
+            } else if (lower.includes('misunderstanding') || lower.includes('conflict') || lower.includes('disagree') || lower.includes('fight')) {
+              reply = 'Let us explore this together with gentle reframing. Try expressing your perspective using the 4-step NVC model: "When [specific event occurred], I felt [vulnerable emotion] because I really value [core need]. Would you be willing to [concrete, gentle request]?" Avoiding "always" or "never" keeps the conversation collaborative.';
+            } else {
+              reply = 'Both of your viewpoints carry legitimate human value. When couples listen to understand rather than to defend, the need to win dissolves and room opens for mutual care.';
+            }
+          } else {
+            // Learning mode
+            if (lower.includes('gottman') || lower.includes('horsemen')) {
+              reply = 'Dr. John Gottman identified 4 relational risk patterns: 1) Criticism (antidote: gentle startup), 2) Contempt (antidote: culture of appreciation), 3) Defensiveness (antidote: taking partial responsibility), and 4) Stonewalling (antidote: physiological self-soothing for 20 minutes).';
+            } else if (lower.includes('nvc') || lower.includes('nonviolent')) {
+              reply = 'Marshall Rosenberg’s Nonviolent Communication (NVC) consists of 4 clear components: 1) Observation without evaluation, 2) Feelings without thought-blame, 3) Universal Needs (safety, respect, autonomy), and 4) Clear, actionable Requests instead of demands.';
+            } else if (lower.includes('attachment')) {
+              reply = 'Attachment science shows that anxious styles often seek rapid reassurance during conflict, while avoidant styles seek physical or emotional space to regulate. Recognizing these as physiological regulation styles rather than personal attacks can dissolve tension rapidly.';
+            } else {
+              reply = 'Relational longevity is built on micro-habits: the 5:1 ratio of positive-to-negative interactions during conflict, daily 6-second kisses or warm hugs to reset cortisol, and mastering the art of repair attempts within 5 minutes of a rupture.';
+            }
+          }
         }
 
         const botMsg: CompanionChatMessage = {

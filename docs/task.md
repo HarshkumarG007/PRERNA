@@ -693,6 +693,20 @@
   - Integrated `applyEntitlementToken` into `src/store/subscriptionStore.ts` to cryptographically enforce commercial tiers.
   - Added test suite `src/tests/subscription/entitlementService.test.ts` (6 tests passing).
 
+### Work Package 7 (WP7) — Partner Pro AI Safety, Truthful Limits & NVC Reframing (`M-07`)
+- [x] **WP7-1** Companion AI Limits & Clinical Boundary Disclosure (`PartnerAiCompanion.tsx`):
+  - Added visible, non-clinical disclosure banner stating automated educational reflection purpose (scripted guidance, not a licensed therapist, psychologist, or clinician).
+  - Explicitly surfaced immediate helpline routing to National Emergency 112 and Tele-MANAS 14416 in header and alert surfaces.
+- [x] **WP7-2** Abuse & Suicidal Ideation Screening (`src/store/partnerStore.ts`):
+  - Integrated `evaluateCrisisPatterns` into `sendCompanionMessage`: suicidal ideation and acute distress trigger immediate crisis helpline referrals (112, 14416, 9999 666 555) with zero pathologizing or conversational advice.
+  - Domestic violence, threats, and relationship intimidation disclosures route directly to National Emergency 112, NCW Women Helpline (7827170170 / 1091), and Tele-MANAS.
+- [x] **WP7-3** Context-Preserving 4-Step OFNR Reframing (`CommunicationStudio.tsx`):
+  - Upgraded NVC reframer from static keyword replacements to genuine Marshall Rosenberg 4-step OFNR (Observation, Feeling, Need, Actionable Request).
+  - Preserved typed user context while cleansing accusatory absolutes ("always", "never").
+  - Screened out domestic abuse/violence disclosures into clinical/safety protocol cards instead of improper polite reframing.
+- [x] **WP7-4** Partner AI Safety Regression Test Suite:
+  - Added 4 test suites in `src/tests/partners/partnerStore.test.ts` (17/17 tests passing; Vitest total: **240/240 passing across 48 files**).
+
 ### Work Package 10 (WP10) — Master Governance & Directive Architecture Suite
 - [x] **WP10-1** `THREAT_MODEL.md`: Formal STRIDE threat model across Untrusted Renderer, Tauri 2 IPC Bridge, Trusted Rust Core, and SQLite/FBE Storage Domain with mapped security regression tests.
 - [x] **WP10-2** `PRIVACY_ARCHITECTURE.md`: Technical specification of statutory DPDP Act 2023 compliance (§9, §11, §12, §13), zero-telemetry invariant, fail-closed consent gate, and data sanitization protocol.
@@ -707,7 +721,7 @@
 - [x] `docs/dpdp-compliance-mapping.md` updated for any change touching consent, data collection, or crisis
 - [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
 - [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
-- [x] Pre-deployment regression test suite: **236/236 tests passed across 48 test files** (TypeScript/Vitest) and **51/51 tests passed** (Rust unit, security, and crisis matrix)
+- [x] Pre-deployment regression test suite: **240/240 tests passed across 48 test files** (TypeScript/Vitest) and **51/51 tests passed** (Rust unit, security, and crisis matrix)
 - [x] Production bundle verified: `tsc && vite build` completed with zero errors (built in 13.13s)
 - [x] Native Android ARM64 Release APK (`PRERNA-v1.2.3-arm64.apk` — 12.50 MB / 12,496,961 bytes) compiled and verified in root directory
 - [x] Official Git tag `v1.2.3` created

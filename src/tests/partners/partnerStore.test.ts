@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { usePartnerStore } from '../../store/partnerStore';
 import { useAppStore } from '../../store';
+import { generateNvcReframe } from '../../components/partners/communication/CommunicationStudio';
 
 describe('PartnerStore Ecosystem & Isolation', () => {
   beforeEach(() => {
@@ -260,5 +261,78 @@ describe('PartnerStore Ecosystem & Isolation', () => {
     useAppStore.getState().updateRole('parent');
     expect(useAppStore.getState().user?.role).toBe('parent');
     expect(localStorage.getItem('prerna_user_role')).toBe('parent');
+  });
+
+  describe('WP7 / M-07 AI Companion & NVC Safety Invariants', () => {
+    it('evaluates crisis patterns and routes suicidal ideation to emergency helplines in companion chat', () => {
+      const store = usePartnerStore.getState();
+      store.sendCompanionMessage('I feel completely hopeless and want to end my life', 'personal');
+
+      const chat = usePartnerStore.getState().chatHistory;
+      expect(chat).toHaveLength(2);
+      const userMsg = chat[0];
+      const botMsg = chat[1];
+
+      expect(userMsg.text).toBe('I feel completely hopeless and want to end my life');
+      expect(botMsg.sender).toBe('companion');
+      // Rule 0.1 Invariant: Must route to 112, 14416, and Vandrevala
+      expect(botMsg.text).toContain('112');
+      expect(botMsg.text).toContain('14416');
+      expect(botMsg.text).toContain('9999 666 555');
+      expect(botMsg.text).toContain('Preeti is an educational reflection tool, not a therapist');
+      // Must not deliver canned conversational advice
+      expect(botMsg.text).not.toContain('What unmet emotional need do you think');
+    });
+
+    it('evaluates domestic abuse patterns and routes to NCW & 112 in companion chat', () => {
+      const store = usePartnerStore.getState();
+      store.sendCompanionMessage('He threatened to hit me during the fight', 'personal');
+
+      const chat = usePartnerStore.getState().chatHistory;
+      expect(chat).toHaveLength(2);
+      const botMsg = chat[1];
+
+      expect(botMsg.text).toContain('112');
+      expect(botMsg.text).toContain('7827170170');
+      expect(botMsg.text).toContain('NCW');
+      expect(botMsg.text).toContain('safety must always come first');
+    });
+
+    it('provides nuanced non-clinical educational reflection for constructive relationship queries', () => {
+      const store = usePartnerStore.getState();
+      store.sendCompanionMessage('What are Gottman horsemen?', 'learning');
+
+      const chat = usePartnerStore.getState().chatHistory;
+      const botMsg = chat[1];
+      expect(botMsg.text).toContain('Criticism');
+      expect(botMsg.text).toContain('Contempt');
+      expect(botMsg.text).toContain('Defensiveness');
+      expect(botMsg.text).toContain('Stonewalling');
+    });
+
+    it('generates genuine 4-step OFNR reframing while screening out domestic violence disclosures', () => {
+      // Abuse disclosure test
+      const abuseResult = generateNvcReframe('He is committing domestic violence against me');
+      expect(abuseResult.isCrisis).toBe(true);
+      expect(abuseResult.crisisMessage).toContain('NCW');
+      expect(abuseResult.crisisMessage).toContain('112');
+      expect(abuseResult.fullMessage).toBe('');
+
+      // Context preservation test for chores
+      const choreResult = generateNvcReframe('You never clean the apartment or do chores!');
+      expect(choreResult.isCrisis).toBe(false);
+      expect(choreResult.observation).toContain('chores');
+      expect(choreResult.feeling).toContain('exhausted');
+      expect(choreResult.need).toContain('teamwork');
+      expect(choreResult.request).toContain('15 minutes');
+      expect(choreResult.fullMessage).toContain('chores');
+
+      // Context preservation test for phones
+      const phoneResult = generateNvcReframe('You are always on your phone at dinner');
+      expect(phoneResult.isCrisis).toBe(false);
+      expect(phoneResult.observation).toContain('phones');
+      expect(phoneResult.feeling).toContain('disconnected');
+      expect(phoneResult.request).toContain('30 minutes');
+    });
   });
 });
