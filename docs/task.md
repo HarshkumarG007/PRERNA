@@ -780,6 +780,24 @@
   - Added `.github/CODEOWNERS` assigning maintainership to `@HarshkumarG007`.
   - Added `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1 adapted for adolescent wellbeing).
   - Added `CONTRIBUTING.md` defining local-first invariants, child safety policies, and test requirements.
+- [x] **WP-S-11** Sovereign Cross-Device E2EE Peer Sync Protocol (`H-19`):
+  - Implemented zero-cloud WebCrypto `ECDH` (P-256 curve) key exchange with `HKDF-SHA256` symmetric key derivation and authenticated `AES-256-GCM` encryption/decryption in `src/utils/e2eeSync.ts`.
+  - Generated unguessable 128-bit CSPRNG channel IDs ensuring peer isolation across multi-user environments.
+  - Wired encrypted envelope publication and subscription into `src/utils/realtimeSync.ts` and pairing protocol exchange in `src/utils/pairingProtocol.ts`.
+  - Added comprehensive test suite with 7 passing tests in `src/tests/sync/e2eeSync.test.ts`.
+- [x] **WP-S-12** Complete Psychometric Item Bank Expansion & High Confidence Scoring (`C-05`):
+  - Expanded `ipip-bigfive-adapted.json` from 2 items to 10 items covering all 5 Big Five domains (Extraversion, Agreeableness, Conscientiousness, Neuroticism, Openness) with balanced positive/negative keying and Hindi translations.
+  - Expanded `onet-riasec-adapted.json` from 2 items to 12 items covering all 6 RIASEC domains (Realistic, Investigative, Artistic, Social, Enterprising, Conventional) with Hindi translations.
+  - Added `mode: 'quick' | 'full'` in `src/engine/assessment/fusionEngine.ts` and wired `SelfDiscoveryJourney.tsx` to assess all 11 psychological domains, enabling dynamic confidence scaling up to 0.95.
+- [x] **WP-S-13** Package Identity & Keystore Alignment (`C-03`):
+  - Migrated application package namespace from legacy `com.lenovo.prerna` to production `com.prerna.sanctuary` across `tauri.conf.json`, Android Gradle build scripts, AndroidManifest.xml, and Kotlin bridge classes.
+  - Configured Android release `signingConfigs` block reading environment variables (`ANDROID_KEYSTORE_PATH`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`).
+  - Purged all legacy Lenovo namespaces and duplicate templates from `buildSrc` and source directories.
+- [x] **WP-S-14** Master Key Storage Hardening & Android Auto-Backup Lockdown (`C-03`, `H-11`):
+  - Disabled Android Auto-Backup (`android:allowBackup="false"`) and implemented `<data-extraction-rules>` and `<full-backup-content>` XML rules explicitly excluding root, file, database, sharedpref, and external storage from device transfers or cloud backups.
+  - Replaced static fallback key `PRERNA_FALLBACK_SECURE_STORAGE32` in Rust database module with sandboxed 0600 file-backed master key (`.prerna_master.key`) or process-isolated CSPRNG `OnceLock`.
+  - Removed insecure `0x42` key padding in `encrypt_field` and `decrypt_field` to fail closed on invalid key lengths.
+  - Verified Android ARM64 release APK compilation (`com.prerna.sanctuary`, 14.04 MB).
 
 ---
 
@@ -788,9 +806,9 @@
 - [x] `docs/dpdp-compliance-mapping.md` updated for any change touching consent, data collection, or crisis
 - [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
 - [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
-- [x] Pre-deployment regression test suite: **240/240 tests passed across 48 test files** (TypeScript/Vitest) and **54/54 tests passed** (Rust unit, security, and crisis matrix)
-- [x] Production bundle verified: `tsc && vite build` completed with zero errors (built in 12.27s)
-- [x] Native Android ARM64 Release APK (`PRERNA-v1.2.3-arm64.apk` — 14.16 MB / 14,162,935 bytes) compiled and verified in root directory
+- [x] Pre-deployment regression test suite: **248/248 tests passed across 49 test files** (TypeScript/Vitest) and **54/54 tests passed** (Rust unit, security, and crisis matrix)
+- [x] Production bundle verified: `tsc && vite build` completed with zero errors (built in 12.72s)
+- [x] Native Android ARM64 Release APK (`PRERNA-v1.2.3-arm64.apk` — 14.04 MB / 14,720,933 bytes, package `com.prerna.sanctuary`) compiled and verified in root directory
 - [x] Official Git tag `v1.2.3` created
 - [x] Staged rollout: Closed Beta cohort testing protected by Supabase Cloud Gatekeeper with single-use device binding & instant URL scrubbing (documented in `docs/supabase-access-gate-setup.md` and `docs/beta-cohort-staged-rollout-dossier.md`)
   - [x] Verified token verification in Android emulator (`v1.2.3`): multi-device founder bypass, Unicode dash normalization, Gboard keyboard space stripping, clean allowlist fallback, and instant sanctuary unlock confirmed.
