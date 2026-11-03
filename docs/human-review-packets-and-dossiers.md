@@ -29,10 +29,11 @@ This document provides the formal **Review Dossiers and Verification Packets** p
 - **Target File**: [`docs/crisis-protocol-brief.md`](crisis-protocol-brief.md) & [`src/engine/crisis/escalationRouter.ts`](../src/engine/crisis/escalationRouter.ts)
 - **System Invariant (Rule 0.1 & 0.3)**: PRERNA immediately suppresses all developmental quests, marketing, and non-essential features whenever self-harm or acute crisis signals are detected.
 - **National Helplines Embedded**:
+  - National Emergency Helpline: `112` (Unified Police, Fire, & Medical Dispatch, 24/7)
   - Tele-MANAS: `14416` (National Tele Mental Health Programme of India, 24/7 Toll-Free)
-  - Childline India: `1098` (Emergency Child Protection)
+  - Childline India: `1098` (Emergency Child Protection, 24/7 Toll-Free)
   - KIRAN: `1800-599-0019` (Ministry of Social Justice, 24/7)
-  - Vandrevala Foundation: `9999 666 555` (Crisis Intervention Support)
+  - Vandrevala Foundation: `9999 666 555` (Crisis Intervention Support, 24/7)
 
 ### 2. Clinical Evaluation Rubric
 1. **Detection Specificity**: Do the regex patterns and keyword clusters in `patternDetection.ts` adequately capture high-risk distress while avoiding pathologizing benign teen expressions?
@@ -64,14 +65,15 @@ Signature: _________________________________ Date: ___________________
 - **Target File**: [`docs/dpdp-compliance-mapping.md`](dpdp-compliance-mapping.md) & [`src/components/governance/DataSovereigntyModal.tsx`](../src/components/governance/DataSovereigntyModal.tsx)
 - **Statutory Provisions Evaluated**:
   - **Section 9(1)**: Verifiable parental consent before processing child data.
-  - **Section 9(2)**: Prohibition of tracking, behavioral monitoring, and targeted advertising directed at minors.
-  - **Section 9(3)**: Prohibition of processing likely to cause detrimental effect on child wellbeing.
-  - **Section 13**: Right to Data Portability (Full JSON Archive) & Right to Erasure (Cryptographic Shredder).
+  - **Section 9(2)**: Prohibition of processing likely to cause detrimental effect on child wellbeing.
+  - **Section 9(3)**: Prohibition of tracking, behavioral monitoring, and targeted advertising directed at children.
+  - **Section 11 & Section 12**: Data Principal Rights to Access Information (Summary & Sharing) and Right to Correction & Erasure (Cryptographic Shredder).
+  - **Section 13**: Grievance Redressal mechanism.
 
 ### 2. Legal Evaluation Rubric
 1. **Consent Validity**: Is the parental verification mechanism (QR handshake + verifiable out-of-band authorization) compliant with DPDP Section 9 rules?
 2. **Zero-PII Token Generation**: Does the VidyaPeeth school batch token generator satisfy privacy requirements by issuing zero-PII pseudonymous tokens without collecting names, emails, or phone numbers?
-3. **Statutory Portability & Erasure**: Does the `DataSovereigntyModal` allow users to meaningfully exercise Section 13 rights?
+3. **Statutory Access & Erasure**: Does the `DataSovereigntyModal` allow users to meaningfully exercise Section 11 (Access) and Section 12 (Erasure) rights?
 
 ### 3. Reviewer Attestation Form
 ```
@@ -83,7 +85,7 @@ Law Firm / Practice: _________________________________________________
 Contact Email / Phone: _______________________________________________
 
 [ ] I have reviewed the consent architecture, age-gating, and data governance flows.
-[ ] I confirm compliance with DPDP Act 2023 Section 9 and Section 13 mandates.
+[ ] I confirm compliance alignment with DPDP Act 2023 Section 9, 11, 12, and 13 mandates.
 [ ] Legal caveats or statutory amendments noted (attached separately).
 
 Signature: _________________________________ Date: ___________________

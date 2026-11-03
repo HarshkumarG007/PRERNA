@@ -31,7 +31,7 @@ My name is Harsh Kumar Gupta, architect of PRERNA (प्रेरणा) — a 
 
 Unlike commercial youth apps that rely on cloud tracking, engagement hooks, and automated diagnostic claims, PRERNA operates under strict sovereign guardrails:
 1. Zero Diagnostic Claims: The platform explicitly avoids DSM/ICD clinical diagnosing and instead focuses on strengths-based adolescent actualization inspired by Sant Kabir's philosophy ("Self Realisation is God's Realisation").
-2. Crisis Escalation Circuit: Deterministic regex and crisis routing instantly detect self-harm or acute distress cues, suppressing automated mentorship and presenting verified Indian national helplines (Tele-MANAS 14416, KIRAN 1800-599-0019, Childline 1098).
+2. Crisis Escalation Circuit: Deterministic regex and crisis routing instantly detect self-harm or acute distress cues, suppressing automated mentorship and presenting verified Indian national helplines: National Emergency 112, Tele-MANAS 14416 (24/7), Childline 1098, KIRAN 1800-599-0019, and Vandrevala Foundation 9999 666 555.
 3. Somatic Regulation: Integrates on-device 432 Hz coherence breathing pacers and circadian sleep rhythm education without numbers-based anxiety.
 
 Under our development charter (Rule 0.7), an AI agent cannot self-approve clinical safety. We are formally inviting you to serve as the Independent Clinical Reviewer for Ticket H1.
@@ -50,7 +50,7 @@ Warm regards,
 
 Harsh Kumar Gupta
 Architect & Lead Engineer, PRERNA
-Email: hrslsha007@gmail.com
+Email: harshkumarg007@gmail.com (Security: security@prerna.app)
 GitHub: https://github.com/HarshkumarG007/PRERNA
 ```
 
@@ -68,10 +68,10 @@ Dear Adv. [Expert Name],
 I am writing to request your expert legal review regarding data privacy compliance under the Digital Personal Data Protection Act (DPDP Act), 2023 for PRERNA (प्रेरणा).
 
 PRERNA is an open-source, local-first adolescent self-discovery platform. We have engineered its architecture to set a benchmark for minor data protection under Indian law:
-1. DPDP Act 2023 Section 9 Compliance: PRERNA conducts zero tracking, zero behavioral profiling for commercial gain, and serves zero advertisements directed at minors.
-2. Section 13 Compliant Consent Architecture: Transparent, plain-language notices in both English and Hindi with explicit revocability.
-3. Cryptographic Data Shredder: 1-click local database purge and complete on-demand JSON portability.
-4. Local-First Storage: User assessments, journal entries, and chat logs reside in encrypted local storage (`localStorage` / SQLite Tauri sidecar) with zero telemetry sent to external cloud servers.
+1. DPDP Act 2023 Section 9 Alignment: PRERNA conducts zero tracking, zero behavioral profiling for commercial gain, and serves zero advertisements directed at minors.
+2. Statutory Consent & Privacy Notices: Transparent, plain-language notices in both English and Hindi with explicit revocability, grievance redressal under Section 13, and Data Principal rights to access (Section 11) and erasure (Section 12).
+3. Cryptographic Data Shredder: 1-click local database purge and self-service JSON export.
+4. Local-First Processing: User assessments, journal entries, and chat logs reside in encrypted local storage (SQLite Tauri sidecar / local device storage) with zero telemetry; closed beta invitations and voluntary feedback are bounded strictly through an authenticated Supabase gatekeeper without collecting personal psychological records.
 
 Per Rule 0.7 of our governance framework, we require an independent human privacy professional to examine our data flow architecture and sign off on Ticket H2.
 
@@ -90,7 +90,7 @@ Warm regards,
 
 Harsh Kumar Gupta
 Lead Architect, PRERNA
-Email: hrslsha007@gmail.com
+Email: harshkumarg007@gmail.com (Security: security@prerna.app)
 GitHub: https://github.com/HarshkumarG007/PRERNA
 ```
 
@@ -125,7 +125,7 @@ GitHub: https://github.com/HarshkumarG007/PRERNA
 
 हर्ष कुमार गुप्ता
 संस्थापक एवं मुख्य वास्तुकार, PRERNA
-ईमेल: hrslsha007@gmail.com
+ईमेल: harshkumarg007@gmail.com (सुरक्षा: security@prerna.app)
 गिटहब: https://github.com/HarshkumarG007/PRERNA
 ```
 
@@ -163,7 +163,7 @@ Warm regards,
 
 Harsh Kumar Gupta
 Architect & Lead Engineer, PRERNA
-Email: hrslsha007@gmail.com
+Email: harshkumarg007@gmail.com (Security: security@prerna.app)
 GitHub: https://github.com/HarshkumarG007/PRERNA
 ```
 
