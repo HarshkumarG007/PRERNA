@@ -153,7 +153,7 @@ export const ParentConsentFlow: React.FC<ParentConsentFlowProps> = ({
         {Object.values(CURRENT_DISCLOSURES).map((d) => (
           <div key={d.id} className="text-sm">
             <strong className="text-slate-900 capitalize text-base">{d.type.replace('_', ' ')}:</strong>
-            <p className="text-slate-600 mt-1.5 leading-relaxed">{d.text[language]}</p>
+            <p className="text-slate-600 mt-1.5 leading-relaxed">{d.text[language] || d.text.en}</p>
           </div>
         ))}
       </div>

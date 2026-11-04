@@ -1,57 +1,92 @@
-{
-  "version": "v2-ipip-onet-2026",
-  "source": "IPIP Big-Five Factor Markers",
-  "citation": "Goldberg et al. (2006)",
-  "items": [
-    {
-      "id": "ipip_e1",
-      "domain": "extraversion",
-      "keyed": "positive",
-      "text": {
-        "en": "Am the life of the party.",
-        "hi": "मैं पार्टी की जान हूँ।"
-      },
-      "cultural_adaptation_notes": "Literal translation fits well."
-    },
-    {
-      "id": "ipip_a1",
-      "domain": "agreeableness",
-      "keyed": "positive",
-      "text": {
-        "en": "Sympathize with others' feelings.",
-        "hi": "दूसरों की भावनाओं के प्रति सहानुभूति रखता हूँ।"
-      },
-      "cultural_adaptation_notes": "Literal translation fits well."
-    },
-    {
-      "id": "ipip_c1",
-      "domain": "conscientiousness",
-      "keyed": "positive",
-      "text": {
-        "en": "Get chores done right away.",
-        "hi": "अपना काम तुरंत कर लेता हूँ।"
-      },
-      "cultural_adaptation_notes": "Literal translation fits well."
-    },
-    {
-      "id": "ipip_n1",
-      "domain": "neuroticism",
-      "keyed": "positive",
-      "text": {
-        "en": "Have frequent mood swings.",
-        "hi": "मेरे मूड में बार-बार बदलाव आता है।"
-      },
-      "cultural_adaptation_notes": "Literal translation fits well."
-    },
-    {
-      "id": "ipip_o1",
-      "domain": "openness",
-      "keyed": "positive",
-      "text": {
-        "en": "Have a vivid imagination.",
-        "hi": "मेरी कल्पना शक्ति बहुत अच्छी है।"
-      },
-      "cultural_adaptation_notes": "Literal translation fits well."
-    }
-  ]
-}
+[
+  {
+    "item_id": "IPIP_50_E1",
+    "domain": "Extraversion",
+    "keyed": "positive",
+    "original_english": "Am the life of the party.",
+    "adapted_english": "I am usually the life of the party and enjoy being around people.",
+    "adapted_hindi": "मैं अक्सर पार्टी की जान होता हूँ और लोगों के बीच रहना पसंद करता हूँ।",
+    "source": "IPIP Big-Five Factor Markers (50-item)"
+  },
+  {
+    "item_id": "IPIP_50_E2",
+    "domain": "Extraversion",
+    "keyed": "negative",
+    "original_english": "Don't talk a lot.",
+    "adapted_english": "I usually don't talk very much and keep to myself.",
+    "adapted_hindi": "मैं आमतौर पर बहुत ज्यादा बात नहीं करता और अपने तक ही सीमित रहता हूँ।",
+    "source": "IPIP Big-Five Factor Markers (50-item)"
+  },
+  {
+    "item_id": "IPIP_50_A1",
+    "domain": "Agreeableness",
+    "keyed": "positive",
+    "original_english": "Sympathize with others' feelings.",
+    "adapted_english": "I genuinely sympathize with others' feelings and show compassion.",
+    "adapted_hindi": "मैं दूसरों की भावनाओं के प्रति गहरी सहानुभूति और करुणा रखता हूँ।",
+    "source": "IPIP Big-Five Factor Markers (50-item)"
+  },
+  {
+    "item_id": "IPIP_50_A2",
+    "domain": "Agreeableness",
+    "keyed": "negative",
+    "original_english": "Am not interested in other people's problems.",
+    "adapted_english": "I am not interested in other people's problems.",
+    "adapted_hindi": "मुझे दूसरे लोगों की समस्याओं में ज्यादा दिलचस्पी नहीं होती।",
+    "source": "IPIP Big-Five Factor Markers (50-item)"
+  },
+  {
+    "item_id": "IPIP_50_C1",
+    "domain": "Conscientiousness",
+    "keyed": "positive",
+    "original_english": "Get chores done right away.",
+    "adapted_english": "I get chores and tasks done right away without procrastinating.",
+    "adapted_hindi": "मैं बिना टालमटोल किए अपना काम और जिम्मेदारियाँ तुरंत पूरी करता हूँ।",
+    "source": "IPIP Big-Five Factor Markers (50-item)"
+  },
+  {
+    "item_id": "IPIP_50_C2",
+    "domain": "Conscientiousness",
+    "keyed": "negative",
+    "original_english": "Leave my belongings around.",
+    "adapted_english": "I often leave my belongings around and forget about my commitments.",
+    "adapted_hindi": "मैं अक्सर अपना सामान इधर-उधर छोड़ देता हूँ और वादों को भूल जाता हूँ।",
+    "source": "IPIP Big-Five Factor Markers (50-item)"
+  },
+  {
+    "item_id": "IPIP_50_N1",
+    "domain": "Neuroticism",
+    "keyed": "positive",
+    "original_english": "Have frequent mood swings.",
+    "adapted_english": "I have frequent mood swings and get stressed easily.",
+    "adapted_hindi": "मेरे मूड में बार-बार बदलाव आता है और मैं आसानी से तनाव में आ जाता हूँ।",
+    "source": "IPIP Big-Five Factor Markers (50-item)"
+  },
+  {
+    "item_id": "IPIP_50_N2",
+    "domain": "Neuroticism",
+    "keyed": "negative",
+    "original_english": "Am relaxed most of the time.",
+    "adapted_english": "I am relaxed most of the time and handle pressure calmly.",
+    "adapted_hindi": "मैं ज्यादातर समय शांत रहता हूँ और दबाव को धैर्य से संभालता हूँ।",
+    "source": "IPIP Big-Five Factor Markers (50-item)"
+  },
+  {
+    "item_id": "IPIP_50_O1",
+    "domain": "Openness",
+    "keyed": "positive",
+    "original_english": "Have a vivid imagination.",
+    "adapted_english": "I have a vivid imagination and love exploring creative, abstract ideas.",
+    "adapted_hindi": "मेरी कल्पनाशीलता गहरी है और मुझे रचनात्मक व अमूर्त विचारों को तलाशना पसंद है।",
+    "source": "IPIP Big-Five Factor Markers (50-item)"
+  },
+  {
+    "item_id": "IPIP_50_O2",
+    "domain": "Openness",
+    "keyed": "negative",
+    "original_english": "Am not interested in abstract ideas.",
+    "adapted_english": "I am not interested in abstract theories or philosophical debates.",
+    "adapted_hindi": "मुझे अमूर्त सिद्धांतों या दार्शनिक बहसों में ज्यादा रुचि नहीं है।",
+    "source": "IPIP Big-Five Factor Markers (50-item)"
+  }
+]

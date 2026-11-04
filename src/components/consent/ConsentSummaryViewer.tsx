@@ -58,7 +58,7 @@ export const ConsentSummaryViewer: React.FC<ConsentSummaryViewerProps> = ({
                 <span className="font-bold text-white capitalize block mb-1">
                   {scopeItem.replace('_', ' ')}
                 </span>
-                <p className="mt-2 text-sm font-medium text-white/60 leading-relaxed">{disclosure.text[language]}</p>
+                <p className="mt-2 text-sm font-medium text-white/60 leading-relaxed">{disclosure.text[language] || disclosure.text.en}</p>
               </li>
             );
           })}
