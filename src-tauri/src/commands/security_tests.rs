@@ -684,4 +684,137 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn test_crisis_guardian_notification_delivery_pipeline() {
+        let db = Database::new_in_memory("TEST_KEY_CRISIS_DELIVERY").unwrap();
+
+        // 1. Seed Teen, Parent, and Reviewer users
+        db.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('teen_u1', 'teen_u1', 'hash', '0', 'teen')", ()).unwrap();
+        db.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('parent_p1', 'parent_p1', 'hash', '0', 'parent')", ()).unwrap();
+        db.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES ('rev_r1', 'rev_r1', 'hash', '0', 'reviewer')", ()).unwrap();
+
+        // 2. Establish verified active parent-teen relationship
+        db.conn.execute(
+            "INSERT INTO parent_teen_relationships (id, parent_user_id, teen_user_id, established_at, status) VALUES ('rel_1', 'parent_p1', 'teen_u1', '2026-01-01', 'active')",
+            (),
+        ).unwrap();
+
+        // 3. Create crisis event for teen
+        let event_id = "crisis_evt_delivery_01";
+        db.conn.execute(
+            "INSERT INTO crisis_events (id, user_id, detected_at, severity, state, origin, reviewer_id) VALUES (?1, 'teen_u1', 123456, 'high', 'HumanReview', 'AI', 'rev_r1')",
+            [event_id],
+        ).unwrap();
+
+        // 4. Invariant test: dispatch fails if teen has not been informed (Rule 0.3)
+        let fail_dispatch = crate::notifications::dispatch_crisis_guardian_notification(
+            &db,
+            event_id,
+            "Urgent crisis alert",
+        );
+        assert!(fail_dispatch.is_err());
+        assert!(fail_dispatch.unwrap_err().to_string().contains("Violates Rule 0.3"));
+
+        // 5. Inform teen and re-attempt dispatch
+        db.conn.execute(
+            "UPDATE crisis_events SET teen_informed_at = ?1 WHERE id = ?2",
+            rusqlite::params![123456789i64, event_id],
+        ).unwrap();
+
+        let ok_dispatch = crate::notifications::dispatch_crisis_guardian_notification(
+            &db,
+            event_id,
+            "Urgent crisis alert",
+        );
+        assert!(ok_dispatch.is_ok(), "Dispatch should succeed when teen is informed");
+        let records = ok_dispatch.unwrap();
+        assert_eq!(records.len(), 1);
+        assert_eq!(records[0].recipient_id, "parent_p1");
+        assert_eq!(records[0].status, crate::db::models::NotificationStatus::Delivered);
+
+        // 6. Verify delivery record persisted in database
+        let stored_records = db.get_delivery_records_for_crisis(event_id).unwrap();
+        assert_eq!(stored_records.len(), 1);
+        assert_eq!(stored_records[0].recipient_id, "parent_p1");
+
+        // 7. Verify parent can query their emergency alerts
+        let parent_alerts = db.get_guardian_emergency_alerts("parent_p1").unwrap();
+        assert_eq!(parent_alerts.len(), 1);
+        assert_eq!(parent_alerts[0].crisis_event_id, event_id);
+
+        // 8. Verify crisis event transitioned to 'Notified'
+        let updated_event = db.get_crisis_event_by_id(event_id).unwrap().unwrap();
+        assert_eq!(updated_event.state, crate::db::models::CrisisState::Notified);
+    }
+
+    #[test]
+    fn test_dpdp_section_12_comprehensive_data_erasure_drill() {
+        let db = Database::new_in_memory("TEST_KEY_DPDP_SECTION_12").unwrap();
+        let user_id = "teen_erasure_subject_01";
+        let parent_id = "parent_erasure_01";
+
+        // 1. Seed users
+        db.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES (?1, 'erasure_teen', 'hash', '0', 'teen')", [user_id]).unwrap();
+        db.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role) VALUES (?1, 'erasure_parent', 'hash', '0', 'parent')", [parent_id]).unwrap();
+
+        // 2. Populate data across all 13 tables referencing this user
+        db.conn.execute("INSERT INTO sessions (id, user_id, session_type, started_at, disclosure_version, disclosure_shown_at) VALUES ('s1', ?1, 'life_quest', '0', 'v1', 0)", [user_id]).unwrap();
+        db.conn.execute("INSERT INTO trait_snapshots (id, user_id, snapshot_date) VALUES ('t1', ?1, '0')", [user_id]).unwrap();
+        db.conn.execute("INSERT INTO recommendations (id, user_id, category, content, created_at) VALUES ('r1', ?1, 'career', 'Explore STEM', '0')", [user_id]).unwrap();
+        db.conn.execute("INSERT INTO crisis_events (id, user_id, detected_at, severity, state, origin) VALUES ('c1', ?1, 0, 'high', 'SignalDetected', 'AI')", [user_id]).unwrap();
+        db.conn.execute("INSERT INTO delivery_records (id, crisis_event_id, recipient_id, notification_type, status, provider, created_at, updated_at) VALUES ('d1', 'c1', ?1, 'ALERT', 'DELIVERED', 'Test', '0', '0')", [parent_id]).unwrap();
+        db.conn.execute("INSERT INTO micro_interactions (id, user_id, interaction_type, timestamp) VALUES ('m1', ?1, 'checkin', '0')", [user_id]).unwrap();
+        db.conn.execute("INSERT INTO parent_sharing_preferences (user_id, preferences, last_updated) VALUES (?1, '{}', '0')", [user_id]).unwrap();
+        db.conn.execute("INSERT INTO parent_teen_relationships (id, parent_user_id, teen_user_id, established_at) VALUES ('rel_del', ?1, ?2, '0')", [parent_id, user_id]).unwrap();
+        db.conn.execute("INSERT INTO raw_evidence (id, subject_id, source, observed_at, content, disclosure_scope, provenance, retention_class) VALUES ('e1', ?1, 'quiz', '0', 'enc', 'career', '{}', 'standard')", [user_id]).unwrap();
+        db.conn.execute("INSERT INTO derived_inferences (id, subject_id, evidence_ids, inference, confidence, model_version, created_at) VALUES ('i1', ?1, '[]', 'enc', 0.9, '1.0', '0')", [user_id]).unwrap();
+        db.conn.execute("INSERT INTO hypotheses (id, subject_id, inference_ids, claim, alternatives, assumptions, confidence, created_at) VALUES ('h1', ?1, '[]', 'enc', '[]', '[]', 0.8, '0')", [user_id]).unwrap();
+        db.conn.execute("INSERT INTO decisions (id, subject_id, hypothesis_ids, critic_result, evidence_validation, safety_result, policy_result, authorization, action, created_at) VALUES ('dec1', ?1, '[]', '{}', '{}', '{}', '{}', 'auth', 'recommend', '0')", [user_id]).unwrap();
+        db.conn.execute("INSERT INTO audit_log (timestamp, action, details) VALUES ('0', 'USER_ACCESS', 'Access by teen_erasure_subject_01')", ()).unwrap();
+
+        // 3. Verify user and dependent records exist
+        let u_count: i64 = db.conn.query_row("SELECT COUNT(*) FROM users WHERE id = ?1", [user_id], |r| r.get(0)).unwrap();
+        assert_eq!(u_count, 1);
+
+        // 4. Execute DPDP Section 12 Right-to-Erasure
+        db.delete_user_data(user_id).unwrap();
+
+        // 5. Hard Audit: Verify 0 rows remain across all sensitive tables
+        let tables = [
+            ("sessions", "user_id"),
+            ("trait_snapshots", "user_id"),
+            ("recommendations", "user_id"),
+            ("crisis_events", "user_id"),
+            ("micro_interactions", "user_id"),
+            ("parent_sharing_preferences", "user_id"),
+            ("raw_evidence", "subject_id"),
+            ("derived_inferences", "subject_id"),
+            ("hypotheses", "subject_id"),
+            ("decisions", "subject_id"),
+            ("users", "id"),
+        ];
+
+        for (table, col) in tables {
+            let sql = format!("SELECT COUNT(*) FROM {} WHERE {} = ?1", table, col);
+            let count: i64 = db.conn.query_row(&sql, [user_id], |r| r.get(0)).unwrap();
+            assert_eq!(count, 0, "DPDP Invariant Violation: Record remained in table '{}' after erasure!", table);
+        }
+
+        // Relational table verification: parent_teen_relationships
+        let rel_count: i64 = db.conn.query_row(
+            "SELECT COUNT(*) FROM parent_teen_relationships WHERE teen_user_id = ?1 OR parent_user_id = ?1",
+            [user_id],
+            |r| r.get(0),
+        ).unwrap();
+        assert_eq!(rel_count, 0, "Relational link was not purged on user erasure");
+
+        // Audit log PII purge verification
+        let audit_count: i64 = db.conn.query_row(
+            "SELECT COUNT(*) FROM audit_log WHERE details LIKE '%' || ?1 || '%' OR action LIKE '%' || ?1 || '%'",
+            [user_id],
+            |r| r.get(0),
+        ).unwrap();
+        assert_eq!(audit_count, 0, "Audit log still contains user identifier after erasure");
+    }
 }

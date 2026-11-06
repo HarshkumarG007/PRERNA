@@ -973,6 +973,51 @@ impl Database {
         Ok(events)
     }
 
+    pub fn get_crisis_event_by_id(&self, event_id: &str) -> AnyhowResult<Option<CrisisEvent>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT id, user_id, detected_at, severity, state, origin, cognitive_decision_id, reviewer_id, reviewer_credentials_ref, decision, teen_informed_at
+             FROM crisis_events
+             WHERE id = ?1",
+        )?;
+        let mut rows = stmt.query_map([event_id], |row| {
+            let state_str: String = row.get(4)?;
+            let origin_str: String = row.get(5)?;
+            Ok(CrisisEvent {
+                id: row.get(0)?,
+                user_id: row.get(1)?,
+                detected_at: row.get(2)?,
+                severity: row.get(3)?,
+                state: match state_str.as_str() {
+                    "HumanReview" => CrisisState::HumanReview,
+                    "Cleared" => CrisisState::Cleared,
+                    "Monitor" => CrisisState::Monitor,
+                    "Escalate" => CrisisState::Escalate,
+                    "NotificationPending" => CrisisState::NotificationPending,
+                    "Notified" => CrisisState::Notified,
+                    "AssessmentPending" => CrisisState::AssessmentPending,
+                    _ => CrisisState::SignalDetected,
+                },
+                origin: match origin_str.as_str() {
+                    "AI" => CrisisOrigin::AI,
+                    "HUMAN" => CrisisOrigin::HUMAN,
+                    "EXTERNAL" => CrisisOrigin::EXTERNAL,
+                    _ => CrisisOrigin::SYSTEM,
+                },
+                cognitive_decision_id: row.get(6)?,
+                reviewer_id: row.get(7)?,
+                reviewer_credentials_ref: row.get(8)?,
+                decision: row.get(9)?,
+                teen_informed_at: row.get(10)?,
+            })
+        })?;
+
+        if let Some(res) = rows.next() {
+            Ok(Some(res?))
+        } else {
+            Ok(None)
+        }
+    }
+
     pub fn claim_crisis_event(&self, event_id: &str, reviewer_id: &str) -> AnyhowResult<()> {
         let updated = self.conn.execute(
             "UPDATE crisis_events SET reviewer_id = ?1 WHERE id = ?2 AND reviewer_id IS NULL AND state IN ('HumanReview', 'SignalDetected')",
@@ -1029,6 +1074,115 @@ impl Database {
         if updated == 0 {
             return Err(anyhow::anyhow!("FATAL STATE MACHINE EXCEPTION: Event is not pending, or not assigned to you, or does not exist."));
         }
+        Ok(())
+    }
+
+    // === NOTIFICATION DELIVERY & GUARDIAN ALERTS ===
+
+    pub fn insert_delivery_record(&self, record: &crate::db::models::DeliveryRecord) -> AnyhowResult<()> {
+        self.conn.execute(
+            "INSERT INTO delivery_records (
+                id, crisis_event_id, recipient_id, notification_type, status,
+                provider, provider_reference, created_at, updated_at, error_message
+            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
+            ON CONFLICT(crisis_event_id, recipient_id, notification_type) DO UPDATE SET
+                status = excluded.status,
+                provider = excluded.provider,
+                provider_reference = excluded.provider_reference,
+                updated_at = excluded.updated_at,
+                error_message = excluded.error_message",
+            params![
+                record.id,
+                record.crisis_event_id,
+                record.recipient_id,
+                record.notification_type,
+                record.status.as_str(),
+                record.provider,
+                record.provider_reference,
+                record.created_at,
+                record.updated_at,
+                record.error_message,
+            ],
+        )?;
+        Ok(())
+    }
+
+    pub fn get_delivery_records_for_crisis(&self, crisis_id: &str) -> AnyhowResult<Vec<crate::db::models::DeliveryRecord>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT id, crisis_event_id, recipient_id, notification_type, status,
+                    provider, provider_reference, created_at, updated_at, error_message
+             FROM delivery_records
+             WHERE crisis_event_id = ?1
+             ORDER BY created_at DESC",
+        )?;
+        let records = stmt
+            .query_map([crisis_id], |row| {
+                let status_str: String = row.get(4)?;
+                Ok(crate::db::models::DeliveryRecord {
+                    id: row.get(0)?,
+                    crisis_event_id: row.get(1)?,
+                    recipient_id: row.get(2)?,
+                    notification_type: row.get(3)?,
+                    status: crate::db::models::NotificationStatus::from_str(&status_str),
+                    provider: row.get(5)?,
+                    provider_reference: row.get(6)?,
+                    created_at: row.get(7)?,
+                    updated_at: row.get(8)?,
+                    error_message: row.get(9)?,
+                })
+            })?
+            .filter_map(Result::ok)
+            .collect();
+        Ok(records)
+    }
+
+    pub fn get_guardian_emergency_alerts(&self, guardian_id: &str) -> AnyhowResult<Vec<crate::db::models::DeliveryRecord>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT id, crisis_event_id, recipient_id, notification_type, status,
+                    provider, provider_reference, created_at, updated_at, error_message
+             FROM delivery_records
+             WHERE recipient_id = ?1
+             ORDER BY created_at DESC
+             LIMIT 50",
+        )?;
+        let records = stmt
+            .query_map([guardian_id], |row| {
+                let status_str: String = row.get(4)?;
+                Ok(crate::db::models::DeliveryRecord {
+                    id: row.get(0)?,
+                    crisis_event_id: row.get(1)?,
+                    recipient_id: row.get(2)?,
+                    notification_type: row.get(3)?,
+                    status: crate::db::models::NotificationStatus::from_str(&status_str),
+                    provider: row.get(5)?,
+                    provider_reference: row.get(6)?,
+                    created_at: row.get(7)?,
+                    updated_at: row.get(8)?,
+                    error_message: row.get(9)?,
+                })
+            })?
+            .filter_map(Result::ok)
+            .collect();
+        Ok(records)
+    }
+
+    pub fn get_active_guardians_for_teen(&self, teen_id: &str) -> AnyhowResult<Vec<String>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT parent_user_id FROM parent_teen_relationships
+             WHERE teen_user_id = ?1 AND status = 'active'",
+        )?;
+        let guardians = stmt
+            .query_map([teen_id], |row| row.get(0))?
+            .filter_map(Result::ok)
+            .collect();
+        Ok(guardians)
+    }
+
+    pub fn update_crisis_event_state(&self, event_id: &str, state: &str) -> AnyhowResult<()> {
+        self.conn.execute(
+            "UPDATE crisis_events SET state = ?1 WHERE id = ?2",
+            params![state, event_id],
+        )?;
         Ok(())
     }
 
@@ -1162,6 +1316,12 @@ impl Database {
     }
 
     pub fn delete_user_data(&self, user_id: &str) -> AnyhowResult<()> {
+        // DPDP Section 12: Absolute Right to Erasure
+        // Delete all dependent, cognitive, behavioral, relational, and audit records
+        self.conn.execute(
+            "DELETE FROM delivery_records WHERE crisis_event_id IN (SELECT id FROM crisis_events WHERE user_id = ?1) OR recipient_id = ?1",
+            [user_id],
+        )?;
         self.conn.execute(
             "DELETE FROM micro_interactions WHERE user_id = ?1",
             [user_id],
@@ -1172,7 +1332,6 @@ impl Database {
             .execute("DELETE FROM sessions WHERE user_id = ?1", [user_id])?;
         self.conn
             .execute("DELETE FROM recommendations WHERE user_id = ?1", [user_id])?;
-        // T9: Fix deletion completeness
         self.conn
             .execute("DELETE FROM crisis_events WHERE user_id = ?1", [user_id])?;
         self.conn.execute(
@@ -1184,7 +1343,23 @@ impl Database {
             [user_id],
         )?;
         self.conn.execute(
-            "DELETE FROM audit_log WHERE details LIKE '%' || ?1 || '%'",
+            "DELETE FROM raw_evidence WHERE subject_id = ?1",
+            [user_id],
+        )?;
+        self.conn.execute(
+            "DELETE FROM derived_inferences WHERE subject_id = ?1",
+            [user_id],
+        )?;
+        self.conn.execute(
+            "DELETE FROM hypotheses WHERE subject_id = ?1",
+            [user_id],
+        )?;
+        self.conn.execute(
+            "DELETE FROM decisions WHERE subject_id = ?1",
+            [user_id],
+        )?;
+        self.conn.execute(
+            "DELETE FROM audit_log WHERE details LIKE '%' || ?1 || '%' OR action LIKE '%' || ?1 || '%'",
             [user_id],
         )?;
         self.conn

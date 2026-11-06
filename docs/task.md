@@ -803,6 +803,11 @@
   - **`M-03` (Session Inactivity Expiry & 30-Min Sliding Window):** Implemented `SESSION_ACTIVITY_TRACKER` and inactivity check in `ActiveSession::get_user_id` in `src-tauri/src/lib.rs`. Automatically terminates stale authenticated sessions after 30 minutes of idle time. Verified via `test_session_inactivity_expiry_m03`.
   - **`H-23` (Access Audit Log Isolation):** Hardened `get_access_audit_log` in `src-tauri/src/commands/mod.rs` so consumer roles (`teen`, `adult`, `parent`) strictly query audit entries matching their own user ID, preventing cross-tenant leakage. Privileged roles (`reviewer`, `educator`, `admin`) retain audit oversight. Verified via `test_access_audit_log_isolation_h23`.
   - **`H-24` (Beta Distribution Roster Hygiene):** Untracked live cohort access tokens in `docs/cohort-distribution-roster.csv` from Git, added pattern to `.gitignore`, and authored sanitized template `docs/templates/cohort-distribution-roster.sample.csv`.
+- [x] **WP-S-16** Production Guardian Notification Delivery Subsystem & DPDP Section 12 Data Erasure Drill:
+  - **Production Guardian Notification Delivery:** Replaced the legacy "NOT IMPLEMENTED" stub in `execute_resolve_crisis_event` (`src-tauri/src/commands/mod.rs`). Implemented `DbRecipientResolver`, `SovereignEmergencyAlertProvider`, and `dispatch_crisis_guardian_notification` in `src-tauri/src/notifications/mod.rs`. Clinician resolution with `CrisisDecision::GuardianNotified` now automatically resolves verified active guardians from `parent_teen_relationships`, creates an emergency delivery record in `delivery_records`, and transitions event state to `Notified`.
+  - **Parent Emergency Alerts IPC:** Added `get_guardian_emergency_alerts` and `get_crisis_delivery_records` IPC commands, enabling linked parents to securely query crisis notifications in their dashboard and clinicians to audit delivery status.
+  - **DPDP Section 12 Right-to-Erasure Enforcement:** Upgraded `delete_user_data` in `src-tauri/src/db/mod.rs` to purge records across all 13 database tables (including cognitive architecture tables `raw_evidence`, `derived_inferences`, `hypotheses`, `decisions`, and `delivery_records`) and audit log entries. Enforced immediate active session invalidation (`AuthStatus::None`) in `delete_user_data` command.
+  - **Verification:** Verified with 2 new comprehensive Rust security tests: `test_crisis_guardian_notification_delivery_pipeline` and `test_dpdp_section_12_comprehensive_data_erasure_drill`. Total Rust test suite increased to **59/59 tests passing** with 0 clippy warnings.
 
 
 ---
@@ -812,7 +817,7 @@
 - [x] `docs/dpdp-compliance-mapping.md` updated for any change touching consent, data collection, or crisis
 - [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
 - [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
-- [x] Pre-deployment regression test suite: **248/248 tests passed across 49 test files** (TypeScript/Vitest) and **57/57 tests passed** (Rust unit, security, and crisis matrix)
+- [x] Pre-deployment regression test suite: **248/248 tests passed across 49 test files** (TypeScript/Vitest) and **59/59 tests passed** (Rust unit, security, and crisis matrix)
 - [x] Production bundle verified: `tsc && vite build` completed with zero errors (built in 12.72s)
 - [x] Native Android ARM64 Release APK (`PRERNA-v1.2.3-arm64.apk` — 14.04 MB / 14,720,933 bytes, package `com.prerna.sanctuary`) compiled and verified in root directory
 - [x] Official Git tag `v1.2.3` created

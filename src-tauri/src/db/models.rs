@@ -303,6 +303,31 @@ pub enum NotificationStatus {
     Cancelled,
 }
 
+impl NotificationStatus {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            NotificationStatus::Pending => "PENDING",
+            NotificationStatus::InFlight => "IN_FLIGHT",
+            NotificationStatus::Delivered => "DELIVERED",
+            NotificationStatus::RetryableFailure => "RETRYABLE_FAILURE",
+            NotificationStatus::PermanentFailure => "PERMANENT_FAILURE",
+            NotificationStatus::Cancelled => "CANCELLED",
+        }
+    }
+
+    #[allow(clippy::should_implement_trait)]
+    pub fn from_str(s: &str) -> Self {
+        match s.to_uppercase().as_str() {
+            "PENDING" => NotificationStatus::Pending,
+            "IN_FLIGHT" => NotificationStatus::InFlight,
+            "DELIVERED" => NotificationStatus::Delivered,
+            "PERMANENT_FAILURE" => NotificationStatus::PermanentFailure,
+            "CANCELLED" => NotificationStatus::Cancelled,
+            _ => NotificationStatus::RetryableFailure,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DeliveryRecord {
     pub id: String,

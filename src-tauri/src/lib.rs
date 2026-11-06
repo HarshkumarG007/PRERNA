@@ -217,6 +217,8 @@ pub fn run() {
             commands::get_pending_crisis_events,
             commands::claim_crisis_event,
             commands::resolve_crisis_event,
+            commands::get_guardian_emergency_alerts,
+            commands::get_crisis_delivery_records,
 
             // Data management
             commands::delete_user_data,

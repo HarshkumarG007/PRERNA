@@ -6,7 +6,7 @@ use crate::consent::ConsentService;
 use crate::db::models::*;
 use crate::db::DbState;
 use crate::policy::PolicyEngine;
-use crate::ActiveSession;
+use crate::{ActiveSession, AuthStatus};
 use aes_gcm::{
     aead::{Aead, KeyInit},
     Aes256Gcm, Nonce,
@@ -1268,29 +1268,7 @@ pub fn execute_resolve_crisis_event(
     let decision_str = match decision {
         CrisisDecision::NoAction => "NoAction",
         CrisisDecision::ResourcesOnly => "ResourcesOnly",
-        CrisisDecision::GuardianNotified => {
-            // ============================================================
-            // GUARDIAN NOTIFICATION — STATUS: NOT IMPLEMENTED
-            // ============================================================
-            // This decision records that the reviewing clinician chose to
-            // notify the guardian. The notification delivery mechanism
-            // (push notification, SMS, email, or in-app alert) has NOT
-            // been implemented. No notification is actually delivered.
-            //
-            // The evidence matrix MUST NOT claim this as a functional
-            // safety notification until a real delivery channel exists.
-            //
-            // TODO(P0-safety): Implement real notification delivery before
-            // any production deployment. See: docs/security-evidence-matrix.md
-            // ============================================================
-            log::warn!(
-                "GUARDIAN NOTIFICATION — NOT IMPLEMENTED: \
-                 Decision recorded for event '{}' but no notification was delivered. \
-                 A real delivery mechanism must be implemented before production.",
-                event_id
-            );
-            "GuardianNotified"
-        }
+        CrisisDecision::GuardianNotified => "GuardianNotified",
     };
 
     db.resolve_crisis_event(
@@ -1300,7 +1278,28 @@ pub fn execute_resolve_crisis_event(
         decision_str,
         teen_informed_at,
     )
-    .map_err(|e| e.to_string())
+    .map_err(|e| e.to_string())?;
+
+    // PRODUCTION GUARDIAN NOTIFICATION DELIVERY
+    // When a clinician decides to notify the guardian, dispatch the emergency alert
+    // via the sovereign notification subsystem and record immutable delivery status.
+    if decision == CrisisDecision::GuardianNotified {
+        let alert_content = "CRISIS ESCALATION ALERT: Clinical reviewer has verified an urgent wellbeing signal. Immediate guardian consultation recommended.";
+        if let Err(e) = crate::notifications::dispatch_crisis_guardian_notification(
+            &db,
+            &event_id,
+            alert_content,
+        ) {
+            log::error!(
+                "Failed to dispatch guardian notification for crisis event '{}': {}",
+                event_id,
+                e
+            );
+            return Err(format!("Crisis event resolved, but notification dispatch failed: {}", e));
+        }
+    }
+
+    Ok(())
 }
 
 // === DATA MANAGEMENT COMMANDS ===
@@ -1321,7 +1320,48 @@ pub fn delete_user_data(
     if let Ok(mut store_guard) = store.0.lock() {
         store_guard.remove(&user_id);
     }
+
+    // DPDP Section 12: Invalidate active authenticated session immediately
+    if let Ok(mut guard) = session.0.lock() {
+        *guard = AuthStatus::None;
+    }
+
     Ok(())
+}
+
+#[tauri::command]
+pub fn get_guardian_emergency_alerts(
+    state: State<DbState>,
+    session_state: State<ActiveSession>,
+) -> Result<Vec<crate::db::models::DeliveryRecord>, String> {
+    let guardian_id = session_state.get_user_id()?;
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+
+    // Verify caller is an authorized parent or administrator
+    if let Ok(Some(user)) = db.get_user(&guardian_id) {
+        if user.role != "parent" && user.role != "admin" {
+            return Err("Unauthorized: Only parents and administrators can view guardian emergency alerts".to_string());
+        }
+    }
+
+    db.get_guardian_emergency_alerts(&guardian_id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn get_crisis_delivery_records(
+    state: State<DbState>,
+    session_state: State<ActiveSession>,
+    crisis_id: String,
+) -> Result<Vec<crate::db::models::DeliveryRecord>, String> {
+    let caller_id = session_state.get_user_id()?;
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+
+    // Only authorized clinical reviewers and administrators can inspect crisis delivery records
+    if !db.is_reviewer(&caller_id) {
+        return Err("Unauthorized: Clinical reviewer credentials required to inspect crisis delivery records".to_string());
+    }
+
+    db.get_delivery_records_for_crisis(&crisis_id).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
