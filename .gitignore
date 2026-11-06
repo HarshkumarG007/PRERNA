@@ -64,3 +64,8 @@ fix.py
 # Python
 __pycache__/
 *.py[cod]
+
+# Sensitive Distribution Rosters (H-24)
+docs/*cohort-distribution-roster.csv
+docs/cohort-distribution-roster.csv
+

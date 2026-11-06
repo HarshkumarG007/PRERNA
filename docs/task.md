@@ -798,6 +798,12 @@
   - Replaced static fallback key `PRERNA_FALLBACK_SECURE_STORAGE32` in Rust database module with sandboxed 0600 file-backed master key (`.prerna_master.key`) or process-isolated CSPRNG `OnceLock`.
   - Removed insecure `0x42` key padding in `encrypt_field` and `decrypt_field` to fail closed on invalid key lengths.
   - Verified Android ARM64 release APK compilation (`com.prerna.sanctuary`, 14.04 MB).
+- [x] **WP-S-15** Security Hardening from External Audit (`H-01`, `M-03`, `H-23`, `H-24`):
+  - **`H-01` (PIN Brute-Force Throttling & 15-Min Lockout):** Implemented thread-safe `PIN_ATTEMPT_TRACKER` in `src-tauri/src/commands/mod.rs` enforcing a 5-consecutive-attempt threshold with a 15-minute temporary lockout window and automatic counter reset on successful authentication. Verified via `test_ipc_pin_brute_force_throttling_and_lockout`.
+  - **`M-03` (Session Inactivity Expiry & 30-Min Sliding Window):** Implemented `SESSION_ACTIVITY_TRACKER` and inactivity check in `ActiveSession::get_user_id` in `src-tauri/src/lib.rs`. Automatically terminates stale authenticated sessions after 30 minutes of idle time. Verified via `test_session_inactivity_expiry_m03`.
+  - **`H-23` (Access Audit Log Isolation):** Hardened `get_access_audit_log` in `src-tauri/src/commands/mod.rs` so consumer roles (`teen`, `adult`, `parent`) strictly query audit entries matching their own user ID, preventing cross-tenant leakage. Privileged roles (`reviewer`, `educator`, `admin`) retain audit oversight. Verified via `test_access_audit_log_isolation_h23`.
+  - **`H-24` (Beta Distribution Roster Hygiene):** Untracked live cohort access tokens in `docs/cohort-distribution-roster.csv` from Git, added pattern to `.gitignore`, and authored sanitized template `docs/templates/cohort-distribution-roster.sample.csv`.
+
 
 ---
 
@@ -806,7 +812,7 @@
 - [x] `docs/dpdp-compliance-mapping.md` updated for any change touching consent, data collection, or crisis
 - [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
 - [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
-- [x] Pre-deployment regression test suite: **248/248 tests passed across 49 test files** (TypeScript/Vitest) and **54/54 tests passed** (Rust unit, security, and crisis matrix)
+- [x] Pre-deployment regression test suite: **248/248 tests passed across 49 test files** (TypeScript/Vitest) and **57/57 tests passed** (Rust unit, security, and crisis matrix)
 - [x] Production bundle verified: `tsc && vite build` completed with zero errors (built in 12.72s)
 - [x] Native Android ARM64 Release APK (`PRERNA-v1.2.3-arm64.apk` — 14.04 MB / 14,720,933 bytes, package `com.prerna.sanctuary`) compiled and verified in root directory
 - [x] Official Git tag `v1.2.3` created

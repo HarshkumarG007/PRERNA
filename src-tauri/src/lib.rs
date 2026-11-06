@@ -11,7 +11,15 @@ use tauri::Manager;
 
 use ai::{LLMState, LocalLLM};
 use db::{Database, DbState};
-use std::sync::{Arc, Mutex};
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex, OnceLock};
+use std::time::{Duration, Instant};
+
+static SESSION_ACTIVITY_TRACKER: OnceLock<Mutex<HashMap<String, Instant>>> = OnceLock::new();
+
+fn get_session_tracker() -> &'static Mutex<HashMap<String, Instant>> {
+    SESSION_ACTIVITY_TRACKER.get_or_init(|| Mutex::new(HashMap::new()))
+}
 
 /// Backend-owned authenticated session state.
 /// The renderer CANNOT supply user_id to privileged commands;
@@ -26,9 +34,32 @@ pub enum AuthStatus {
 pub struct ActiveSession(pub Mutex<AuthStatus>);
 
 impl ActiveSession {
+    /// Default idle timeout duration for authenticated sessions: 30 minutes (Audit M-03).
+    pub const DEFAULT_IDLE_TIMEOUT_SECS: u64 = 1800;
+
     pub fn get_user_id(&self) -> Result<String, String> {
-        match &*self.0.lock().map_err(|e| e.to_string())? {
-            AuthStatus::Authenticated(id) => Ok(id.clone()),
+        let mut status = self.0.lock().map_err(|e| e.to_string())?;
+        match &*status {
+            AuthStatus::Authenticated(id) => {
+                let now = Instant::now();
+                let tracker = get_session_tracker();
+                let mut map = tracker.lock().map_err(|e| e.to_string())?;
+
+                if let Some(last_active) = map.get(id) {
+                    if now.duration_since(*last_active)
+                        > Duration::from_secs(Self::DEFAULT_IDLE_TIMEOUT_SECS)
+                    {
+                        map.remove(id);
+                        *status = AuthStatus::None;
+                        return Err(
+                            "SESSION_EXPIRED: Your session has expired due to 30 minutes of inactivity. Please re-authenticate."
+                                .to_string(),
+                        );
+                    }
+                }
+                map.insert(id.clone(), now);
+                Ok(id.clone())
+            }
             _ => Err("Unauthorized: No active session".to_string()),
         }
     }
@@ -37,17 +68,39 @@ impl ActiveSession {
         Ok(())
     }
     pub fn set_authenticated(&self, id: String) -> Result<(), String> {
-        *self.0.lock().map_err(|e| e.to_string())? = AuthStatus::Authenticated(id);
+        *self.0.lock().map_err(|e| e.to_string())? = AuthStatus::Authenticated(id.clone());
+        let tracker = get_session_tracker();
+        if let Ok(mut map) = tracker.lock() {
+            map.insert(id, Instant::now());
+        }
         Ok(())
     }
     pub fn clear(&self) -> Result<(), String> {
-        *self.0.lock().map_err(|e| e.to_string())? = AuthStatus::None;
+        let mut status = self.0.lock().map_err(|e| e.to_string())?;
+        if let AuthStatus::Authenticated(ref id) = *status {
+            let tracker = get_session_tracker();
+            if let Ok(mut map) = tracker.lock() {
+                map.remove(id);
+            }
+        }
+        *status = AuthStatus::None;
         Ok(())
     }
     pub fn get_pending_mfa_user(&self) -> Result<String, String> {
         match &*self.0.lock().map_err(|e| e.to_string())? {
             AuthStatus::PendingMFA(id) => Ok(id.clone()),
             _ => Err("Unauthorized: No pending MFA session".to_string()),
+        }
+    }
+
+    #[cfg(test)]
+    pub fn expire_session_for_test(&self, id: &str) {
+        let tracker = get_session_tracker();
+        if let Ok(mut map) = tracker.lock() {
+            if let Some(timestamp) = map.get_mut(id) {
+                *timestamp =
+                    Instant::now() - Duration::from_secs(Self::DEFAULT_IDLE_TIMEOUT_SECS + 10);
+            }
         }
     }
 }

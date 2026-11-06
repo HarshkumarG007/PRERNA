@@ -17,7 +17,21 @@ use argon2::{
 };
 use base64::{engine::general_purpose::STANDARD as b64, Engine};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::sync::{Mutex, OnceLock};
+use std::time::{Duration, Instant};
 use tauri::State;
+
+struct PinAttemptState {
+    failed_attempts: u32,
+    locked_until: Option<Instant>,
+}
+
+static PIN_ATTEMPT_TRACKER: OnceLock<Mutex<HashMap<String, PinAttemptState>>> = OnceLock::new();
+
+fn get_pin_tracker() -> &'static Mutex<HashMap<String, PinAttemptState>> {
+    PIN_ATTEMPT_TRACKER.get_or_init(|| Mutex::new(HashMap::new()))
+}
 
 use qrcode::render::svg;
 use qrcode::QrCode;
@@ -108,6 +122,31 @@ pub fn authenticate_pin(
         .map_err(|e| e.to_string())?
         .ok_or_else(|| "User not found".to_string())?;
 
+    // SECURITY INVARIANT (Audit H-01):
+    // Brute-force throttling & lockout. Maximum 5 consecutive failed attempts
+    // trigger a 15-minute lockout to protect short numeric PINs against automated attacks.
+    let now = Instant::now();
+    let tracker = get_pin_tracker();
+    {
+        let mut map = tracker.lock().map_err(|e| e.to_string())?;
+        if let Some(state) = map.get_mut(&target_id) {
+            if let Some(locked_until) = state.locked_until {
+                if now < locked_until {
+                    let remaining_secs = locked_until.duration_since(now).as_secs();
+                    let remaining_mins = remaining_secs.div_ceil(60);
+                    return Err(format!(
+                        "ACCOUNT_LOCKED: Too many failed PIN attempts. Account locked for {} more minute(s). Use master password or wait.",
+                        remaining_mins
+                    ));
+                } else {
+                    // Lockout period has elapsed; reset lock
+                    state.locked_until = None;
+                    state.failed_attempts = 0;
+                }
+            }
+        }
+    }
+
     let pin_hash = user
         .pin_hash
         .as_deref()
@@ -118,6 +157,11 @@ pub fn authenticate_pin(
         .verify_password(pin.as_bytes(), &parsed_hash)
         .is_ok()
     {
+        // Reset failed PIN attempts on successful login
+        if let Ok(mut map) = tracker.lock() {
+            map.remove(&target_id);
+        }
+
         // SECURITY INVARIANT (Audit H-01):
         // PIN authentication must respect MFA. If MFA is enabled, PIN alone cannot authenticate.
         if user.mfa_enabled {
@@ -128,7 +172,22 @@ pub fn authenticate_pin(
         session.set_authenticated(user.id.clone())?;
         Ok(PublicUser::from(&user))
     } else {
-        Err("Incorrect PIN. Please try again.".to_string())
+        let mut map = tracker.lock().map_err(|e| e.to_string())?;
+        let state = map.entry(target_id.clone()).or_insert(PinAttemptState {
+            failed_attempts: 0,
+            locked_until: None,
+        });
+        state.failed_attempts += 1;
+        if state.failed_attempts >= 5 {
+            state.locked_until = Some(now + Duration::from_secs(15 * 60)); // 15-minute security lockout
+            Err("ACCOUNT_LOCKED: Maximum PIN attempts (5/5) exceeded. Account locked for 15 minutes to protect your sanctuary vault.".to_string())
+        } else {
+            let remaining = 5 - state.failed_attempts;
+            Err(format!(
+                "Incorrect PIN. {} attempt(s) remaining before a 15-minute security lockout.",
+                remaining
+            ))
+        }
     }
 }
 
@@ -231,6 +290,11 @@ pub fn authenticate_user(
         }
 
         if is_valid {
+            // Reset PIN failure tracking upon successful master password authentication
+            if let Ok(mut map) = get_pin_tracker().lock() {
+                map.remove(&user.id);
+            }
+
             if needs_migration {
                 // Rehash with Argon2id and update database
                 let salt = SaltString::generate(&mut OsRng);
@@ -1305,25 +1369,52 @@ pub fn get_access_audit_log(
     state: State<DbState>,
     session_state: State<ActiveSession>,
 ) -> Result<Vec<AuditLogEntryResponse>, String> {
-    let _session_user_id = session_state.get_user_id()?;
+    let session_user_id = session_state.get_user_id()?;
     let db = state.0.lock().map_err(|e| e.to_string())?;
-    let mut stmt = db
-        .conn
-        .prepare("SELECT id, timestamp, action, COALESCE(details, '') FROM audit_log ORDER BY id DESC LIMIT 100")
-        .map_err(|e| e.to_string())?;
 
-    let entries = stmt
-        .query_map([], |row| {
-            Ok(AuditLogEntryResponse {
-                id: row.get(0)?,
-                timestamp: row.get(1)?,
-                action: row.get(2)?,
-                details: row.get(3)?,
+    // SECURITY INVARIANT (Audit H-23):
+    // Audit log isolation. Privileged roles ('reviewer', 'educator', 'admin') may inspect
+    // the system-wide audit trail. Standard consumer roles ('teen', 'adult', 'parent') are strictly
+    // isolated to entries concerning their own identity and general non-PII system actions.
+    let is_privileged = if let Ok(Some(user)) = db.get_user(&session_user_id) {
+        matches!(user.role.as_str(), "reviewer" | "educator" | "admin")
+    } else {
+        false
+    };
+
+    let sql = if is_privileged {
+        "SELECT id, timestamp, action, COALESCE(details, '') FROM audit_log ORDER BY id DESC LIMIT 100".to_string()
+    } else {
+        "SELECT id, timestamp, action, COALESCE(details, '') FROM audit_log WHERE details LIKE '%' || ?1 || '%' OR action LIKE '%' || ?1 || '%' ORDER BY id DESC LIMIT 100".to_string()
+    };
+
+    let mut stmt = db.conn.prepare(&sql).map_err(|e| e.to_string())?;
+
+    let entries: Vec<AuditLogEntryResponse> = if is_privileged {
+        let rows = stmt
+            .query_map([], |row| {
+                Ok(AuditLogEntryResponse {
+                    id: row.get(0)?,
+                    timestamp: row.get(1)?,
+                    action: row.get(2)?,
+                    details: row.get(3)?,
+                })
             })
-        })
-        .map_err(|e| e.to_string())?
-        .filter_map(Result::ok)
-        .collect();
+            .map_err(|e| e.to_string())?;
+        rows.filter_map(Result::ok).collect()
+    } else {
+        let rows = stmt
+            .query_map([&session_user_id], |row| {
+                Ok(AuditLogEntryResponse {
+                    id: row.get(0)?,
+                    timestamp: row.get(1)?,
+                    action: row.get(2)?,
+                    details: row.get(3)?,
+                })
+            })
+            .map_err(|e| e.to_string())?;
+        rows.filter_map(Result::ok).collect()
+    };
 
     Ok(entries)
 }

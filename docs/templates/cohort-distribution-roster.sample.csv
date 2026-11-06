@@ -1,0 +1,6 @@
+Cohort,Token,AssignedTo,Role,MaxUses,MagicUnlockLink
+"Teen & Family Sanctuary","PRN-SAMPLE-XXXX0001","Sample Participant #1","teen",3,"https://example.com/?token=PRN-SAMPLE-XXXX0001"
+"Teen & Family Sanctuary","PRN-SAMPLE-XXXX0002","Sample Participant #2","teen",3,"https://example.com/?token=PRN-SAMPLE-XXXX0002"
+"VidyaPeeth Model Schools","PRN-SAMPLE-SCH00001","Sample School #1","educator",50,"https://example.com/?token=PRN-SAMPLE-SCH00001"
+"Adult Sanctuary & Partners","PRN-SAMPLE-ADLT0001","Sample Adult #1","adult",2,"https://example.com/?token=PRN-SAMPLE-ADLT0001"
+
