@@ -808,6 +808,11 @@
   - **Parent Emergency Alerts IPC:** Added `get_guardian_emergency_alerts` and `get_crisis_delivery_records` IPC commands, enabling linked parents to securely query crisis notifications in their dashboard and clinicians to audit delivery status.
   - **DPDP Section 12 Right-to-Erasure Enforcement:** Upgraded `delete_user_data` in `src-tauri/src/db/mod.rs` to purge records across all 13 database tables (including cognitive architecture tables `raw_evidence`, `derived_inferences`, `hypotheses`, `decisions`, and `delivery_records`) and audit log entries. Enforced immediate active session invalidation (`AuthStatus::None`) in `delete_user_data` command.
   - **Verification:** Verified with 2 new comprehensive Rust security tests: `test_crisis_guardian_notification_delivery_pipeline` and `test_dpdp_section_12_comprehensive_data_erasure_drill`. Total Rust test suite increased to **59/59 tests passing** with 0 clippy warnings.
+- [x] **WP-S-17** Google Play Store Submission Package & Public Privacy Policy Deployment:
+  - **Public Privacy Policy Webpage:** Authored mobile-responsive, DPDP Section 9 and Google Play Families compliant Privacy Policy page in `public/privacy.html`, bundled into `dist/privacy.html` for public GitHub Pages hosting (`https://harshkumarg007.github.io/PRERNA/privacy.html`).
+  - **Google Play Submission Dossier:** Created comprehensive operator dossier `docs/google-play-store-submission-dossier.md` covering store listing metadata, character-bounded copy, exact step-by-step Data Safety questionnaire responses, Families policy declarations, neutral age screen verifications, and Internal Testing Track rollout procedures.
+  - **Android Target SDK 35 & Package Namespace:** Verified Android 15 compatibility (`targetSdk = 35`, `minSdk = 24`, package `com.prerna.sanctuary`) with zero advertising or tracking permissions.
+
 
 
 ---
