@@ -817,6 +817,13 @@
   - **Mock Backend Data Import:** Added `import_user_data` mock handler in `src/utils/mockBackend.ts` to persist user records, preferences, and snapshots across mock runs.
   - **School Analytics Differential Privacy End-to-End Drill (`test_school_cohort_analytics_e2e_privacy_drill`):** Extracted `execute_generate_school_report` in `src-tauri/src/school_api.rs` and added comprehensive E2E drill in `src-tauri/src/commands/security_tests.rs`. Verified cross-tenant isolation enforcement, sub-$k$ ($k < 5$) cohort small-cell suppression, Laplace differential privacy noise and budget deduction on valid cohorts ($k \ge 5$), and multi-query differencing attack rejection. Made trait snapshot deserialization resilient against null database fields.
   - **Verification:** Vitest suite verified with **254/254 tests passed across 50 test files**; Rust test suite verified with **60/60 tests passed** (50 unit/security + 10 crisis matrix integration tests) and 0 Clippy warnings.
+- [x] **WP-S-19** Real School Sanctuary Production Features & Differential Privacy Suite:
+  - **Real Differential Privacy Analytics Pipeline (`CohortAnalytics.tsx`, `schoolService.ts`):** Connected the frontend School Dashboard directly to Rust IPC `generate_school_report` and `get_school_students` (with web mock backend fallback). Injects calibrated Laplace differential privacy noise ($\epsilon = 1.0$), suppresses small cells ($k < 5$), tracks live session query budget (10/10), enforces differencing attack defense ($|Q_{new} \Delta Q_{past}| \ge 5$), and allows exporting real aggregate CSV and JSON.
+  - **Classroom Token Cards & Printable Handout Modal (`ClassroomHandoutModal.tsx`, `InstitutionalAdminPortal.tsx`):** Built printable 6-per-page A4 cut-out card generator with student pseudonymous token, dynamic scannable QR code (`QRCode.toDataURL`), 3-step teen instructions, and zero-PII DPDP Section 9 notice. Persists generated batches to local storage and allows counselors to track claimed token return in real time.
+  - **Smartboard & Projector Sanctuary Mode (`ClassroomSanctuaryModal.tsx`, `SchoolDashboard.tsx`):** Engineered distraction-free fullscreen classroom mode for interactive smartboards. Features synchronized 4-7-8, 5-5 coherent, and box breathing animations, 432 Hz Solfeggio sound toggle, rotating Kabir and Tagore mindful reflections, and 3/5/10-minute homeroom timers requiring zero student logins.
+  - **Actionable Counselor Lesson Plans & NEP 2020 Stream Guides (`CounselorPlaybookModal.tsx`):** Created printable, 1-click exportable lesson plans for teachers: *15-Minute Pre-Exam Somatic Calming Protocol*, *NEP 2020 Multi-Disciplinary Stream Guidance Matrix*, and *Circadian Sleep Hygiene Guide for Parents*.
+  - **Counselor Private Pastoral Log (`InstitutionalCareHub.tsx`):** Implemented an encrypted, on-device counselor notebook allowing counselors to log dated observations, tag cohorts, manage intervention lifecycle, and export the pastoral log as Markdown with zero remote telemetry leakage.
+  - **Verification:** 10 new unit tests added in `src/tests/school/`; Vitest verified with **264/264 tests passed across 52 test files**; Rust test suite verified with **60/60 tests passed** and 0 Clippy warnings.
 
 
 
@@ -827,7 +834,7 @@
 - [x] `docs/dpdp-compliance-mapping.md` updated for any change touching consent, data collection, or crisis
 - [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
 - [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
-- [x] Pre-deployment regression test suite: **254/254 tests passed across 50 test files** (TypeScript/Vitest) and **60/60 tests passed** (Rust unit, security, and crisis matrix)
+- [x] Pre-deployment regression test suite: **264/264 tests passed across 52 test files** (TypeScript/Vitest) and **60/60 tests passed** (Rust unit, security, and crisis matrix)
 - [x] Production bundle verified: `tsc && vite build` completed with zero errors (built in 12.72s)
 - [x] Native Android ARM64 Release APK (`PRERNA-v1.2.3-arm64.apk` — 14.04 MB / 14,720,933 bytes, package `com.prerna.sanctuary`) compiled and verified in root directory
 - [x] Official Git tag `v1.2.3` created

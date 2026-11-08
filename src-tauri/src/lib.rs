@@ -234,6 +234,7 @@ pub fn run() {
 
             // School Integration
             school_api::generate_school_report,
+            school_api::get_school_students,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

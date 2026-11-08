@@ -536,9 +536,42 @@ impl Database {
             // 5. Dr. Meenakshi (Educator Demo)
             let _ = self.conn.execute(
             "INSERT OR IGNORE INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled, role, tenant_id, pin_hash, has_completed_questionnaire, name, gender, date_of_birth)
-             VALUES (?1, ?2, ?3, ?4, '18+', ?5, ?6, 'key_seed', 0, 'educator', NULL, ?7, 1, 'Dr. Meenakshi Sundaram', 'female', '1982-03-15')",
+             VALUES (?1, ?2, ?3, ?4, '18+', ?5, ?6, 'key_seed', 0, 'educator', 'school_vidyapeeth', ?7, 1, 'Dr. Meenakshi Sundaram', 'female', '1982-03-15')",
             params!["demo-educator-001", "meenakshi", &pw_hash, &now, &enc_chennai, &enc_lang, &pin_hash],
         );
+
+            // Seed 6 Vidyapeeth cohort students (Grade 10 & 11) for Differential Privacy analytics (k >= 5)
+            for i in 1..=6 {
+                let s_id = format!("demo-vp-student-{:03}", i);
+                let _ = self.conn.execute(
+                    "INSERT OR IGNORE INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled, role, tenant_id, pin_hash, has_completed_questionnaire, name, gender, date_of_birth)
+                     VALUES (?1, ?2, ?3, ?4, '16-17', ?5, ?6, 'key_seed', 0, 'teen', 'school_vidyapeeth', ?7, 1, ?8, 'other', '2009-01-01')",
+                    params![&s_id, format!("demo_vp_student_{}", i), &pw_hash, &now, &enc_india, &enc_lang, &pin_hash, format!("Student {:02}", i)],
+                );
+
+                let emotional = serde_json::json!({ "resilience": 0.70 + (i as f64 * 0.03) });
+                let riasec = serde_json::json!({
+                    "investigative": 65.0 + (i as f32 * 2.0),
+                    "artistic": 62.0 + (i as f32 * 1.5),
+                    "social": 70.0 - (i as f32 * 1.0),
+                    "realistic": 40.0,
+                    "enterprising": 55.0,
+                    "conventional": 35.0
+                });
+                let bigfive = serde_json::json!({
+                    "openness": 75.0,
+                    "conscientiousness": 70.0 + (i as f32 * 1.0),
+                    "extraversion": 65.0,
+                    "agreeableness": 72.0,
+                    "neuroticism": 35.0
+                });
+
+                let _ = self.conn.execute(
+                    "INSERT OR IGNORE INTO trait_snapshots (id, user_id, snapshot_date, item_bank_version, emotional_profile, riasec, big_five, multiple_intel, confidence_score)
+                     VALUES (?1, ?2, '2026-10-31', 'v2-ipip-onet-2026', ?3, ?4, ?5, '{}', 0.90)",
+                    params![format!("snap_vp_{}", i), &s_id, emotional.to_string(), riasec.to_string(), bigfive.to_string()],
+                );
+            }
 
             // Link Rajesh (Parent) to Aarav (Teen)
             let _ = self.conn.execute(
@@ -736,6 +769,31 @@ impl Database {
             (Ok(Some(ed)), Ok(Some(st))) => ed == st,
             _ => false, // fail closed if missing or error
         }
+    }
+
+    pub fn get_students_in_educator_tenant(&self, educator_id: &str) -> AnyhowResult<Vec<String>> {
+        let ed_tenant: Option<String> = self
+            .conn
+            .query_row(
+                "SELECT tenant_id FROM users WHERE id = ?1",
+                rusqlite::params![educator_id],
+                |row| row.get(0),
+            )
+            .optional()?
+            .flatten();
+
+        let tenant = match ed_tenant {
+            Some(t) => t,
+            None => return Ok(vec![]),
+        };
+
+        let mut stmt = self.conn.prepare(
+            "SELECT id FROM users WHERE tenant_id = ?1 AND role = 'teen' ORDER BY id",
+        )?;
+        let student_ids = stmt
+            .query_map([&tenant], |row| row.get(0))?
+            .collect::<Result<Vec<String>, _>>()?;
+        Ok(student_ids)
     }
 
     // === ASSESSMENT OPERATIONS ===

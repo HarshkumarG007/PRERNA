@@ -3,9 +3,14 @@ import {
   Users, 
   PhoneCall, 
   ShieldCheck, 
-  BookOpen
+  BookOpen, 
+  Download, 
+  Plus, 
+  FileText, 
+  Trash2
 } from 'lucide-react';
 import { somaticAudio } from '../../utils/audioSynthesis';
+import { CounselorPlaybookModal } from './CounselorPlaybookModal';
 
 interface SystemicRiskItem {
   id: string;
@@ -15,7 +20,16 @@ interface SystemicRiskItem {
   cohort: string;
   detectedTrend: string;
   recommendedPlaybook: string;
+  playbookId: string;
   isDeployed?: boolean;
+}
+
+interface CounselorNote {
+  id: string;
+  timestamp: string;
+  cohort: string;
+  tag: string;
+  content: string;
 }
 
 export const InstitutionalCareHub: React.FC = () => {
@@ -28,16 +42,18 @@ export const InstitutionalCareHub: React.FC = () => {
       cohort: 'Grade 11 - Science & Commerce (Aggregate)',
       detectedTrend: '18% drop in 90-minute sleep cycle completion; elevated somatic tension reported.',
       recommendedPlaybook: 'Deploy 5-Minute Pre-Class Somatic Vagal Reset & Stagger Assignment Deadlines.',
+      playbookId: 'exam_calm',
       isDeployed: false,
     },
     {
       id: 'r_2',
       category: 'peer_climate',
-      title: 'New Admissions Isolation Vector',
+      title: 'Grade 10 Stream Anxiety & Subject Polarization',
       severity: 'medium',
-      cohort: 'Grade 9 - New Entrants (Aggregate)',
-      detectedTrend: 'Lower engagement on Social Compass group quests among recent transfers.',
-      recommendedPlaybook: 'Organize Paired Peer-Quest Orientation and Lunchtime Activity Pods.',
+      cohort: 'Grade 10 - All Sections (Aggregate)',
+      detectedTrend: 'High cognitive bifurcation between Engineering and Commerce interest vectors without multi-disciplinary awareness.',
+      recommendedPlaybook: 'Distribute NEP 2020 Multi-Disciplinary Stream Guidance Matrix for homeroom discussion.',
+      playbookId: 'stream_matrix',
       isDeployed: true,
     },
     {
@@ -45,18 +61,111 @@ export const InstitutionalCareHub: React.FC = () => {
       category: 'digital_fatigue',
       title: 'Late-Night Screen Use & Circadian Disruption',
       severity: 'low',
-      cohort: 'Grade 10 - Section A & C',
+      cohort: 'Grade 9 & 10 (Aggregate)',
       detectedTrend: 'Late morning check-in responses suggesting blue-light circadian delay.',
       recommendedPlaybook: 'Circulate Dinacharya Circadian Rhythm & Sleep Hygiene Sanctuary Guide to parents.',
+      playbookId: 'sleep_hygiene',
       isDeployed: false,
     },
   ]);
 
-  const [activeTab, setActiveTab] = useState<'alerts' | 'helplines' | 'playbooks'>('alerts');
+  const [activeTab, setActiveTab] = useState<'alerts' | 'playbooks' | 'notes' | 'helplines'>('alerts');
+  const [selectedPlaybookId, setSelectedPlaybookId] = useState<string | null>(null);
+
+  // Counselor Notes State
+  const [notes, setNotes] = useState<CounselorNote[]>(() => {
+    try {
+      const saved = localStorage.getItem('prerna_counselor_notes');
+      return saved ? JSON.parse(saved) : [
+        {
+          id: 'note_demo_1',
+          timestamp: '2026-11-02 09:30',
+          cohort: 'Grade 11 - Science',
+          tag: 'Exam Anxiety',
+          content: 'Conducted 15-minute collective breathing reset with Section A before Physics practicals. Positive somatic calming observed.'
+        },
+        {
+          id: 'note_demo_2',
+          timestamp: '2026-11-04 14:15',
+          cohort: 'Grade 10 - Section B',
+          tag: 'Stream Choice',
+          content: 'Circulated NEP 2020 RIASEC matching guides. Several students exploring combined Computer Science and Humanities options.'
+        }
+      ];
+    } catch {
+      return [];
+    }
+  });
+
+  const [newNoteCohort, setNewNoteCohort] = useState('Grade 10 Cohort');
+  const [newNoteTag, setNewNoteTag] = useState('Pastoral Care');
+  const [newNoteContent, setNewNoteContent] = useState('');
 
   const handleToggleDeploy = (id: string) => {
     somaticAudio.playSoftChime();
     setRisks(prev => prev.map(r => r.id === id ? { ...r, isDeployed: !r.isDeployed } : r));
+  };
+
+  const handleOpenPlaybook = (playbookId: string) => {
+    somaticAudio.playStarBeaconChime();
+    setSelectedPlaybookId(playbookId);
+  };
+
+  const handleAddNote = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newNoteContent.trim()) return;
+
+    somaticAudio.playSoftChime();
+    const newEntry: CounselorNote = {
+      id: `note_${Date.now()}`,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      cohort: newNoteCohort,
+      tag: newNoteTag,
+      content: newNoteContent.trim()
+    };
+
+    const updated = [newEntry, ...notes];
+    setNotes(updated);
+    setNewNoteContent('');
+    try {
+      localStorage.setItem('prerna_counselor_notes', JSON.stringify(updated));
+    } catch (err) {
+      console.warn('Failed to cache counselor notes', err);
+    }
+  };
+
+  const handleDeleteNote = (id: string) => {
+    somaticAudio.playSoftChime();
+    const updated = notes.filter(n => n.id !== id);
+    setNotes(updated);
+    try {
+      localStorage.setItem('prerna_counselor_notes', JSON.stringify(updated));
+    } catch (err) {
+      console.warn('Failed to cache counselor notes', err);
+    }
+  };
+
+  const handleExportNotes = () => {
+    somaticAudio.playStarBeaconChime();
+    const mdContent = `# PRERNA VidyaPeeth School Counselor Pastoral Log
+**Generated At:** ${new Date().toISOString()}  
+**Statutory Privacy Notice:** DPDP Act 2023 §9 Compliant • Zero Individual Adolescent Surveillance
+
+---
+
+${notes.map(n => `### [${n.timestamp}] ${n.cohort} (${n.tag})
+${n.content}
+`).join('\n---\n')}
+`;
+    const blob = new Blob([mdContent], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `PRERNA_Counselor_Pastoral_Log_${new Date().toISOString().split('T')[0]}.md`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -94,7 +203,8 @@ export const InstitutionalCareHub: React.FC = () => {
       <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
         {[
           { id: 'alerts', label: 'Cohort Risk Vectors', count: risks.length },
-          { id: 'playbooks', label: 'Compassionate Playbooks' },
+          { id: 'playbooks', label: 'Actionable Playbooks & Lesson Plans' },
+          { id: 'notes', label: 'Counselor Pastoral Log', count: notes.length },
           { id: 'helplines', label: 'Emergency Helplines & Legal Protocol' },
         ].map(tab => (
           <button
@@ -157,10 +267,15 @@ export const InstitutionalCareHub: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-[11px] font-medium text-slate-400">
-                  {risk.isDeployed ? '✓ Playbook Deployed' : 'Action Pending'}
-                </span>
+              <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
+                <button
+                  onClick={() => handleOpenPlaybook(risk.playbookId)}
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors flex items-center gap-1 cursor-pointer"
+                >
+                  <BookOpen size={13} />
+                  <span>View Protocol</span>
+                </button>
+
                 <button
                   onClick={() => handleToggleDeploy(risk.id)}
                   className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
@@ -177,55 +292,175 @@ export const InstitutionalCareHub: React.FC = () => {
         </div>
       )}
 
-      {/* Tab 2: Socratic Playbooks */}
+      {/* Tab 2: Actionable Playbooks & Lesson Plans */}
       {activeTab === 'playbooks' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             {
-              title: 'Exam Season Collective Somatic Reset',
+              id: 'exam_calm',
+              title: '15-Min Pre-Exam Somatic Calming Protocol',
               category: 'Academic Flourishing',
-              steps: [
-                'Incorporate 3 minutes of 432 Hz Pythagorean breathing at the start of double periods.',
-                'Coordinate with department heads to prevent >2 major subject submissions on a single day.',
-                'Open a dedicated quiet room for self-regulated sensory decompression during study hours.'
-              ]
+              desc: 'Teacher-guided 432 Hz Pythagorean breathing and cognitive reframing to de-escalate acute board exam anxiety in homerooms.'
             },
             {
-              title: 'Anti-Bullying Restorative Dialogue Circle',
-              category: 'Social Cohesion',
-              steps: [
-                'Use Nonviolent Communication (NVC) observation-without-evaluation circles.',
-                'Facilitate peer-guided mediation where both parties articulate emotional needs rather than blame.',
-                'Focus on restorative restitution rather than punitive isolation which compounds adolescent alienation.'
-              ]
+              id: 'stream_matrix',
+              title: 'NEP 2020 Multi-Disciplinary Stream Matrix',
+              category: 'Career Discovery',
+              desc: 'Structured counseling framework mapping Holland RIASEC interests to flexible Class 11-12 subject selections.'
+            },
+            {
+              id: 'sleep_hygiene',
+              title: 'Circadian Sleep Hygiene & Sanctuary Guide',
+              category: 'Biological Vitality',
+              desc: 'Evidence-based 90-minute sleep cycle guide and digital blue-light curfew protocol ready to distribute to parents.'
             }
-          ].map((pb, idx) => (
-            <div key={idx} className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-xs space-y-4">
-              <div className="flex items-center justify-between">
+          ].map(pb => (
+            <div key={pb.id} className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-4">
+              <div className="space-y-2">
                 <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
                   {pb.category}
                 </span>
-                <BookOpen size={16} className="text-slate-400" />
+                <h4 className="text-base font-black text-slate-900 leading-snug">{pb.title}</h4>
+                <p className="text-xs text-slate-600 leading-relaxed">{pb.desc}</p>
               </div>
 
-              <h4 className="text-base font-black text-slate-900">{pb.title}</h4>
-
-              <div className="space-y-2">
-                {pb.steps.map((st, i) => (
-                  <div key={i} className="flex items-start gap-2.5 text-xs text-slate-600 leading-relaxed">
-                    <span className="w-5 h-5 rounded-full bg-slate-100 font-bold text-slate-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-[11px]">
-                      {i + 1}
-                    </span>
-                    <span>{st}</span>
-                  </div>
-                ))}
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-slate-400">Printable & Exportable</span>
+                <button
+                  onClick={() => handleOpenPlaybook(pb.id)}
+                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                >
+                  <BookOpen size={14} />
+                  <span>Open Full Guide</span>
+                </button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Tab 3: Helplines */}
+      {/* Tab 3: Counselor Pastoral Log */}
+      {activeTab === 'notes' && (
+        <div className="space-y-6">
+          <div className="bg-white border border-slate-200/90 rounded-3xl p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h4 className="text-base font-black text-slate-900 flex items-center gap-2">
+                  <FileText size={18} className="text-indigo-600" />
+                  <span>Counselor Private Pastoral Log</span>
+                </h4>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Private, encrypted on-device notes for cohort interventions. Never synced to remote servers.
+                </p>
+              </div>
+
+              {notes.length > 0 && (
+                <button
+                  onClick={handleExportNotes}
+                  className="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Download size={14} />
+                  <span>Export Log (.MD)</span>
+                </button>
+              )}
+            </div>
+
+            {/* Note Entry Form */}
+            <form onSubmit={handleAddNote} className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Target Cohort</label>
+                  <select
+                    value={newNoteCohort}
+                    onChange={(e) => setNewNoteCohort(e.target.value)}
+                    className="w-full text-xs font-bold px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="Grade 9 - All Sections">Grade 9 - All Sections</option>
+                    <option value="Grade 10 - Section A">Grade 10 - Section A</option>
+                    <option value="Grade 10 - Section B">Grade 10 - Section B</option>
+                    <option value="Grade 11 - Science">Grade 11 - Science</option>
+                    <option value="Grade 11 - Commerce">Grade 11 - Commerce</option>
+                    <option value="Grade 12 - Senior Secondary">Grade 12 - Senior Secondary</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Intervention Category</label>
+                  <select
+                    value={newNoteTag}
+                    onChange={(e) => setNewNoteTag(e.target.value)}
+                    className="w-full text-xs font-bold px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="Exam Anxiety">Exam Anxiety</option>
+                    <option value="Stream Choice">Stream Choice</option>
+                    <option value="Peer Climate">Peer Climate</option>
+                    <option value="Circadian Health">Circadian Health</option>
+                    <option value="Pastoral Care">Pastoral Care</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Observation & Action Taken</label>
+                <textarea
+                  rows={2}
+                  value={newNoteContent}
+                  onChange={(e) => setNewNoteContent(e.target.value)}
+                  placeholder="Record intervention notes, classroom feedback, or scheduled followup..."
+                  className="w-full text-xs font-medium p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={!newNoteContent.trim()}
+                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40 shadow-xs"
+                >
+                  <Plus size={15} />
+                  <span>Add Note to Log</span>
+                </button>
+              </div>
+            </form>
+
+            {/* Notes List */}
+            <div className="space-y-3 pt-3 border-t border-slate-100">
+              {notes.length === 0 ? (
+                <div className="text-center py-6 text-xs text-slate-400">
+                  No pastoral notes logged yet. Use the form above to record grade-wide observations.
+                </div>
+              ) : (
+                notes.map(note => (
+                  <div key={note.id} className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200 flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-900 text-xs">{note.cohort}</span>
+                        <span className="text-[10px] font-bold px-2 py-0.2 rounded-md bg-indigo-100 text-indigo-800">
+                          {note.tag}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-mono">{note.timestamp}</span>
+                      </div>
+                      <p className="text-xs text-slate-700 leading-relaxed pt-0.5">
+                        {note.content}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => handleDeleteNote(note.id)}
+                      className="p-1.5 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                      title="Delete note entry"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 4: Helplines */}
       {activeTab === 'helplines' && (
         <div className="p-6 md:p-8 rounded-3xl bg-white border border-slate-200/80 shadow-xs space-y-6">
           <div>
@@ -258,6 +493,15 @@ export const InstitutionalCareHub: React.FC = () => {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Full Lesson Plan Modal */}
+      {selectedPlaybookId && (
+        <CounselorPlaybookModal
+          isOpen={Boolean(selectedPlaybookId)}
+          onClose={() => setSelectedPlaybookId(null)}
+          planId={selectedPlaybookId}
+        />
       )}
 
     </div>

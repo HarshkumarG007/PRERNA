@@ -57,5 +57,37 @@ describe('School & Educator Modernization Components (Phase 7-24)', () => {
       expect(screen.getByText(/Tele-MANAS/i)).toBeInTheDocument();
       expect(screen.getByText(/Childline/i)).toBeInTheDocument();
     });
+
+    it('opens actionable lesson plan modal and allows adding private counselor pastoral notes', () => {
+      render(<InstitutionalCareHub />);
+
+      // Open View Protocol on first risk
+      const viewProtocolBtn = screen.getAllByRole('button', { name: /View Protocol/i })[0];
+      fireEvent.click(viewProtocolBtn);
+
+      expect(screen.getAllByText(/15-Minute Pre-Exam Somatic Calming Protocol/i).length).toBeGreaterThan(0);
+      expect(screen.getByRole('button', { name: /Export .MD/i })).toBeInTheDocument();
+
+      // Close modal
+      const closeBtn = screen.getByRole('button', { name: /Close/i });
+      fireEvent.click(closeBtn);
+
+      expect(screen.queryByText(/Step-by-Step Classroom Delivery Sequence/i)).not.toBeInTheDocument();
+
+      // Switch to Counselor Pastoral Log
+      const notesTab = screen.getByRole('button', { name: /Counselor Pastoral Log/i });
+      fireEvent.click(notesTab);
+
+      expect(screen.getByText(/Private, encrypted on-device notes for cohort interventions/i)).toBeInTheDocument();
+
+      // Add a note
+      const textarea = screen.getByPlaceholderText(/Record intervention notes/i);
+      fireEvent.change(textarea, { target: { value: 'Grade 12 pre-boards breathing exercise conducted successfully.' } });
+
+      const addBtn = screen.getByRole('button', { name: /Add Note to Log/i });
+      fireEvent.click(addBtn);
+
+      expect(screen.getByText(/Grade 12 pre-boards breathing exercise conducted successfully./i)).toBeInTheDocument();
+    });
   });
 });

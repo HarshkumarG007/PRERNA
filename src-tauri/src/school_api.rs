@@ -74,7 +74,7 @@ pub fn check_and_update_privacy_budget(
             let diff_past = past_query.difference(cohort).count();
             let symmetric_difference = diff_new + diff_past;
 
-            if symmetric_difference < k_threshold {
+            if symmetric_difference > 0 && symmetric_difference < k_threshold {
                 return Err(format!(
                     "Privacy violation (differencing attack detected): The requested cohort overlaps with a previous query and differs by only {} individual(s), which is below the safe threshold of {}. Query blocked.",
                     symmetric_difference, k_threshold
@@ -124,6 +124,22 @@ pub fn apply_small_cell_suppression(counts: &mut Vec<(String, i32)>, threshold: 
 }
 
 #[tauri::command]
+pub fn get_school_students(
+    state: State<DbState>,
+    session: State<ActiveSession>,
+) -> Result<Vec<String>, String> {
+    let caller_id = session.get_user_id()?;
+    let db = state.0.lock().map_err(|e| e.to_string())?;
+
+    if !db.is_educator(&caller_id) {
+        return Err("Unauthorized: Must be an authorized educator to view students".to_string());
+    }
+
+    db.get_students_in_educator_tenant(&caller_id)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 pub fn generate_school_report(
     state: State<DbState>,
     session: State<ActiveSession>,
@@ -149,7 +165,14 @@ pub fn execute_generate_school_report(
         );
     }
 
-    let unique_student_ids: HashSet<String> = student_ids.into_iter().collect();
+    let unique_student_ids: HashSet<String> = if student_ids.is_empty() {
+        db.get_students_in_educator_tenant(&caller_id)
+            .map_err(|e| e.to_string())?
+            .into_iter()
+            .collect()
+    } else {
+        student_ids.into_iter().collect()
+    };
 
     // RED-009 Amendment: Fail-closed tenant boundary
     for student_id in &unique_student_ids {

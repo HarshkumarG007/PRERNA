@@ -65,4 +65,34 @@ describe('InstitutionalAdminPortal Component', () => {
     expect(screen.getByText(/14416/i)).toBeInTheDocument();
     expect(screen.getByText(/1098/i)).toBeInTheDocument();
   });
+
+  it('opens printable classroom handout sheet modal and toggles token claimed status', async () => {
+    render(<InstitutionalAdminPortal />);
+
+    const generateBtn = screen.getByRole('button', { name: /Generate Tokens/i });
+    fireEvent.click(generateBtn);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Print Handout Sheet/i })).toBeInTheDocument();
+    });
+
+    // Open print handout modal
+    const printBtn = screen.getByRole('button', { name: /Print Handout Sheet/i });
+    fireEvent.click(printBtn);
+
+    expect(screen.getByText(/Printable Student Token Cards/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Cut Here/i).length).toBeGreaterThan(0);
+
+    // Close modal
+    const closeBtn = screen.getByRole('button', { name: /Close/i });
+    fireEvent.click(closeBtn);
+
+    expect(screen.queryByText(/Printable Student Token Cards/i)).not.toBeInTheDocument();
+
+    // Toggle claimed status
+    const statusPill = screen.getAllByRole('button', { name: /available/i })[0];
+    fireEvent.click(statusPill);
+
+    expect(screen.getAllByRole('button', { name: /claimed/i }).length).toBeGreaterThan(0);
+  });
 });

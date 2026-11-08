@@ -9,12 +9,14 @@ import {
   FileSpreadsheet, 
   Sparkles, 
   Receipt,
-  BookOpen
+  BookOpen,
+  Printer
 } from 'lucide-react';
 import { useSubscriptionStore } from '../../store/subscriptionStore';
 import { generateTaxInvoice, downloadTaxInvoiceReceipt } from '../../services/paymentGateway';
 import { somaticAudio } from '../../utils/audioSynthesis';
 import { getSecureRandomString } from '../../utils/cryptoVault';
+import { ClassroomHandoutModal } from './ClassroomHandoutModal';
 
 interface StudentToken {
   id: string;
@@ -31,9 +33,17 @@ export const InstitutionalAdminPortal: React.FC = () => {
   const [grade, setGrade] = useState('Grade 9');
   const [section, setSection] = useState('Section A');
   const [studentCount, setStudentCount] = useState<number>(30);
-  const [generatedTokens, setGeneratedTokens] = useState<StudentToken[]>([]);
+  const [generatedTokens, setGeneratedTokens] = useState<StudentToken[]>(() => {
+    try {
+      const saved = localStorage.getItem('prerna_school_tokens');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [showInvoiceAlert, setShowInvoiceAlert] = useState(false);
+  const [showHandoutModal, setShowHandoutModal] = useState(false);
 
   // Stats
   const allocatedSeats = 1500;
@@ -58,7 +68,31 @@ export const InstitutionalAdminPortal: React.FC = () => {
     }
 
     setGeneratedTokens(newTokens);
+    try {
+      localStorage.setItem('prerna_school_tokens', JSON.stringify(newTokens));
+    } catch (e) {
+      console.warn('Failed to cache tokens', e);
+    }
   };
+
+  const handleToggleStatus = (tokenId: string) => {
+    somaticAudio.playSoftChime();
+    setGeneratedTokens(prev => {
+      const updated = prev.map(t => 
+        t.id === tokenId 
+          ? { ...t, status: t.status === 'available' ? 'claimed' as const : 'available' as const } 
+          : t
+      );
+      try {
+        localStorage.setItem('prerna_school_tokens', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Failed to cache tokens', e);
+      }
+      return updated;
+    });
+  };
+
+  const claimedCount = generatedTokens.filter(t => t.status === 'claimed').length;
 
   const handleCopyToken = (tok: string) => {
     navigator.clipboard.writeText(tok);
@@ -300,26 +334,45 @@ Institutional Guide for Adolescent Psychometric Discovery, Psychological Safety 
         {/* Generated Tokens Table */}
         {generatedTokens.length > 0 && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-700">
-                Generated {generatedTokens.length} Pseudonymous Activation Tokens for {grade} - {section}
-              </span>
-              <button
-                onClick={handleDownloadCsv}
-                className="px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <FileSpreadsheet size={14} />
-                <span>Export CSV for Classroom Distribution</span>
-              </button>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <span className="text-xs font-bold text-slate-800">
+                  {grade} - {section} ({generatedTokens.length} Tokens Provisioned)
+                </span>
+                <div className="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
+                  <span className="font-semibold text-emerald-700">
+                    {claimedCount} of {generatedTokens.length} Claimed ({Math.round((claimedCount / generatedTokens.length) * 100)}%)
+                  </span>
+                  <span>• Click status pill to track physical handout return</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowHandoutModal(true)}
+                  className="px-3.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-300 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Printer size={14} />
+                  <span>Print Handout Sheet</span>
+                </button>
+                <button
+                  onClick={handleDownloadCsv}
+                  className="px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <FileSpreadsheet size={14} />
+                  <span>Export CSV</span>
+                </button>
+              </div>
             </div>
 
-            <div className="max-h-60 overflow-y-auto border border-slate-200 rounded-2xl">
+            <div className="max-h-64 overflow-y-auto border border-slate-200 rounded-2xl">
               <table className="w-full text-left text-xs border-collapse">
                 <thead className="bg-slate-50 sticky top-0 border-b border-slate-200">
                   <tr>
                     <th className="py-2.5 px-4 font-bold text-slate-600">#</th>
                     <th className="py-2.5 px-4 font-bold text-slate-600">Pseudonymous Activation Token</th>
                     <th className="py-2.5 px-4 font-bold text-slate-600">Class Section</th>
+                    <th className="py-2.5 px-4 font-bold text-slate-600">Status</th>
                     <th className="py-2.5 px-4 font-bold text-slate-600">Action</th>
                   </tr>
                 </thead>
@@ -329,6 +382,19 @@ Institutional Guide for Adolescent Psychometric Discovery, Psychological Safety 
                       <td className="py-2 px-4 text-slate-400 font-mono text-[11px]">{idx + 1}</td>
                       <td className="py-2 px-4 font-mono font-bold text-indigo-700">{tok.token}</td>
                       <td className="py-2 px-4 text-slate-600 font-medium">{tok.gradeSection}</td>
+                      <td className="py-2 px-4">
+                        <button
+                          onClick={() => handleToggleStatus(tok.id)}
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase transition-colors cursor-pointer border ${
+                            tok.status === 'claimed'
+                              ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                              : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                          }`}
+                          title="Click to toggle claimed status"
+                        >
+                          {tok.status}
+                        </button>
+                      </td>
                       <td className="py-2 px-4">
                         <button
                           onClick={() => handleCopyToken(tok.token)}
@@ -355,6 +421,15 @@ Institutional Guide for Adolescent Psychometric Discovery, Psychological Safety 
           </div>
         )}
       </div>
+
+      {/* Classroom Handout Sheet Modal */}
+      <ClassroomHandoutModal
+        isOpen={showHandoutModal}
+        onClose={() => setShowHandoutModal(false)}
+        tokens={generatedTokens}
+        grade={grade}
+        section={section}
+      />
 
       {/* Differential Privacy $k \ge 5$ Guarantee Explainer */}
       <div className="p-6 bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-3xl shadow-md space-y-4">

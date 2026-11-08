@@ -652,6 +652,138 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
       return undefined as any;
     }
 
+    case 'get_school_students': {
+      return [
+        'vp-student-001', 'vp-student-002', 'vp-student-003', 'vp-student-004',
+        'vp-student-005', 'vp-student-006', 'vp-student-007', 'vp-student-008'
+      ] as any;
+    }
+
+    case 'generate_school_report': {
+      const studentPool = [
+        { id: 'vp-student-001', grade: 'Grade 10', wellbeing: 84, riasec: { investigative: 85, artistic: 72, social: 65, realistic: 40, enterprising: 55, conventional: 35 }, strengths: ['Creativity', 'Reliability'] },
+        { id: 'vp-student-002', grade: 'Grade 10', wellbeing: 78, riasec: { investigative: 75, artistic: 80, social: 70, realistic: 35, enterprising: 60, conventional: 40 }, strengths: ['Creativity', 'Leadership'] },
+        { id: 'vp-student-003', grade: 'Grade 10', wellbeing: 82, riasec: { investigative: 88, artistic: 60, social: 75, realistic: 45, enterprising: 50, conventional: 30 }, strengths: ['Reliability', 'Creativity'] },
+        { id: 'vp-student-004', grade: 'Grade 11', wellbeing: 72, riasec: { investigative: 90, artistic: 65, social: 55, realistic: 50, enterprising: 65, conventional: 45 }, strengths: ['Reliability', 'Leadership'] },
+        { id: 'vp-student-005', grade: 'Grade 11', wellbeing: 76, riasec: { investigative: 60, artistic: 55, social: 80, realistic: 30, enterprising: 85, conventional: 65 }, strengths: ['Leadership', 'Reliability'] },
+        { id: 'vp-student-006', grade: 'Grade 11', wellbeing: 80, riasec: { investigative: 65, artistic: 70, social: 85, realistic: 35, enterprising: 80, conventional: 60 }, strengths: ['Leadership', 'Creativity'] },
+        { id: 'vp-student-007', grade: 'Grade 9', wellbeing: 85, riasec: { investigative: 70, artistic: 75, social: 70, realistic: 40, enterprising: 60, conventional: 35 }, strengths: ['Creativity', 'Reliability'] },
+        { id: 'vp-student-008', grade: 'Grade 9', wellbeing: 88, riasec: { investigative: 72, artistic: 82, social: 78, realistic: 38, enterprising: 58, conventional: 32 }, strengths: ['Creativity', 'Leadership'] },
+      ];
+
+      const studentIds: string[] = args?.student_ids && args.student_ids.length > 0 
+        ? args.student_ids 
+        : studentPool.map(s => s.id);
+
+      const uniqueIds = Array.from(new Set(studentIds));
+
+      // 1. K-Anonymity Guard (k >= 5)
+      if (uniqueIds.length < 5) {
+        return {
+          cohort_size: uniqueIds.length,
+          average_wellbeing: 0,
+          top_career_clusters: [],
+          top_cognitive_strengths: [],
+          k_anonymity_threshold_met: false,
+          differential_privacy_applied: false,
+          privacy_epsilon: 1.0,
+          remaining_query_budget: (window as any).__MOCK_PRIVACY_BUDGET__ ?? 10,
+        } as any;
+      }
+
+      let currentBudget = (window as any).__MOCK_PRIVACY_BUDGET__ ?? 10;
+      if (currentBudget <= 0) {
+        throw new Error('Privacy budget exhausted: Maximum cohort analytics queries reached for this educator session to prevent reconstruction attacks.');
+      }
+
+      const pastQueries: Set<string>[] = (window as any).__MOCK_PAST_QUERIES__ ?? [];
+      const currentQuery = new Set(uniqueIds);
+
+      // 2. Differencing attack prevention (|symmetric difference| >= 5)
+      for (const past of pastQueries) {
+        let intersection = 0;
+        for (const id of currentQuery) {
+          if (past.has(id)) intersection++;
+        }
+        if (intersection > 0) {
+          let diffNew = 0;
+          for (const id of currentQuery) {
+            if (!past.has(id)) diffNew++;
+          }
+          let diffPast = 0;
+          for (const id of past) {
+            if (!currentQuery.has(id)) diffPast++;
+          }
+          const symmetricDiff = diffNew + diffPast;
+          if (symmetricDiff > 0 && symmetricDiff < 5) {
+            throw new Error(`Privacy violation (differencing attack detected): The requested cohort overlaps with a previous query and differs by only ${symmetricDiff} individual(s), which is below the safe threshold of 5. Query blocked.`);
+          }
+        }
+      }
+
+      currentBudget -= 1;
+      (window as any).__MOCK_PRIVACY_BUDGET__ = currentBudget;
+      pastQueries.push(currentQuery);
+      (window as any).__MOCK_PAST_QUERIES__ = pastQueries;
+
+      const matched = studentPool.filter(s => currentQuery.has(s.id));
+      const rawAvg = matched.reduce((acc, s) => acc + s.wellbeing, 0) / (matched.length || 1);
+
+      // Laplace noise with b = (100 / N) / 1.0
+      const n = Math.max(matched.length, 5);
+      const sensitivity = 100 / n;
+      const b = sensitivity / 1.0;
+      const u = Math.random() - 0.5;
+      const sgn = u < 0 ? -1 : 1;
+      const p = Math.max(1 - 2 * Math.abs(u), 1e-10);
+      const noise = -b * sgn * Math.log(p);
+      const noisedAvg = Math.min(100, Math.max(0, Math.round(rawAvg + noise)));
+
+      const careerScores: Record<string, number> = {
+        'Technology & Research': 0,
+        'Design & Creative Arts': 0,
+        'Helping & Healthcare': 0,
+        'Business & Leadership': 0,
+        'Engineering & Practical': 0,
+      };
+      matched.forEach(s => {
+        if (s.riasec.investigative > 60) careerScores['Technology & Research'] += 1;
+        if (s.riasec.artistic > 60) careerScores['Design & Creative Arts'] += 1;
+        if (s.riasec.social > 60) careerScores['Helping & Healthcare'] += 1;
+        if (s.riasec.enterprising > 60) careerScores['Business & Leadership'] += 1;
+        if (s.riasec.realistic > 40) careerScores['Engineering & Practical'] += 1;
+      });
+
+      const topCareers = Object.entries(careerScores)
+        .filter(([_, count]) => count >= 3)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([name]) => name);
+
+      const strengthScores: Record<string, number> = {};
+      matched.forEach(s => {
+        s.strengths.forEach(st => {
+          strengthScores[st] = (strengthScores[st] || 0) + 1;
+        });
+      });
+      const topStrengths = Object.entries(strengthScores)
+        .filter(([_, count]) => count >= 3)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([name]) => name);
+
+      return {
+        cohort_size: matched.length,
+        average_wellbeing: noisedAvg,
+        top_career_clusters: topCareers.length > 0 ? topCareers : ['Technology & Research', 'Design & Creative Arts', 'Helping & Healthcare'],
+        top_cognitive_strengths: topStrengths.length > 0 ? topStrengths : ['Creativity', 'Reliability', 'Leadership'],
+        k_anonymity_threshold_met: true,
+        differential_privacy_applied: true,
+        privacy_epsilon: 1.0,
+        remaining_query_budget: currentBudget,
+      } as any;
+    }
+
     case 'generate_llm_text': {
       // Simulate generating a self-discovery report based on the prompt
       return `Welcome to your inner world! Based on your responses, you show an incredible blend of curiosity and care. 
