@@ -626,6 +626,24 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
       } as any;
     }
 
+    case 'import_user_data': {
+      if (args?.data?.user) {
+        db.users = db.users || [];
+        const existingIdx = db.users.findIndex((u: any) => u.id === args.data.user.id);
+        if (existingIdx >= 0) {
+          db.users[existingIdx] = args.data.user;
+        } else {
+          db.users.push(args.data.user);
+        }
+      }
+      if (args?.data?.profile && args?.data?.user?.id) {
+        db.profiles = db.profiles || {};
+        db.profiles[args.data.user.id] = args.data.profile;
+      }
+      saveMockDb(db);
+      return { success: true } as any;
+    }
+
     case 'delete_user_data': {
       db.users = (db.users || []).filter((u: any) => u.id !== args.userId);
       delete db.profiles[args.userId];

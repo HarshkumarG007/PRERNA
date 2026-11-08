@@ -155,9 +155,19 @@ export class BackupEngine {
 
       return { success: true, userId: metadata.userId };
     } catch (error) {
+      const isDecryptionError =
+        error instanceof Error &&
+        (error.name === 'OperationError' ||
+          error.message.includes('operation-specific') ||
+          error.message.includes('tag'));
+      const errorMsg = isDecryptionError
+        ? 'Decryption failed - wrong password or corrupted data'
+        : error instanceof Error
+        ? error.message
+        : 'Decryption failed - wrong password?';
       return { 
         success: false, 
-        error: error instanceof Error ? error.message : 'Decryption failed - wrong password?' 
+        error: errorMsg,
       };
     }
   }

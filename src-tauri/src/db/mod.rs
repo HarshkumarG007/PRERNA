@@ -832,14 +832,14 @@ impl Database {
                     id: row.get(0)?,
                     user_id: user_id.to_string(),
                     snapshot_date: row.get(1)?,
-                    item_bank_version: row.get(2)?,
-                    big_five: serde_json::from_str(&row.get::<_, String>(3)?).unwrap_or_default(),
-                    riasec: serde_json::from_str(&row.get::<_, String>(4)?).unwrap_or_default(),
-                    multiple_intel: serde_json::from_str(&row.get::<_, String>(5)?)
+                    item_bank_version: row.get::<_, Option<String>>(2)?.unwrap_or_default(),
+                    big_five: serde_json::from_str(&row.get::<_, Option<String>>(3)?.unwrap_or_default()).unwrap_or_default(),
+                    riasec: serde_json::from_str(&row.get::<_, Option<String>>(4)?.unwrap_or_default()).unwrap_or_default(),
+                    multiple_intel: serde_json::from_str(&row.get::<_, Option<String>>(5)?.unwrap_or_default())
                         .unwrap_or_default(),
-                    emotional_profile: serde_json::from_str(&row.get::<_, String>(6)?)
+                    emotional_profile: serde_json::from_str(&row.get::<_, Option<String>>(6)?.unwrap_or_default())
                         .unwrap_or_default(),
-                    confidence_score: row.get(7)?,
+                    confidence_score: row.get::<_, Option<f32>>(7)?.unwrap_or(0.0),
                 })
             })
             .optional()?;
@@ -861,14 +861,14 @@ impl Database {
                     id: row.get(0)?,
                     user_id: user_id.to_string(),
                     snapshot_date: row.get(1)?,
-                    item_bank_version: row.get(2)?,
-                    big_five: serde_json::from_str(&row.get::<_, String>(3)?).unwrap_or_default(),
-                    riasec: serde_json::from_str(&row.get::<_, String>(4)?).unwrap_or_default(),
-                    multiple_intel: serde_json::from_str(&row.get::<_, String>(5)?)
+                    item_bank_version: row.get::<_, Option<String>>(2)?.unwrap_or_default(),
+                    big_five: serde_json::from_str(&row.get::<_, Option<String>>(3)?.unwrap_or_default()).unwrap_or_default(),
+                    riasec: serde_json::from_str(&row.get::<_, Option<String>>(4)?.unwrap_or_default()).unwrap_or_default(),
+                    multiple_intel: serde_json::from_str(&row.get::<_, Option<String>>(5)?.unwrap_or_default())
                         .unwrap_or_default(),
-                    emotional_profile: serde_json::from_str(&row.get::<_, String>(6)?)
+                    emotional_profile: serde_json::from_str(&row.get::<_, Option<String>>(6)?.unwrap_or_default())
                         .unwrap_or_default(),
-                    confidence_score: row.get(7)?,
+                    confidence_score: row.get::<_, Option<f32>>(7)?.unwrap_or(0.0),
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?;

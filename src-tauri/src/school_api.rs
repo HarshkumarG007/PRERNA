@@ -129,6 +129,14 @@ pub fn generate_school_report(
     session: State<ActiveSession>,
     student_ids: Vec<String>,
 ) -> Result<SchoolAnalyticsReport, String> {
+    execute_generate_school_report(&state, &session, student_ids)
+}
+
+pub fn execute_generate_school_report(
+    state: &DbState,
+    session: &ActiveSession,
+    student_ids: Vec<String>,
+) -> Result<SchoolAnalyticsReport, String> {
     // T1/T2: Require authentication.
     let caller_id = session.get_user_id()?;
 

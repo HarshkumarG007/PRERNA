@@ -817,4 +817,75 @@ mod tests {
         ).unwrap();
         assert_eq!(audit_count, 0, "Audit log still contains user identifier after erasure");
     }
+
+    #[test]
+    fn test_school_cohort_analytics_e2e_privacy_drill() {
+        use crate::school_api::{execute_generate_school_report, reset_privacy_ledger};
+        use crate::db::DbState;
+        use crate::{ActiveSession, AuthStatus};
+        use std::sync::Mutex;
+
+        reset_privacy_ledger();
+
+        let db = Database::new_in_memory("TEST_KEY_SCHOOL_ANALYTICS_E2E").unwrap();
+
+        // 1. Seed two educators in different tenants
+        db.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role, tenant_id) VALUES ('edu_tenant_1', 'edu1', 'hash', '0', 'educator', 'school_vidyapeeth')", ()).unwrap();
+        db.conn.execute("INSERT INTO users (id, username, password_hash, created_at, role, tenant_id) VALUES ('edu_tenant_2', 'edu2', 'hash', '0', 'educator', 'school_delhi')", ()).unwrap();
+
+        // 2. Seed 6 students in tenant 'school_vidyapeeth' and 1 in 'school_delhi'
+        let mut student_ids = Vec::new();
+        for i in 1..=6 {
+            let s_id = format!("student_vp_{}", i);
+            db.conn.execute(
+                "INSERT INTO users (id, username, password_hash, created_at, role, tenant_id) VALUES (?1, ?2, 'hash', '0', 'teen', 'school_vidyapeeth')",
+                rusqlite::params![s_id, format!("vp_student_{}", i)],
+            ).unwrap();
+
+            // Insert snapshot for each student
+            let emotional = serde_json::json!({ "resilience": 0.85 });
+            let riasec = serde_json::json!({ "investigative": 80.0, "artistic": 65.0, "social": 40.0, "realistic": 20.0, "enterprising": 30.0, "conventional": 25.0 });
+            let bigfive = serde_json::json!({ "openness": 75.0, "conscientiousness": 80.0, "extraversion": 60.0, "agreeableness": 70.0, "neuroticism": 30.0 });
+            db.conn.execute(
+                "INSERT INTO trait_snapshots (id, user_id, snapshot_date, item_bank_version, emotional_profile, riasec, big_five, multiple_intel, confidence_score) VALUES (?1, ?2, '2026-01-01', 'v2-ipip-onet-2026', ?3, ?4, ?5, '{}', 0.95)",
+                rusqlite::params![format!("snap_{}", i), s_id, emotional.to_string(), riasec.to_string(), bigfive.to_string()],
+            ).unwrap();
+
+            student_ids.push(s_id);
+        }
+
+        db.conn.execute(
+            "INSERT INTO users (id, username, password_hash, created_at, role, tenant_id) VALUES ('student_delhi_1', 'delhi_student', 'hash', '0', 'teen', 'school_delhi')",
+            (),
+        ).unwrap();
+
+        let db_state = DbState(Mutex::new(db));
+
+        // 3. Negative Path A: Cross-tenant query blocked
+        let session_edu2 = ActiveSession(Mutex::new(AuthStatus::Authenticated("edu_tenant_2".to_string())));
+        let cross_tenant_res = execute_generate_school_report(&db_state, &session_edu2, student_ids.clone());
+        assert!(cross_tenant_res.is_err(), "Cross-tenant access must be blocked");
+        assert!(cross_tenant_res.unwrap_err().contains("outside your tenant"));
+
+        // 4. Negative Path B: Sub-k cohort (< 5) returns threshold NOT met
+        let session_edu1 = ActiveSession(Mutex::new(AuthStatus::Authenticated("edu_tenant_1".to_string())));
+        let sub_k_res = execute_generate_school_report(&db_state, &session_edu1, student_ids[..4].to_vec()).unwrap();
+        assert!(!sub_k_res.k_anonymity_threshold_met, "Cohort < 5 must return k_anonymity_threshold_met = false");
+        assert_eq!(sub_k_res.cohort_size, 4);
+
+        // 5. Positive Path: Full cohort (6 students >= 5) succeeds with DP noise & budget deduction
+        let valid_report = execute_generate_school_report(&db_state, &session_edu1, student_ids.clone()).unwrap();
+        assert!(valid_report.k_anonymity_threshold_met);
+        assert!(valid_report.differential_privacy_applied);
+        assert!(valid_report.average_wellbeing > 0);
+        assert_eq!(valid_report.cohort_size, 6);
+        assert_eq!(valid_report.remaining_query_budget, 9); // deducted from 10
+
+        // 6. Negative Path C: Differencing attack (|symmetric difference| < 5) is rejected
+        // Querying student_ids[..5] (5 out of 6 students) differs by only 1 student from the previous query
+        let differencing_query = student_ids[..5].to_vec();
+        let diff_res = execute_generate_school_report(&db_state, &session_edu1, differencing_query);
+        assert!(diff_res.is_err(), "Differencing attack must be blocked");
+        assert!(diff_res.unwrap_err().contains("differencing attack detected"));
+    }
 }
