@@ -824,6 +824,12 @@
   - **Actionable Counselor Lesson Plans & NEP 2020 Stream Guides (`CounselorPlaybookModal.tsx`):** Created printable, 1-click exportable lesson plans for teachers: *15-Minute Pre-Exam Somatic Calming Protocol*, *NEP 2020 Multi-Disciplinary Stream Guidance Matrix*, and *Circadian Sleep Hygiene Guide for Parents*.
   - **Counselor Private Pastoral Log (`InstitutionalCareHub.tsx`):** Implemented an encrypted, on-device counselor notebook allowing counselors to log dated observations, tag cohorts, manage intervention lifecycle, and export the pastoral log as Markdown with zero remote telemetry leakage.
   - **Verification:** 10 new unit tests added in `src/tests/school/`; Vitest verified with **264/264 tests passed across 52 test files**; Rust test suite verified with **60/60 tests passed** and 0 Clippy warnings.
+- [x] **WP-S-20** Guardian Crisis Escalation UI Wiring, Play Store AAB CI/CD, & Interactive Adult Sanctuary:
+  - **Guardian Alert & Delivery Audit UI (`crisisService.ts`, `ReviewDashboard.tsx`, `ParentDashboard.tsx`):** Wired Rust IPC commands `claim_crisis_event`, `get_crisis_delivery_records`, and `get_guardian_emergency_alerts` end-to-end across React UI and `mockBackend.ts`. Replaced silent `teenInformedAt` stubbing in `ReviewDashboard.tsx` with explicit Rule 0.3 confirmation, required reviewer credentials input, atomic case claiming prior to resolution, and live Delivery Audit Trail display. Added Guardian Clinical Escalation Banner in `ParentDashboard.tsx` displaying status, `provider_reference`, verified 24/7 helplines (Tele-MANAS 14416, KIRAN 1800-599-0019), and persistent alert acknowledgement while preserving DPDP §9 private transcript isolation. Verified via `src/tests/crisis/guardianAlertFlow.test.tsx`.
+  - **Google Play Store `.aab` CI/CD (`.github/workflows/build-android.yml`):** Upgraded Android release pipeline to compile both release APK and Play Store Android App Bundle (`npx tauri android build --apk --aab --target aarch64 --ci`), decode optional `ANDROID_KEYSTORE_BASE64` upload keystore credentials, upload `PRERNA-Android-AAB` alongside `PRERNA-Android-APK`, and attach bundles to draft GitHub Releases (`draft: true`). Updated `docs/google-play-store-submission-dossier.md`.
+  - **Interactive Adult Sanctuary (`AdultDashboard.tsx`):** Upgraded the Adult Sanctuary with dedicated workspace tabs and interactive action CTAs wiring `MaslowNeedsCompass`, lazy-loaded `KayaKalpaSanctuary` Vitality Lab, lazy-loaded `SelfEvolutionSanctuary` Journal, and `LifeBlueprintExport` PDF portfolio directly alongside the Partners gateway. Verified via `src/tests/adult/AdultDashboard.test.tsx` (3 tests).
+  - **Parallel Privacy Ledger Isolation Fix (`src-tauri/src/school_api.rs`, `src-tauri/src/commands/security_tests.rs`):** Added caller-scoped `reset_privacy_ledger_for(caller_id)` so parallel Rust test threads no longer clear sibling tests' differential privacy budgets mid-run.
+  - **Verification:** Vitest verified with **268/268 tests passed across 54 test files**; `tsc && vite build` clean (`14.92s`); Rust test suite verified with **60/60 tests passed** and 0 Clippy warnings (`-D warnings`).
 
 
 
@@ -834,7 +840,7 @@
 - [x] `docs/dpdp-compliance-mapping.md` updated for any change touching consent, data collection, or crisis
 - [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
 - [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
-- [x] Pre-deployment regression test suite: **264/264 tests passed across 52 test files** (TypeScript/Vitest) and **60/60 tests passed** (Rust unit, security, and crisis matrix)
+- [x] Pre-deployment regression test suite: **268/268 tests passed across 54 test files** (TypeScript/Vitest) and **60/60 tests passed** (Rust unit, security, and crisis matrix)
 - [x] Production bundle verified: `tsc && vite build` completed with zero errors (built in 12.72s)
 - [x] Native Android ARM64 Release APK (`PRERNA-v1.2.3-arm64.apk` — 14.04 MB / 14,720,933 bytes, package `com.prerna.sanctuary`) compiled and verified in root directory
 - [x] Official Git tag `v1.2.3` created

@@ -147,12 +147,13 @@ Navigate to **App content &rarr; Target audience and content**:
 - **For APK upload:** Upload `PRERNA-v1.2.3-arm64.apk` (14.04 MB) located at:
   `c:\Users\Lenovo\Downloads\prerna\PRERNA-v1.2.3-arm64.apk`
 - **For Android App Bundle (.aab) upload:**
-  Run the bundle command below to build universal AAB:
+  Download the `PRERNA-Android-AAB` artifact directly from the GitHub Actions **Build Android APK & Play Store AAB** workflow run, or run locally:
   ```powershell
   npx tauri android build --aab --target aarch64
   ```
   The generated `.aab` will be located in:
-  `src-tauri/gen/android/app/build/outputs/bundle/universalRelease/app-universal-release.aab`
+  `src-tauri/gen/android/app/build/outputs/bundle/**/*.aab`
+  For Play Store release signing in CI, set repository secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, and `ANDROID_KEY_PASSWORD`.
 
 ### Step 4: Release Name and Release Notes
 - **Release name:** `1.2.3 (10203) - Closed Beta Sanctuary Activation`

@@ -128,7 +128,8 @@ const getMockDb = () => {
       users: [...INITIAL_DEMO_USERS],
       profiles: { ...INITIAL_DEMO_PROFILES },
       sessions: [],
-      crisisEvents: []
+      crisisEvents: [],
+      deliveryRecords: []
     };
     saveMockDb(db);
   } else {
@@ -417,8 +418,12 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
     }
 
     case 'claim_crisis_event': {
-      const evt = (db.crisisEvents || []).find((e: any) => e.id === args.eventId);
-      if (evt) {
+      const targetEventId = args.eventId || args.event_id;
+      const evt = (db.crisisEvents || []).find((e: any) => e.id === targetEventId);
+      if (!evt) {
+        throw new Error('AlreadyAssigned or event does not exist / not pending');
+      }
+      if (!evt.reviewer_id) {
         evt.reviewer_id = 'mock-clinician-1';
         saveMockDb(db);
       }
@@ -426,19 +431,59 @@ export async function safeInvoke<T>(cmd: string, args?: any): Promise<T> {
     }
 
     case 'resolve_crisis_event': {
-      const evt = (db.crisisEvents || []).find((e: any) => e.id === args.eventId);
+      const targetEventId = args.eventId || args.event_id;
+      const evt = (db.crisisEvents || []).find((e: any) => e.id === targetEventId);
       const teenInformed = args.teen_informed_at ?? args.teenInformedAt;
+      if (args.decision === 'GuardianNotified' && !teenInformed) {
+        throw new Error('Cannot notify guardian: teen has not been informed yet. Violates Crisis Protocol.');
+      }
       if (evt) {
-        if (args.decision === 'GuardianNotified' && !teenInformed) {
-          throw new Error('Cannot notify guardian: teen has not been informed yet. Violates Crisis Protocol.');
-        }
-        evt.state = args.decision === 'GuardianNotified' ? 'Escalate' : args.decision === 'ResourcesOnly' ? 'Monitor' : 'Cleared';
+        evt.state = args.decision === 'GuardianNotified' ? 'Notified' : args.decision === 'ResourcesOnly' ? 'Monitor' : 'Cleared';
         evt.decision = args.decision;
         evt.teen_informed_at = teenInformed;
         evt.reviewer_credentials_ref = args.reviewer_credentials_ref || args.reviewerCredentialsRef;
+
+        if (args.decision === 'GuardianNotified') {
+          if (!db.deliveryRecords) db.deliveryRecords = [];
+          const recipientId = (evt.user_id === 'demo-teen-001' || evt.user_id === 'demo-user-001' || evt.user_id === 'current-user')
+            ? 'demo-parent-001'
+            : `guardian_${evt.user_id}`;
+          const nowIso = new Date().toISOString();
+          db.deliveryRecords.unshift({
+            id: 'deliv-' + getSecureRandomString(8).toLowerCase(),
+            crisis_event_id: evt.id,
+            recipient_id: recipientId,
+            notification_type: 'CRISIS_ESCALATION',
+            status: 'Delivered',
+            provider: 'SovereignEmergencyAlertProvider',
+            provider_reference: `sovereign-alert-${evt.id}`,
+            created_at: nowIso,
+            updated_at: nowIso,
+            error_message: null,
+          });
+        }
+
         saveMockDb(db);
       }
       return undefined as any;
+    }
+
+    case 'get_crisis_delivery_records': {
+      const crisisId = args?.crisisId || args?.crisis_id;
+      const records = (db.deliveryRecords || []).filter((r: any) => r.crisis_event_id === crisisId);
+      return records as any;
+    }
+
+    case 'get_guardian_emergency_alerts': {
+      const callerId = localStorage.getItem('prerna_last_user') || 'demo-parent-001';
+      const user = (db.users || []).find((u: any) => u.id === callerId);
+      if (user && user.role !== 'parent' && user.role !== 'admin') {
+        throw new Error('Unauthorized: Only parents and administrators can view guardian emergency alerts');
+      }
+      const alerts = (db.deliveryRecords || []).filter(
+        (r: any) => r.recipient_id === callerId || (callerId === 'demo-parent-001' && r.recipient_id === 'demo-parent-001')
+      );
+      return alerts as any;
     }
 
     case 'chat_with_mentor': {

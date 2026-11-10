@@ -265,11 +265,11 @@ mod tests {
 
     #[test]
     fn test_differencing_attack_detection() {
-        use crate::school_api::{check_and_update_privacy_budget, reset_privacy_ledger};
+        use crate::school_api::{check_and_update_privacy_budget, reset_privacy_ledger_for};
         use std::collections::HashSet;
 
-        reset_privacy_ledger();
         let educator = "educator_test_diff_1";
+        reset_privacy_ledger_for(educator);
 
         // Query 1: Cohort of 5 students
         let q1: HashSet<String> = ["s1", "s2", "s3", "s4", "s5"]
@@ -321,11 +321,11 @@ mod tests {
 
     #[test]
     fn test_privacy_budget_exhaustion() {
-        use crate::school_api::{check_and_update_privacy_budget, reset_privacy_ledger};
+        use crate::school_api::{check_and_update_privacy_budget, reset_privacy_ledger_for};
         use std::collections::HashSet;
 
-        reset_privacy_ledger();
         let educator = "educator_budget_test";
+        reset_privacy_ledger_for(educator);
 
         // Execute 10 disjoint cohort queries consuming all 10 query tokens
         for i in 0..10 {
@@ -820,12 +820,13 @@ mod tests {
 
     #[test]
     fn test_school_cohort_analytics_e2e_privacy_drill() {
-        use crate::school_api::{execute_generate_school_report, reset_privacy_ledger};
+        use crate::school_api::{execute_generate_school_report, reset_privacy_ledger_for};
         use crate::db::DbState;
         use crate::{ActiveSession, AuthStatus};
         use std::sync::Mutex;
 
-        reset_privacy_ledger();
+        reset_privacy_ledger_for("edu_tenant_1");
+        reset_privacy_ledger_for("edu_tenant_2");
 
         let db = Database::new_in_memory("TEST_KEY_SCHOOL_ANALYTICS_E2E").unwrap();
 

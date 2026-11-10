@@ -13,8 +13,10 @@ import {
   Camera,
   QrCode,
   Unlink,
-  CheckCircle2
+  CheckCircle2,
+  AlertTriangle
 } from 'lucide-react';
+import { DeliveryRecord, getGuardianEmergencyAlerts } from '../../services/crisisService';
 import { ParentSafeProfile } from '../../parent/permissions';
 import { DisclosureGate } from '../consent/DisclosureGate';
 import { safeInvoke as invoke } from '../../utils/mockBackend';
@@ -48,6 +50,15 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ onExit }) => {
   const [profile, setProfile] = useState<ParentSafeProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'conversations' | 'settings'>('overview');
+  const [emergencyAlerts, setEmergencyAlerts] = useState<DeliveryRecord[]>([]);
+  const [acknowledgedAlertIds, setAcknowledgedAlertIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('prerna_ack_guardian_alerts');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   
   // Modals
   const [showBreathingModal, setShowBreathingModal] = useState(false);
@@ -80,7 +91,11 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ onExit }) => {
 
   const loadParentView = async () => {
     try {
-      const response: any = await invoke('get_parent_view');
+      const [response, alerts]: [any, DeliveryRecord[]] = await Promise.all([
+        invoke('get_parent_view'),
+        getGuardianEmergencyAlerts().catch(() => [])
+      ]);
+      setEmergencyAlerts(alerts || []);
 
       if (response?.has_access && response?.profile) {
         const safeProfile: ParentSafeProfile = {
@@ -287,6 +302,100 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ onExit }) => {
           </div>
         </div>
       </div>
+
+      {/* ========================================================
+          GUARDIAN CLINICAL ESCALATION ALERTS (Rule 0.3 & DPDP §9)
+         ======================================================== */}
+      {emergencyAlerts.length > 0 && (
+        <div
+          data-testid="guardian-emergency-alerts-section"
+          className="space-y-3"
+        >
+          {emergencyAlerts.map((alertItem) => {
+            const isAcked = acknowledgedAlertIds.includes(alertItem.id);
+            return (
+              <div
+                key={alertItem.id}
+                className={`p-5 md:p-6 rounded-3xl border-2 transition-all ${
+                  isAcked
+                    ? 'bg-slate-50 border-slate-200 text-slate-700'
+                    : 'bg-rose-50 border-rose-300 text-rose-950 shadow-sm'
+                }`}
+              >
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                          isAcked
+                            ? 'bg-slate-200 text-slate-700'
+                            : 'bg-rose-600 text-white'
+                        }`}
+                      >
+                        <AlertTriangle size={12} />
+                        {isAcked ? 'Safety Alert Acknowledged' : 'Urgent Clinical Guardian Alert'}
+                      </span>
+                      <span className="text-[11px] font-mono text-slate-500">
+                        {new Date(alertItem.created_at).toLocaleString()}
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white/80 border border-slate-200 text-slate-600">
+                        Status: {alertItem.status}
+                      </span>
+                    </div>
+
+                    <h3 className="text-base md:text-lg font-black">
+                      Verified Clinician Wellbeing Escalation
+                    </h3>
+
+                    <p className="text-xs md:text-sm leading-relaxed">
+                      A clinical safety reviewer verified a high-distress signal and notified your adolescent transparently first (Rule 0.3). We recommend reaching out with calm, non-judgmental warmth right now. Private chat transcripts remain sealed under DPDP §9.
+                    </p>
+
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <a
+                        href="tel:14416"
+                        className="px-3 py-1.5 rounded-xl bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold inline-flex items-center gap-1.5 transition-colors"
+                      >
+                        <PhoneCall size={13} />
+                        <span>Tele-MANAS 14416</span>
+                      </a>
+                      <a
+                        href="tel:18005990019"
+                        className="px-3 py-1.5 rounded-xl bg-white hover:bg-rose-100 text-rose-800 border border-rose-200 text-xs font-bold inline-flex items-center gap-1.5 transition-colors"
+                      >
+                        <PhoneCall size={13} />
+                        <span>KIRAN 1800-599-0019</span>
+                      </a>
+                      {alertItem.provider_reference && (
+                        <span className="text-[10px] font-mono text-slate-500">
+                          Ref: {alertItem.provider_reference}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {!isAcked && (
+                    <button
+                      onClick={() => {
+                        somaticAudio.playSoftChime();
+                        const next = [...acknowledgedAlertIds, alertItem.id];
+                        setAcknowledgedAlertIds(next);
+                        try {
+                          localStorage.setItem('prerna_ack_guardian_alerts', JSON.stringify(next));
+                        } catch {}
+                      }}
+                      className="px-4 py-2 rounded-xl bg-white hover:bg-rose-100 text-rose-800 border border-rose-300 text-xs font-bold flex items-center gap-1.5 flex-shrink-0 cursor-pointer transition-colors"
+                    >
+                      <CheckCircle2 size={14} />
+                      <span>Acknowledge Alert</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* ========================================================
           NAVIGATION TABS

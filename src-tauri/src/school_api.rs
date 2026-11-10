@@ -36,6 +36,14 @@ pub fn reset_privacy_ledger() {
     }
 }
 
+pub fn reset_privacy_ledger_for(caller_id: &str) {
+    if let Ok(mut lock) = PRIVACY_LEDGER.lock() {
+        if let Some(map) = lock.as_mut() {
+            map.remove(caller_id);
+        }
+    }
+}
+
 /**
  * Validates privacy constraints and updates educator privacy budget (Audit H-09):
  * 1. Rejects queries if the session privacy budget is exhausted.
