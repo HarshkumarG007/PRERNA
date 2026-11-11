@@ -77,6 +77,21 @@ const INITIAL_DEMO_USERS = [
     role: 'educator',
     hasCompletedQuestionnaire: true,
     createdAt: '2026-10-31T00:00:00.000Z'
+  },
+  {
+    id: 'demo-reviewer-001',
+    username: 'clinician',
+    password_hash: 'demo123',
+    ageRange: '18+',
+    region: 'India - Delhi',
+    language: 'en',
+    name: 'Dr. Kavita Nair',
+    gender: 'female',
+    dateOfBirth: '1980-06-18',
+    pin: '1234',
+    role: 'reviewer',
+    hasCompletedQuestionnaire: true,
+    createdAt: '2026-10-31T00:00:00.000Z'
   }
 ];
 
@@ -838,6 +853,10 @@ As someone with high Openness, you aren't afraid to explore uncharted territorie
 One challenge you might face is balancing your rich inner life with the demands of the outer world. But remember, your sensitivity isn't a weakness; it's the very thing that makes you so insightful.
 
 Your path ahead is uniquely yours. Keep asking questions and never lose that spark of wonder!` as any;
+    }
+
+    case 'unload_model': {
+      return undefined as any;
     }
 
     default:

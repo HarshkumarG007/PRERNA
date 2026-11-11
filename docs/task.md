@@ -830,6 +830,11 @@
   - **Interactive Adult Sanctuary (`AdultDashboard.tsx`):** Upgraded the Adult Sanctuary with dedicated workspace tabs and interactive action CTAs wiring `MaslowNeedsCompass`, lazy-loaded `KayaKalpaSanctuary` Vitality Lab, lazy-loaded `SelfEvolutionSanctuary` Journal, and `LifeBlueprintExport` PDF portfolio directly alongside the Partners gateway. Verified via `src/tests/adult/AdultDashboard.test.tsx` (3 tests).
   - **Parallel Privacy Ledger Isolation Fix (`src-tauri/src/school_api.rs`, `src-tauri/src/commands/security_tests.rs`):** Added caller-scoped `reset_privacy_ledger_for(caller_id)` so parallel Rust test threads no longer clear sibling tests' differential privacy budgets mid-run.
   - **Verification:** Vitest verified with **268/268 tests passed across 54 test files**; `tsc && vite build` clean (`14.92s`); Rust test suite verified with **60/60 tests passed** and 0 Clippy warnings (`-D warnings`).
+- [x] **WP-S-21** CI Formatting Restoration & Prototype Auth/Voice Stub Removal:
+  - **Rust Formatting Alignment (`cargo fmt --all`):** Formatted `src-tauri/src/commands/mod.rs`, `src-tauri/src/commands/security_tests.rs`, `src-tauri/src/db/mod.rs`, and `src-tauri/src/notifications/mod.rs` so `cargo fmt --all -- --check` passes cleanly matching CI workflows (`ci.yml`, `lint.yml`).
+  - **Server-Authenticated Clinical Portal (`ClinicianLogin.tsx`, `src-tauri/src/db/mod.rs`, `src/utils/mockBackend.ts`):** Eliminated the hardcoded `'CLINICIAN-007'` client passcode bypass. Replaced with genuine `authenticate_user` + optional `verify_login_mfa` (6-digit TOTP) flow enforcing `role === 'reviewer' | 'admin'` fail-closed role verification (`logout` on non-reviewer login). Seeded dev-only `demo-reviewer-001` (`clinician` under `#[cfg(debug_assertions)]` / `INITIAL_DEMO_USERS`, excluded from release builds). Verified via `src/tests/clinical/ClinicianLogin.test.tsx` (4 tests).
+  - **Real Web Speech Dictation in AI Mentor (`AiMentorChat.tsx`):** Removed the 3-second `setTimeout` hardcoded voice stub and misleading `"Local Processing (Whisper)"` banner. Wired browser `SpeechRecognition` / `webkitSpeechRecognition` with `en-IN` / `hi-IN` language mapping, clean unmount cleanup, and honest dismissible notice when speech recognition is unsupported or denied. Verified via `src/tests/ai/aiMentorVoice.test.tsx` (2 tests).
+  - **Verification:** `cargo fmt --all -- --check` passed; `cargo clippy --all-targets -- -D warnings` clean; `cargo test` **60/60 passed**; `npm run lint` (`tsc --noEmit`) clean; Vitest **274/274 tests passed across 56 test files**; `npm run build` clean (`14.26s`).
 
 
 
@@ -840,7 +845,7 @@
 - [x] `docs/dpdp-compliance-mapping.md` updated for any change touching consent, data collection, or crisis
 - [x] Crisis resource helpline numbers verified still current (Tele-MANAS 14416, Childline 1098, KIRAN 1800-599-0019, Vandrevala 9999 666 555)
 - [x] `docs/integrity-audit-log.md` audit repeated: grep docs/ for approval/review/certification language (0 unauthorized claims)
-- [x] Pre-deployment regression test suite: **268/268 tests passed across 54 test files** (TypeScript/Vitest) and **60/60 tests passed** (Rust unit, security, and crisis matrix)
+- [x] Pre-deployment regression test suite: **274/274 tests passed across 56 test files** (TypeScript/Vitest) and **60/60 tests passed** (Rust unit, security, and crisis matrix)
 - [x] Production bundle verified: `tsc && vite build` completed with zero errors (built in 12.72s)
 - [x] Native Android ARM64 Release APK (`PRERNA-v1.2.3-arm64.apk` — 14.04 MB / 14,720,933 bytes, package `com.prerna.sanctuary`) compiled and verified in root directory
 - [x] Official Git tag `v1.2.3` created

@@ -35,9 +35,11 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [voiceNotice, setVoiceNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
   const disclosure = CURRENT_DISCLOSURES.ai_mentor;
 
   const [showSidecarModal, setShowSidecarModal] = useState(false);
@@ -67,8 +69,14 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
   }, [messages, isTyping]);
 
   useEffect(() => {
-    // Cleanup LLM when leaving the chat interface
+    // Cleanup LLM and speech recognition when leaving the chat interface
     return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch {}
+        recognitionRef.current = null;
+      }
       console.log('Unloading AI Mentor model from VRAM...');
       invoke('unload_model').catch(err => console.error('Failed to unload model', err));
     };
@@ -155,12 +163,68 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
   };
 
   const toggleRecording = () => {
-    setIsRecording(!isRecording);
-    if (!isRecording) {
-      setTimeout(() => {
+    setVoiceNotice(null);
+
+    if (isRecording) {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch {}
+        recognitionRef.current = null;
+      }
+      setIsRecording(false);
+      return;
+    }
+
+    const SpeechRecognitionCtor =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognitionCtor) {
+      setVoiceNotice('Voice dictation is not supported in this browser or WebView. Please type your reflection below.');
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognitionCtor();
+      recognition.lang = language === 'hi' ? 'hi-IN' : 'en-IN';
+      recognition.interimResults = true;
+      recognition.continuous = false;
+
+      recognition.onresult = (event: any) => {
+        const transcript = Array.from(event.results || [])
+          .map((res: any) => res?.[0]?.transcript || '')
+          .join(' ')
+          .trim();
+        if (transcript) {
+          setInput(transcript);
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        const errCode = event?.error || 'unknown';
+        if (errCode !== 'aborted') {
+          setVoiceNotice(
+            errCode === 'not-allowed'
+              ? 'Microphone permission was denied. Please enable microphone access or type your message.'
+              : 'Voice dictation could not complete. Please type your reflection below.'
+          );
+        }
+        recognitionRef.current = null;
         setIsRecording(false);
-        setInput("I've been feeling a bit overwhelmed lately.");
-      }, 3000);
+      };
+
+      recognition.onend = () => {
+        recognitionRef.current = null;
+        setIsRecording(false);
+      };
+
+      recognitionRef.current = recognition;
+      setIsRecording(true);
+      recognition.start();
+    } catch {
+      recognitionRef.current = null;
+      setIsRecording(false);
+      setVoiceNotice('Voice dictation could not start on this device. Please type your message.');
     }
   };
 
@@ -397,10 +461,24 @@ export const AiMentorChat: React.FC<AiMentorChatProps> = ({ userId }) => {
               </div>
             </div>
             <p className="font-bold text-white text-lg tracking-wide mb-1">Listening...</p>
-            <p className="text-xs text-white/50 uppercase tracking-widest font-bold">Local Processing (Whisper)</p>
+            <p className="text-xs text-white/50 uppercase tracking-widest font-bold">Speech Dictation Active</p>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {voiceNotice && (
+        <div role="status" className="relative z-10 px-4 py-2 bg-amber-950/60 border-t border-amber-500/30 text-amber-200 text-xs flex items-center justify-between gap-2">
+          <span>{voiceNotice}</span>
+          <button
+            type="button"
+            onClick={() => setVoiceNotice(null)}
+            className="text-amber-300 hover:text-white font-bold px-2 py-0.5 rounded"
+            aria-label="Dismiss voice dictation notice"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
       {/* Input Area */}
       <form onSubmit={onSubmit} className="relative z-10 p-4 bg-[#020617]/80 backdrop-blur-xl border-t border-white/10 flex items-end gap-3">

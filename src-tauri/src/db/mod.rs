@@ -540,6 +540,13 @@ impl Database {
             params!["demo-educator-001", "meenakshi", &pw_hash, &now, &enc_chennai, &enc_lang, &pin_hash],
         );
 
+            // 6. Dr. Kavita Nair (Clinical Reviewer Demo — dev/debug builds only)
+            let _ = self.conn.execute(
+            "INSERT OR IGNORE INTO users (id, username, password_hash, created_at, age_range, region, language, encryption_key_hash, mfa_enabled, role, tenant_id, pin_hash, has_completed_questionnaire, name, gender, date_of_birth)
+             VALUES (?1, ?2, ?3, ?4, '18+', ?5, ?6, 'key_seed', 0, 'reviewer', NULL, ?7, 1, 'Dr. Kavita Nair', 'female', '1980-06-18')",
+            params!["demo-reviewer-001", "clinician", &pw_hash, &now, &enc_india, &enc_lang, &pin_hash],
+        );
+
             // Seed 6 Vidyapeeth cohort students (Grade 10 & 11) for Differential Privacy analytics (k >= 5)
             for i in 1..=6 {
                 let s_id = format!("demo-vp-student-{:03}", i);
@@ -787,9 +794,9 @@ impl Database {
             None => return Ok(vec![]),
         };
 
-        let mut stmt = self.conn.prepare(
-            "SELECT id FROM users WHERE tenant_id = ?1 AND role = 'teen' ORDER BY id",
-        )?;
+        let mut stmt = self
+            .conn
+            .prepare("SELECT id FROM users WHERE tenant_id = ?1 AND role = 'teen' ORDER BY id")?;
         let student_ids = stmt
             .query_map([&tenant], |row| row.get(0))?
             .collect::<Result<Vec<String>, _>>()?;
@@ -891,12 +898,22 @@ impl Database {
                     user_id: user_id.to_string(),
                     snapshot_date: row.get(1)?,
                     item_bank_version: row.get::<_, Option<String>>(2)?.unwrap_or_default(),
-                    big_five: serde_json::from_str(&row.get::<_, Option<String>>(3)?.unwrap_or_default()).unwrap_or_default(),
-                    riasec: serde_json::from_str(&row.get::<_, Option<String>>(4)?.unwrap_or_default()).unwrap_or_default(),
-                    multiple_intel: serde_json::from_str(&row.get::<_, Option<String>>(5)?.unwrap_or_default())
-                        .unwrap_or_default(),
-                    emotional_profile: serde_json::from_str(&row.get::<_, Option<String>>(6)?.unwrap_or_default())
-                        .unwrap_or_default(),
+                    big_five: serde_json::from_str(
+                        &row.get::<_, Option<String>>(3)?.unwrap_or_default(),
+                    )
+                    .unwrap_or_default(),
+                    riasec: serde_json::from_str(
+                        &row.get::<_, Option<String>>(4)?.unwrap_or_default(),
+                    )
+                    .unwrap_or_default(),
+                    multiple_intel: serde_json::from_str(
+                        &row.get::<_, Option<String>>(5)?.unwrap_or_default(),
+                    )
+                    .unwrap_or_default(),
+                    emotional_profile: serde_json::from_str(
+                        &row.get::<_, Option<String>>(6)?.unwrap_or_default(),
+                    )
+                    .unwrap_or_default(),
                     confidence_score: row.get::<_, Option<f32>>(7)?.unwrap_or(0.0),
                 })
             })
@@ -920,12 +937,22 @@ impl Database {
                     user_id: user_id.to_string(),
                     snapshot_date: row.get(1)?,
                     item_bank_version: row.get::<_, Option<String>>(2)?.unwrap_or_default(),
-                    big_five: serde_json::from_str(&row.get::<_, Option<String>>(3)?.unwrap_or_default()).unwrap_or_default(),
-                    riasec: serde_json::from_str(&row.get::<_, Option<String>>(4)?.unwrap_or_default()).unwrap_or_default(),
-                    multiple_intel: serde_json::from_str(&row.get::<_, Option<String>>(5)?.unwrap_or_default())
-                        .unwrap_or_default(),
-                    emotional_profile: serde_json::from_str(&row.get::<_, Option<String>>(6)?.unwrap_or_default())
-                        .unwrap_or_default(),
+                    big_five: serde_json::from_str(
+                        &row.get::<_, Option<String>>(3)?.unwrap_or_default(),
+                    )
+                    .unwrap_or_default(),
+                    riasec: serde_json::from_str(
+                        &row.get::<_, Option<String>>(4)?.unwrap_or_default(),
+                    )
+                    .unwrap_or_default(),
+                    multiple_intel: serde_json::from_str(
+                        &row.get::<_, Option<String>>(5)?.unwrap_or_default(),
+                    )
+                    .unwrap_or_default(),
+                    emotional_profile: serde_json::from_str(
+                        &row.get::<_, Option<String>>(6)?.unwrap_or_default(),
+                    )
+                    .unwrap_or_default(),
                     confidence_score: row.get::<_, Option<f32>>(7)?.unwrap_or(0.0),
                 })
             })?
@@ -1137,7 +1164,10 @@ impl Database {
 
     // === NOTIFICATION DELIVERY & GUARDIAN ALERTS ===
 
-    pub fn insert_delivery_record(&self, record: &crate::db::models::DeliveryRecord) -> AnyhowResult<()> {
+    pub fn insert_delivery_record(
+        &self,
+        record: &crate::db::models::DeliveryRecord,
+    ) -> AnyhowResult<()> {
         self.conn.execute(
             "INSERT INTO delivery_records (
                 id, crisis_event_id, recipient_id, notification_type, status,
@@ -1165,7 +1195,10 @@ impl Database {
         Ok(())
     }
 
-    pub fn get_delivery_records_for_crisis(&self, crisis_id: &str) -> AnyhowResult<Vec<crate::db::models::DeliveryRecord>> {
+    pub fn get_delivery_records_for_crisis(
+        &self,
+        crisis_id: &str,
+    ) -> AnyhowResult<Vec<crate::db::models::DeliveryRecord>> {
         let mut stmt = self.conn.prepare(
             "SELECT id, crisis_event_id, recipient_id, notification_type, status,
                     provider, provider_reference, created_at, updated_at, error_message
@@ -1194,7 +1227,10 @@ impl Database {
         Ok(records)
     }
 
-    pub fn get_guardian_emergency_alerts(&self, guardian_id: &str) -> AnyhowResult<Vec<crate::db::models::DeliveryRecord>> {
+    pub fn get_guardian_emergency_alerts(
+        &self,
+        guardian_id: &str,
+    ) -> AnyhowResult<Vec<crate::db::models::DeliveryRecord>> {
         let mut stmt = self.conn.prepare(
             "SELECT id, crisis_event_id, recipient_id, notification_type, status,
                     provider, provider_reference, created_at, updated_at, error_message
@@ -1400,22 +1436,16 @@ impl Database {
             "DELETE FROM parent_sharing_preferences WHERE user_id = ?1",
             [user_id],
         )?;
-        self.conn.execute(
-            "DELETE FROM raw_evidence WHERE subject_id = ?1",
-            [user_id],
-        )?;
+        self.conn
+            .execute("DELETE FROM raw_evidence WHERE subject_id = ?1", [user_id])?;
         self.conn.execute(
             "DELETE FROM derived_inferences WHERE subject_id = ?1",
             [user_id],
         )?;
-        self.conn.execute(
-            "DELETE FROM hypotheses WHERE subject_id = ?1",
-            [user_id],
-        )?;
-        self.conn.execute(
-            "DELETE FROM decisions WHERE subject_id = ?1",
-            [user_id],
-        )?;
+        self.conn
+            .execute("DELETE FROM hypotheses WHERE subject_id = ?1", [user_id])?;
+        self.conn
+            .execute("DELETE FROM decisions WHERE subject_id = ?1", [user_id])?;
         self.conn.execute(
             "DELETE FROM audit_log WHERE details LIKE '%' || ?1 || '%' OR action LIKE '%' || ?1 || '%'",
             [user_id],

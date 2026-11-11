@@ -1295,7 +1295,10 @@ pub fn execute_resolve_crisis_event(
                 event_id,
                 e
             );
-            return Err(format!("Crisis event resolved, but notification dispatch failed: {}", e));
+            return Err(format!(
+                "Crisis event resolved, but notification dispatch failed: {}",
+                e
+            ));
         }
     }
 
@@ -1340,11 +1343,15 @@ pub fn get_guardian_emergency_alerts(
     // Verify caller is an authorized parent or administrator
     if let Ok(Some(user)) = db.get_user(&guardian_id) {
         if user.role != "parent" && user.role != "admin" {
-            return Err("Unauthorized: Only parents and administrators can view guardian emergency alerts".to_string());
+            return Err(
+                "Unauthorized: Only parents and administrators can view guardian emergency alerts"
+                    .to_string(),
+            );
         }
     }
 
-    db.get_guardian_emergency_alerts(&guardian_id).map_err(|e| e.to_string())
+    db.get_guardian_emergency_alerts(&guardian_id)
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -1361,7 +1368,8 @@ pub fn get_crisis_delivery_records(
         return Err("Unauthorized: Clinical reviewer credentials required to inspect crisis delivery records".to_string());
     }
 
-    db.get_delivery_records_for_crisis(&crisis_id).map_err(|e| e.to_string())
+    db.get_delivery_records_for_crisis(&crisis_id)
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]

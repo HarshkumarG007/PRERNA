@@ -101,7 +101,9 @@ impl<'a> DbRecipientResolver<'a> {
 
 impl<'a> RecipientResolver for DbRecipientResolver<'a> {
     fn resolve(&self, crisis_event: &CrisisEvent) -> Result<Vec<String>> {
-        let guardians = self.db.get_active_guardians_for_teen(&crisis_event.user_id)?;
+        let guardians = self
+            .db
+            .get_active_guardians_for_teen(&crisis_event.user_id)?;
         if guardians.is_empty() {
             log::warn!(
                 "RecipientResolver: No active verified guardian relationship found for teen {}. Queuing emergency alert for guardian destination.",
@@ -173,7 +175,10 @@ pub fn dispatch_crisis_guardian_notification(
             for r in &recs {
                 db.insert_delivery_record(r)?;
             }
-            if recs.iter().all(|r| r.status == NotificationStatus::Delivered) {
+            if recs
+                .iter()
+                .all(|r| r.status == NotificationStatus::Delivered)
+            {
                 db.update_crisis_event_state(event_id, "Notified")?;
             }
             recs

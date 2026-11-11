@@ -714,24 +714,35 @@ mod tests {
             "Urgent crisis alert",
         );
         assert!(fail_dispatch.is_err());
-        assert!(fail_dispatch.unwrap_err().to_string().contains("Violates Rule 0.3"));
+        assert!(fail_dispatch
+            .unwrap_err()
+            .to_string()
+            .contains("Violates Rule 0.3"));
 
         // 5. Inform teen and re-attempt dispatch
-        db.conn.execute(
-            "UPDATE crisis_events SET teen_informed_at = ?1 WHERE id = ?2",
-            rusqlite::params![123456789i64, event_id],
-        ).unwrap();
+        db.conn
+            .execute(
+                "UPDATE crisis_events SET teen_informed_at = ?1 WHERE id = ?2",
+                rusqlite::params![123456789i64, event_id],
+            )
+            .unwrap();
 
         let ok_dispatch = crate::notifications::dispatch_crisis_guardian_notification(
             &db,
             event_id,
             "Urgent crisis alert",
         );
-        assert!(ok_dispatch.is_ok(), "Dispatch should succeed when teen is informed");
+        assert!(
+            ok_dispatch.is_ok(),
+            "Dispatch should succeed when teen is informed"
+        );
         let records = ok_dispatch.unwrap();
         assert_eq!(records.len(), 1);
         assert_eq!(records[0].recipient_id, "parent_p1");
-        assert_eq!(records[0].status, crate::db::models::NotificationStatus::Delivered);
+        assert_eq!(
+            records[0].status,
+            crate::db::models::NotificationStatus::Delivered
+        );
 
         // 6. Verify delivery record persisted in database
         let stored_records = db.get_delivery_records_for_crisis(event_id).unwrap();
@@ -745,7 +756,10 @@ mod tests {
 
         // 8. Verify crisis event transitioned to 'Notified'
         let updated_event = db.get_crisis_event_by_id(event_id).unwrap().unwrap();
-        assert_eq!(updated_event.state, crate::db::models::CrisisState::Notified);
+        assert_eq!(
+            updated_event.state,
+            crate::db::models::CrisisState::Notified
+        );
     }
 
     #[test]
@@ -760,7 +774,12 @@ mod tests {
 
         // 2. Populate data across all 13 tables referencing this user
         db.conn.execute("INSERT INTO sessions (id, user_id, session_type, started_at, disclosure_version, disclosure_shown_at) VALUES ('s1', ?1, 'life_quest', '0', 'v1', 0)", [user_id]).unwrap();
-        db.conn.execute("INSERT INTO trait_snapshots (id, user_id, snapshot_date) VALUES ('t1', ?1, '0')", [user_id]).unwrap();
+        db.conn
+            .execute(
+                "INSERT INTO trait_snapshots (id, user_id, snapshot_date) VALUES ('t1', ?1, '0')",
+                [user_id],
+            )
+            .unwrap();
         db.conn.execute("INSERT INTO recommendations (id, user_id, category, content, created_at) VALUES ('r1', ?1, 'career', 'Explore STEM', '0')", [user_id]).unwrap();
         db.conn.execute("INSERT INTO crisis_events (id, user_id, detected_at, severity, state, origin) VALUES ('c1', ?1, 0, 'high', 'SignalDetected', 'AI')", [user_id]).unwrap();
         db.conn.execute("INSERT INTO delivery_records (id, crisis_event_id, recipient_id, notification_type, status, provider, created_at, updated_at) VALUES ('d1', 'c1', ?1, 'ALERT', 'DELIVERED', 'Test', '0', '0')", [parent_id]).unwrap();
@@ -774,7 +793,12 @@ mod tests {
         db.conn.execute("INSERT INTO audit_log (timestamp, action, details) VALUES ('0', 'USER_ACCESS', 'Access by teen_erasure_subject_01')", ()).unwrap();
 
         // 3. Verify user and dependent records exist
-        let u_count: i64 = db.conn.query_row("SELECT COUNT(*) FROM users WHERE id = ?1", [user_id], |r| r.get(0)).unwrap();
+        let u_count: i64 = db
+            .conn
+            .query_row("SELECT COUNT(*) FROM users WHERE id = ?1", [user_id], |r| {
+                r.get(0)
+            })
+            .unwrap();
         assert_eq!(u_count, 1);
 
         // 4. Execute DPDP Section 12 Right-to-Erasure
@@ -798,7 +822,11 @@ mod tests {
         for (table, col) in tables {
             let sql = format!("SELECT COUNT(*) FROM {} WHERE {} = ?1", table, col);
             let count: i64 = db.conn.query_row(&sql, [user_id], |r| r.get(0)).unwrap();
-            assert_eq!(count, 0, "DPDP Invariant Violation: Record remained in table '{}' after erasure!", table);
+            assert_eq!(
+                count, 0,
+                "DPDP Invariant Violation: Record remained in table '{}' after erasure!",
+                table
+            );
         }
 
         // Relational table verification: parent_teen_relationships
@@ -807,7 +835,10 @@ mod tests {
             [user_id],
             |r| r.get(0),
         ).unwrap();
-        assert_eq!(rel_count, 0, "Relational link was not purged on user erasure");
+        assert_eq!(
+            rel_count, 0,
+            "Relational link was not purged on user erasure"
+        );
 
         // Audit log PII purge verification
         let audit_count: i64 = db.conn.query_row(
@@ -815,13 +846,16 @@ mod tests {
             [user_id],
             |r| r.get(0),
         ).unwrap();
-        assert_eq!(audit_count, 0, "Audit log still contains user identifier after erasure");
+        assert_eq!(
+            audit_count, 0,
+            "Audit log still contains user identifier after erasure"
+        );
     }
 
     #[test]
     fn test_school_cohort_analytics_e2e_privacy_drill() {
-        use crate::school_api::{execute_generate_school_report, reset_privacy_ledger_for};
         use crate::db::DbState;
+        use crate::school_api::{execute_generate_school_report, reset_privacy_ledger_for};
         use crate::{ActiveSession, AuthStatus};
         use std::sync::Mutex;
 
@@ -863,19 +897,35 @@ mod tests {
         let db_state = DbState(Mutex::new(db));
 
         // 3. Negative Path A: Cross-tenant query blocked
-        let session_edu2 = ActiveSession(Mutex::new(AuthStatus::Authenticated("edu_tenant_2".to_string())));
-        let cross_tenant_res = execute_generate_school_report(&db_state, &session_edu2, student_ids.clone());
-        assert!(cross_tenant_res.is_err(), "Cross-tenant access must be blocked");
-        assert!(cross_tenant_res.unwrap_err().contains("outside your tenant"));
+        let session_edu2 = ActiveSession(Mutex::new(AuthStatus::Authenticated(
+            "edu_tenant_2".to_string(),
+        )));
+        let cross_tenant_res =
+            execute_generate_school_report(&db_state, &session_edu2, student_ids.clone());
+        assert!(
+            cross_tenant_res.is_err(),
+            "Cross-tenant access must be blocked"
+        );
+        assert!(cross_tenant_res
+            .unwrap_err()
+            .contains("outside your tenant"));
 
         // 4. Negative Path B: Sub-k cohort (< 5) returns threshold NOT met
-        let session_edu1 = ActiveSession(Mutex::new(AuthStatus::Authenticated("edu_tenant_1".to_string())));
-        let sub_k_res = execute_generate_school_report(&db_state, &session_edu1, student_ids[..4].to_vec()).unwrap();
-        assert!(!sub_k_res.k_anonymity_threshold_met, "Cohort < 5 must return k_anonymity_threshold_met = false");
+        let session_edu1 = ActiveSession(Mutex::new(AuthStatus::Authenticated(
+            "edu_tenant_1".to_string(),
+        )));
+        let sub_k_res =
+            execute_generate_school_report(&db_state, &session_edu1, student_ids[..4].to_vec())
+                .unwrap();
+        assert!(
+            !sub_k_res.k_anonymity_threshold_met,
+            "Cohort < 5 must return k_anonymity_threshold_met = false"
+        );
         assert_eq!(sub_k_res.cohort_size, 4);
 
         // 5. Positive Path: Full cohort (6 students >= 5) succeeds with DP noise & budget deduction
-        let valid_report = execute_generate_school_report(&db_state, &session_edu1, student_ids.clone()).unwrap();
+        let valid_report =
+            execute_generate_school_report(&db_state, &session_edu1, student_ids.clone()).unwrap();
         assert!(valid_report.k_anonymity_threshold_met);
         assert!(valid_report.differential_privacy_applied);
         assert!(valid_report.average_wellbeing > 0);
@@ -887,6 +937,8 @@ mod tests {
         let differencing_query = student_ids[..5].to_vec();
         let diff_res = execute_generate_school_report(&db_state, &session_edu1, differencing_query);
         assert!(diff_res.is_err(), "Differencing attack must be blocked");
-        assert!(diff_res.unwrap_err().contains("differencing attack detected"));
+        assert!(diff_res
+            .unwrap_err()
+            .contains("differencing attack detected"));
     }
 }
